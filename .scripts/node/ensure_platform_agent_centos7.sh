@@ -146,6 +146,16 @@ PYTHON="$(resolve_default_python)"
 AGENT_BOOTSTRAP_WAIT_SECONDS="${AGENT_BOOTSTRAP_WAIT_SECONDS:-180}"
 AGENT_BOOTSTRAP_RETRY_INTERVAL="${AGENT_BOOTSTRAP_RETRY_INTERVAL:-3}"
 PLATFORM_AGENT_BOOTSTRAP_TOKEN="${EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN:-${PLATFORM_AGENT_BOOTSTRAP_TOKEN:-}}"
+AGENT_RUNTIME_FILES=(
+  run_agent.py
+  agent_server.py
+  env_security.py
+  media_manager.py
+  mqtt_manager.py
+  workload_manager.py
+  agent_commands.py
+  stream_forward_executor.py
+)
 
 # CentOS 7 bash 4.2: 用 epoch 秒数代替 SECONDS，避免嵌套/重置干扰
 now_epoch() {
@@ -405,7 +415,7 @@ sync_agent_runtime_files() {
     return 0
   fi
   local f
-  for f in run_agent.py agent_server.py media_manager.py mqtt_manager.py workload_manager.py; do
+  for f in "${AGENT_RUNTIME_FILES[@]}"; do
     if [[ ! -f "${SOURCE_DIR}/${f}" ]]; then
       continue
     fi
@@ -420,8 +430,15 @@ sync_agent_runtime_files() {
 }
 
 agent_code_stale() {
-  [[ -f "${SOURCE_DIR}/run_agent.py" && -f "${INSTALL_DIR}/run_agent.py" ]] || return 1
-  ! cmp -s "${SOURCE_DIR}/run_agent.py" "${INSTALL_DIR}/run_agent.py"
+  local f
+  for f in "${AGENT_RUNTIME_FILES[@]}"; do
+    [[ -f "${SOURCE_DIR}/${f}" ]] || continue
+    if [[ ! -f "${INSTALL_DIR}/${f}" ]] \
+      || ! cmp -s "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}"; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 restart_agent_service() {
