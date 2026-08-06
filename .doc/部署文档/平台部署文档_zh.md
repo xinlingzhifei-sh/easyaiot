@@ -36,10 +36,11 @@ yFeiEye 采用 **Docker 容器化 + 统一安装脚本** 部署，平台由基�
 | 系统 | 脚本 |
 |------|------|
 | Linux x86 | `.scripts/docker/install_linux.sh` |
-| CentOS / RHEL 系 | `.scripts/docker/install_linux_centos.sh` |
+| CentOS / RHEL 系（x86） | `.scripts/docker/install_linux_centos.sh` |
+| **CentOS / RHEL 系 · ARM** | `.scripts/docker/install_linux_centos_arm.sh` |
 | **麒麟(Kylin)** | `.scripts/docker/install_linux_kylin.sh` |
 | **欧拉(openEuler)** | `.scripts/docker/install_linux_openeuler.sh` |
-| Linux ARM | `.scripts/docker/install_linux_arm.sh` |
+| Linux ARM（通用） | `.scripts/docker/install_linux_arm.sh` |
 | macOS | `.scripts/docker/install_mac.sh` |
 | Windows | `.scripts/docker/install_windows.ps1` / `install_windows.sh` |
 
@@ -119,8 +120,9 @@ sudo .scripts/docker/install_linux.sh install
 
 ### 环境前提
 
-- 操作系统：**Ubuntu 24.04+**（建议 26.04）；亦支持 **CentOS/RHEL 系**、ARM、**麒麟(Kylin) / 欧拉(openEuler)**
-- Docker + Docker Compose **v2.35+**（CentOS / **欧拉(openEuler)** 可用对应入口脚本自动安装/升级 Docker CE）
+- 操作系统：**Ubuntu 24.04+**（建议 26.04）；亦支持 **CentOS/RHEL 系 7～9**（含 Stream / Rocky / Alma，以及 **CentOS ARM**）、ARM、**麒麟(Kylin) / 欧拉(openEuler)**
+- Docker + Docker Compose **v2.35+**（CentOS / CentOS ARM / **欧拉(openEuler)** 可用对应入口脚本自动安装/升级 Docker CE）
+- PANEL 安装包：CentOS/RHEL 按 **el7 / el8 / el9**（x86 + aarch64）分别产出，详见 [COMPILE/README.md](../../COMPILE/README.md)
 - 磁盘可用空间 **≥ 300 GB**
 
 ```bash
@@ -136,8 +138,11 @@ cd easyaiot
 # Ubuntu / 通用 Linux x86
 sudo .scripts/docker/install_linux.sh
 
-# CentOS / RHEL / Rocky / Alma（推荐；自动升级 Docker CE、配置镜像源与 firewalld）
+# CentOS / RHEL / Rocky / Alma x86（推荐；自动升级 Docker CE、配置镜像源与 firewalld）
 # sudo .scripts/docker/install_linux_centos.sh
+
+# CentOS / RHEL 系 ARM（推荐；环境准备后转交 install_linux_arm.sh）
+# sudo .scripts/docker/install_linux_centos_arm.sh
 
 # openEuler（推荐；卸载自带 docker-engine、修复仓库 releasever、装 Docker CE）
 # sudo .scripts/docker/install_linux_openeuler.sh
@@ -155,21 +160,24 @@ cd easyaiot
 
 # 可选：拉取预构建镜像，缩短 install 耗时
 sudo .scripts/docker/install_linux.sh pull
-# CentOS：sudo .scripts/docker/install_linux_centos.sh pull
+# CentOS x86：sudo .scripts/docker/install_linux_centos.sh pull
+# CentOS ARM：sudo .scripts/docker/install_linux_centos_arm.sh pull
 # openEuler：sudo .scripts/docker/install_linux_openeuler.sh pull
 
 sudo .scripts/docker/install_linux.sh install
-# CentOS：sudo .scripts/docker/install_linux_centos.sh install
+# CentOS x86：sudo .scripts/docker/install_linux_centos.sh install
+# CentOS ARM：sudo .scripts/docker/install_linux_centos_arm.sh install
 # openEuler：sudo .scripts/docker/install_linux_openeuler.sh install
 
 .scripts/docker/install_linux.sh verify
-# CentOS：.scripts/docker/install_linux_centos.sh verify
+# CentOS x86：.scripts/docker/install_linux_centos.sh verify
+# CentOS ARM：.scripts/docker/install_linux_centos_arm.sh verify
 # openEuler：.scripts/docker/install_linux_openeuler.sh verify
 ```
 
 ### CentOS / RHEL 系说明
 
-适用：CentOS 7/8/Stream、Rocky Linux、AlmaLinux、RHEL 等。入口脚本会先完成环境准备，再转交 `install_linux.sh`：
+适用：**CentOS / RHEL 7、8、9**（含 Stream）、Rocky Linux、AlmaLinux 等 x86。入口脚本会先完成环境准备，再转交 `install_linux.sh`。PANEL RPM 亦按 **el7 / el8 / el9** 分包（`COMPILE/dist/centos-el{7,8,9}/`）。
 
 | 能力 | 说明 |
 |------|------|
@@ -189,6 +197,27 @@ sudo .scripts/docker/install_linux_centos.sh --no-upgrade-docker install
 ```
 
 单独中间件（CentOS 7.9）：`.scripts/docker/start_postgresql_centos7.sh`、`start_minio_centos7.sh`、`start_nodered_centos7.sh`、`start_fuxa_centos7.sh`。
+
+### CentOS / RHEL 系 · ARM 说明
+
+适用：aarch64/arm64 上的 **CentOS / RHEL 7、8、9**（含 Stream）、Rocky、Alma 等。入口脚本会先完成与 x86 CentOS 相同的环境准备，再转交 `install_linux_arm.sh`（ARM 镜像与 Dockerfile）。PANEL RPM 按 **el7 / el8 / el9** 分包（`COMPILE/dist/centos-arm-el{7,8,9}/`）：
+
+| 能力 | 说明 |
+|------|------|
+| 架构检查 | 仅允许 aarch64/arm64（x86 请改用 `install_linux_centos.sh`） |
+| Docker CE | 自动卸载旧版 docker，安装 docker-ce 20+（含 aarch64 仓库） |
+| 镜像源 | 写入 `/etc/docker/daemon.json`（DaoCloud） |
+| firewalld | 自动放行常用业务端口（可用 `--no-firewall` 跳过） |
+| 业务部署 | 委托 `install_linux_arm.sh`，默认 `DOCKER_PLATFORM=linux/arm64` |
+
+```bash
+# 仅准备 Docker CE（不部署业务）
+sudo .scripts/docker/install_linux_centos_arm.sh --upgrade-docker-only
+
+# 首次安装 / 跳过防火墙
+sudo .scripts/docker/install_linux_centos_arm.sh install
+sudo .scripts/docker/install_linux_centos_arm.sh --no-firewall install
+```
 
 ### **欧拉(openEuler)** 说明
 
@@ -483,7 +512,7 @@ cd .scripts/docker && ./analyze_merge_logs.sh --non-interactive --modules all --
 
 | 项目 | 要求 |
 |------|------|
-| 操作系统 | Ubuntu 24.04+（建议 26.04）；亦支持 macOS、Windows、CentOS/RHEL、ARM、**麒麟(Kylin) / 欧拉(openEuler)** |
+| 操作系统 | Ubuntu 24.04+（建议 26.04）；亦支持 macOS、Windows、CentOS/RHEL **7～9**（含 **CentOS ARM**）、ARM、**麒麟(Kylin) / 欧拉(openEuler)** |
 | CPU | 最低 4 核，推荐 8 核+ |
 | 内存 | 取决于部署规格（Linux full ≥ 20 GB；桌面 full 引擎目标 24 GB，主机建议 ≥ 32 GB） |
 | 磁盘 | 最低 300 GB 可用，推荐 500 GB+ SSD |
@@ -506,6 +535,6 @@ sudo usermod -aG docker $USER && newgrp docker
 
 ---
 
-**文档版本**：3.3  
-**最后更新**：2026-08-01  
-**脚本入口**：Linux `.scripts/docker/install_linux.sh`；macOS `install_mac.sh`；Windows `install_windows.ps1` / `install_windows.sh`（无参数 = 交互引导；`<命令>` = 直接执行）。桌面另支持 `bootstrap` / `mirrors` / `resources`。PANEL 编译见 `COMPILE/README.md`。
+**文档版本**：3.4<br>
+**最后更新**：2026-08-05<br>
+**脚本入口**：Linux `.scripts/docker/install_linux.sh`；CentOS x86 `install_linux_centos.sh`；CentOS ARM `install_linux_centos_arm.sh`；openEuler `install_linux_openeuler.sh`；ARM `install_linux_arm.sh`；macOS `install_mac.sh`；Windows `install_windows.ps1` / `install_windows.sh`（无参数 = 交互引导；`<命令>` = 直接执行）。桌面另支持 `bootstrap` / `mirrors` / `resources`。PANEL 编译见 `COMPILE/README.md`。

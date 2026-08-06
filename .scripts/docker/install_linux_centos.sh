@@ -217,7 +217,8 @@ check_centos_family() {
             ;;
         aarch64|arm64)
             print_warning "当前为 ARM 架构 ($arch)"
-            print_info "CentOS ARM 建议优先使用: install_linux_arm.sh / install_linux_kylin.sh"
+            print_info "CentOS ARM 推荐使用: sudo .scripts/docker/install_linux_centos_arm.sh"
+            print_info "（自动装 Docker CE 后转交 install_linux_arm.sh；麒麟可用 install_linux_kylin.sh）"
             print_info "本脚本仍可继续（将转交 install_linux.sh）"
             ;;
         *)
