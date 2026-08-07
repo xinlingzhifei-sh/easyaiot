@@ -35,6 +35,7 @@ const RPC_TOKEN_SERVICES = [
   'iot-file',
   'iot-message',
   'iot-sink',
+  'iot-gb28181',
 ];
 
 function normalizeKey(key) {
