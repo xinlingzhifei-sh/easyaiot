@@ -86,4 +86,15 @@ assert.match(
   'The existing VIDEO plate download User-Agent must remain stable.',
 )
 
+assert.equal(
+  JSON.parse(readFileSync(resolve(repoRoot, 'SITE/package.json'), 'utf8')).name,
+  'yfeieye-site',
+  'The SITE package metadata must use the yFeiEye brand.',
+)
+assert.equal(
+  JSON.parse(readFileSync(resolve(repoRoot, 'PANEL/ui/package.json'), 'utf8')).name,
+  'yfeieye-panel-ui',
+  'The PANEL package metadata must use the yFeiEye brand.',
+)
+
 assert.deepEqual(violations, [], `Old visible brand remains:\n${violations.join('\n')}`)

@@ -42,7 +42,7 @@ yFeiEye 官方網站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-平臺由 <strong>WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TRANSFORM、PANEL、SITE</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>大疆機場與無人機空中視角接入</strong>、即時與抓拍算法任務、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、可編排業務後處理、聯邦算力集羣調度，以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、三檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置。
+平臺由 <strong>WEB、APP、DEVICE、NODE、VIDEO、RTC、AI、RUNTIME、EDGE、VISUALIZE、TRANSFORM、PANEL、SITE</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>RTC 消費級攝像頭 P2P 橋接</strong>（基於 go2rtc，覆蓋 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——門店 Tapo 補盲、塗鴉白牌納管、海外 Ring/Nest 門鈴、米家存量利舊、Wyze 低成本擴點、DoorBird 門口對講、GoPro 機動機位、石頭掃地機移動視角等場景，Web 一鍵接入並納入統一視頻與 AI 研判閉環）、<strong>大疆機場與無人機空中視角接入</strong>、即時 / 抓拍 / 巡檢算法任務、<strong>RUNTIME 高性能視頻執行器</strong>（統一加速即時分析、抓拍識別與智能巡檢；並讓<strong>多路原畫預覽</strong>也能以極低資源開銷穩定上屏，不必「想看圖就先燒滿 CPU」；即時研判另可同步給出帶框畫面；支持計算節點<strong>原子模式</strong>只裝執行器、告警匯聚中心）、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、可編排業務後處理、聯邦算力集羣調度，以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、三檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -83,6 +83,46 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 | ![一鍵部署](.image/banner/panel/panel_1003.png) | ![鏡像就緒](.image/banner/panel/panel_1004.png) | ![鏡像拉取](.image/banner/panel/panel_1005.png) |
 | ![系統診斷](.image/banner/panel/panel_1006.png) | ![系統維護](.image/banner/panel/panel_1007.png) | ![服務拓撲](.image/banner/panel/panel_1008.png) |
 
+### 📡 RTC：消費級攝像頭 P2P 橋接，讓「沒有 RTSP」的設備也能進平臺
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+家庭、門店與輕量安防場景裡，大量已在用的設備來自 <strong>Tapo、塗鴉、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 等品牌——它們普遍走廠商私有 P2P 協議，<strong>原生不提供標準 RTSP</strong>，傳統視頻監控平臺往往只能勸用戶另搭 Micam、Home Assistant 等中間件，接入鏈路長、運維割裂、AI 研判接不進來。yFeiEye 新增獨立 <strong>RTC 模組</strong>，基於開源項目 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a>，<strong>一次打通上述九大品牌的取流與對講能力</strong>，把 P2P 橋接與平臺編排收成一體——消費級設備也能像國標/ONVIF 攝像頭一樣，<strong>註冊、預覽、推流轉發、掛 AI 任務、告警聯動</strong>全鏈路打通。
+</p>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+<strong>已覆蓋品牌與典型價值場景：</strong>
+</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px;">
+<tr>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50; width: 14%;">品牌</td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50; width: 18%;">廠商 / 生態</td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50; width: 28%;">典型設備</td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50;">落地價值</td>
+</tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Tapo</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">TP-Link</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">家用 IPC、室內/室外槍機、球機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">門店、出租屋、小微店鋪<strong>低成本補盲</strong>；雲密碼直連，支持<strong>雙向對講</strong></td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Tuya</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">塗鴉智能</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">塗鴉生態 IPC、門鈴、室內機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;"><strong>海量白牌/OEM 攝像頭</strong>一次納管；出海與國內塗鴉系設備統一接入</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Ring</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">Amazon</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">門鈴、室外機、Spotlight Cam</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">海外社區、跨境電商倉<strong>門鈴監控入平臺</strong>；帳號綁定後本地 P2P 取流，支持<strong>遠程對講</strong></td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Nest</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">Google</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">Nest Cam、Doorbell</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">高端住宅、涉外項目<strong>Google 生態門鈴/攝像頭</strong>納入統一值守</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>小米</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">米家 / Mi Home</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">米家攝像機、智能門鈴、室外機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">國內家庭與連鎖門店<strong>存量米家設備利舊</strong>；免 Micam 中間件，直連平臺掛 AI 分析</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Wyze</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">Wyze</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">Wyze Cam v3/v4、門鈴、室外機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;"><strong>極致性價比攝像頭</strong>批量入平臺；本地 P2P、支持<strong>雙向對講</strong></td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>DoorBird</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">DoorBird</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">智能門鈴、門口機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">別墅、高端社區<strong>門口可視對講</strong>與平臺告警聯動</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>GoPro</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">GoPro</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">HERO9–12（USB / Wi-Fi）</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">巡檢、應急、運動視角<strong>機動機位</strong>；臨時機位快速入流</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>Roborock</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top;">石頭科技</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;">S6/S7/Qrevo MaxV 等帶攝像頭掃地機</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;"><strong>移動視角補盲</strong>——家具底部、床底等固定攝像頭看不到的區域</td></tr>
+</table>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Web 一鍵接入</strong>：管控臺「接入 RTC 攝像頭」入口，按品牌動態表單填參；Ring / Nest / 小米 / Wyze / Roborock 等 OAuth 類平臺經 go2rtc WebUI 完成帳號綁定後，複製源流 URL 即可登記</li>
+  <li><strong>全鏈路已打通</strong>：WEB 註冊 → VIDEO <code>/register/device/rtc-live</code> → RTC 管理 API → go2rtc P2P 取流 → 標準 RTSP 輸出 → SRS 推流轉發 → Jessibuca 播放與 AI 分析，<strong>九大品牌同一套流程</strong></li>
+  <li><strong>雙向對講</strong>：Tapo、Tuya、Ring、Wyze、DoorBird、Roborock 支持 go2rtc 雙向音頻，門鈴對講、遠程喊話與告警聯動可擴展</li>
+  <li><strong>生命週期聯動</strong>：設備刪除時自動清理 go2rtc 流配置；與設備目錄、地圖布點、算法任務體系無縫銜接</li>
+  <li><strong>Docker 一體化</strong>：<code>bash RTC/install_linux.sh start</code> 同時運行 go2rtc 核心與 Python 管理服務，host 網路適配 P2P 局域網直連</li>
+</ul>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+📖 詳細接入文檔見 <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC 模組 README</a>。
+</p>
+
 ### 🎯 三檔硬體，一套平臺
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -114,7 +154,10 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 #### 🧠 AI能力
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>平台名稱與 Logo 全觸點自訂</strong>：同一套 yFeiEye 部署到現場後，用戶看到的應是「自己的平台」，而不是通用產品名。監控大屏內建可視化「平台標識設置」，管理員在界面中即可完成品牌替換——管理後台可改平台名稱與 Logo（同步側邊欄、瀏覽器標題）；監控大屏可獨立設置指揮標題；登錄頁可自訂名稱、Logo、表單標題及淺色/深色背景圖，三處視覺統一、即時生效，並支持保存與一鍵重置。
+  <li><strong>RUNTIME 高性能視頻執行器</strong>：把現場視頻從「能看、能算」推進到「路數開得起、值守跟得上」——同一套執行能力覆蓋<strong>即時研判、定時抓拍、多路巡檢</strong>，並同時支撐<strong>多路原畫上屏</strong>。業務上可做到：園區 NVR 數十路先保證「看得清、不卡頓」，再按需只對重點通道開 AI；原畫預覽與帶框研判畫面可同屏切換，互不拖垮；檢測標註清晰易讀，減少「框糊、誤報搶眼」干擾值班判斷。平臺側繼續負責設備編排、告警歸檔與權限管控，執行層專注吞吐與時延，讓擴路、加場景不必先換整機。詳見 <a href="RUNTIME/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RUNTIME/README.md</a></li>
+  <li><strong>高性能推流轉發</strong>：面向「要先把畫面鋪滿大屏 / 分屏，不必每路都開算法」的真實交付——NVR 批量通道、樓宇多點位可一鍵建轉發任務，默認走高性能模式，讓多路原畫以更低資源開銷穩定上牆；特殊現場仍可切回兼容模式。原畫觀看與 AI 研判可同設備並行：值守既能看未標註實況，也能切到帶框結果；算法啓停後轉發策略自動跟進，少一次手工改配置、少一輪聯調返工。配套並排預覽能力，驗收時直接對比延時與標註效果，縮短「裝完還要對半天畫面」的週期</li>
+  <li><strong>RUNTIME 原子模式（計算節點輕裝部署）</strong>：邊緣算力盒 / 集羣工作節點可<strong>只裝 RUNTIME 執行器</strong>，本機不部署 VIDEO/WEB/DEVICE——裝機更輕、故障面更小、擴容更快。節點通過 <code>VIDEO_BASE_URL</code> 把告警與心跳匯聚到中心 VIDEO；中心下發正式算法任務（即時 / 抓拍 / 巡檢，<code>executor=cpp</code>）時由同一二進制承接，其中即時任務仍默認推帶框檢測流到中心/集羣 SRS。原子 ≠ 永不推流：原子只表示「本機無業務面」，智能與畫面仍回中心統一研判。一鍵入口：<code>VIDEO_BASE_URL=http://&lt;中心&gt;:6000 bash .scripts/docker/install_linux.sh runtime</code>；亦可經 WEB「業務運行時分發」批量 SSH 安裝到節點</li>
+  <li><strong>平臺名稱與 Logo 全觸點自定義</strong>：同一套 yFeiEye 部署到現場後，用戶看到的應是「自己的平臺」，而不是通用產品名。監控大屏內置可視化「平臺標識設置」，管理員在界面中即可完成品牌替換——管理後臺可改平臺名稱與 Logo（同步側邊欄、瀏覽器標題）；監控大屏可獨立設置指揮標題；登入頁可自定義名稱、Logo、表單標題及淺色/深色背景圖，三處視覺統一、即時生效，並支持保存與一鍵重置。
     <ul style="margin: 5px 0; padding-left: 20px;">
       <li><strong>對系統集成商與方案商</strong>：省去前端改膚、二次開發與發版成本；PoC 演示與正式交付可快速切換爲客戶品牌，同一套代碼支撐多客戶項目，縮短回款週期、提高方案複用率</li>
       <li><strong>對政府、園區、醫院等行業終端用戶</strong>：登入頁、指揮大屏與日常管理後臺均呈現本單位名稱與標識，領導視察與對內推廣更有歸屬感與公信力，符合機關、事業單位及大型企業的資訊化品牌展示要求</li>
@@ -123,8 +166,9 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   </li>
   <li><strong>YOLO26 新一代目標檢測能力</strong>：平臺內置最新一代目標檢測能力，開箱即可用於即時畫面分析與抓拍識別，在相同硬體條件下可接入更多路攝像頭、響應更快、誤報更少。支持從數據採集、標註、訓練到上線推理的完整閉環，幫助用戶以更低成本持續迭代專屬檢測模型，快速覆蓋安全帽佩戴、人員闖入、煙火隱患等各類常見安防與工業場景，讓「看得準、算得快、擴得動」成爲預設可用能力</li>
   <li><strong>YOLO26 人體姿態分析</strong>：在目標檢測能力之上新增人體關鍵點與骨架姿態分析，開箱即用，支持圖片、視頻與攝像頭即時流三種輸入方式。圖片模式可同步輸出骨架標註與人數統計；視頻模式支持進度跟蹤與結果下載；攝像頭模式可對接 RTSP/RTMP 即時取流，將姿態識別結果疊加推流回顯，便於遠程盯防與行爲研判。模型推理頁提供「姿態分析」與「目標檢測」一鍵切換，適用於工地作業規範、健身動作評估、人羣聚集態勢感知等需要「看清人體結構與動作形態」的場景，讓平臺從「框出目標」進一步走向「理解姿態」</li>
-  <li><strong>多協議攝像頭接入支持</strong>：全面支持 GB28181 和 ONVIF 兩大主流視頻監控協議，實現標準化設備接入與管理。GB28181 作爲中國國家標準，完美適配國內主流監控設備；ONVIF 作爲國際通用標準，廣泛兼容全球主流品牌攝像頭。通過雙協議支持，平臺能夠無縫對接現有監控系統，實現設備的即插即用、自動發現與統一管理，大幅降低設備接入門檻，提升系統兼容性與擴展性，爲大規模攝像頭部署提供堅實的技術基礎。此外，新增 NVR 同網段/跨網段批量掃描、註冊與統一管控能力，覆蓋海康、大華、華爲、螢石、小米等主流品牌，支持基於設備原生協議的網段發現、一鍵登記及通道批量導入，進一步降低大規模監控設備的接入與運維成本</li>
+  <li><strong>多協議攝像頭接入支持</strong>：全面支持 GB28181 和 ONVIF 兩大主流視頻監控協議，實現標準化設備接入與管理。GB28181 作爲中國國家標準，完美適配國內主流監控設備；ONVIF 作爲國際通用標準，廣泛兼容全球主流品牌攝像頭。通過雙協議支持，平臺能夠無縫對接現有監控系統，實現設備的即插即用、自動發現與統一管理，大幅降低設備接入門檻，提升系統兼容性與擴展性，爲大規模攝像頭部署提供堅實的技術基礎。此外，新增 NVR 同網段/跨網段批量掃描、註冊與統一管控能力，覆蓋海康、大華、華爲、螢石、小米等主流品牌，支持基於設備原生協議的網段發現、一鍵登記及通道批量導入；對於米家等原生不支持 RTSP 的消費級攝像頭，可通過 <strong>RTC 模組（go2rtc 橋接）</strong>納入同一平臺，進一步降低大規模監控設備的接入與運維成本</li>
   <li><strong>大疆機場 / 無人機空中視角接入</strong>：突破固定攝像頭「只能看地面、難覆蓋廣域」的布控侷限，將大疆司空體系下的機場與無人機高空畫面納入平臺統一視頻與 AI 研判閉環。流媒體模組提供「接入大疆直播」能力：支持<strong>司空 API 開啓直播</strong>與<strong>手動直播源</strong>兩種接入方式——API 模式一鍵拉起廠家直播流並自動登記設備；手動模式則支持直接填入 RTSP / RTMP / HTTP-FLV / HLS 等直播源。接入後空中畫面可與國標/ONVIF 固定點位同屏共管，管理者可像管理固定攝像頭一樣調閱機場與飛行器實況，並進一步掛接即時 AI 分析、告警聯動與證據留存，快速覆蓋廣域巡查、應急勘察、周界補盲等傳統固定點位難以觸及的場景，顯著縮短「發現異常—鎖定現場—聯動處置」的響應鏈條，讓智慧安防從平面布控升級到天地一體協同感知</li>
+  <li><strong>RTC 消費級攝像頭 P2P 橋接</strong>：一次打通 <strong>Tapo（TP-Link 家用/門店 IPC）、Tuya（塗鴉系白牌海量設備）、Ring / Nest（海外門鈴生態）、小米米家（國內家庭存量利舊）、Wyze（高性價比補點）、DoorBird（高端門口對講）、GoPro（機動巡檢機位）、Roborock（掃地機移動視角）</strong> 九大品牌——它們原生均不支持標準 RTSP，RTC 模組基於 go2rtc 提供 P2P 橋接與統一管理 API。Web 管控臺「接入 RTC 攝像頭」按品牌動態引導填參或 OAuth 綁定，一鍵完成 go2rtc 流註冊、VIDEO 設備登記與 SRS 推流轉發；橋接後與國標/ONVIF 專業攝像機<strong>同屏共管、同掛 AI 任務、同走告警聯動</strong>，把「家裡/門店已在用的攝像頭」和「項目裡的專業攝像機」納入同一套視頻研判體系</li>
   <li><strong>即時對講與雲臺遠控</strong>：打破「只能看、不能管」的傳統監控侷限，值守人員在即時預覽同屏即可完成語音喊話與雲臺操控——無需切換系統、不必親臨現場，即可遠程溝通、引導疏散或制止違規行爲，把響應從「派人到場」壓縮到「開口即達」。雲臺操控讓攝像頭隨心轉向、變焦聚焦，突發情況可迅速對準事發區域、放大細節，形成「看得清、指得準、喊得到」的一體化現場處置閉環。全面兼容 GB28181 與 ONVIF 設備，利舊現有監控資產，無需額外購置對講主機或第三方軟體，讓存量攝像頭即刻具備遠程溝通與靈活調度能力，顯著降低系統孤島與值守成本</li>
   <li><strong>可編排算法後處理</strong>：突破「只能檢出、難以研判」的能力瓶頸，在目標檢測之上增設獨立的業務研判層，將畫面感知結果轉化爲可運營、可追責、可統計的業務事件。支持按任務靈活定義人數統計、越線通行、停留超時、區域滯留、多條件複合告警等場景規則，無需反覆調整模型即可快速適配工地安監、園區安防、交通管控等差異化需求，把通用視覺能力鍛造成貼近現場的管理抓手。後處理與即時分析彼此獨立、並行運轉——監控畫面持續流暢研判，業務邏輯按需彈性擴展，研判結果自動沉澱存檔並驅動精準告警，顯著降低誤報漏報與人工複覈成本。業務人員專注規則表達，平臺負責分發執行與規模承載，讓「看得見」真正走向「判得清、管得住、用得起來」</li>
   <li><strong>多中心節點 × 多工作節點聯邦集羣</strong>：面向跨區域、多機房與雲邊協同部署，平臺採用「N 箇中心節點 + N 個工作節點」聯邦架構——中心節點統一編排，工作節點承載算力與媒體執行，可橫向擴展。每個中心節點納管本域工作節點，支持流媒體、音視頻轉碼、視頻分析、模型推理與訓練等能力的遠程分發與一鍵部署；多中心可互聯同步，集羣泳道視圖直觀呈現「中心—工作」拓撲與資源水位。算法任務、自動標註流水線、推流轉發等工作負載按節點角色與 GPU 能力智能調度，讓海量路數接入、高併發推理與分佈式訓練在同一集羣中協同運轉，真正做到「納得進、分得清、擴得開、管得全」</li>
@@ -134,7 +178,7 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>天地圖空間可視化與以圖研判</strong>：接入國家天地圖，將攝像頭、告警與人車識別能力匯聚到一張地圖，讓監控從「看畫面」升級爲「看全局」。流媒體與告警模組均提供「地圖分佈」視圖，配合設備目錄樹按區域聚焦，一眼掌握卡口布局與在線狀態；支持地圖點選、地點搜索與批量導入座標，國標通道、NVR 通道與直連攝像頭均可快速完成布點，讓每路畫面都有清晰的空間歸屬。告警事件自動關聯攝像頭座標上圖展示，可按時間、事件類型、任務與業務標籤篩選，選中即可查看抓拍與錄像，幫助值守人員從「哪裏出事」快速切入處置。結合人臉庫與車牌庫識別能力，可將同一目標在多個點位上的命中記錄串聯成空間脈絡——<strong>以人尋跡</strong>，還原重點人員在布控範圍內的出現路線與活動範圍；<strong>以車尋跡</strong>，串聯過車記錄，快速定位車輛行經路徑與停留區域，爲尋人找車、巡防布控與事後覆盤提供直觀線索。移動類設備還支持軌跡回放，按時間軸重現巡邏與行進路線；矢量地圖與衛星影像隨心切換，自動適應視野，讓管理者以地圖爲綱、以圖爲媒，更快發現異常、鎖定目標、指揮調度</li>
   <li><strong>Qwen / DeepSeek 多卡部署</strong>：支持將 Qwen、DeepSeek 等大語言模型以多卡並行方式部署上線，可按集羣靈活調度 GPU 算力，實現模型實例的彈性擴縮與負載均衡，滿足高併發推理與長上下文場景下的穩定服務能力</li>
   <li><strong>視覺大模型智能理解</strong>：集成QwenVL3視覺大模型，支持對即時視頻畫面進行深度視覺推理與語義理解，能夠對畫面內容進行智能分析與場景理解，提供更豐富的視覺認知能力，實現從像素級感知到語義級理解的跨越</li>
-  <li><strong>攝像頭即時畫面 AI 分析</strong>：面向 RTSP/RTMP 即時視頻流提供從拉流、抽幀、模型推理到結構化出數與告警聯動的全鏈路分析能力，以毫秒級響應將畫面變化即時轉化爲可檢索、可研判的結構化檢測事件。觀看與算法鏈路相互獨立，兼顧預覽清晰度與高路數併發吞吐；分析結果可無縫銜接檢測區域、佈防時段、人臉/車牌識別及可編排後處理規則，將傳統「人盯屏、事後翻」的值守模式升級爲「機器全時盯、異常秒推送、證據自動留」，讓即時視頻從被動觀看真正變爲主動感知與智能研判的基礎設施</li>
+  <li><strong>攝像頭即時畫面 AI 分析</strong>：面向 RTSP/RTMP 即時視頻流提供從拉流、解碼、模型推理到結構化出數與告警聯動的全鏈路分析能力；默認可由 <strong>RUNTIME C++</strong> 承接（與抓拍、巡檢共用同一執行器體系），以毫秒級響應將畫面變化即時轉化爲可檢索、可研判的結構化檢測事件，並<strong>默認推送帶框檢測流</strong>供值守切換研判。觀看（原畫）與算法（檢測畫）鏈路相互獨立，兼顧預覽清晰度與高路數併發吞吐；分析結果可無縫銜接檢測區域、佈防時段、人臉/車牌識別及可編排後處理規則，將傳統「人盯屏、事後翻」的值守模式升級爲「機器全時盯、異常秒推送、證據自動留」，讓即時視頻從被動觀看真正變爲主動感知與智能研判的基礎設施</li>
   <li><strong>攝像頭智能巡檢</strong>：面向路數多、值守人力有限的監控場景，提供分屏巡檢與設備目錄批量巡檢能力，對大規模攝像頭進行輪巡式 AI 分析。支持輪詢、連接池、混合三種調度模式——可按設定間隔自動抓拍、運行檢測模型並聯動告警與人臉/車牌識別；混合模式下焦點路常駐盯防、背景路輪巡，兼顧重點布控與全域覆蓋。巡檢進度即時可見，抓拍自動留存，支持從分屏畫面或設備目錄一鍵拉起數百路巡檢，以「少連接、廣覆蓋、快發現」的方式，將傳統人工逐屏翻看的值守模式升級爲智能化自動巡檢</li>
   <li><strong>雲邊端一體算法預警監控大屏</strong>：提供統一的雲邊端一體化算法預警監控大屏，即時展示設備狀態、算法任務運行情況、告警事件統計、視頻流分析結果等關鍵資訊，支持多維度數據可視化展示，實現雲端、邊緣端、設備端的統一監控與管理，爲決策者提供全局視角的智能監控指揮中心</li>
   <li><strong>人臉識別與人臉庫管理能力</strong>：支持在攝像頭任務中靈活開啓人臉識別能力，提供人臉庫與人臉特徵管理體系，支持樣本/特徵的新增、查詢、更新、刪除與高效檢索。支持對抓拍畫面進行人臉比對與身份檢索，完整記錄匹配結果、抓拍圖片、攝像頭位置資訊與設備上下文，便於後續人員軌跡追溯、安防取證與多維度統計分析</li>
@@ -142,18 +186,19 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>設備檢測區域繪製</strong>：提供可視化的設備檢測區域繪製工具，支持在設備抓拍圖片上繪製四邊形和多邊形檢測區域，支持區域與算法模型靈活關聯配置，支持區域的可視化管理、編輯、刪除等操作，支持快捷鍵操作提升繪製效率，實現精準的區域檢測配置，爲算法任務提供精確的檢測範圍定義</li>
   <li><strong>智能聯動告警機制</strong>：支持檢測區域、佈防時段和事件告警的三重聯動機制，系統會智能判斷檢測到的事件是否同時滿足指定的檢測區域範圍、處於佈防時段內且匹配告警事件類型，只有同時滿足這三個條件時纔會觸發告警，實現精準的時空條件過濾，大幅降低誤報率，提升告警系統的準確性和實用性</li>
   <li><strong>大規模攝像頭管理</strong>：支持百級攝像頭接入，提供採集、標註、訓練、推理、導出、分析、告警、錄像、存儲、部署等全流程服務</li>
-  <li><strong>算法任務管理</strong>：支持創建和管理兩種類型的算法任務，每個算法任務可靈活綁定抽幀器和排序器，實現精準的視頻幀提取與結果排序
+  <li><strong>算法任務管理</strong>：支持創建和管理即時、抓拍、巡檢等類型的算法任務，每個算法任務可靈活綁定抽幀器和排序器，實現精準的視頻幀提取與結果排序
     <ul style="margin: 5px 0; padding-left: 20px;">
-      <li><strong>即時算法任務</strong>：用於即時畫面分析，支持RTSP/RTMP流即時處理，提供毫秒級響應能力，適用於監控、安防等即時場景</li>
-      <li><strong>抓拍算法任務</strong>：用於抓拍圖像分析，對抓拍圖片進行智能識別與分析，適用於事件回溯、圖像檢索等場景</li>
+      <li><strong>即時算法任務</strong>：用於即時畫面分析，支持 RTSP/RTMP 流處理；執行後端默認 <code>executor=cpp</code>（拉起 RUNTIME，默認推帶框 AI 流並回傳告警/心跳），亦可選 <code>python</code>，適用於監控、安防等即時場景</li>
+      <li><strong>抓拍算法任務</strong>：用於抓拍圖像分析；默認亦可走 <code>executor=cpp</code>（RUNTIME SnapScheduler / Cron 調度），對抓拍畫面智能識別，適用於事件回溯、圖像檢索等場景</li>
+      <li><strong>巡檢算法任務</strong>：面向多路輪巡與連接池調度；默認亦可走 <code>executor=cpp</code>（RUNTIME PatrolScheduler），以「少連接、廣覆蓋」完成批量 AI 巡檢</li>
     </ul>
   </li>
   <li><strong>數據集標註與多格式數據集管理</strong>：內置可視化圖像標註工作臺，支持矩形框、多邊形等標註形態，以及標註類別管理與進度跟蹤；全面兼容 YOLO、COCO、ImageFolder 等主流數據集格式的靈活導入與導出，並打通雲平臺數據集通道，支持雲端數據集的一鍵導入與同步導出，貫通「數據採集—人工標註—模型訓練—部署推理」全流程閉環</li>
   <li><strong>多卡訓練、斷點續訓與節點側部署</strong>：突破「有卡用不上、任務控不住、中斷成果丟」的訓練瓶頸，打通多卡算力利用、任務可控調度與節點側部署，讓現場 GPU 真正用得上、訓練任務真正控得住。平臺可自動識別並調度伺服器全部 GPU，用戶可在訓練頁按需選擇單卡或多卡；兼容多種常見數據集格式，支持大容量本地數據集上傳，訓練失敗後仍可保留原始數據快速重試。訓練進度全程可見，任務可停可續，本地與遠程訓練失敗時也能及時回退並給出清晰反饋，讓「訓練—發佈—使用」閉環更順暢可靠</li>
-  <li><strong>推流轉發</strong>：支持在無需啓用AI分析功能的情況下，直接觀看攝像頭即時畫面。通過創建推流轉發任務，可將多路攝像頭進行批量推送，實現多路視頻流的同步觀看，滿足純視頻監控場景需求</li>
+  <li><strong>推流轉發</strong>：支持在不啓算法的情況下直接觀看攝像頭即時畫面；多路批量推送、NVR 通道自動建任務開箱可用。默認高性能模式讓多路原畫更省資源、更易上牆，適合「大屏先鋪滿、重點通道再開 AI」；特殊環境可切兼容模式，兼顧交付彈性與現場兼容</li>
   <li><strong>GPU 探測、負載分配與多卡協同</strong>：平臺具備 GPU 資源探測與智能分配能力，可自動識別可用 GPU 數量，並依據各卡即時負載將視頻編解碼與算法推理任務動態調度到多卡並行執行，在保障穩定性的前提下提升多路流處理吞吐與算力利用率，實現多卡場景下的畫面編解碼與模型推理協同</li>
   <li><strong>智能傳輸協議與拉流高可靠</strong>：在 RTSP 等拉流鏈路上，系統可按場景自動選擇合適的傳輸方式以兼顧時延與穩定性。當出現灰屏、解碼異常或畫面停滯時，自動觸發重連與鏈路恢復，降低長時間花屏、卡死對業務的影響</li>
-  <li><strong>觀看鏈路與算法鏈路分離及分級碼率</strong>：將「即時預覽/大屏觀看」與「算法分析抽幀」相互解耦、獨立調度。觀看側優先保障畫清晰、少卡頓；算法側在檢測精度與算力/帶寬佔用之間取得平衡，避免分析任務與觀看任務爭搶同一通道，保障「看得清、不卡斷」與「算得動、可擴展」兼顧</li>
+  <li><strong>觀看與研判雙通路</strong>：把「大屏/分屏看原畫」與「算法看結果」拆開調度——值守側優先保證畫面清晰、流暢；研判側獨立輸出帶框結果，兩邊互不搶路、互不拖垮。同一攝像頭可同時保留實況與分析畫面，值班切換更自然，擴路時也不必在「看得清」和「算得動」之間二選一</li>
   <li><strong>模型服務集羣推理</strong>：支持分佈式模型推理服務集羣，實現智能負載均衡、故障自動切換與高可用保障，大幅提升推理吞吐量與系統穩定性</li>
   <li><strong>佈防時段管理</strong>：支持全防模式和半防模式兩種佈防策略，可靈活配置不同時段的佈防規則，實現精準的時段化智能監控與告警</li>
   <li><strong>OCR與語音識別</strong>：提供高精度文字識別與語音轉文本能力，支持多語言識別</li>
@@ -240,7 +285,7 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>跨端覆蓋</strong>：手機、小程序與 App 多端可用，運維與管理不必綁在工位前，現場也能即時查看與處置</li>
   <li><strong>能力對齊</strong>：移動端與 PC 管控臺業務能力一致，換端不換功，管控體驗無縫銜接</li>
   <li><strong>設備管理</strong>：多種接入方式統一納管，列表與通道一目瞭然，點開即可即時看圖，外出巡檢同樣心中有數</li>
-  <li><strong>推流轉發</strong>：隨時創建與啓停轉發任務，掌握集羣節點與各路流狀態，遠程也能調度視頻資源</li>
+  <li><strong>推流轉發</strong>：隨時創建與啓停轉發任務，掌握節點與各路畫面狀態；多路原畫可高效上屏，外出也能調度視頻資源</li>
   <li><strong>算法任務</strong>：即時與抓拍算法任務隨手啓停，檢測成效隨時掌握，異常發現不必等回辦公室</li>
   <li><strong>告警中心</strong>：告警隨手檢索，抓拍與錄像即點即看，移動值守也能快速覈實與跟進</li>
   <li><strong>模型管理</strong>：模型上線狀態一眼可查，部署進展心中有數</li>
@@ -275,11 +320,11 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 ### 💡 技術理念
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-我們認為沒有任何一個編程語言能夠擅長所有事情，但通過三種編程語言的深度融合，yFeiEye將發揮各自優勢，構建強大的技術生態。
+我們認爲沒有任何一個編程語言能夠擅長所有事情，但通過五種編程語言的深度融合，yFeiEye將發揮各自優勢，構建強大的技術生態。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java擅長構建穩定可靠的平臺架構，但不適合網絡編程和AI編程；Python擅長網絡編程和AI算法開發，但在高性能任務執行方面存在瓶頸；C++擅長高性能任務執行，但在平臺開發和AI編程方面不如前兩者。yFeiEye采用三合一語言混編架構，充分發揮各語言優勢，構建一個實現頗具挑戰，但使用極其便捷的AIoT平臺。
+Java擅長構建穩定可靠的平臺架構，卻不適合網路編程與AI開發；Python擅長網路編程與AI算法，卻在高性能執行上存在瓶頸；C++擅長高性能任務執行，卻不宜承擔平臺架構與AI編程；Go擅長高併發網路編程與協議實現，卻不宜承擔平臺管控與AI算法；TypeScript擅長複雜前端交互與類型安全的工程化界面，卻不宜承擔後端高性能計算與AI推理。yFeiEye採用五合一語言混編架構，讓各語言各司其職，構建一個實現頗具挑戰、使用卻極其便捷的AIoT平臺。
 </p>
 
 ![yFeiEye平臺架構](.image/iframe2-yfeieye.png)
@@ -299,7 +344,7 @@ Java擅長構建穩定可靠的平臺架構，但不適合網絡編程和AI編�
 ### 🏗️ 項目架構特點
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-yFeiEye是一組可獨立部署、亦可協同組成完整平臺的模組。
+yFeiEye其實不是一個項目，而是多個可獨立部署的子項目（含 WEB、DEVICE、VIDEO、RTC、AI 等）。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -362,7 +407,7 @@ yFeiEye積極響應在地化戰略，全面支持在地化硬體和作業系統�
 ## 🧩 項目結構
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye由 WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TRANSFORM、PANEL、SITE 等核心模組組成，並配套 COMPILE 多平臺打包交付能力：
+yFeiEye 由 WEB、APP、DEVICE、NODE、VIDEO、RTC、AI、RUNTIME、EDGE、VISUALIZE、TRANSFORM、PANEL、SITE 等核心模組組成，並配套 COMPILE 多平臺打包交付能力：
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -383,7 +428,13 @@ yFeiEye由 WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TR
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>WEB模組</strong></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">前端管理界面，提供統一的用戶交互體驗</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>統一管控界面</strong>：前端管理界面，提供統一的用戶交互體驗</li>
+    <li><strong>多協議設備接入嚮導</strong>：IPC / NVR / 國標 / RTC 平台分 Tab 引導，支持 ONVIF 掃描、跨網段掃描、手動 RTSP、大疆直播與消費級攝像頭 P2P 接入</li>
+    <li><strong>RTC 平台接入</strong>：「接入 RTC 攝像頭」快捷入口，按 <strong>Tapo / Tuya / Ring / Nest / 小米 / Wyze / DoorBird / GoPro / Roborock</strong> 九大品牌動態表單填參，OAuth 平台引導至 go2rtc WebUI 完成綁定</li>
+  </ul>
+</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>APP模組</strong></td>
@@ -391,8 +442,8 @@ yFeiEye由 WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TR
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>跨端覆蓋</strong>：一套建設、多端觸達，手機、小程序與 App 均可使用</li>
     <li><strong>能力對齊</strong>：與 PC 管控臺業務能力一致，支持多租戶切換</li>
-    <li><strong>設備管理</strong>：直連攝像頭、GB28181、NVR 等多協議統一納管，在線狀態與通道瀏覽，設備詳情內一鍵即時預覽</li>
-    <li><strong>推流轉發</strong>：推流任務創建、啓停、集羣節點狀態與多路流地址查看</li>
+    <li><strong>設備管理</strong>：直連攝像頭、GB28181、NVR、RTC 消費級攝像頭等多協議統一納管，在線狀態與通道瀏覽，設備詳情內一鍵即時預覽</li>
+    <li><strong>推流轉發</strong>：推流任務創建、啓停、節點狀態與多路畫面查看；支持高性能 / 兼容模式按現場切換</li>
     <li><strong>算法任務</strong>：即時/抓拍算法任務列表、啓停控制與檢測/幀數統計</li>
     <li><strong>告警中心</strong>：告警事件檢索、抓拍圖預覽、告警錄像點播回放</li>
     <li><strong>模型與 AI</strong>：模型列表與部署狀態、移動端圖片推理工作臺、訓練任務進度監控與停止</li>
@@ -432,10 +483,27 @@ yFeiEye由 WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TR
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>VIDEO模組</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
-    <li><strong>流媒體處理</strong>：支持RTSP/RTMP流即時處理與傳輸</li>
-    <li><strong>算法任務管理</strong>：支持即時算法任務和抓拍算法任務兩種類型，分別用於即時畫面分析和抓拍圖像分析</li>
+    <li><strong>流媒體處理</strong>：支持 RTSP/RTMP 流即時處理與傳輸</li>
+    <li><strong>多協議攝像頭接入</strong>：GB28181、ONVIF、NVR 批量掃描、大疆司空直播與 RTC 消費級攝像頭統一納管</li>
+    <li><strong>RTC 聯動 API</strong>：<code>/register/device/rtc-live</code> 一鍵完成 go2rtc 流註冊與設備入庫，刪除設備時自動清理 RTC 流</li>
+    <li><strong>算法任務管理</strong>：支持即時 / 抓拍 / 巡檢；默認可走高性能執行路徑並輸出帶框研判畫面，亦可按現場切兼容模式</li>
+    <li><strong>推流轉發編排</strong>：多路原畫批量上屏默認高性能；特殊環境可切兼容模式；任務啓停與策略變更可自動跟進，減少手工返工</li>
     <li><strong>抽幀器與排序器</strong>：支持靈活的抽幀策略與結果排序機制，每個算法任務可綁定獨立的抽幀器和排序器</li>
     <li><strong>佈防時段</strong>：支持全防模式和半防模式的時段化配置</li>
+    <li><strong>編排與執行分工</strong>：VIDEO 管設備編排、原畫預覽、告警歸檔與啓停；RUNTIME 負責高吞吐分析與多路原畫高效上屏——「管得住」與「跑得動」各司其職</li>
+    <li><strong>驗收預覽</strong>：支持原畫與研判畫面並排對照，便於現場快速驗收延時與標註效果</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>RTC模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>go2rtc</strong>：基於 <a href="https://github.com/AlexxIT/go2rtc">go2rtc</a> 源碼，vendor 隨 install 腳本拉取</li>
+    <li><strong>九大品牌 P2P 橋接</strong>：Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</li>
+    <li><strong>統一管理 API</strong>：平台註冊表、流 URL 構建、go2rtc REST 代理，默認端口 6100（管理）/ 1984（WebUI）/ 8554（RTSP）</li>
+    <li><strong>與 VIDEO 全鏈路打通</strong>：P2P 取流 → 標準 RTSP → SRS 推流 → Web 播放與 AI 分析</li>
+    <li><strong>Docker 一體化</strong>：單容器運行 go2rtc 核心 + Python 管理服務，host 網路適配 P2P 局域網直連</li>
   </ul>
 </td>
 </tr>
@@ -451,8 +519,20 @@ yFeiEye由 WEB、APP、DEVICE、NODE、VIDEO、AI、TASK、EDGE、VISUALIZE、TR
 </td>
 </tr>
 <tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TASK模組</strong></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">高性能任務處理模組，負責計算密集型任務執行</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>RUNTIME模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>高性能視頻執行</strong>：統一加速即時研判、定時抓拍、多路巡檢，並支撐多路原畫高效上屏；平臺仍負責編排與告警歸檔，執行層專注吞吐與時延</li>
+    <li><strong>四類現場形態</strong>：即時盯防、定時抓拍、輪巡巡檢、純原畫轉發——按業務選形態，不必爲「只想看圖」也付滿額算力成本</li>
+    <li><strong>原畫與研判雙畫面</strong>：即時任務可同步給出帶框結果，與原畫預覽分離呈現；標註清晰易讀，減少誤報搶眼、框糊難辨對值班的干擾</li>
+    <li><strong>多路原畫省資源上牆</strong>：推流轉發高性能路徑專爲「大屏先鋪滿」設計，讓 NVR 多通道場景下「多路看原畫、少路跑 AI」同時成立</li>
+    <li><strong>告警與狀態回傳中心</strong>：分析與轉發過程的告警、運行狀態匯聚回平臺統一落庫與通知，節點本地不堆業務數據</li>
+    <li><strong>過載時保即時</strong>：算力吃緊時優先保障當前畫面與告警時效，避免「越忙越卡、越卡越漏」</li>
+    <li><strong>GPU 優先、失敗可續跑</strong>：有加速卡則優先用，不可用時自動降級繼續跑，任務不中斷</li>
+    <li><strong>原子模式</strong>：邊緣節點可只裝執行能力、不裝完整業務面，結果回中心統一研判——節點輕、中心仍看得見、管得住</li>
+    <li><strong>一鍵分發</strong>：管控臺或節點通道可批量下發執行器；本機安裝流程可自動準備運行環境</li>
+  </ul>
+</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>EDGE模組</strong></td>
@@ -569,7 +649,7 @@ yFeiEye支持 Linux、Mac、Windows 部署；COMPILE 可按目標系統產出安
 構築了物聯網設備（尤其是海量攝像頭）的高效接入與管控網路。我們深度融合流媒體即時傳輸技術與前沿人工智能（AI），打造一體化服務核心。這套方案不僅打通了異構設備的互聯互通，更將高清視頻流與強大的AI解析引擎深度集成，賦予監控系統"智能之眼"——精準實現人臉識別、異常行爲分析、風險人員布控及周界入侵檢測。
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-平臺支持兩種類型的算法任務：即時算法任務用於RTSP/RTMP流的即時畫面分析，提供毫秒級響應能力；抓拍算法任務用於抓拍圖像的智能分析，支持事件回溯與圖像檢索。通過算法任務管理實現靈活的抽幀與排序策略，每個任務可綁定獨立的抽幀器和排序器，結合模型服務集羣推理能力，確保毫秒級響應與高可用保障。同時，提供全防模式和半防模式兩種佈防策略，可根據不同時段靈活配置監控規則，實現精準的時段化智能監控與告警。
+平臺支持即時、抓拍與巡檢等類型的算法任務：三類任務均可默認走 <strong>RUNTIME C++ 高速執行器</strong>（<code>executor=cpp</code>）——即時任務長連接拉流解碼與 YOLO 推理，並<strong>默認推帶框 AI 檢測流</strong>；抓拍任務按 Cron 調度採幀識別；巡檢任務多路輪巡覆蓋。告警與心跳統一回 VIDEO 既有閉環；亦可選 Python 後端保持兼容。計算節點支持 <strong>RUNTIME 原子模式</strong>（只裝執行器、告警匯聚中心），讓邊緣算力盒輕裝入網、中心統一研判。通過算法任務管理實現靈活的抽幀與排序策略，每個任務可綁定獨立的抽幀器和排序器，結合模型服務集羣推理能力，確保毫秒級響應與高可用保障。同時，提供全防模式和半防模式兩種佈防策略，可根據不同時段靈活配置監控規則，實現精準的時段化智能監控與告警。
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
 在物聯網設備管理方面，yFeiEye提供完整的設備生命周期管理能力，支持多種物聯網與工業協議（MQTT、TCP、HTTP、Modbus-TCP、Modbus-RTU、OPC UA），實現設備的快速接入、安全認證、實時監控和智能控制。通過規則引擎實現設備數據的智能流轉與處理，結合AI能力對設備數據進行深度分析，實現從設備接入、數據采集、智能分析到決策執行的全流程自動化，真正實現萬物互聯、萬物智控。

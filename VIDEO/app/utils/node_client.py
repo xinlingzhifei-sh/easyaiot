@@ -196,6 +196,7 @@ def deploy_workload(
     log_dir: str,
     env: Dict[str, str],
     gpu_ids: Optional[str] = None,
+    files: Optional[List[Dict[str, str]]] = None,
 ) -> Dict[str, Any]:
     payload = {
         'nodeId': node_id,
@@ -207,6 +208,8 @@ def deploy_workload(
         'gpuIds': gpu_ids,
         'env': env,
     }
+    if files:
+        payload['files'] = files
     return _post('/workload/deploy', payload)
 
 
@@ -222,6 +225,17 @@ def stop_workload(node_id: int, workload_type: str, workload_id: str) -> None:
     data = resp.json()
     if data.get('code') != 0:
         raise RuntimeError(data.get('msg') or '停止远程工作负载失败')
+
+
+def check_runtime_cpp_ready(node_id: int) -> Dict[str, Any]:
+    """SSH 检测目标节点是否已安装 RUNTIME(C++) 二进制。"""
+    url = f'{NODE_API_BASE}/workload-bundle/runtime-cpp/check-ssh'
+    resp = requests.post(url, params={'nodeId': node_id}, headers=_headers(), timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    if data.get('code') != 0:
+        raise RuntimeError(data.get('msg') or f'检测节点 RUNTIME 失败: node_id={node_id}')
+    return data.get('data') or {}
 
 
 def _format_gpu_ids(max_gpu_count: int) -> Optional[str]:

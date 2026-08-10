@@ -42,7 +42,7 @@ yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-플랫폼은 <strong>WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간·스냅샷 알고리즘 작업, YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, 오케스트레이션 가능한 업무 후처리, 연합 연산 클러스터 스케줄링, 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·3단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다.
+플랫폼은 <strong>WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 고성능 비디오 실행기</strong>(실시간 분석·스냅샷 인식·지능형 순찰을 가속하고, <strong>다중 원본 미리보기</strong>도 낮은 자원 비용으로 안정적으로 상영 — 화면을 보려면 CPU를 먼저 태울 필요 없음; 실시간 판정은 박스 화면도 동기 제공; 연산 노드는 <strong>원자 모드</strong>로 실행기만 설치·경보 센터 집약), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, 오케스트레이션 가능한 업무 후처리, 연합 연산 클러스터 스케줄링, 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·3단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -83,6 +83,37 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 | ![원클릭 배포](.image/banner/panel/panel_1003.png) | ![이미지 준비](.image/banner/panel/panel_1004.png) | ![이미지 pull](.image/banner/panel/panel_1005.png) |
 | ![시스템 진단](.image/banner/panel/panel_1006.png) | ![시스템 유지보수](.image/banner/panel/panel_1007.png) | ![서비스 토폴로지](.image/banner/panel/panel_1008.png) |
 
+### 📡 RTC: 소비자급 카메라 P2P 브리지 — 「RTSP 없음」 장치도 플랫폼에
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+가정, 매장, 경량 보안 현장에서 이미 사용 중인 <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 등은 벤더 전용 P2P 프로토콜을 사용하며 <strong>표준 RTSP를 제공하지 않습니다</strong>. yFeiEye는 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a> 기반 <strong>RTC 모듈</strong>로 <strong>9대 브랜드의 스트리밍·양방향 오디오를 통합</strong> — GB28181/ONVIF와 동일하게 등록, 미리보기, 릴레이, AI 작업, 경보 연동이 가능합니다.
+</p>
+
+<table style="width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px;">
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; width: 14%;">브랜드</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; width: 18%;">제조사</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; width: 28%;">대표 장치</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600;">가치</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Tapo</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">TP-Link</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">가정/매장 IPC</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">저비용 사각지대 보완; 양방향 오디오</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Tuya</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Tuya Smart</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">Tuya 생태 IPC</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">화이트라벨/OEM 대량 온보딩</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Ring</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Amazon</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">초인종, 실외 카메라</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">해외 초인종 모니터링</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Nest</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Google</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">Nest Cam, Doorbell</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">Google 생태 프리미엄 현장</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Xiaomi</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Mi Home</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">Mi Home 카메라</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">기존 설치 장치 재활용</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Wyze</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Wyze</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">Wyze Cam v3/v4</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">초저비용 확장</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>DoorBird</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">DoorBird</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">스마트 초인종</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">프리미엄 출입 대화</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>GoPro</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">GoPro</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">HERO9–12</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">기동 순찰 시점</td></tr>
+<tr><td style="padding: 10px 12px; border: 1px solid #e0e0e0;"><strong>Roborock</strong></td><td style="padding: 10px 12px; border: 1px solid #e0e0e0;">Roborock</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">카메라 청소기</td><td style="padding: 10px 12px; border: 1px solid #e0e0e0; color: #444;">가구 아래 이동 시점</td></tr>
+</table>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Web 원클릭 접속</strong>: 「RTC 카메라 접속」브랜드별 동적 폼</li>
+  <li><strong>전체 파이프라인</strong>: WEB → VIDEO <code>/register/device/rtc-live</code> → RTC API → go2rtc P2P → RTSP → SRS → Jessibuca + AI</li>
+  <li><strong>양방향 오디오</strong>: Tapo, Tuya, Ring, Wyze, DoorBird, Roborock</li>
+  <li><strong>수명주기 동기화</strong>: 장치 삭제 시 go2rtc 스트림 자동 정리</li>
+  <li><strong>Docker 올인원</strong>: <code>bash RTC/install_linux.sh start</code>로 go2rtc + Python 관리 서비스 실행; P2P LAN용 host network</li>
+</ul>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+📖 자세한 내용: <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC 모듈 README</a>
+</p>
+
 ### 🎯 세 가지 하드웨어, 하나의 플랫폼
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -114,6 +145,9 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 #### 🧠 AI 기능
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>RUNTIME 고성능 비디오 실행기</strong>: 현장 영상을 「볼 수 있고 계산할 수 있음」에서 「채널을 더 띄우고 근무가 따라감」으로 끌어올립니다 — 동일 실행 능력이 <strong>실시간 판정·예약 스냅샷·다중 순찰</strong>을 커버하고, 동시에 <strong>다중 원본 상영</strong>을 지원합니다. 업무적으로는: 단지 NVR 수십 채널을 먼저 「선명하고 끊김 없이」 보장한 뒤 핵심 채널에만 AI를 켜고; 원본 미리보기와 박스 판정 화면을 같은 화면에서 전환하되 서로를 끌어내리지 않으며; 검출 표기를 읽기 쉽게 해 「박스가 흐리고 오경보가 눈을 뺏는」 간섭을 줄입니다. 플랫폼은 장치 오케스트레이션·경보 아카이브·권한 관리를 계속 담당하고, 실행 계층은 처리량과 지연에 집중해 채널·시나리오 확장이 곧바로 장비 교체로 이어지지 않게 합니다. 자세한 내용: <a href="RUNTIME/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RUNTIME/README.md</a></li>
+  <li><strong>고성능 스트림 전달</strong>: 「먼저 대시보드/분할 화면을 채우고, 모든 채널에 알고리즘을 켤 필요는 없음」이라는 실제 납품 요구에 맞춰 — NVR 일괄 채널·건물 다지점을 원클릭으로 전달 작업화합니다. 기본은 고성능 모드로 다중 원본을 더 낮은 자원 비용으로 안정 상영; 특수 현장은 호환 모드로 전환 가능. 원본 시청과 AI 판정은 동일 장치에서 병행: 미표기 실황을 보거나 박스 결과로 전환; 알고리즘 시작/중지 후 전달 정책이 자동 추종해 수동 설정·합동 조정을 줄입니다. 나란히 미리보기로 지연·표기 품질을 바로 비교해 인수 주기를 단축합니다</li>
+  <li><strong>RUNTIME 원자 모드(경량 연산 노드)</strong>: 엣지 박스 / 클러스터 워커는 <strong>RUNTIME 실행기만 설치</strong>할 수 있습니다 — 로컬 VIDEO/WEB/DEVICE 없음. <code>VIDEO_BASE_URL</code>로 경보·하트비트를 센터 VIDEO에 집약; 센터가 실시간 / 캡처 / 순찰(<code>executor=cpp</code>)을 동일 바이너리에 하달하며, 실시간은 여전히 기본으로 박스 검출 스트림을 센터/클러스터 SRS에 푸시. 원자 ≠ 영상 미푸시: 원자는 「로컬 비즈니스 스택 없음」만 의미. 진입점: <code>VIDEO_BASE_URL=http://&lt;센터&gt;:6000 bash .scripts/docker/install_linux.sh runtime</code>; 또는 WEB / iot-node SSH 일괄 설치</li>
   <li><strong>전체 접점에서 플랫폼 이름 및 Logo 사용자 정의</strong>: yFeiEye를 현장에 배포한 후 사용자가 보는 것은 범용 제품명이 아니라 「자신의 플랫폼」이어야 합니다. 모니터링 대시보드에 시각적 「플랫폼 식별 설정」이 내장되어 있어, 관리자가 UI에서 브랜드를 교체할 수 있습니다 — 관리 콘솔의 플랫폼 이름·Logo(사이드바·브라우저 제목 동기화), 모니터링 대시보드 독립 지휘 타이틀, 로그인 페이지 이름·Logo·폼 제목·밝은/어두운 배경 이미지. 세 접점 시각 통일, 즉시 적용, 저장 및 원클릭 초기화 지원.
     <ul style="margin: 5px 0; padding-left: 20px;">
       <li><strong>시스템 통합사 및 솔루션 제공사</strong>: 프론트엔드 스킨 변경·맞춤 개발·배포 비용 절감; PoC 시연과 정식 납품 간 고객 브랜드 빠른 전환, 단일 코드베이스로 다고객 프로젝트 지원, 회수 주기 단축 및 솔루션 재사용률 향상</li>
@@ -123,8 +157,9 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   </li>
   <li><strong>YOLO26 차세대 객체 감지 기능</strong>: 플랫폼에 내장된 최신 세대 객체 감지 기능으로, 별도 설정 없이 실시간 화면 분석과 스냅샷 인식에 바로 활용할 수 있습니다. 동일한 하드웨어에서 더 많은 카메라 채널을 연결하고, 더 빠르게 응답하며, 오탐을 줄일 수 있습니다. 데이터 수집·라벨링·학습부터 배포·추론까지 전 과정을 지원하여, 낮은 비용으로 맞춤형 감지 모델을 지속적으로 개선하고, 안전모 착용, 무단 침입, 화재 위험 등 일반적인 보안·산업 시나리오를 빠르게 커버할 수 있어 「정확히 보고, 빠르게 연산하고, 유연하게 확장」이 기본 역량이 됩니다</li>
   <li><strong>YOLO26 인체 자세 분석</strong>: 객체 감지 기능 위에 인체 키포인트 및 골격 자세 분석을 추가하여, 별도 설정 없이 바로 사용할 수 있습니다. 이미지, 동영상, 카메라 실시간 스트림 세 가지 입력 방식을 지원합니다. 이미지 모드는 골격 주석과 인원 수 통계를 동시에 출력하고, 동영상 모드는 진행률 추적과 결과 다운로드를 지원하며, 카메라 모드는 RTSP/RTMP 실시간 스트림에 연결하여 자세 인식 결과를 오버레이하여 재스트리밍하여 원격 감시 및 행동 분석에 활용할 수 있습니다. 모델 추론 페이지에서 「자세 분석」과 「객체 감지」를 원클릭으로 전환할 수 있으며, 건설 현장 작업 규범, 피트니스 동작 평가, 군중 집결 상황 인식 등 「인체 구조와 동작 형태를 명확히 파악」해야 하는 시나리오에 적합하며, 플랫폼을 「대상을 박스로 표시」에서 「자세를 이해」하는 단계로 한 걸음 더 나아가게 합니다</li>
-  <li><strong>다중 프로토콜 카메라 접근 지원</strong>: GB28181 및 ONVIF 두 가지 주요 비디오 감시 프로토콜을 완전히 지원하여 표준화된 장치 접근 및 관리를 실현합니다. GB28181은 중국 국가 표준으로 국내 주요 감시 장비에 완벽하게 적합하며, ONVIF는 국제 범용 표준으로 전 세계 주요 카메라 브랜드와 광범위하게 호환됩니다. 이중 프로토콜 지원을 통해 플랫폼은 기존 감시 시스템과 원활하게 통합할 수 있으며, 플러그 앤 플레이 장치 접근, 자동 발견 및 통합 관리를 실현하여 장치 접근 장벽을 크게 낮추고 시스템 호환성과 확장성을 향상시키며 대규모 카메라 배포를 위한 견고한 기술 기반을 제공합니다. 또한 동일·교차 서브넷에서 NVR 일괄 스캔·등록·통합 관리 기능을 추가하였으며, 하이크비전·다화·화웨이·이즈비즈·샤오미 등 주요 브랜드를 지원합니다. 장치 네이티브 프로토콜 기반 서브넷 발견, 원클릭 등록, 채널 일괄 가져오기를 제공하여 대규모 감시 장비의 접속 및 운영 비용을 더욱 절감합니다</li>
+  <li><strong>다중 프로토콜 카메라 접근 지원</strong>: GB28181 및 ONVIF 두 가지 주요 비디오 감시 프로토콜을 완전히 지원하여 표준화된 장치 접근 및 관리를 실현합니다. GB28181은 중국 국가 표준으로 국내 주요 감시 장비에 완벽하게 적합하며, ONVIF는 국제 범용 표준으로 전 세계 주요 카메라 브랜드와 광범위하게 호환됩니다. 이중 프로토콜 지원을 통해 플랫폼은 기존 감시 시스템과 원활하게 통합할 수 있으며, 플러그 앤 플레이 장치 접근, 자동 발견 및 통합 관리를 실현하여 장치 접근 장벽을 크게 낮추고 시스템 호환성과 확장성을 향상시키며 대규모 카메라 배포를 위한 견고한 기술 기반을 제공합니다. 또한 동일·교차 서브넷에서 NVR 일괄 스캔·등록·통합 관리 기능을 추가하였으며, 하이크비전·다화·화웨이·이즈비즈·샤오미 등 주요 브랜드를 지원합니다. 장치 네이티브 프로토콜 기반 서브넷 발견, 원클릭 등록, 채널 일괄 가져오기를 제공합니다. Mi Home 등 RTSP 미지원 소비자급 카메라는 <strong>RTC 모듈(go2rtc 브리지)</strong>로 동일 플랫폼에 통합하여 대규모 감시 장비 접속·운영 비용을 더욱 절감합니다</li>
   <li><strong>DJI 도크 / 드론 공중 시야 접속</strong>: 고정 카메라의 「지면만 보고 광역 커버가 어렵다」는 한계를 넘어, DJI FlightHub 체계의 도크·드론 고공 영상을 플랫폼 통합 영상·AI 판정 루프에 포함합니다. 스트리밍 모듈의 「DJI 라이브 접속」: <strong>FlightHub API로 라이브 시작</strong>과 <strong>수동 라이브 소스</strong> 두 가지 접속 방식을 지원 — API 모드에서 원클릭으로 제조사 라이브 스트림을 수신하고 장치를 자동 등록; 수동 모드는 RTSP / RTMP / HTTP-FLV / HLS 등 라이브 소스를 직접 입력. 접속 후 공중 화면은 GB28181/ONVIF 고정 포인트와 동일 화면으로 공관할 수 있으며, 관리자는 고정 카메라처럼 도크·기체 실황을 조회하고 실시간 AI 분석, 경보 연동, 증거 보관을 추가로 연결할 수 있습니다 — 광역 순찰, 비상 정찰, 주경계 보완 등 고정 포인트로는 닿기 어려운 시나리오를 빠르게 커버하고 「발견—위치 확정—대응」 응답 체인을 크게 단축하여, 스마트 보안을 평면 배치에서 천지일체 협동 감지로 고도화합니다.</li>
+  <li><strong>RTC 소비자급 카메라 P2P 브리지</strong>: <strong>Tapo, Tuya, Ring/Nest, Xiaomi Mi Home, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드를 한 번에 — 표준 RTSP 미지원. go2rtc 기반 RTC 모듈이 P2P 브리지와 통합 관리 API 제공. Web 콘솔 「RTC 카메라 접속」브랜드별 폼/OAuth; 브리지 후 소비자급·GB28181/ONVIF 전문 카메라 <strong>동일 화면·AI 작업·경보 연동</strong></li>
   <li><strong>실시간 인터콤 및 PTZ 원격 제어</strong>: 전통적인 감시의 「볼 수만 있고, 관리할 수 없는」 한계를 돌파합니다. 감시 담당자는 실시간 미리보기 화면에서 음성 방송과 PTZ 제어를 동시에 수행할 수 있습니다 — 시스템 전환 없이, 현장 방문 없이 원격 소통, 대피 유도, 위반 행위 제지가 가능하며, 대응을 「현장 파견」에서 「말하면 즉시 도달」로 압축합니다. PTZ 제어로 카메라를 자유롭게 회전·줌·포커스할 수 있어, 돌발 상황 시 사고 지역을 신속히 조준하고 세부 사항을 확대하여 「잘 보고, 정확히 지시하고, 말하면 전달된다」는 일체화된 현장 대응 선순환을 형성합니다. GB28181 및 ONVIF 장치와 완벽 호환, 기존 감시 자산을 활용하고 별도의 인터콤 장비나 서드파티 소프트웨어 없이 배포된 카메라에 즉시 원격 소통 및 유연한 디스패치 기능을 부여하여, 시스템 사일로와 감시 비용을 크게 절감합니다</li>
   <li><strong>오케스트레이션 가능한 알고리즘 후처리</strong>: 「검출은 되지만 판단이 어렵다」는 역량 병목을 돌파하여, 객체 감지 위에 독립적인 업무 판단 계층을 추가하고 화면 인식 결과를 운영·추적·통계 가능한 업무 이벤트로 전환합니다. 작업별로 인원 집계, 경계선 통과, 체류 시간 초과, 구역 장기 체류, 다중 조건 복합 경보 등 시나리오 규칙을 유연하게 정의할 수 있어, 모델을 반복 조정하지 않고도 건설 현장 안전 감독, 단지 보안, 교통 통제 등 차별화된 요구에 빠르게 적응하고, 범용 시각 역량을 현장에 밀착한 관리 도구로 단련합니다. 후처리와 실시간 분석은 서로 독립적으로 병렬 운영됩니다 — 감시 화면은 끊김 없이 판단을 지속하고, 업무 로직은 필요에 따라 탄력적으로 확장되며, 판단 결과는 자동으로 축적·보관되어 정밀 경보를 구동하여 오탐·미탐과 수동 검토 비용을 크게 절감합니다. 업무 담당자는 규칙 표현에 집중하고, 플랫폼이 배포·실행·규모 확장을 담당하여 「볼 수 있다」에서 「명확히 판단하고, 통제하며, 실제로 활용한다」로 나아갑니다</li>
   <li><strong>다중 센터 노드 × 다중 워커 노드 연합 클러스터</strong>: 지역 간·다중 데이터센터·클라우드-엣지 협업 배포를 위해 플랫폼은 「N개 센터 노드 + N개 워커 노드」 연합 아키텍처를 채택합니다 — 센터 노드가 통합 오케스트레이션을, 워커 노드가 연산·미디어 실행을 담당하며 수평 확장이 가능합니다. 각 센터 노드는 소속 워커 노드를 관리하고, 스트리밍, 오디오·비디오 트랜스코딩, 영상 분석, 모델 추론·학습 등 역량의 원격 배포와 원클릭 배치를 지원합니다. 다중 센터 노드 간 상호 연동·동기화가 가능하며, 클러스터 스윔레인 뷰에서 「센터—워커」 토폴로지와 자원 수위를 직관적으로 표시합니다. 알고리즘 태스크, 자동 라벨링 파이프라인, 스트림 릴레이 등 워크로드는 노드 역할과 GPU 역량에 따라 지능적으로 스케줄링되어, 대량 스트림 접속·고동시성 추론·분산 학습이 동일 클러스터에서 협력 실행됩니다 — 「등록 용이, 스케줄 명확, 확장 유연, 통합 관리」를 실현합니다</li>
@@ -134,7 +169,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>천지도 공간 시각화 및 지도 기반 분석</strong>: 국가 천지도를 연동하여 카메라, 알람, 인·차량 인식 역량을 한 장의 지도에 모았습니다. 감시를 「화면 보기」에서 「전체 보기」로 업그레이드합니다. 스트리밍 미디어와 알람 모듈 모두 「지도 분포」 뷰를 제공하며, 장치 디렉터리 트리와 연동해 구역별로 집중 조회할 수 있어 검문소 배치와 온라인 상태를 한눈에 파악합니다. 지도 클릭, 장소 검색, 좌표 일괄 가져오기를 지원하여 GB 채널, NVR 채널, 직접 연결 카메라를 빠르게 배치할 수 있으며, 모든 영상에 명확한 공간 소속을 부여합니다. 알람 이벤트는 카메라 좌표와 자동 연계되어 지도에 표시되며, 시간·이벤트 유형·작업·업무 태그로 필터링하고 선택하면 스냅샷과 녹화를 바로 확인할 수 있어, 「어디서 발생했는지」에서 신속한 대응으로 이어집니다. 얼굴·번호판 라이브러리 인식과 결합하면 동일 대상의 다중 지점 적중 기록을 공간적 맥락으로 연결할 수 있습니다 — <strong>인물 추적</strong>으로 중점 인물의 출현 경로와 활동 범위를 복원하고, <strong>차량 추적</strong>으로 통과 기록을 연결해 차량 경로와 체류 구역을 빠르게 파악하여, 인·차량 수색, 순찰 배치, 사후 복기에 직관적 단서를 제공합니다. 이동형 장치는 궤적 재생을 지원하여 순찰·이동 경로를 시간축으로 재현합니다. 벡터 지도와 위성 영상을 자유롭게 전환하고 시야를 자동 맞춤하여, 관리자가 지도를 중심으로 이상 징후를 발견하고 목표를 잠금하며 지휘·조정할 수 있습니다</li>
   <li><strong>Qwen / DeepSeek 다중 GPU 배포</strong>: Qwen, DeepSeek 등 대규모 언어 모델을 다중 GPU 병렬 방식으로 배포할 수 있습니다. 클러스터 및 Worker 단위로 GPU 자원을 유연하게 스케줄링하여 모델 인스턴스의 탄력적 확장 및 로드 밸런싱을 실현하고, 고동시성 추론 및 긴 컨텍스트 시나리오에서 안정적인 서비스를 제공합니다</li>
   <li><strong>비전 대규모 모델 지능형 이해</strong>: QwenVL3 비전 대규모 모델을 통합하여 실시간 비디오 프레임에 대한 심층 비전 추론 및 의미론적 이해를 지원하며, 프레임 내용에 대한 지능형 분석 및 장면 이해를 수행할 수 있어 더 풍부한 시각적 인지 능력을 제공하며, 픽셀 수준의 인식에서 의미론적 수준의 이해로의 도약을 실현합니다</li>
-  <li><strong>카메라 실시간 영상 AI 분석</strong>: RTSP/RTMP 실시간 비디오 스트림을 대상으로 스트림 수신·프레임 추출·모델 추론에서 구조화 출력·경보 연동까지 전 과정 분석 역량을 제공하여, 화면 변화를 밀리초 단위로 검색·판단 가능한 구조화된 감지 이벤트로 즉시 전환합니다. 시청 체인과 알고리즘 체인을 서로 독립적으로 운영하여 미리보기 선명도와 고채널 동시 처리량을 모두 확보합니다. 분석 결과는 감지 영역, 방어 시간대, 얼굴/번호판 인식 및 오케스트레이션 가능한 후처리 규칙과 원활하게 연결되어, 기존 「사람이 화면을 주시하고 사후에 확인」하는 감시 모드를 「기계가 24시간 감시, 이상 즉시 푸시, 증거 자동 보관」으로 업그레이드하고, 실시간 영상을 수동 시청에서 능동적 인지와 지능형 판단의 인프라로 전환합니다</li>
+  <li><strong>카메라 실시간 영상 AI 분석</strong>: RTSP/RTMP 실시간 스트림에 대해 풀링·디코딩·모델 추론부터 구조화 출력·경보 연동까지 전 과정 분석; 기본으로 <strong>RUNTIME C++</strong>가 담당(캡처·순찰과 동일 실행기 체계), 밀리초 응답으로 구조화 검출 이벤트를 생성하고 <strong>기본으로 박스 검출 스트림을 푸시</strong>해 근무자가 전환 판정. 시청(원본)과 알고리즘(검출) 체인은 독립; 감지 영역·방어 시간대·얼굴/번호판·후처리 규칙과 연결</li>
   <li><strong>카메라 지능형 순찰</strong>: 카메라 대수는 많지만 인력이 부족한 감시 시나리오를 위해, 플랫폼은 분할 화면 순찰과 장치 디렉터리 일괄 순찰 기능을 제공하여 제한된 동시 연결로 대규모 카메라에 대한 순환식 AI 분석을 수행합니다. 순환·연결 풀·혼합 세 가지 스케줄링 모드를 지원하며, 설정 간격으로 자동 캡처·검출 모델 실행·경보 및 얼굴/번호판 인식 연동이 가능합니다. 혼합 모드에서는 중점 채널을 상시 감시하고 배경 채널은 풀 방식으로 순환하여 중점 배치와 전역 커버를 모두 충족합니다. 순찰 진행 상황을 실시간으로 전송하고 캡처 프레임을 자동 보관하며, 분할 화면 또는 장치 디렉터리에서 수백 대 카메라 순찰 세션을 원클릭으로 시작할 수 있어, 「적은 연결, 넓은 커버, 빠른 발견」으로 기존의 수동 화면 전환 감시를 지능형 자동 순찰로 업그레이드합니다</li>
   <li><strong>클라우드-엣지-디바이스 통합 알고리즘 경보 모니터링 대시보드</strong>: 통일된 클라우드-엣지-디바이스 통합 알고리즘 경보 모니터링 대시보드를 제공하며, 디바이스 상태, 알고리즘 태스크 실행 상황, 경보 이벤트 통계, 비디오 스트림 분석 결과 등 주요 정보를 실시간으로 표시합니다. 다차원 데이터 시각화 표시를 지원하여 클라우드, 엣지, 디바이스 측의 통합 모니터링 및 관리를 실현하며, 의사결정자에게 전역적 관점의 지능형 모니터링 지휘 센터를 제공합니다.</li>
   <li><strong>얼굴 인식 및 얼굴 라이브러리 관리 기능</strong>: 카메라 작업에서 얼굴 인식 기능을 유연하게 활성화할 수 있으며, 얼굴 라이브러리 및 얼굴 특징 관리 체계를 통해 얼굴 샘플/특징의 등록, 조회, 수정, 삭제와 효율적인 검색 기능을 제공합니다. 캡처 프레임에서 고효율 얼굴 비교 및 신원 검색을 지원하고, 매칭 결과, 캡처 이미지, 카메라 위치 정보, 장치 컨텍스트를 완전하게 기록하여 인원 동선 추적, 보안 포렌식, 다차원 통계 분석을 지원합니다.</li>
@@ -142,18 +177,19 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>디바이스 감지 영역 그리기</strong>: 시각적 디바이스 감지 영역 그리기 도구를 제공하며, 디바이스 스냅샷 이미지에서 사각형 및 다각형 감지 영역 그리기를 지원합니다. 영역과 알고리즘 모델 간의 유연한 연관 구성 설정을 지원하며, 영역의 시각적 관리, 편집, 삭제 등의 작업을 지원합니다. 그리기 효율성을 높이기 위한 키보드 단축키를 지원하며, 정밀한 영역 감지 구성을 실현하고 알고리즘 태스크에 대한 정확한 감지 범위 정의를 제공합니다.</li>
   <li><strong>지능형 연동 경보 메커니즘</strong>: 감지 영역, 방어 시간대 및 이벤트 경보 간의 삼중 연동 메커니즘을 지원합니다. 시스템은 감지된 이벤트가 지정된 감지 영역 범위를 동시에 충족하고, 방어 시간대 내에 있으며 경보 이벤트 유형과 일치하는지 지능적으로 판단합니다. 세 가지 조건이 모두 충족될 때만 경보가 트리거되어 정밀한 시공간 조건 필터링을 실현하고, 오탐률을 크게 낮추며 경보 시스템의 정확성과 실용성을 향상시킵니다.</li>
   <li><strong>대규모 카메라 관리</strong>: 수백 대 규모의 카메라 접속을 지원하며, 수집, 라벨링, 학습, 추론, 내보내기, 분석, 경보, 녹화, 저장, 배포 등의 전 과정 서비스를 제공합니다.</li>
-  <li><strong>알고리즘 태스크 관리</strong>: 두 가지 유형의 알고리즘 태스크 생성 및 관리를 지원하며, 각 알고리즘 태스크는 프레임 추출기(Frame Extractor)와 정렬기(Sorter)를 유연하게 바인딩하여 정밀한 비디오 프레임 추출 및 결과 정렬을 실현합니다.
+  <li><strong>알고리즘 태스크 관리</strong>: 실시간·스냅샷·순찰 유형의 알고리즘 태스크 생성 및 관리를 지원하며, 각 태스크는 프레임 추출기와 정렬기를 유연하게 바인딩하여 정밀한 비디오 프레임 추출 및 결과 정렬을 실현합니다.
     <ul style="margin: 5px 0; padding-left: 20px;">
-      <li><strong>실시간 알고리즘 태스크</strong>: 실시간 영상 분석에 사용되며, RTSP/RTMP 스트림 실시간 처리를 지원하고 밀리초 단위 응답 능력을 제공하여 모니터링, 보안 등의 실시간 시나리오에 적합합니다.</li>
-      <li><strong>캡처 알고리즘 태스크</strong>: 캡처 이미지 분석에 사용되며, 캡처 이미지에 대한 지능형 식별 및 분석을 수행하여 이벤트 복원, 이미지 검색 등의 시나리오에 적합합니다.</li>
+            <li><strong>실시간 알고리즘 태스크</strong>: RTSP/RTMP 실시간 분석; 기본 백엔드 <code>executor=cpp</code>(RUNTIME 기동, 기본 박스 AI 스트림 푸시 + 경보/하트비트), <code>python</code> 선택 가능</li>
+      <li><strong>캡처 알고리즘 태스크</strong>: 캡처 이미지 분석; 기본으로도 <code>executor=cpp</code>(SnapScheduler / Cron) 사용 가능</li>
+      <li><strong>순찰 알고리즘 태스크</strong>: 다채널 라운드로빈 / 연결 풀; 기본으로도 <code>executor=cpp</code>(PatrolScheduler) 사용 가능</li>
     </ul>
   </li>
   <li><strong>데이터셋 라벨링 및 다중 포맷 데이터셋 관리</strong>: 시각적 이미지 라벨링 작업 공간을 제공하며, 사각형·다각형 등 라벨링 형태와 카테고리 관리, 진행률 추적을 지원합니다. YOLO, COCO, ImageFolder 등 주류 데이터셋 포맷의 유연한 가져오기·내보내기를 전면 지원하고, 클라우드 플랫폼 데이터셋 연동을 통해 클라우드 데이터셋의 원클릭 가져오기 및 동기화 내보내기를 지원하여 데이터 수집, 라벨링, 학습, 배포 추론에 이르는 전 과정을 원활하게 연결합니다.</li>
   <li><strong>멀티 GPU 학습, 체크포인트 이어학습 및 노드 측 배포</strong>: 「GPU는 있는데 쓰지 못하고, 작업은 통제하기 어렵고, 중단되면 성과가 사라지는」 학습 현장의 병목을 뚫고, 멀티 GPU 활용·작업 통제 가능한 스케줄링·노드 측 배포를 체계적으로 연결하여 현장 GPU를 실제로 쓸 수 있게 하고 학습 작업을 정말로 통제할 수 있게 합니다. 플랫폼은 서버의 모든 GPU를 자동 인식·스케줄링하며, 사용자는 학습 페이지에서 필요에 따라 단일/다중 카드를 선택할 수 있어 더 이상 「한 장만 보이는」 제한에 묶이지 않습니다. 일반 데이터셋 형식과 디렉터리 구조를 폭넓게 호환하고 대용량 로컬 데이터셋 업로드를 지원하며, 학습 실패 후에도 원본 데이터를 남겨 빠르게 재시도할 수 있어 데이터 준비와 반복 작업 비용을 크게 줄입니다. 학습 진행 상황이 전 과정에 걸쳐 보이며 작업을 멈추고 이어갈 수 있어, 중단 후 결과 손실이나 「중지를 눌렀는데도 백그라운드에서 계속 도는」 문제를 줄이고, 로컬·원격 스케줄링 실패 시에도 신속히 되돌리며 명확한 피드백을 제공합니다 — 「학습—게시—사용」 루프를 더 원활하고 신뢰성 있게 만듭니다</li>
-  <li><strong>스트림 전달</strong>: AI 분석 기능을 활성화하지 않고도 카메라 실시간 영상을 직접 시청할 수 있습니다. 스트림 전달 작업을 생성하여 여러 카메라를 일괄 전달할 수 있으며, 여러 비디오 스트림의 동기화된 시청을 실현하여 순수 비디오 모니터링 시나리오 요구사항을 충족합니다.</li>
+  <li><strong>스트림 전달</strong>: 알고리즘을 켜지 않고도 카메라 실시간 화면을 시청; 다중 일괄 푸시·NVR 채널 자동 작업 생성이 바로 사용 가능. 기본 고성능 모드로 다중 원본이 더 절약되고 상영하기 쉬워 「대시보드를 먼저 채우고, 핵심 채널에 AI」에 적합; 특수 환경은 호환 모드로 전환</li>
   <li><strong>GPU 탐지, 부하 기반 할당 및 다중 GPU 협업</strong>: 플랫폼은 GPU 자원을 탐지하고 지능형으로 스케줄링합니다. 사용 가능한 GPU 수를 인식한 뒤 GPU별 실시간 부하에 따라 비디오 인코딩/디코딩과 알고리즘 추론 작업을 다중 GPU에 동적으로 분산·병렬 실행하여 다중 스트림 처리량과 자원 활용도를 높이면서 안정성을 유지하며, 다중 GPU 환경에서 화면 처리와 모델 추론을 조화롭게 운용합니다.</li>
   <li><strong>지능형 전송 프로토콜 및 고신뢰 스트림 수신</strong>: RTSP 등 풀(Pull) 경로에서 시나리오에 맞게 전송 방식을 자동 선택하여 지연과 안정성의 균형을 맞춥니다. 회색 화면, 디코딩 오류 또는 화면 정체가 감지되면 자동으로 재연결 및 링크 복구를 수행하여 장시간 화면 깨짐·정지가 업무에 미치는 영향을 줄입니다.</li>
-  <li><strong>시청 체인과 알고리즘 체인 분리 및 계층형 비트레이트</strong>: 「실시간 미리보기/대형 화면 시청」과 「알고리즘 분석용 프레임 추출」을 서로 분리하여 독립적으로 스케줄링합니다. 시청 측은 화면이 선명하고 끊김이 적도록 우선하고, 알고리즘 측은 검출 정확도와 연산·대역폭 사용의 균형을 맞춥니다 — 분석과 시청이 동일 채널을 두고 경쟁하지 않도록 하여 「선명하게 보기·끊김 없음」과 「연산 가능·확장 가능」을 함께 담보합니다.</li>
+  <li><strong>시청과 판정 이중 경로</strong>: 「대시보드/분할로 원본 보기」와 「알고리즘으로 결과 보기」를 분리 스케줄 — 근무 측은 선명·원활을 우선; 판정 측은 박스 결과를 독립 출력해 서로 대역을 빼앗지 않음. 동일 카메라는 실황과 분석 화면을 동시에 유지해 교대 전환이 자연스럽고, 확장 시 「잘 보기」와 「충분히 계산」 사이 양자택일을 피할 수 있음</li>
   <li><strong>모델 서비스 클러스터 추론</strong>: 분산형 모델 추론 서비스 클러스터를 지원하여 지능형 부하 분산, 장애 자동 전환 및 고가용성 보장을 실현하며, 추론 처리량과 시스템 안정성을 크게 향상시킵니다.</li>
   <li><strong>방어 시간대 관리</strong>: 완전 방어 모드(All-defense)와 반방어 모드(Semi-defense) 두 가지 방어 전략을 지원하며, 다른 시간대의 방어 규칙을 유연하게 구성하여 정밀한 시간대별 지능형 모니터링 및 경보를 실현합니다.</li>
   <li><strong>OCR 및 음성 인식</strong>: 고정밀 문자 인식과 음성-텍스트 변환 기능을 제공하며, 다중 언어 인식을 지원합니다.</li>
@@ -240,7 +276,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>멀티 채널 접근</strong>: 스마트폰, 미니 프로그램, App에서 이용 가능 — 운영·관리가 책상에 묶이지 않고, 현장에서도 즉시 확인·조치</li>
   <li><strong>기능 일치</strong>: PC 관리 콘솔과 동일한 업무 기능, 기기를 바꿔도 제어 끊기지 않음</li>
   <li><strong>디바이스 관리</strong>: 다양한 접속 방식을 통합 관리, 목록·채널 한눈에 파악, 탭 한 번으로 실시간 화면 — 외부 순찰도 상황 파악</li>
-  <li><strong>스트림 전달</strong>: 언제든 작업 생성·중지, 클러스터 노드·스트림 상태 파악 — 원격에서도 영상 자원 스케줄링</li>
+  <li><strong>스트림 전달</strong>: 언제든 전달 생성·중지, 노드·채널 상태 파악; 다중 원본을 효율적으로 상영 — 외출 중에도 영상 자원 스케줄링</li>
   <li><strong>알고리즘 작업</strong>: 실시간·스냅샷 작업을 이동 중에도 즉시 시작·중지, 검출 성과 실시간 확인 — 이상 발견을 사무실 복귀까지 미루지 않음</li>
   <li><strong>경보 센터</strong>: 경보 즉시 검색, 캡처·녹화 즉시 확인 — 모바일 근무 중에도 빠른 검증·후속 조치</li>
   <li><strong>모델 관리</strong>: 모델 배포 상태 한눈에 확인, 진행 상황 명확히 파악</li>
@@ -275,11 +311,11 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 ### 💡 기술 철학
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. 그러나 세 가지 프로그래밍 언어의 심층적인 융합을 통해 yFeiEye는 각 언어의 장점을 발휘하여 강력한 기술 생태계를 구축합니다.
+우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. 그러나 다섯 가지 프로그래밍 언어의 심층적인 융합을 통해 yFeiEye는 각 언어의 장점을 발휘하여 강력한 기술 생태계를 구축합니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만 네트워크 프로그래밍과 AI 프로그래밍에는 적합하지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘 개발에 능숙하지만 고성능 태스크 실행에는 병목 현상이 있습니다. C++는 고성능 태스크 실행에 능숙하지만 플랫폼 개발과 AI 프로그래밍에서는 앞의 두 언어에 미치지 못합니다. yFeiEye는 세 언어 혼합 아키텍처를 채택하여 각 언어의 장점을 최대한 발휘하고, 구현은 상당히 도전적이지만 사용은 매우 편리한 AIoT 플랫폼을 구축합니다.
+Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만, 네트워크 프로그래밍과 AI 개발에는 맞지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘에 능숙하지만, 고성능 실행에서는 병목이 있습니다. C++는 고성능 태스크 실행에 능숙하지만, 플랫폼 아키텍처와 AI 프로그래밍에는 적합하지 않습니다. Go는 고병행 네트워크 프로그래밍과 프로토콜 구현에 능숙하지만, 플랫폼 제어면과 AI 알고리즘에는 적합하지 않습니다. TypeScript는 복잡한 프론트엔드 인터랙션과 타입 안전한 엔지니어링 UI에 능숙하지만, 고성능 백엔드 연산과 AI 추론에는 적합하지 않습니다. yFeiEye는 다섯 언어 혼합 아키텍처로 각 언어가 제 역할을 하게 하여, 구현은 도전적이지만 사용은 매우 편리한 AIoT 플랫폼을 구축합니다.
 </p>
 
 ![yFeiEye 플랫폼 아키텍처](.image/iframe2-yfeieye.png)
@@ -299,7 +335,7 @@ Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 �
 ### 🏗️ 프로젝트 아키텍처 특징
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-yFeiEye는 독립 배포할 수 있으며 하나의 통합 플랫폼으로도 운영되는 모듈 모음입니다.
+yFeiEye는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, VIDEO, RTC, AI 등 여러 독립 배포 가능한 하위 프로젝트로 구성됩니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -362,7 +398,7 @@ yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨
 ## 🧩 프로젝트 구조
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE와 다중 플랫폼 패키징·배포를 위한 COMPILE로 구성됩니다:
+yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -383,7 +419,13 @@ yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, 
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>WEB 모듈</strong></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">프론트엔드 관리 인터페이스로, 통일된 사용자 상호작용 경험을 제공합니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>통합 관리 UI</strong>: 프론트엔드 관리 인터페이스, 일관된 사용자 경험</li>
+    <li><strong>다중 프로토콜 온보딩</strong>: IPC / NVR / GB28181 / RTC; ONVIF, 교차 서브넷 스캔, RTSP, DJI 라이브, 소비자급 P2P</li>
+    <li><strong>RTC 플랫폼 접속</strong>: 「RTC 카메라 접속」<strong>Tapo / Tuya / Ring / Nest / Xiaomi / Wyze / DoorBird / GoPro / Roborock</strong> 브랜드별 동적 폼; OAuth는 go2rtc WebUI 바인딩</li>
+  </ul>
+</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>APP 모듈</strong></td>
@@ -391,8 +433,8 @@ yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, 
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>멀티 채널 접근</strong>: 한 번 구축, 여러 단말 — 스마트폰, 미니 프로그램, App</li>
     <li><strong>기능 일치</strong>: PC 관리 콘솔과 동일한 업무 기능, 멀티 테넌트 전환 지원</li>
-    <li><strong>디바이스 관리</strong>: 직접 연결 카메라, GB28181, NVR 등 통합 관리, 온라인 상태·채널 탐색, 상세에서 원터치 실시간 미리보기</li>
-    <li><strong>스트림 전달</strong>: 작업 생성, 시작/중지, 클러스터 노드 상태 및 다중 스트림 URL 조회</li>
+    <li><strong>디바이스 관리</strong>: 직접 연결 카메라, GB28181, NVR, RTC 소비자급 카메라 등 통합 관리, 온라인 상태·채널 탐색, 상세에서 원터치 실시간 미리보기</li>
+    <li><strong>스트림 전달</strong>: 작업 생성·시작/중지, 노드 상태와 다중 화면 조회; 현장에 따라 고성능/호환 모드 전환</li>
     <li><strong>알고리즘 작업</strong>: 실시간/스냅샷 알고리즘 작업 목록, 시작/중지 제어 및 검출/프레임 통계</li>
     <li><strong>경보 센터</strong>: 경보 이벤트 검색, 스냅샷 미리보기, 경보 녹화 VOD 재생</li>
     <li><strong>모델 & AI</strong>: 모델 목록 및 배포 상태, 모바일 이미지 추론 워크벤치, 훈련 작업 진행률 모니터링 및 중지</li>
@@ -433,9 +475,26 @@ yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, 
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>스트리밍 미디어 처리</strong>: RTSP/RTMP 스트림 실시간 처리 및 전송 지원</li>
-    <li><strong>알고리즘 태스크 관리</strong>: 실시간 알고리즘 태스크와 캡처 알고리즘 태스크 두 가지 유형을 지원하며, 각각 실시간 영상 분석과 캡처 이미지 분석에 사용됩니다.</li>
-    <li><strong>프레임 추출기 및 정렬기</strong>: 유연한 프레임 추출 전략과 결과 정렬 메커니즘을 지원하며, 각 알고리즘 태스크는 독립적인 프레임 추출기와 정렬기에 바인딩할 수 있습니다.</li>
-    <li><strong>방어 시간대</strong>: 완전 방어 모드와 반방어 모드의 시간대별 구성 지원</li>
+    <li><strong>다중 프로토콜 카메라 접속</strong>: GB28181, ONVIF, NVR 일괄 스캔, DJI FlightHub 라이브, RTC 소비자급 카메라 통합 관리</li>
+    <li><strong>RTC 연동 API</strong>: <code>/register/device/rtc-live</code> 원클릭 go2rtc 스트림 등록·장치 등록; 삭제 시 RTC 스트림 자동 정리</li>
+    <li><strong>알고리즘 태스크 관리</strong>: 실시간 / 스냅샷 / 순찰 지원; 기본 고성능 실행 경로로 박스 판정 화면 출력, 현장별로 호환 모드 전환 가능</li>
+    <li><strong>스트림 전달 오케스트레이션</strong>: 다중 원본 일괄 상영은 기본 고성능; 특수 환경은 호환 모드; 작업 시작/중지·정책 변경 자동 추종으로 수동 재작업 감소</li>
+    <li><strong>프레임 추출기 및 정렬기</strong>: 유연한 프레임 추출 전략과 결과 정렬 메커니즘을 지원하며, 각 알고리즘 태스크는 독립적인 프레임 추출기와 정렬기에 바인딩할 수 있습니다</li>
+    <li><strong>방범 시간대</strong>: 전체 방범 모드 및 반방범 모드의 시간대별 구성 지원</li>
+    <li><strong>오케스트레이션과 실행 분담</strong>: VIDEO는 장치 오케스트레이션·원본 미리보기·경보 아카이브·시작/중지를 담당; RUNTIME은 고처리량 분석과 다중 원본 효율 상영에 집중 — 「관리」와 「속도」가 각자의 역할</li>
+    <li><strong>인수 미리보기</strong>: 원본과 판정 화면을 나란히 대조해 현장 지연·표기 품질을 빠르게 확인</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>RTC 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>go2rtc</strong>: <a href="https://github.com/AlexxIT/go2rtc">go2rtc</a> 소스 기반; install 스크립트로 vendor pull</li>
+    <li><strong>9대 브랜드 P2P 브리지</strong>: Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</li>
+    <li><strong>통합 관리 API</strong>: 플랫폼 레지스트리, 스트림 URL 빌더, go2rtc REST 프록시; 포트 6100 / 1984 / 8554</li>
+    <li><strong>VIDEO 전체 파이프라인</strong>: P2P → RTSP → SRS → Web + AI</li>
+    <li><strong>Docker 올인원</strong>: go2rtc + Python 관리 서비스; P2P LAN용 host network</li>
   </ul>
 </td>
 </tr>
@@ -451,8 +510,20 @@ yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, AI, TASK, EDGE, VISUALIZE, TRANSFORM, 
 </td>
 </tr>
 <tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TASK 모듈</strong></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">고성능 태스크 처리 모듈로, 계산 집약적 태스크 실행을 담당합니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>RUNTIME 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+    <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>고성능 비디오 실행</strong>: 실시간 판정·예약 스냅샷·다중 순찰을 가속하고 다중 원본 효율 상영을 지원; 플랫폼은 오케스트레이션·경보 아카이브를, 실행 계층은 처리량·지연에 집중</li>
+    <li><strong>네 가지 현장 형태</strong>: 실시간 감시, 예약 스냅샷, 순환 순찰, 원본 전용 전달 — 업무에 맞게 선택해 「화면만 보고 싶을 때」도 풀 AI 비용을 내지 않음</li>
+    <li><strong>원본·판정 이중 화면</strong>: 실시간 태스크는 박스 결과를 원본 미리보기와 분리해 제시; 표기가 읽기 쉬워 오경보·흐린 박스 간섭을 줄임</li>
+    <li><strong>다중 원본 절약 상영</strong>: 고성능 전달은 「대시보드를 먼저 채우기」용으로 설계되어 NVR 다채널에서 「다수는 원본, 소수는 AI」가 동시에 성립</li>
+    <li><strong>경보·상태 센터 회신</strong>: 분석·전달 과정의 경보와 상태를 플랫폼으로 모아 저장·알림; 노드는 업무 데이터를 로컬에 쌓지 않음</li>
+    <li><strong>과부하 시 실시간 우선</strong>: 연산이 빠듯할 때 현재 화면과 경보 시의성을 우선해 「바쁠수록 끊기고, 끊길수록 놓침」을 피함</li>
+    <li><strong>가속 우선, 실패 시 지속</strong>: 가속 카드가 있으면 우선 사용, 없으면 자동 폴백해 계속 실행 — 태스크가 중단되지 않음</li>
+    <li><strong>원자 모드</strong>: 엣지 노드는 실행 능력만 설치하고 전체 업무면을 올리지 않아도 됨; 결과는 센터로 돌아와 통합 판정</li>
+    <li><strong>원클릭 배포</strong>: 콘솔 또는 노드 채널로 실행기를 일괄 배포; 로컬 설치가 런타임 환경을 자동 준비</li>
+  </ul>
+</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>EDGE 모듈</strong></td>
@@ -569,7 +640,7 @@ yFeiEye는 Linux, Mac, Windows 배포를 지원합니다. COMPILE은 대상 운�
 IoT 디바이스(특히 대량의 카메라)의 효율적인 접속 및 제어 네트워크를 구축했습니다. 우리는 스트리밍 미디어 실시간 전송 기술과 최첨단 인공지능(AI)을 심층적으로 융합하여 통합 서비스 핵심을 구축했습니다. 이 솔루션은 이기종 디바이스의 상호 연결 및 통신을 뚫을 뿐만 아니라 고화질 비디오 스트림과 강력한 AI 해석 엔진을 심층적으로 통합하여 모니터링 시스템에 "지능형 눈"을 부여합니다. 이는 얼굴 인식, 이상 행동 분석, 위험 인원 배치 및 주변 침입 감지를 정확하게 실현합니다.
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-플랫폼은 두 가지 유형의 알고리즘 태스크를 지원합니다: 실시간 알고리즘 태스크는 RTSP/RTMP 스트림의 실시간 영상 분석에 사용되어 밀리초 단위 응답 능력을 제공하며, 캡처 알고리즘 태스크는 캡처 이미지의 지능형 분석에 사용되어 이벤트 복원 및 이미지 검색을 지원합니다. 알고리즘 태스크 관리를 통해 유연한 프레임 추출 및 정렬 전략을 실현하며, 각 태스크는 독립적인 프레임 추출기와 정렬기에 바인딩할 수 있습니다. 모델 서비스 클러스터 추론 능력과 결합하여 밀리초 단위 응답과 고가용성 보장을 확실히 합니다. 동시에 완전 방어 모드와 반방어 모드 두 가지 방어 전략을 제공하여 다른 시간대에 따라 모니터링 규칙을 유연하게 구성할 수 있으며, 정밀한 시간대별 지능형 모니터링 및 경보를 실현합니다.
+플랫폼은 실시간·캡처·순찰 유형의 알고리즘 태스크를 지원합니다: 세 유형 모두 기본으로 <strong>RUNTIME C++ 고속 실행기</strong>(<code>executor=cpp</code>)를 사용할 수 있습니다 — 실시간은 장시간 풀링·디코딩·YOLO와 함께 <strong>기본 박스 AI 검출 스트림 푸시</strong>; 캡처는 Cron 채집 인식; 순찰은 다채널 라운드로빈. 경보·하트비트는 VIDEO 기존 루프로 회신; Python은 선택 백엔드. 연산 노드는 <strong>RUNTIME 원자 모드</strong>(실행기만 설치, 경보 센터 집약)를 지원합니다. 알고리즘 태스크 관리를 통해 유연한 프레임 추출 및 정렬 전략을 실현하며, 각 태스크는 독립적인 프레임 추출기와 정렬기에 바인딩할 수 있습니다. 모델 서비스 클러스터 추론 능력과 결합하여 밀리초 단위 응답과 고가용성 보장을 확실히 합니다. 동시에 완전 방어 모드와 반방어 모드 두 가지 방어 전략을 제공하여 다른 시간대에 따라 모니터링 규칙을 유연하게 구성할 수 있으며, 정밀한 시간대별 지능형 모니터링 및 경보를 실현합니다.
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
 IoT 디바이스 관리 측면에서 yFeiEye는 완전한 디바이스 생명주기 관리 능력을 제공하며, 다양한 IoT·산업 프로토콜(MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA)을 지원하여 디바이스의 빠른 접속, 안전 인증, 실시간 모니터링 및 지능형 제어를 실현합니다. 규칙 엔진을 통해 디바이스 데이터의 지능형 흐름 및 처리를 실현하며, AI 기능과 결합하여 디바이스 데이터를 심층 분석합니다. 이는 디바이스 접속, 데이터 수집, 지능형 분석에서 의사결정 실행에 이르는 전 과정 자동화를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.

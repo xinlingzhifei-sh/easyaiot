@@ -86,6 +86,59 @@ const platformCount = packages.length
       </div>
     </section>
 
+    <section class="section rtc-section">
+      <div class="container grid-2">
+        <SectionReveal>
+          <p class="eyebrow">RTC 模块</p>
+          <h2 class="display section-title">没有 RTSP，也能进平台</h2>
+          <p class="lead">
+            家庭、门店里已在用的 Tapo、涂鸦、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock
+            等设备，走厂商私有 P2P 协议、原生不提供标准 RTSP。yFeiEye RTC 模块
+            一次打通九大品牌取流与对讲，与国标/ONVIF 摄像头同屏共管、同挂 AI 任务。
+          </p>
+          <ul class="rtc-points">
+            <li>Web 一键接入，按品牌动态表单填参</li>
+            <li>P2P 取流 → RTSP → SRS → 播放与 AI 分析</li>
+            <li>Tapo / Tuya / Ring / Wyze / DoorBird / Roborock 支持双向对讲</li>
+          </ul>
+          <div class="cta-row">
+            <RouterLink class="btn btn-outline" to="/features">查看 RTC 能力详情</RouterLink>
+          </div>
+        </SectionReveal>
+        <SectionReveal class="reveal-delay-2">
+          <div class="media-frame">
+            <img src="/images/feature-rtc.jpg" alt="消费级摄像头 P2P 桥接统一纳管" />
+          </div>
+        </SectionReveal>
+      </div>
+    </section>
+
+    <section class="section runtime-section">
+      <div class="container grid-2">
+        <SectionReveal class="reveal-delay-2">
+          <div class="media-frame">
+            <img src="/images/feature-runtime.jpg" alt="RUNTIME 实时视觉分析加速" />
+          </div>
+        </SectionReveal>
+        <SectionReveal>
+          <p class="eyebrow">RUNTIME 模块</p>
+          <h2 class="display section-title">画面不停，分析跟得上</h2>
+          <p class="lead">
+            预览、告警与任务编排还是原来那一套；现场路数多、要更跟手时，打开
+            RUNTIME 加速，让实时看、定时抓、多路巡都更快跟上画面，不必改使用习惯。
+          </p>
+          <ul class="runtime-points">
+            <li>实时监控更顺滑，高峰也不容易拖成积压</li>
+            <li>定时抓拍、多路轮巡同一套加速能力</li>
+            <li>按任务启用即可，平台侧预览与告警不变</li>
+          </ul>
+          <div class="cta-row">
+            <RouterLink class="btn btn-outline" to="/features#runtime">查看 RUNTIME 能力详情</RouterLink>
+          </div>
+        </SectionReveal>
+      </div>
+    </section>
+
     <section class="section loop-section">
       <div class="container grid-2">
         <SectionReveal>
@@ -324,6 +377,43 @@ const platformCount = packages.length
 
 .loop-section {
   background: linear-gradient(180deg, transparent, rgba(47, 111, 237, 0.04) 50%, transparent);
+}
+
+.rtc-section {
+  background: linear-gradient(180deg, rgba(47, 111, 237, 0.03), transparent);
+}
+
+.rtc-points,
+.runtime-points {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.rtc-points li,
+.runtime-points li {
+  position: relative;
+  padding-left: 16px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.rtc-points li::before,
+.runtime-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 7px;
+  height: 1.5px;
+  background: var(--brand);
+}
+
+.runtime-section {
+  background: linear-gradient(180deg, transparent, rgba(47, 111, 237, 0.035) 50%, transparent);
 }
 
 .close-section {

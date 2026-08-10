@@ -35,6 +35,10 @@ export interface AlgorithmTask {
   task_name: string;
   task_code: string;
   task_type: 'realtime' | 'snap' | 'patrol';
+  /** 执行后端：python（默认）| cpp（本机 RUNTIME） */
+  executor?: 'python' | 'cpp' | string;
+  runtime_bin_path?: string;
+  runtime_control_port?: number;
   device_ids?: string[];
   device_names?: string[];
   pusher_id?: number;
@@ -175,6 +179,26 @@ export const getAlgorithmTask = (task_id: number) => {
     'get',
     `${ALGORITHM_PREFIX}/task/${task_id}`
   );
+};
+
+/** 本机 VIDEO 侧 RUNTIME 版本与就绪状态 */
+export interface RuntimeInfo {
+  ready?: boolean;
+  binPath?: string | null;
+  version?: string | null;
+  git?: string | null;
+  builtAt?: string | null;
+  arch?: string | null;
+  buildMode?: string | null;
+  ort?: string | null;
+  source?: string | null;
+  versionFile?: string | null;
+}
+
+export const getRuntimeInfo = () => {
+  return commonApi<RuntimeInfo>('get', `${ALGORITHM_PREFIX}/runtime/info`, {
+    errorMessageMode: 'none',
+  });
 };
 
 export const createAlgorithmTask = (data: {

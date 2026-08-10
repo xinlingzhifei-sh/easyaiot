@@ -13,11 +13,9 @@ class VideoRuntimeConfigTest(unittest.TestCase):
             "KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}",
             compose,
         )
-        for env_file in (".env", ".env.docker", ".env.prod"):
-            with self.subTest(env_file=env_file):
-                content = (VIDEO_ROOT / env_file).read_text(encoding="utf-8")
-                self.assertIn("KAFKA_BOOTSTRAP_SERVERS=localhost:9094", content)
-                self.assertNotIn("KAFKA_BOOTSTRAP_SERVERS=localhost:9092", content)
+        example_env = (VIDEO_ROOT / "env.example").read_text(encoding="utf-8")
+        self.assertIn("KAFKA_BOOTSTRAP_SERVERS=localhost:9094", example_env)
+        self.assertNotIn("KAFKA_BOOTSTRAP_SERVERS=localhost:9092", example_env)
 
     def test_realtime_ai_uses_full_detection_resolution_for_small_people(self):
         compose = (VIDEO_ROOT / "docker-compose.yaml").read_text(encoding="utf-8")
@@ -26,26 +24,24 @@ class VideoRuntimeConfigTest(unittest.TestCase):
         self.assertNotIn("YOLO_IMG_SIZE=320", compose)
         self.assertNotIn("- OVERLAY_YOLO_IMG_SIZE=", compose)
 
-        for env_file in (".env", ".env.docker", ".env.prod"):
-            with self.subTest(env_file=env_file):
-                content = (VIDEO_ROOT / env_file).read_text(encoding="utf-8")
-                active_lines = {
-                    line.strip()
-                    for line in content.splitlines()
-                    if line.strip() and not line.lstrip().startswith("#")
-                }
-                self.assertIn("YOLO_IMG_SIZE=640", content)
-                self.assertNotIn("YOLO_IMG_SIZE=320", content)
-                self.assertFalse(
-                    any(
-                        line.startswith("OVERLAY_YOLO_IMG_SIZE=")
-                        for line in active_lines
-                    )
-                )
+        example_env = (VIDEO_ROOT / "env.example").read_text(encoding="utf-8")
+        active_lines = {
+            line.strip()
+            for line in example_env.splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        self.assertIn("YOLO_IMG_SIZE=640", example_env)
+        self.assertNotIn("YOLO_IMG_SIZE=320", example_env)
+        self.assertFalse(
+            any(
+                line.startswith("OVERLAY_YOLO_IMG_SIZE=")
+                for line in active_lines
+            )
+        )
 
     def test_realtime_ai_docker_profile_preserves_hd_motion_quality(self):
         compose = (VIDEO_ROOT / "docker-compose.yaml").read_text(encoding="utf-8")
-        docker_env = (VIDEO_ROOT / ".env.docker").read_text(encoding="utf-8")
+        example_env = (VIDEO_ROOT / "env.example").read_text(encoding="utf-8")
 
         expected_compose_defaults = (
             "GB28181_PLAY_PROTOCOL=${GB28181_PLAY_PROTOCOL:-fmp4_first}",
@@ -77,12 +73,12 @@ class VideoRuntimeConfigTest(unittest.TestCase):
                     f"docker-compose.yaml 仍强制低画质配置：{legacy_value}",
                 )
 
-        docker_values = dict(
+        example_values = dict(
             line.split("=", 1)
-            for line in docker_env.splitlines()
+            for line in example_env.splitlines()
             if line and not line.startswith("#") and "=" in line
         )
-        expected_docker_values = {
+        expected_example_values = {
             "GB28181_PLAY_PROTOCOL": "fmp4_first",
             "SOURCE_FPS": "25",
             "TARGET_WIDTH": "1280",
@@ -92,9 +88,9 @@ class VideoRuntimeConfigTest(unittest.TestCase):
             "FFMPEG_THREADS": "",
             "FFMPEG_GOP_SIZE": "50",
         }
-        for key, expected in expected_docker_values.items():
+        for key, expected in expected_example_values.items():
             with self.subTest(key=key):
-                self.assertEqual(docker_values.get(key), expected)
+                self.assertEqual(example_values.get(key), expected)
 
     def test_host_network_video_scripts_do_not_write_kafka_internal_port(self):
         runtime_files = [
@@ -128,6 +124,17 @@ class VideoRuntimeConfigTest(unittest.TestCase):
                     'YFEIEYE_VIDEO_COMPOSE_ENV_FILE="$VIDEO_COMPOSE_ENV_FILE"',
                     content,
                 )
+
+    def test_required_runtime_build_failures_are_not_swallowed(self):
+        for runtime_file in (
+            "install_linux.sh",
+            "install_linux_arm.sh",
+            "install_linux_kylin.sh",
+        ):
+            with self.subTest(runtime_file=runtime_file):
+                content = (VIDEO_ROOT / runtime_file).read_text(encoding="utf-8")
+                self.assertIn("ensure_cpp_runtime", content)
+                self.assertNotIn("ensure_cpp_runtime || true", content)
 
 
 if __name__ == "__main__":

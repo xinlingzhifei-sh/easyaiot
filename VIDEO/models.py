@@ -1131,6 +1131,14 @@ class AlgorithmTask(db.Model):
     target_node_id = db.Column(db.BigInteger, nullable=True, comment='指定部署节点ID')
     node_id = db.Column(db.BigInteger, nullable=True, comment='实际运行节点ID')
 
+    # 执行后端：python=现有 run_deploy；cpp=RUNTIME 二进制（realtime/snap/patrol，本机）
+    executor = db.Column(db.String(20), default='cpp', nullable=False,
+                         comment='执行后端[python,cpp]，默认 cpp')
+    runtime_bin_path = db.Column(db.String(500), nullable=True,
+                                 comment='RUNTIME 二进制路径（空则用 RUNTIME_BIN 或仓库默认）')
+    runtime_control_port = db.Column(db.Integer, nullable=True,
+                                     comment='RUNTIME HTTP 控制端口（8000-9000）')
+
     # 服务状态信息（仅实时算法任务使用）
     service_server_ip = db.Column(db.String(512), nullable=True, comment='服务运行服务器IP（多节点时为逗号分隔）')
     service_port = db.Column(db.Integer, nullable=True, comment='服务端口')
@@ -1310,6 +1318,9 @@ class AlgorithmTask(db.Model):
             'prefer_gpu': self.prefer_gpu if self.prefer_gpu is not None else True,
             'target_node_id': self.target_node_id,
             'node_id': self.node_id,
+            'executor': getattr(self, 'executor', None) or 'cpp',
+            'runtime_bin_path': getattr(self, 'runtime_bin_path', None),
+            'runtime_control_port': getattr(self, 'runtime_control_port', None),
             'service_server_ip': self.service_server_ip,
             'service_port': self.service_port,
             'service_process_id': self.service_process_id,
@@ -2350,6 +2361,11 @@ class StreamForwardTask(db.Model):
     node_id = db.Column(db.BigInteger, nullable=True, comment='实际运行节点ID（单节点部署）')
     device_deployments = db.Column(db.Text, nullable=True,
                                    comment='设备级远程部署明细 JSON：[{device_ids,node_id,host,workload_id,pid}]')
+
+    # 执行后端：cpp=RUNTIME forward 直通（高性能，默认）；python=FFmpeg 推流
+    executor = db.Column(db.String(20), default='cpp', nullable=False,
+                         comment='执行后端[cpp:RUNTIME forward,python:FFmpeg]')
+    runtime_bin_path = db.Column(db.String(500), nullable=True, comment='自定义 RUNTIME 二进制路径')
     
     # 统计信息
     total_streams = db.Column(db.Integer, default=0, nullable=False, comment='总推流数')
@@ -2403,6 +2419,8 @@ class StreamForwardTask(db.Model):
             'prefer_gpu': self.prefer_gpu if self.prefer_gpu is not None else True,
             'target_node_id': self.target_node_id,
             'node_id': self.node_id,
+            'executor': getattr(self, 'executor', None) or 'cpp',
+            'runtime_bin_path': getattr(self, 'runtime_bin_path', None),
             'device_deployments': self._parse_device_deployments(),
             'total_streams': self.total_streams,
             'last_process_time': utc_isoformat_z(self.last_process_time),
@@ -2579,6 +2597,57 @@ def ensure_algorithm_task_post_process_columns(engine):
             log.info('已为 algorithm_task 表添加 %s 列', col)
     except Exception as e:
         log.warning('ensure_algorithm_task_post_process_columns: %s', e)
+
+
+def ensure_stream_forward_task_executor_columns(engine):
+    """老库 stream_forward_task 表补 RUNTIME/cpp 执行后端列。"""
+    import logging
+    from sqlalchemy import inspect, text
+
+    log = logging.getLogger(__name__)
+    columns = {
+        'executor': "VARCHAR(20) DEFAULT 'cpp'",
+        'runtime_bin_path': 'VARCHAR(500)',
+    }
+    try:
+        inspector = inspect(engine)
+        if 'stream_forward_task' not in inspector.get_table_names():
+            return
+        col_names = {c['name'] for c in inspector.get_columns('stream_forward_task')}
+        for col, ddl in columns.items():
+            if col in col_names:
+                continue
+            with engine.begin() as conn:
+                conn.execute(text(f'ALTER TABLE stream_forward_task ADD COLUMN {col} {ddl}'))
+            log.info('已为 stream_forward_task 表添加 %s 列', col)
+    except Exception as e:
+        log.warning('ensure_stream_forward_task_executor_columns: %s', e)
+
+
+def ensure_algorithm_task_executor_columns(engine):
+    """老库 algorithm_task 表补 RUNTIME/cpp 执行后端列。"""
+    import logging
+    from sqlalchemy import inspect, text
+
+    log = logging.getLogger(__name__)
+    columns = {
+        'executor': "VARCHAR(20) DEFAULT 'cpp'",
+        'runtime_bin_path': 'VARCHAR(500)',
+        'runtime_control_port': 'INTEGER',
+    }
+    try:
+        inspector = inspect(engine)
+        if 'algorithm_task' not in inspector.get_table_names():
+            return
+        col_names = {c['name'] for c in inspector.get_columns('algorithm_task')}
+        for col, ddl in columns.items():
+            if col in col_names:
+                continue
+            with engine.begin() as conn:
+                conn.execute(text(f'ALTER TABLE algorithm_task ADD COLUMN {col} {ddl}'))
+            log.info('已为 algorithm_task 表添加 %s 列', col)
+    except Exception as e:
+        log.warning('ensure_algorithm_task_executor_columns: %s', e)
 
 
 def ensure_algorithm_task_detect_conf_column(engine):

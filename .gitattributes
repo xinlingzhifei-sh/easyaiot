@@ -71,6 +71,15 @@ COMPILE/platforms/ubuntu/deb/copyright text eol=lf
 *.ts           text eol=lf
 *.vue          text eol=lf
 *.js           text eol=lf
+# RUNTIME / C++ 源码与 CMake、任务 ini（Linux 构建/解析，强制 LF）
+*.c            text eol=lf
+*.cc           text eol=lf
+*.cpp          text eol=lf
+*.h            text eol=lf
+*.hpp          text eol=lf
+*.cmake        text eol=lf
+CMakeLists.txt text eol=lf
+*.ini          text eol=lf
 
 *.png binary
 *.jpg binary
@@ -87,8 +96,39 @@ NODE/get-pip.py -diff
 # VIDEO 人脸特征模型（体积大，本地/install 下载，不参与 diff）
 VIDEO/face_rec.onnx binary -diff
 
+# VIDEO / AI 内置 YOLO 导出缓存（.pt→onnx，体积大；与 .gitignore 对齐）
+VIDEO/yolo*.onnx binary -diff
+VIDEO/yolov*.onnx binary -diff
+VIDEO/yolo*.names -diff
+VIDEO/yolov*.names -diff
+VIDEO/yolo*.names.json -diff
+VIDEO/yolov*.names.json -diff
+AI/yolo*.onnx binary -diff
+AI/yolov*.onnx binary -diff
+AI/yolo*.names -diff
+AI/yolov*.names -diff
+AI/yolo*.names.json -diff
+AI/yolov*.names.json -diff
+
 # AI 模型权重目录（体积大，ModelScope/本地下载，不参与 diff）
 AI/models/** -diff
+
+# RUNTIME 模型权重 / 离线包 / 构建与本地验证产物（体积大，不参与 diff；与 .gitignore 对齐）
+RUNTIME/models/** -diff
+RUNTIME/models/**/*.onnx binary -diff
+RUNTIME/models/**/*.pt binary -diff
+RUNTIME/models/**/*.engine binary -diff
+RUNTIME/models/**/*.names -diff
+RUNTIME/models/**/*.names.json -diff
+RUNTIME/.bundle-runtime/** -diff
+RUNTIME/.bundle-runtime/**/*.tar.gz binary -diff
+RUNTIME/build/** -diff
+RUNTIME/build-linux/** -diff
+RUNTIME/.atomic-test/** -diff
+RUNTIME/.atomic-verify/** -diff
+RUNTIME/.test-hwaccel/** -diff
+RUNTIME/.test-yolo-link/** -diff
+RUNTIME/.test-*/** -diff
 
 # WEB 预构建前端缓存（runtime_image.sh 提取，体积大，不参与 diff）
 WEB/dist-prebuilt-full/** -diff
@@ -116,6 +156,10 @@ SITE/.pnpm-store/** -diff
 # TRANSFORM 运行时数据与离线构建产物：不参与 diff
 TRANSFORM/data/** -diff
 TRANSFORM/dist/** -diff
+
+# RTC 运行时数据与 vendor 源码：不参与 diff（vendor 含嵌套 .git，体积大）
+RTC/data/** -diff
+RTC/vendor/go2rtc/** -diff
 
 # COMPILE 产物 / 构建缓存：不参与 diff（体积大；与 .gitignore 对齐，防误加入仓库）
 COMPILE/dist/** -diff
