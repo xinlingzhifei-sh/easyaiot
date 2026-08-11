@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const installerSource = readFileSync(resolve(scriptDirectory, 'install_middleware_linux.sh'), 'utf8');
+const nfsStackSource = readFileSync(
+  resolve(scriptDirectory, '../media-cluster/nfs/ensure_nfs_media_stack.sh'),
+  'utf8',
+);
 
 const nfsHelper = installerSource.match(
   /ensure_nfs_media_before_srs\(\) \{([\s\S]*?)\n\}/,
@@ -18,6 +22,20 @@ assert.match(nfsHelper, /bash "\$nfs_script"/);
 assert.match(
   installerSource,
   /ensure_host_data_directory_before_srs\(\) \{\s*ensure_nfs_media_before_srs\s*\}/,
+);
+
+const localDirectGuard = nfsStackSource.match(
+  /if \[ "\$install_server" -eq 1 \] && \[ "\$NFS_EXPORT" = "\$MOUNT_ROOT" \]; then([\s\S]*?)\n    fi/,
+);
+
+assert.ok(localDirectGuard, 'local NFS export must guard against mounting a directory onto itself');
+assert.match(localDirectGuard[1], /NFS_LOCAL_DIRECT/);
+assert.match(localDirectGuard[1], /_ensure_local_media_permissions/);
+assert.match(localDirectGuard[1], /echo ENSURE_NFS_MEDIA_STACK_OK/);
+assert.match(localDirectGuard[1], /return 0/);
+assert.ok(
+  nfsStackSource.indexOf(localDirectGuard[0]) < nfsStackSource.indexOf('install_nfs_client.sh'),
+  'local same-path guard must run before the NFS client mount',
 );
 
 console.log('NFS media installer contract passed');
