@@ -25,6 +25,7 @@ message(STATUS "OpenCV version: ${OpenCV_VERSION}")
 find_package(CURL REQUIRED)
 
 find_library(JSONCPP_LIBRARY NAMES jsoncpp REQUIRED)
+find_path(JSONCPP_INCLUDE_DIR NAMES json/json.h PATH_SUFFIXES jsoncpp REQUIRED)
 # glog >= 0.7 requires the CMake package target so GLOG_USE_GLOG_EXPORT /
 # GLOG_EXPORT are propagated; bare find_library() breaks the public headers.
 find_package(glog CONFIG QUIET)
@@ -42,11 +43,12 @@ find_library(AVUTIL_LIBRARY NAMES avutil REQUIRED)
 find_library(SWSCALE_LIBRARY NAMES swscale REQUIRED)
 find_library(INIH_LIBRARY NAMES inih)
 find_library(PUGIXML_LIBRARY NAMES pugixml)
-message(STATUS "jsoncpp: ${JSONCPP_LIBRARY}")
+message(STATUS "jsoncpp: ${JSONCPP_LIBRARY} (include: ${JSONCPP_INCLUDE_DIR})")
 message(STATUS "ffmpeg: ${AVFORMAT_LIBRARY} ${AVCODEC_LIBRARY}")
 
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
+    ${JSONCPP_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/src/
     ${CMAKE_SOURCE_DIR}/3rdparty/cpp-httplib/
 )
