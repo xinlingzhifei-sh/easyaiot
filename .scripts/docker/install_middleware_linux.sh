@@ -3365,15 +3365,19 @@ stop_dify() {
     dify_compose down 2>&1 | tee -a "$DIFY_LOG_FILE" || true
 }
 
-# 在安装 SRS 之前创建宿主机 ~/easyaiot/data（SRS 配置中 srs_log_file、dvr_path 使用容器内 /data）
-ensure_host_data_directory_before_srs() {
-    local _host_data_dir="${EASYAIOT_HOST_DATA_DIR:-$HOME/easyaiot/data}"
-    print_info "安装 SRS 前检查宿主机目录 ${_host_data_dir} ..."
-    # 注意：只对数据根目录顶层和 playbacks 设权限，绝不对整个目录树递归
-    local created=0
-    if run_priv mkdir -p "${_host_data_dir}/playbacks" 2>/dev/null; then
-        run_priv chmod 777 "${_host_data_dir}" "${_host_data_dir}/playbacks" 2>/dev/null || true
-        created=1
+# 在安装 SRS 之前确保 NFS 媒体栈（单机默认本机 export；集群挂载远程 NFS_SERVER）
+ensure_nfs_media_before_srs() {
+    local nfs_script="${SCRIPT_DIR}/../media-cluster/nfs/ensure_nfs_media_stack.sh"
+    local resolve_helper="${SCRIPT_DIR}/../media-cluster/nfs/resolve_media_root.sh"
+    local mount_root
+    # shellcheck source=/dev/null
+    [ -f "$resolve_helper" ] && source "$resolve_helper"
+    mount_root="$(resolve_easyaiot_media_root 2>/dev/null || echo "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}")"
+    export EASYAIOT_MEDIA_ROOT="$mount_root"
+    print_info "安装 SRS 前准备 NFS 媒体栈（挂载点 ${mount_root}）..."
+    if [ ! -f "$nfs_script" ]; then
+        print_error "未找到 NFS 脚本: ${nfs_script}"
+        return 1
     fi
     if run_priv env \
         EASYAIOT_MEDIA_ROOT="$mount_root" \
@@ -3388,6 +3392,11 @@ ensure_host_data_directory_before_srs() {
         print_error "媒体栈准备失败（集群模式需 sudo mount；单机无 sudo 时应 fallback 到 \$HOME/easyaiot/media）"
         return 1
     fi
+}
+
+# 兼容旧名（内部仍可能被引用）
+ensure_host_data_directory_before_srs() {
+    ensure_nfs_media_before_srs
 }
 
 # 从 .env.docker 安全读取单值，不执行文件内容。
