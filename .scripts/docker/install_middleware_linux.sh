@@ -3375,10 +3375,18 @@ ensure_host_data_directory_before_srs() {
         run_priv chmod 777 "${_host_data_dir}" "${_host_data_dir}/playbacks" 2>/dev/null || true
         created=1
     fi
-    if [ "$created" -eq 1 ]; then
-        print_success "宿主机目录已就绪: ${_host_data_dir}（含 playbacks 子目录）"
+    if run_priv env \
+        EASYAIOT_MEDIA_ROOT="$mount_root" \
+        NFS_SERVER="${NFS_SERVER:-}" \
+        NFS_EXPORT="${NFS_EXPORT:-}" \
+        bash "$nfs_script"; then
+        mount_root="$(resolve_easyaiot_media_root 2>/dev/null || echo "$mount_root")"
+        export EASYAIOT_MEDIA_ROOT="$mount_root"
+        run_priv chmod 777 "$mount_root" "${mount_root}/playbacks" 2>/dev/null || true
+        print_success "媒体栈已就绪: ${mount_root}"
     else
-        print_warning "无法在宿主机创建 ${_host_data_dir}（请使用 root/sudo 执行安装，或手动: mkdir -p ${_host_data_dir}/playbacks && chmod 777 ${_host_data_dir} ${_host_data_dir}/playbacks）。"
+        print_error "媒体栈准备失败（集群模式需 sudo mount；单机无 sudo 时应 fallback 到 \$HOME/easyaiot/media）"
+        return 1
     fi
 }
 
@@ -7238,7 +7246,7 @@ show_help() {
     echo "环境变量:"
     echo "  EASYAIOT_DEPLOY_PROFILE   - 部署规格: mini(1,≥4GB) | standard(2,≥16GB) | full(3,≥20GB，默认)"
     echo "  EASYAIOT_ENABLE_TDENGINE  - 完整版自动为 1；mini/standard 为 0"
-    echo "  EASYAIOT_ENABLE_EMQX      - standard/完整版自动为 1；mini 为 0"
+    echo "  EASYAIOT_ENABLE_EMQX      - mini/standard/完整版均为 1；显式 0 可关闭"
     echo "  FORCE_CHMOD=true    - 对已存在的数据目录强制完整递归 chmod 修复（默认只设顶层，数据量大时慢）"
     echo "                        仅在怀疑既有目录权限损坏、容器读写报错时使用一次"
     echo "                        示例: FORCE_CHMOD=true ./install_middleware_linux.sh update"

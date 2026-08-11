@@ -1,6 +1,6 @@
 """
-DVR 段上传流水线：MinIO 上传、Playback 写入、本地文件清理。
-供 Hook 同步模式与 Kafka Upload Worker 共用。
+DVR 段上传流水线：已迁移至 iot-sink（NFS 读盘 → MinIO → Playback/告警回填）。
+VIDEO 仅转发 Hook/Kafka 事件到 sink，不再直传 MinIO。
 """
 import logging
 import os
