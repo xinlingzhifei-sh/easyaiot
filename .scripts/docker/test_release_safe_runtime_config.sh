@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MIDDLEWARE_COMPOSE="${ROOT_DIR}/.scripts/docker/docker-compose.yml"
 DEVICE_COMPOSE="${ROOT_DIR}/DEVICE/docker-compose.yml"
 DEVICE_INSTALL="${ROOT_DIR}/DEVICE/install_linux.sh"
+VIDEO_RUNTIME_BRIDGE="${ROOT_DIR}/VIDEO/scripts/ensure_runtime_cpp.sh"
 
 fail() {
   echo "FAIL: $*" >&2
@@ -37,5 +38,9 @@ reject_contains "${MIDDLEWARE_COMPOSE}" './mq_data/data:/var/lib/kafka/data:rw'
 require_contains "${DEVICE_COMPOSE}" 'http://localhost:48093/actuator/health'
 reject_contains "${DEVICE_COMPOSE}" 'http://localhost:48093"]'
 reject_contains "${DEVICE_INSTALL}" '${EASYAIOT_ROOT}'
+
+require_contains "${VIDEO_RUNTIME_BRIDGE}" 'RUNTIME_CONFIG_DIR:-/app/data/runtime-config'
+require_contains "${VIDEO_RUNTIME_BRIDGE}" '_set_env_docker_kv_local "$env_file" RUNTIME_CONFIG_DIR "$runtime_config_dir"'
+require_contains "${VIDEO_RUNTIME_BRIDGE}" 'RUNTIME_CONFIG_DIR=${runtime_config_dir}'
 
 echo "release-safe runtime config checks passed"

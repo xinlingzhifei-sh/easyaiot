@@ -64,6 +64,8 @@ wire_runtime_override() {
   source "$deploy_env"
   set +a
 
+  local runtime_config_dir="${RUNTIME_CONFIG_DIR:-/app/data/runtime-config}"
+
   if [[ ! -x "${RUNTIME_BIN:-}" ]]; then
     print_warning "RUNTIME 二进制不可执行: ${RUNTIME_BIN:-}"
     return 0
@@ -103,6 +105,7 @@ wire_runtime_override() {
   fi
 
   _set_env_docker_kv_local "$env_file" RUNTIME_BIN "/opt/easyaiot/RUNTIME/build/RUNTIME"
+  _set_env_docker_kv_local "$env_file" RUNTIME_CONFIG_DIR "$runtime_config_dir"
   _set_env_docker_kv_local "$env_file" LD_LIBRARY_PATH "$ld_path"
   _set_env_docker_kv_local "$env_file" USE_GPU "${USE_GPU:-true}"
   _set_env_docker_kv_local "$env_file" RUNTIME_PREFER_GPU "${RUNTIME_PREFER_GPU:-true}"
@@ -129,6 +132,7 @@ wire_runtime_override() {
     fi
     echo "    environment:"
     echo "      - RUNTIME_BIN=/opt/easyaiot/RUNTIME/build/RUNTIME"
+    echo "      - RUNTIME_CONFIG_DIR=${runtime_config_dir}"
     echo "      - LD_LIBRARY_PATH=${ld_path}"
     echo "      - USE_GPU=${USE_GPU:-true}"
     echo "      - RUNTIME_PREFER_GPU=${RUNTIME_PREFER_GPU:-true}"
