@@ -22,6 +22,7 @@ from typing import List, Optional, Tuple
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from models import AlgorithmTask, Device, DeviceDetectionRegion
+from app.utils.gb28181_source import is_gb28181_source, resolve_gb28181_source
 from app.utils.service_urls import resolve_video_service_base_url
 
 logger = logging.getLogger(__name__)
@@ -312,7 +313,10 @@ def _resolve_rtsp_url(device: Device) -> str:
         val = (getattr(device, attr, None) or '').strip()
         if val.startswith('rtsp://') or val.startswith('rtsps://') or val.startswith('rtmp://'):
             return val
-    return (device.source or '').strip()
+    source = (device.source or '').strip()
+    if is_gb28181_source(source):
+        return (resolve_gb28181_source(source, logger=logger) or '').strip()
+    return source
 
 
 def _device_has_active_cpp_realtime_algo(device_id: str) -> bool:

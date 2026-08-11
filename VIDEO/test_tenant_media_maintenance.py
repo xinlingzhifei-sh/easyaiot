@@ -41,6 +41,25 @@ class _DeleteQuery:
 
 class TenantMaintenanceTest(unittest.TestCase):
 
+    @mock.patch(
+        'app.services.runtime_config_service.resolve_gb28181_source',
+        create=True,
+    )
+    def test_cpp_runtime_resolves_gb28181_virtual_source(self, resolver):
+        from app.services import runtime_config_service as runtime_config
+
+        resolver.return_value = 'rtsp://media.example/live/channel'
+        device = types.SimpleNamespace(
+            source='gb28181://device/channel',
+            rtsp_direct='',
+        )
+
+        self.assertEqual(
+            'rtsp://media.example/live/channel',
+            runtime_config.resolve_algo_rtsp_url(device),
+        )
+        resolver.assert_called_once_with(device.source, logger=runtime_config.logger)
+
     def test_disk_guard_float_environment_values_fall_back_safely(self):
         from app.services import playback_disk_guard_service as guard
 
