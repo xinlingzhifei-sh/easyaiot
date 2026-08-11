@@ -51,8 +51,9 @@ services:
       # 3. 这里挂载相同宿主机目录到容器的 /data，确保 VIDEO 服务可访问 SRS 生成的录像
       # 4. 在容器内，SRS录像文件位于 /data/playbacks/live/{device_id}/YYYY/MM/DD/*.flv
       # 5. 应用数据目录在 /app/data，SRS录像目录在 /data，两者是不同的挂载点
-      - /data:/data:rw
-      - /data/yfeieye-record-exports:/data/yfeieye-record-exports:rw
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/data:rw
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/mnt/easyaiot-media:rw
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}/yfeieye-record-exports:/data/yfeieye-record-exports:rw
       # 环境变量配置文件（用于Docker部署，使用.env.docker）
       - ${YFEIEYE_VIDEO_COMPOSE_ENV_FILE:-.env.docker}:/app/.env:ro
 
@@ -72,12 +73,13 @@ services:
       # DATABASE_URL and SECRET_KEY are required in .env.docker.
       - YFEIEYE_MEDIA_SERVICE_MAX_SKEW_SECONDS=${YFEIEYE_MEDIA_SERVICE_MAX_SKEW_SECONDS:-300}
       - VIDEO_ENV=${VIDEO_ENV:-production}
-      - YFEIEYE_LOCAL_MEDIA_ROOTS=/app/alert_images,/data/playbacks,/data/yfeieye-record-exports
+      - YFEIEYE_LOCAL_MEDIA_ROOTS=/mnt/easyaiot-media/alert_images,/app/alert_images,/data/playbacks,/data/yfeieye-record-exports
       - YFEIEYE_ALERT_INGEST_SERVICE_ID=${YFEIEYE_ALERT_INGEST_SERVICE_ID:-video-algorithm}
       - YFEIEYE_ALERT_INGEST_TENANT_ID=${YFEIEYE_ALERT_INGEST_TENANT_ID:-1}
       - YFEIEYE_SNAPSHOT_TENANT_ID=${YFEIEYE_SNAPSHOT_TENANT_ID:-1}
       - YFEIEYE_DVR_TENANT_ID=${YFEIEYE_DVR_TENANT_ID:-1}
       - YFEIEYE_VIDEO_LEGACY_TENANT_ID=${YFEIEYE_VIDEO_LEGACY_TENANT_ID:-1}
+      - MQTT_ALGO_TENANT=${MQTT_ALGO_TENANT:-1}
       - YFEIEYE_MODEL_ROOT=/app/model
       - YFEIEYE_RECORD_EXPORT_STORE_DIR=/data/yfeieye-record-exports
       - YFEIEYE_MEDIA_ACCESS_AUDIT_MAX_BYTES=${YFEIEYE_MEDIA_ACCESS_AUDIT_MAX_BYTES:-67108864}
@@ -144,7 +146,7 @@ services:
       - TDENGINE_HOST=${TDENGINE_HOST:-localhost}
       - TDENGINE_PORT=${TDENGINE_PORT:-6030}
       # 告警图片落盘根目录（与外置 alert_images 卷一致，供 iot-sink 读取并上传 MinIO）
-      - ALERT_IMAGES_DIR=/app/alert_images
+      - ALERT_IMAGES_DIR=/mnt/easyaiot-media/alert_images
       # 视频服务特有配置
       - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-pro.basiclab.top:1935}
       - CAMERA_ONLINE_INTERVAL=${CAMERA_ONLINE_INTERVAL:-10}

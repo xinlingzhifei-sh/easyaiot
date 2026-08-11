@@ -532,6 +532,8 @@ services:
       - TDENGINE_PASSWORD=${TDENGINE_PASSWORD:-}
       - IOT_SINK_TOKEN_SECRET=${IOT_SINK_TOKEN_SECRET:?IOT_SINK_TOKEN_SECRET is required}
       - IOT_SINK_POST_PROCESS_TOKEN=${IOT_SINK_POST_PROCESS_TOKEN:?IOT_SINK_POST_PROCESS_TOKEN is required}
+      - YFEIEYE_SRS_HOOK_TOKEN=${YFEIEYE_SRS_HOOK_TOKEN:?YFEIEYE_SRS_HOOK_TOKEN is required}
+      - YFEIEYE_DVR_TENANT_ID=${YFEIEYE_DVR_TENANT_ID:-1}
       - IOT_SINK_EMQX_MQTT_USERNAME=${IOT_SINK_EMQX_MQTT_USERNAME:-}
       - IOT_SINK_EMQX_MQTT_PASSWORD=${IOT_SINK_EMQX_MQTT_PASSWORD:-}
       - SPRING_PROFILES_ACTIVE=${IOT_SINK_SPRING_PROFILES_ACTIVE:-local} # mini/standard 形态由安装脚本追加 mini/standard profile（无 TDengine 时 tdengine 数据源 lazy）
@@ -570,6 +572,7 @@ services:
       # 算法侧须挂载同一宿主机目录且设置 ALERT_IMAGES_DIR=/app/alert_images（见 VIDEO/app/utils/alert_images_paths.py）
       # 使用与 VIDEO 相同的 release 外状态根，发布切换后仍共享同一落盘目录
       - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/alert_images:/app/alert_images
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/mnt/easyaiot-media:rw
       # full 形态工业协议演示：宿主机 /tmp 虚拟串口 + pts（.scripts/modbus-rtu-virtual-serial）
       - /tmp:/tmp
       - /dev/pts:/dev/pts

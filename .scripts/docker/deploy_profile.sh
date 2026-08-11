@@ -437,7 +437,7 @@ apply_middleware_deploy_env() {
     local env_file="${root}/.scripts/docker/.env"
     local mount_root
     mount_root="$(resolve_easyaiot_media_root)"
-    local nfs_export="${NFS_EXPORT:-/mnt/easyaiot-media}"
+    local nfs_export="${NFS_EXPORT:-$mount_root}"
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
     _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$mount_root"
@@ -449,6 +449,7 @@ apply_middleware_deploy_env() {
 apply_device_deploy_env() {
     local root="${1:-$(_deploy_profile_repo_root)}"
     local env_file="${root}/DEVICE/.env"
+    local hook_token="${YFEIEYE_SRS_HOOK_TOKEN:-}"
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
     if is_mini_deploy_profile; then
@@ -458,6 +459,18 @@ apply_device_deploy_env() {
     fi
     _set_env_docker_kv "$env_file" IOT_SINK_SPRING_PROFILES_ACTIVE "$(iot_sink_spring_profiles_active)"
     _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$(resolve_easyaiot_media_root)"
+    if [ -z "$hook_token" ]; then
+        hook_token="$(awk -F= '/^YFEIEYE_SRS_HOOK_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/VIDEO/.env.docker" 2>/dev/null || true)"
+    fi
+    if [ -z "$hook_token" ]; then
+        hook_token="$(awk -F= '/^YFEIEYE_SRS_HOOK_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/.scripts/docker/.env" 2>/dev/null || true)"
+    fi
+    if [ -n "$hook_token" ]; then
+        _set_env_docker_kv "$env_file" YFEIEYE_SRS_HOOK_TOKEN "$hook_token"
+    fi
+    _set_env_docker_kv "$env_file" YFEIEYE_DVR_TENANT_ID "${YFEIEYE_DVR_TENANT_ID:-1}"
 }
 
 # TRANSFORM：按形态写入 .env.docker（供运行脚本统一读取）

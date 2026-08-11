@@ -45,7 +45,7 @@ resolve_easyaiot_media_root() {
     done
 
     # 已有本地目录（历史 ~/easyaiot/data 迁移或 prior fallback）
-    for candidate in "$home_root" "${HOME}/easyaiot/data"; do
+    for candidate in /data "$home_root" "${HOME}/easyaiot/data"; do
         if [ -d "${candidate}/playbacks" ] || [ -d "${candidate}/alert_images" ]; then
             echo "$candidate"
             return

@@ -15,6 +15,11 @@ import java.time.OffsetDateTime;
 public class AlertDO {
 
     /**
+     * 所属租户ID。
+     */
+    private Long tenantId;
+
+    /**
      * 告警ID（主键，自增）
      */
     private Integer id;

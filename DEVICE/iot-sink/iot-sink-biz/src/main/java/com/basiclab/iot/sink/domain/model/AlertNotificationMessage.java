@@ -14,6 +14,12 @@ import java.util.Map;
  */
 @Data
 public class AlertNotificationMessage {
+
+    /**
+     * 告警所属租户。MQTT 消费线程没有 HTTP 上下文，必须由消息显式携带。
+     */
+    @JsonAlias({"tenant_id", "tenantId"})
+    private Long tenantId;
     
     /**
      * 告警ID

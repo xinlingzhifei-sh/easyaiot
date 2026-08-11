@@ -908,7 +908,11 @@ def generate_runtime_ini(
     mqtt_username = (os.getenv('MQTT_ALGO_USERNAME') or '').strip()
     mqtt_password = (os.getenv('MQTT_ALGO_PASSWORD') or '').strip()
     mqtt_client_id = (os.getenv('MQTT_ALGO_CLIENT_ID') or f'algo-runtime-{task.id}').strip()
-    mqtt_tenant = (os.getenv('MQTT_ALGO_TENANT') or 'default').strip()
+    mqtt_tenant = (
+        os.getenv('MQTT_ALGO_TENANT')
+        or os.getenv('YFEIEYE_VIDEO_LEGACY_TENANT_ID')
+        or '1'
+    ).strip()
     algo_bus_transport = (os.getenv('ALGO_BUS_TRANSPORT') or 'mqtt').strip() or 'mqtt'
     compute_node_id = (os.getenv('COMPUTE_NODE_ID') or os.getenv('NODE_ID') or '').strip()
 

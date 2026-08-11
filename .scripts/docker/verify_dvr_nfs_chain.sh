@@ -22,6 +22,11 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=deploy_profile.sh
+source "${SCRIPT_DIR}/deploy_profile.sh"
+ensure_deploy_profile >/dev/null 2>&1 || true
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -42,7 +47,7 @@ print_section() {
     echo -e "${CYAN}========================================${NC}"
 }
 
-NFS_MOUNT_ROOT="${NFS_MOUNT_ROOT:-}"
+NFS_MOUNT_ROOT="${NFS_MOUNT_ROOT:-${EASYAIOT_MEDIA_ROOT:-}}"
 if [ -z "$NFS_MOUNT_ROOT" ]; then
     if mountpoint -q /mnt/easyaiot-media 2>/dev/null; then
         NFS_MOUNT_ROOT=/mnt/easyaiot-media
@@ -54,11 +59,35 @@ if [ -z "$NFS_MOUNT_ROOT" ]; then
 fi
 
 VERIFY_DEVICE_ID="${VERIFY_DEVICE_ID:-camera_atomic_001}"
+VERIFY_TENANT_ID="${VERIFY_TENANT_ID:-${MQTT_ALGO_TENANT:-${YFEIEYE_VIDEO_LEGACY_TENANT_ID:-1}}}"
 SINK_HOOK_URL="${SINK_HOOK_URL:-http://127.0.0.1:48092/media/hook/srs/on_dvr}"
 GATEWAY_HOOK_URL="${GATEWAY_HOOK_URL:-http://127.0.0.1:48080/admin-api/sink/media/hook/srs/on_dvr}"
 VIDEO_HOOK_URL="${VIDEO_HOOK_URL:-http://127.0.0.1:6000/video/media/hook/srs/on_dvr}"
 PG_CTR="${DOCKER_PG_CONTAINER:-postgres-server}"
 MIN_BYTES=4096
+
+read_env_value() {
+    local key="$1"
+    shift
+    local file value
+    for file in "$@"; do
+        [ -f "$file" ] || continue
+        value="$(awk -v key="$key" 'index($0, key "=") == 1 {sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' "$file")"
+        if [ -n "$value" ]; then
+            printf '%s' "$value"
+            return 0
+        fi
+    done
+    return 1
+}
+
+HOOK_TOKEN="${YFEIEYE_SRS_HOOK_TOKEN:-}"
+if [ -z "$HOOK_TOKEN" ]; then
+    HOOK_TOKEN="$(read_env_value YFEIEYE_SRS_HOOK_TOKEN \
+        "${PROJECT_ROOT:-${SCRIPT_DIR}/../..}/VIDEO/.env.docker" \
+        "${PROJECT_ROOT:-${SCRIPT_DIR}/../..}/DEVICE/.env.docker" \
+        "${PROJECT_ROOT:-${SCRIPT_DIR}/../..}/.scripts/docker/.env" || true)"
+fi
 
 GATEWAY_ONLY=0
 while [ $# -gt 0 ]; do
@@ -85,11 +114,15 @@ print(json.dumps({
     "device_id": "${VERIFY_DEVICE_ID}",
     "file_path": "/data/playbacks/live/${VERIFY_DEVICE_ID}/2026/08/11/${fn}",
     "cwd": "/data",
+    "tenant_id": int("${VERIFY_TENANT_ID}"),
 }))
 PY
 )
     local resp code
-    resp=$(curl -sS -w '\n%{http_code}' -X POST "$url" -H 'Content-Type: application/json' -d "$payload" 2>/dev/null || echo "curl_error\n000")
+    resp=$(curl -sS -w '\n%{http_code}' -X POST "$url" \
+        -H 'Content-Type: application/json' \
+        -H "X-YFeiEye-Hook-Token: ${HOOK_TOKEN}" \
+        -d "$payload" 2>/dev/null || echo "curl_error\n000")
     code=$(echo "$resp" | tail -1)
     body=$(echo "$resp" | sed '$d')
     if [ "$code" = "200" ] && echo "$body" | grep -q '"code":0'; then
@@ -100,10 +133,17 @@ PY
     return 1
 }
 
+if [ "${#HOOK_TOKEN}" -lt 32 ]; then
+    print_fail "YFEIEYE_SRS_HOOK_TOKEN 缺失或不足 32 字节"
+fi
+if ! [[ "$VERIFY_TENANT_ID" =~ ^[1-9][0-9]*$ ]]; then
+    print_fail "VERIFY_TENANT_ID 必须为正整数"
+fi
+
 playback_count_before=0
 if docker inspect -f '{{.State.Running}}' "$PG_CTR" 2>/dev/null | grep -q true; then
     playback_count_before=$(docker exec "$PG_CTR" psql -U postgres -d iot-video20 -t -A -c \
-        "SELECT count(*) FROM playback WHERE device_id='${VERIFY_DEVICE_ID}';" 2>/dev/null | tr -d '[:space:]' || echo 0)
+        "SELECT count(*) FROM playback WHERE tenant_id=${VERIFY_TENANT_ID} AND device_id='${VERIFY_DEVICE_ID}';" 2>/dev/null | tr -d '[:space:]' || echo 0)
 fi
 
 print_section "NFS 挂载与 playbacks 目录"
@@ -114,7 +154,8 @@ else
 fi
 
 if touch "${NFS_MOUNT_ROOT}/playbacks/.dvr_probe_$$" 2>/dev/null; then
-    rm -f "${NFS_MOUNT_ROOT}/playbacks/.dvr_probe_$$"
+    mkdir -p "${NFS_MOUNT_ROOT}/.verify-trash"
+    mv "${NFS_MOUNT_ROOT}/playbacks/.dvr_probe_$$" "${NFS_MOUNT_ROOT}/.verify-trash/" 2>/dev/null || true
     print_ok "playbacks 可写"
 else
     print_fail "playbacks 不可写"
@@ -165,11 +206,11 @@ run_one "video_forward" "$VIDEO_HOOK_URL" || true
 print_section "playback 表断言"
 if docker inspect -f '{{.State.Running}}' "$PG_CTR" 2>/dev/null | grep -q true; then
     playback_count_after=$(docker exec "$PG_CTR" psql -U postgres -d iot-video20 -t -A -c \
-        "SELECT count(*) FROM playback WHERE device_id='${VERIFY_DEVICE_ID}';" 2>/dev/null | tr -d '[:space:]' || echo 0)
+        "SELECT count(*) FROM playback WHERE tenant_id=${VERIFY_TENANT_ID} AND device_id='${VERIFY_DEVICE_ID}';" 2>/dev/null | tr -d '[:space:]' || echo 0)
     if [ "${playback_count_after:-0}" -gt "${playback_count_before:-0}" ]; then
         print_ok "playback 新增 $((playback_count_after - playback_count_before)) 条 (total=${playback_count_after})"
         docker exec "$PG_CTR" psql -U postgres -d iot-video20 -c \
-            "SELECT id, left(file_path,70) fp, file_size FROM playback WHERE device_id='${VERIFY_DEVICE_ID}' ORDER BY id DESC LIMIT 3;" 2>/dev/null || true
+            "SELECT id, tenant_id, left(file_path,70) fp, file_size FROM playback WHERE tenant_id=${VERIFY_TENANT_ID} AND device_id='${VERIFY_DEVICE_ID}' ORDER BY id DESC LIMIT 3;" 2>/dev/null || true
     else
         print_fail "playback 无新增 (before=${playback_count_before} after=${playback_count_after})"
     fi

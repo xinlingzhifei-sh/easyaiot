@@ -80,6 +80,7 @@ def _normalize_alert_payload(alert_data: Dict[str, Any], *, snapshot: bool = Fal
             'task_type': raw.get('task_type') or default_task_type,
         }
         payload = {
+            'tenant_id': raw.get('tenant_id', raw.get('tenantId')),
             'device_id': raw.get('device_id', raw.get('deviceId')),
             'device_name': raw.get('device_name', raw.get('deviceName')),
             'task_id': raw.get('task_id', raw.get('taskId')),
@@ -130,12 +131,18 @@ def _publish(topic: str, msg_type: str, payload: Dict[str, Any]) -> bool:
         logger.warning('MQTT_BROKER_URLS 为空，跳过 MQTT 发布 topic=%s', topic)
         return False
 
-    tenant = os.getenv('MQTT_ALGO_TENANT') or 'default'
+    tenant = (
+        payload.get('tenant_id')
+        or payload.get('tenantId')
+        or os.getenv('MQTT_ALGO_TENANT')
+        or os.getenv('YFEIEYE_VIDEO_LEGACY_TENANT_ID')
+        or '1'
+    )
     envelope = {
         'version': '1.0',
         'msgId': str(uuid.uuid4()),
         'msgType': msg_type,
-        'tenant': tenant,
+        'tenant': str(tenant),
         'ts': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
         'payload': payload,
     }

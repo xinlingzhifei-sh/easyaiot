@@ -76,6 +76,19 @@ class TestAlertHookDirectPersist(unittest.TestCase):
         self.assertEqual(result['alert_id'], 99)
         persist_mock.assert_called_once()
 
+    def test_minimal_kafka_message_preserves_tenant(self):
+        message = self.hook_mod._build_minimal_alert_kafka_message(
+            {
+                'tenant_id': 7,
+                'object': 'person',
+                'event': 'detection',
+                'device_id': 'camera-01',
+            },
+            {},
+        )
+
+        self.assertEqual(7, message['tenant_id'])
+
 
 if __name__ == '__main__':
     unittest.main()

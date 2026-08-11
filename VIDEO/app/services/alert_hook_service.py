@@ -258,6 +258,7 @@ def _build_minimal_alert_kafka_message(
         or 'realtime'
     )
     message = {
+        'tenant_id': alert_data.get('tenant_id', alert_data.get('tenantId')),
         'deviceId': alert_data.get('device_id'),
         'deviceName': alert_data.get('device_name'),
         'taskId': task_id,
@@ -1186,6 +1187,7 @@ def _build_notification_message_for_kafka(alert_data: Dict, notification_config:
     ) if detection_switches else bool(notification_config.get('plate_detection_enabled', False))
 
     message = {
+        'tenant_id': alert_data.get('tenant_id', alert_data.get('tenantId')),
         'taskId': task_id,  # 驼峰命名
         'taskName': task_name,  # 驼峰命名
         'deviceId': device_id,  # 驼峰命名
@@ -1217,4 +1219,3 @@ def _build_notification_message_for_kafka(alert_data: Dict, notification_config:
                 f"notifyMethods={notify_methods}, channels数量={len(channels)}")
     
     return message
-

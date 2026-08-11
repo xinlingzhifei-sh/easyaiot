@@ -263,7 +263,6 @@ iot:
       - system_mail_log
       - system_notify_template
       - algorithm_post_process_result # 后处理结果表（iot-sink 写入）
-      - alert # VIDEO 告警表（Kafka 消费落库，无 tenant_id 列）
   sms-code: # 短信验证码相关的配置项
     expire-times: 10m
     send-frequency: 1m

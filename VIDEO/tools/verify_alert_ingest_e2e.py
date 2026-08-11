@@ -2,7 +2,7 @@
 """可重复的告警入库验收（不依赖拉流 / YOLO / Ceph）。
 
 分层：
-  L0 契约   — hook 已下线、心跳仍在、MQTT 信封可规范化
+  L0 契约   — 兼容 hook 拒绝匿名请求、心跳仍在、MQTT 信封可规范化
   L1 入库   — MQTT → iot-sink → iot-video20.alert（按 correlation_id 断言）
   L2 图片   — 写入 ALERT_IMAGES_DIR 下真实 JPG，断言 image_url 非空（共享目录契约；
               Ceph 只是挂载实现之一，本脚本用本地同路径即可）
@@ -17,8 +17,10 @@
   MQTT_BROKER_URLS   默认 127.0.0.1:1883
   VIDEO_BASE_URL     默认 http://127.0.0.1:6000
   ALERT_IMAGES_DIR   默认 <repo>/VIDEO/alert_images
+  ALERT_IMAGES_CONTAINER_DIR 默认 /mnt/easyaiot-media/alert_images
   VERIFY_DEVICE_ID   默认 camera_atomic_001（须已绑定启用告警的 algorithm_task）
   VERIFY_TASK_ID     默认 1
+  VERIFY_TENANT_ID   默认 MQTT_ALGO_TENANT / YFEIEYE_VIDEO_LEGACY_TENANT_ID / 1
   VIDEO_DB_* / PG*   或 VIDEO_DB_URL；也可用 DOCKER_PG_CONTAINER=postgres-server
   E2E_TIMEOUT_SEC    轮询入库超时，默认 20
 """
@@ -235,7 +237,7 @@ def wait_alert_row(
 ) -> Optional[dict[str, Any]]:
     deadline = time.time() + timeout_sec
     sql = (
-        "SELECT id, object, event, device_id, task_id, "
+        "SELECT id, tenant_id, object, event, device_id, task_id, "
         "COALESCE(image_url,'') AS image_url, correlation_id "
         f"FROM alert WHERE correlation_id = '{correlation_id}' "
         'ORDER BY id DESC LIMIT 1'
@@ -247,15 +249,16 @@ def wait_alert_row(
             out = query_sql(sql)
             if out:
                 parts = out.split('|')
-                if len(parts) >= 7:
+                if len(parts) >= 8:
                     last_row = {
                         'id': parts[0],
-                        'object': parts[1],
-                        'event': parts[2],
-                        'device_id': parts[3],
-                        'task_id': parts[4],
-                        'image_url': parts[5],
-                        'correlation_id': parts[6],
+                        'tenant_id': parts[1],
+                        'object': parts[2],
+                        'event': parts[3],
+                        'device_id': parts[4],
+                        'task_id': parts[5],
+                        'image_url': parts[6],
+                        'correlation_id': parts[7],
                     }
                     if not require_image_url or last_row['image_url']:
                         return last_row
@@ -270,7 +273,10 @@ def wait_alert_row(
 def run_l0_contract(video_base: str) -> None:
     print('\n--- L0 契约 ---')
     alert_py = (VIDEO / 'app/blueprints/alert.py').read_text(encoding='utf-8')
-    check('源码无 /video/alert/hook', "@alert_bp.route('/hook'" not in alert_py)
+    check(
+        '兼容 /video/alert/hook 有服务认证保护',
+        "@alert_bp.route('/hook'" in alert_py and '_authorize_alert_ingest(data)' in alert_py,
+    )
 
     os.environ.setdefault('ALGO_BUS_TRANSPORT', 'mqtt')
     from app.utils.algo_mqtt_bus import bus_enabled, _normalize_alert_payload
@@ -281,16 +287,22 @@ def run_l0_contract(video_base: str) -> None:
             'object': 'person',
             'event': 'detection',
             'device_id': 'x',
+            'tenant_id': 7,
             'image_path': '/tmp/a.jpg',
             'time': '2026-01-01 00:00:00',
         }
     )
     check('信封含嵌套 alert.object', norm.get('alert', {}).get('object') == 'person')
+    check('信封保留 tenant_id', norm.get('tenant_id') == 7)
 
     vu = urlparse(video_base)
     if tcp_open(vu.hostname or '127.0.0.1', vu.port or 80):
-        hook = http_status(f'{video_base}/video/alert/hook', method='POST', body=b'{}')
-        check('运行中 hook 404/405', hook in (404, 405), f'status={hook}')
+        hook = http_status(
+            f'{video_base}/video/alert/hook',
+            method='POST',
+            body=b'{"device_id":"verify-anonymous"}',
+        )
+        check('匿名兼容 hook 被拒绝', hook in (401, 403), f'status={hook}')
         hb = http_status(
             f'{video_base}/video/algorithm/heartbeat/realtime',
             method='POST',
@@ -319,9 +331,21 @@ def run_l1_l2_ingest(*, skip_media: bool, timeout_sec: float) -> None:
 
     device_id = (os.getenv('VERIFY_DEVICE_ID') or 'camera_atomic_001').strip()
     task_id = int(os.getenv('VERIFY_TASK_ID') or '1')
+    tenant_id = int(
+        os.getenv('VERIFY_TENANT_ID')
+        or os.getenv('MQTT_ALGO_TENANT')
+        or os.getenv('YFEIEYE_VIDEO_LEGACY_TENANT_ID')
+        or '1'
+    )
+    if tenant_id <= 0:
+        check('VERIFY_TENANT_ID 为正整数', False, str(tenant_id))
+        return
     alert_dir = Path(
         (os.getenv('ALERT_IMAGES_DIR') or str(VIDEO / 'alert_images')).strip()
     ).resolve()
+    alert_container_dir = Path(
+        (os.getenv('ALERT_IMAGES_CONTAINER_DIR') or '/mnt/easyaiot-media/alert_images').strip()
+    )
     corr = str(uuid.uuid4())
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -329,13 +353,14 @@ def run_l1_l2_ingest(*, skip_media: bool, timeout_sec: float) -> None:
     if not skip_media:
         img = alert_dir / 'e2e_verify' / f'ingest_{corr[:8]}.jpg'
         write_tiny_jpeg(img)
-        image_path = str(img)
+        image_path = str(alert_container_dir / 'e2e_verify' / img.name)
         check('测试 JPG 已写入共享目录', img.is_file(), str(img))
     else:
         print('[SKIP] --skip-media：不写图片，只断言落库字段')
 
     # RUNTIME / algo_mqtt_bus 同构信封
     inner = {
+        'tenant_id': tenant_id,
         'device_id': device_id,
         'device_name': 'e2e-verify-cam',
         'task_id': task_id,
@@ -357,7 +382,7 @@ def run_l1_l2_ingest(*, skip_media: bool, timeout_sec: float) -> None:
         'version': '1.0',
         'msgId': str(uuid.uuid4()),
         'msgType': 'alert.notification',
-        'tenant': 'default',
+        'tenant': str(tenant_id),
         'ts': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
         'payload': inner,
     }
@@ -385,6 +410,7 @@ def run_l1_l2_ingest(*, skip_media: bool, timeout_sec: float) -> None:
         return
 
     check('alert 入库成功', True, f"id={row['id']} object={row['object']}")
+    check('tenant_id 匹配', row['tenant_id'] == str(tenant_id), row['tenant_id'])
     check('object 非空', bool(row['object']), row['object'])
     check('device_id 匹配', row['device_id'] == device_id, row['device_id'])
     check('event=detection', row['event'] == 'detection', row['event'])

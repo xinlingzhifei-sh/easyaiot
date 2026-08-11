@@ -3886,6 +3886,7 @@ class TestCameraMediaAuthorization(_ModuleIsolationTestCase):
             'get_camera_info',
             'update_camera',
             'delete_camera',
+            'batch_delete_cameras',
             'search_camera',
             'get_snapshot_uri',
             'refresh_camera',

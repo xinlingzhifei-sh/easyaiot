@@ -32,15 +32,17 @@ public interface AlertMapper {
      * @param id 告警ID
      * @return 告警实体
      */
-    AlertDO selectById(@Param("id") Integer id);
+    AlertDO selectById(@Param("id") Integer id, @Param("tenantId") Long tenantId);
 
     /**
      * 更新告警记录的图片路径
      *
      * @param id 告警ID
+     * @param tenantId 所属租户ID
      * @param imagePath 图片路径
      * @return 更新的行数
      */
-    int updateImagePath(@Param("id") Integer id, @Param("imagePath") String imagePath);
+    int updateImagePath(@Param("id") Integer id,
+                        @Param("tenantId") Long tenantId,
+                        @Param("imagePath") String imagePath);
 }
-
