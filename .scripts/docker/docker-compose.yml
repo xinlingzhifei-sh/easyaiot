@@ -313,7 +313,7 @@ services:
 
   # Milvus Vector Database
   Milvus:
-    image: milvusdb/milvus:v2.6.0
+    image: ${MILVUS_IMAGE:-milvusdb/milvus:v2.6.3}
     container_name: milvus-server
     restart: always
     command: ["milvus", "run", "standalone"]
