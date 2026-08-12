@@ -98,7 +98,7 @@ services:
       # SAM 万物分割配置
       - SAM_ENABLED=${SAM_ENABLED:-false}
       - SAM_ENGINE=${SAM_ENGINE:-sam3}
-      - SAM_MODEL_PATH=${SAM_MODEL_PATH:-}
+      - SAM_MODEL_PATH=${SAM_MODEL_PATH:-/app/model/sam3/sam3.1_multiplex.pt}
       - SAM_CONF=${SAM_CONF:-0.45}
       - SAM_IMGSZ=${SAM_IMGSZ:-1078}
       - SAM_MODELSCOPE_ID=${SAM_MODELSCOPE_ID:-facebook/sam3.1}

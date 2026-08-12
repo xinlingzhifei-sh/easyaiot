@@ -9,6 +9,10 @@ const nfsStackSource = readFileSync(
   resolve(scriptDirectory, '../media-cluster/nfs/ensure_nfs_media_stack.sh'),
   'utf8',
 );
+const nfsHealthSource = readFileSync(
+  resolve(scriptDirectory, '../media-cluster/nfs/check_nfs_health.sh'),
+  'utf8',
+);
 
 const nfsHelper = installerSource.match(
   /ensure_nfs_media_before_srs\(\) \{([\s\S]*?)\n\}/,
@@ -37,5 +41,11 @@ assert.ok(
   nfsStackSource.indexOf(localDirectGuard[0]) < nfsStackSource.indexOf('install_nfs_client.sh'),
   'local same-path guard must run before the NFS client mount',
 );
+assert.doesNotMatch(
+  nfsHealthSource,
+  /ss -ltn 2>\/dev\/null \| grep -q ':2049'/,
+  'NFS port detection must not use grep -q under pipefail because ss can exit on SIGPIPE',
+);
+assert.match(nfsHealthSource, /ss -ltn 2>\/dev\/null \| grep ':2049' >\/dev\/null/);
 
 console.log('NFS media installer contract passed');
