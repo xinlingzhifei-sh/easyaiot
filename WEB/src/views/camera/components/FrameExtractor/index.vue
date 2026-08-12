@@ -104,7 +104,7 @@ import {
   MoreOutlined,
   SwapOutlined,
 } from '@ant-design/icons-vue';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useDrawer } from '@/components/Drawer';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
@@ -167,7 +167,7 @@ const [registerTable, { reload }] = useTable({
   showIndexColumn: false,
   title: '抽帧器列表',
   api: listFrameExtractors,
-  columns: getColumns(),
+  columns: getColumns() as any,
   useSearchForm: true,
   showTableSetting: false,
   pagination: true,
@@ -229,11 +229,12 @@ const handleDelete = async (record: FrameExtractor) => {
   }
 };
 
-const handleToggleEnabled = async (record: FrameExtractor) => {
+const handleToggleEnabled = async (record: Record<string, any>) => {
+  const item = record as FrameExtractor;
   try {
     const { updateFrameExtractor } = await import('@/api/device/algorithm_task');
-    const response = await updateFrameExtractor(record.id, {
-      is_enabled: !record.is_enabled,
+    const response = await updateFrameExtractor(item.id, {
+      is_enabled: !item.is_enabled,
     });
     if (response.code === 0) {
       createMessage.success('更新成功');
@@ -255,24 +256,25 @@ const handleSuccess = () => {
   }
 };
 
-const getTableActions = (record: FrameExtractor) => {
+const getTableActions = (record: Record<string, any>): ActionItem[] => {
+  const item = record as FrameExtractor;
   return [
     {
       icon: 'ant-design:eye-filled',
       tooltip: '查看',
-      onClick: () => handleView(record),
+      onClick: () => handleView(item),
     },
     {
       icon: 'ant-design:edit-filled',
       tooltip: '编辑',
-      onClick: () => handleEdit(record),
+      onClick: () => handleEdit(item),
     },
     {
       icon: 'material-symbols:delete-outline-rounded',
       tooltip: '删除',
       popConfirm: {
         title: '确定删除此抽帧器？',
-        confirm: () => handleDelete(record),
+        confirm: () => handleDelete(item),
       },
     },
   ];
@@ -334,4 +336,3 @@ onMounted(() => {
   }
 }
 </style>
-

@@ -8,9 +8,8 @@ import lombok.EqualsAndHashCode;
 /**
  * PostPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 岗位分页 Request VO")
 @Data
@@ -20,7 +19,7 @@ public class PostPageReqVO extends PageParam {
     @Schema(description = "岗位编码，模糊匹配", example = "Yudao")
     private String code;
 
-    @Schema(description = "岗位名称，模糊匹配", example = "BasicLab")
+    @Schema(description = "岗位名称，模糊匹配", example = "yFeiEye")
     private String name;
 
     @Schema(description = "展示状态，参见 CommonStatusEnum 枚举类", example = "1")

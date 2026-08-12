@@ -25,14 +25,11 @@
 import {computed, reactive, ref} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, Spin,} from 'ant-design-vue';
-import {useMessage} from '@/hooks/web/useMessage';
 import {discoverDevices} from "@/api/device/camera";
 import {BasicTable, useTable} from "@/components/Table";
 import {getOnvifBasicColumns, getOnvifFormConfig} from "./Data";
 
 defineOptions({name: 'VideoSearchModal'})
-
-const {createMessage} = useMessage();
 
 const state = reactive({
   isEdit: false,
@@ -110,7 +107,7 @@ function onSelect(record, selected) {
   }
 }
 
-function onSelectAll(selected, selectedRows, changeRows) {
+function onSelectAll(selected, _selectedRows, changeRows) {
   const changeIds = changeRows.map((item) => item.ip);
   if (selected) {
     checkedKeys.value = [...checkedKeys.value, ...changeIds];
@@ -122,7 +119,7 @@ function onSelectAll(selected, selectedRows, changeRows) {
 }
 
 const [
-  registerTable, {reload}
+  registerTable
 ] = useTable({
   canResize: false,
   showIndexColumn: false,
@@ -138,7 +135,7 @@ const [
   },
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -157,7 +154,7 @@ const rulesRef = reactive({
 });
 
 const useForm = Form.useForm;
-const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
+const {resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
 async function modelEdit(record) {
   try {

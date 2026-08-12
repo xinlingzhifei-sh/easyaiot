@@ -16,6 +16,7 @@ from models import (
     PlateEntry,
     PlateLibrary,
     PlateMatchRecord,
+    RecordSpace,
     db,
 )
 
@@ -23,6 +24,20 @@ logger = logging.getLogger(__name__)
 
 EVENT_FACE_LIBRARY_MATCH = 'face_library_match'
 EVENT_PLATE_LIBRARY_MATCH = 'plate_library_match'
+
+
+def _record_space_tenant(device_id: str) -> int:
+    spaces = RecordSpace.query.filter_by(device_id=str(device_id)).all()
+    tenant_ids = {
+        int(space.tenant_id)
+        for space in spaces
+        if str(getattr(space, 'tenant_id', '') or '').isdigit()
+        and int(space.tenant_id) > 0
+    }
+    if len(tenant_ids) != 1:
+        raise ValueError(
+            'library match alert requires one persisted record-space tenant')
+    return tenant_ids.pop()
 
 
 def parse_business_tags(raw) -> List[str]:
@@ -126,6 +141,7 @@ def _create_match_alert(
         if correlation_id:
             information = {**information, 'correlation_id': correlation_id}
         alert_dict = create_alert({
+            'tenant_id': _record_space_tenant(device_id),
             'object': object_label,
             'event': event,
             'device_id': device_id,

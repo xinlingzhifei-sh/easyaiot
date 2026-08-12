@@ -65,6 +65,7 @@ const props = defineProps({
     default: () => ({}),
   },
 });
+void props;
 
 const [registerModal] = useModalInner();
 

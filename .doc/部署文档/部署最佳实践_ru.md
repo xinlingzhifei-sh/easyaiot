@@ -1,4 +1,4 @@
-# Лучшие практики развертывания EasyAIoT
+# Лучшие практики развертывания yFeiEye
 
 > Этот документ синхронизирован со скриптами проекта и охватывает развертывание и эксплуатацию в production.  
 > Для быстрого старта см. [Руководство по развертыванию платформы](./平台部署文档_ru.md).
@@ -506,10 +506,10 @@ SQL в `.scripts/tdengine/tdengine_super_tables.sql`; автоматическа
 | Middleware | Имя пользователя | Пароль | Консоль |
 |------------|------------------|--------|---------|
 | Nacos | nacos | nacos | :8848/nacos |
-| PostgreSQL | postgres | iot45722414822 | — |
-| Redis | — | basiclab@iot975248395 | — |
-| MinIO | minioadmin | basiclab@iot975248395 | :9001 |
-| EMQX | admin | basiclab@iot6874125784 | :18083 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> | — |
+| Redis | — | <REDIS_OR_MINIO_PASSWORD> | — |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> | :9001 |
+| EMQX | admin | <EMQX_DASHBOARD_PASSWORD> | :18083 |
 | Milvus | — | — | :9091 |
 
 > **Измените все пароли по умолчанию в production.**

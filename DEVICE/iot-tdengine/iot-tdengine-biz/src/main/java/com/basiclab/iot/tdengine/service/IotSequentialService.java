@@ -5,12 +5,11 @@ import com.basiclab.iot.tdengine.domain.IotSequential;
 import java.util.List;
 
 /**
- * @program: EasyAIoT
+ * @program: yFeiEye
  * @description:
  * @packagename: com.basiclab.iot.tdengine.service.impl
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date: 2025-11-04 10:50
  **/
 public interface IotSequentialService {

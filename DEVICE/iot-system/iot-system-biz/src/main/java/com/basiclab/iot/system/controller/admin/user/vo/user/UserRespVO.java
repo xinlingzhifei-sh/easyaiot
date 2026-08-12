@@ -14,9 +14,8 @@ import java.util.Set;
 /**
  * UserRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 用户信息 Response VO")
 @Data
@@ -31,7 +30,7 @@ public class UserRespVO{
     @ExcelProperty("用户名称")
     private String username;
 
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     @ExcelProperty("用户昵称")
     private String nickname;
 

@@ -3,9 +3,8 @@
 诊断抓拍算法任务的抓拍图片流程
 检查：1. 图片保存 2. Hook回调 3. Kafka发送 4. Sink订阅 5. 上传到抓拍空间
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys

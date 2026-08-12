@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, reactive } from 'vue'
-import { CollapseItem, SettingItemBox, SettingItem } from '@/components/Design/index'
+import { PropType } from 'vue'
+import { SettingItemBox, SettingItem } from '@/components/Design/index'
 
 type positionType = {
   top?: number | string | null
@@ -20,7 +20,7 @@ type positionType = {
   bottom?: number | string | null
 }
 
-const props = defineProps({
+defineProps({
   targetData: {
     type: Object as PropType<positionType>,
     required: true

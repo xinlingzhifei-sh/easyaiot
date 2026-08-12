@@ -118,7 +118,12 @@ import { isIndustrialProtocol } from '../Data';
   //
   const innerInsideRef = ref();
   // 最终参数
-  const params = ref<{ innerJson: any[]; id: string }>({
+  const params = ref<{
+    innerJson: any[];
+    inputParams?: any[];
+    outParams?: any[];
+    id: string;
+  }>({
     innerJson: [],
     id: '',
   });
@@ -234,7 +239,7 @@ import { isIndustrialProtocol } from '../Data';
     length: '10240',
   };
 
-  const handleTabsChange = (key, datatype) => {
+  const handleTabsChange = (key, datatype = 'INT') => {
     emit('update:editFunctionType', key);
     let schemas: Array<(e) => FormSchema[]> = [];
     let field = '';

@@ -10,9 +10,8 @@ import javax.validation.constraints.Size;
 /**
  * ConfigSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 参数配置创建/修改 Request VO")
 @Data

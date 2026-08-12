@@ -130,6 +130,17 @@ public class IotAlgoBusMqttHandler {
                 msg.setTaskId(tid.intValue());
             }
         }
+        if (msg.getTenantId() == null) {
+            Long tenantId = readLong(normalized, "tenant_id", "tenantId");
+            if (tenantId == null || tenantId <= 0) {
+                tenantId = readLong(root, "tenant_id", "tenantId", "tenant");
+            }
+            msg.setTenantId(tenantId);
+        }
+        if (msg.getTenantId() == null || msg.getTenantId() <= 0) {
+            log.error("[IotAlgoBusMqttHandler] 告警缺少有效 tenantId，拒绝落库: topicPayload={}", normalized);
+            return;
+        }
         fillEdgeFromNodes(msg, normalized, root);
         enrichNotificationFromVideoDb(msg, snapshot);
 
@@ -171,6 +182,11 @@ public class IotAlgoBusMqttHandler {
         ObjectNode out = objectMapper.createObjectNode();
         copyText(payload, out, "device_id", "deviceId");
         copyText(payload, out, "device_name", "deviceName");
+        if (payload.has("tenant_id")) {
+            out.set("tenant_id", payload.get("tenant_id"));
+        } else if (payload.has("tenantId")) {
+            out.set("tenant_id", payload.get("tenantId"));
+        }
         if (payload.has("task_id")) {
             out.set("task_id", payload.get("task_id"));
         } else if (payload.has("taskId")) {

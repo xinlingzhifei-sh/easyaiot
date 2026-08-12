@@ -158,14 +158,13 @@ export function once(el: HTMLElement, event: string, fn: EventListener): void {
 
 export function useRafThrottle<T extends FunctionArgs>(fn: T): T {
   let locked = false
-  return (...args: any[]) => {
+  return ((...args: any[]) => {
     if (locked)
       return
     locked = true
     window.requestAnimationFrame(() => {
-      // eslint-disable-next-line ts/no-invalid-this
-      fn.apply(this, args)
+      fn(...args)
       locked = false
     })
-  }
+  }) as T
 }

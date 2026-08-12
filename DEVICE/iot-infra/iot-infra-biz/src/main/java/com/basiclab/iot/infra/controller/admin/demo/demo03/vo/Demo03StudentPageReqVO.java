@@ -14,9 +14,8 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * Demo03StudentPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 学生分页 Request VO")
 @Data
@@ -24,7 +23,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 @ToString(callSuper = true)
 public class Demo03StudentPageReqVO extends PageParam {
 
-    @Schema(description = "名字", example = "BasicLab")
+    @Schema(description = "名字", example = "yFeiEye")
     private String name;
 
     @Schema(description = "性别")

@@ -138,6 +138,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getServices } from '@/api/device/entity-views';
+import type { Dayjs } from 'dayjs';
 import moment from 'moment';
 import { Input, Select, SelectOption, Tag, DatePicker } from 'ant-design-vue';
 import { Icon } from '@/components/Icon';
@@ -164,14 +165,23 @@ const isIndustrialProtocol = computed(() => {
 
 const route = useRoute();
 const { createMessage } = useMessage();
+const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+const formatRangeValue = (value: string | Dayjs) =>
+  typeof value === 'string' ? moment(value).format(DATE_TIME_FORMAT) : value.format(DATE_TIME_FORMAT);
 
 const deviceId = computed(() => route.params?.id as string);
 
-const filterForm = reactive({
-  status: undefined as string | undefined,
-  kind: undefined as string | undefined,
-  serviceName: undefined as string | undefined,
-  timeRange: undefined as any,
+// 筛选表单
+const filterForm = reactive<{
+  status?: string;
+  kind?: string;
+  serviceName?: string;
+  timeRange?: [string, string] | [Dayjs, Dayjs];
+}>({
+  status: undefined,
+  kind: undefined,
+  serviceName: undefined,
+  timeRange: undefined,
 });
 
 const logList = ref<any[]>([]);
@@ -210,11 +220,12 @@ const fetchServiceData = async (silent = false) => {
       params.serviceName = filterForm.serviceName;
     }
     if (filterForm.timeRange && filterForm.timeRange.length === 2) {
-      params.startTime = moment(filterForm.timeRange[0]).format('YYYY-MM-DD HH:mm:ss');
-      params.endTime = moment(filterForm.timeRange[1]).format('YYYY-MM-DD HH:mm:ss');
+      params.startTime = formatRangeValue(filterForm.timeRange[0]);
+      params.endTime = formatRangeValue(filterForm.timeRange[1]);
     }
 
     const response = await getServices(params);
+    
     const data = Array.isArray(response)
       ? response
       : response?.rows || response?.data || response?.list || [];

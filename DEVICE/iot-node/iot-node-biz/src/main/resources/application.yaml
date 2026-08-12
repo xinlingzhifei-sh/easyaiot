@@ -49,7 +49,7 @@ mybatis-plus:
     banner: false
   type-aliases-package: ${iot.info.base-package}.dal.dataobject
   encryptor:
-    password: XDV71a+xqStEA3WH
+    password: ${MYBATIS_ENCRYPTOR_PASSWORD:}
 
 mybatis-plus-join:
   banner: false
@@ -117,10 +117,12 @@ easyaiot:
     source-path: ${EASYAIOT_AGENT_SOURCE_PATH:}
     # 可选：显式指定控制面 URL；留空则与 media.hook-host 同样自动探测
     control-plane-url: ${EASYAIOT_AGENT_CONTROL_PLANE_URL:}
+    # 控制面宿主机 Agent 领取凭据的独立 bootstrap 令牌；留空时接口拒绝所有请求
+    platform-bootstrap-token: ${EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN:}
   edge:
-    # EDGE 模块自助纳管：生产请设置 join-token，并关闭开放纳管
+    # EDGE 模块自助纳管：默认必须配置 join-token
     join-token: ${EASYAIOT_EDGE_JOIN_TOKEN:}
-    allow-open-enroll: ${EASYAIOT_EDGE_ALLOW_OPEN_ENROLL:true}
+    allow-open-enroll: ${EASYAIOT_EDGE_ALLOW_OPEN_ENROLL:false}
     mqtt-algo-tenant: ${EASYAIOT_EDGE_MQTT_TENANT:default}
     media-host-data-root: ${EASYAIOT_EDGE_MEDIA_ROOT:/mnt/easyaiot-media}
     # 下发给 EDGE 的控制面公网/内网可达地址；留空则用本机 server.port

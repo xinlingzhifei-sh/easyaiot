@@ -25,9 +25,8 @@ import static cn.hutool.core.util.RandomUtil.randomInt;
 /**
  * CodegenBuilder
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Component
 public class CodegenBuilder {
@@ -195,7 +194,7 @@ public class CodegenBuilder {
         }
         // name
         if (StrUtil.endWithIgnoreCase(column.getJavaField(), "name")) {
-            column.setExample(randomEle(new String[]{"张三", "李四", "王五", "赵六", "BasicLab"}));
+            column.setExample(randomEle(new String[]{"张三", "李四", "王五", "赵六", "yFeiEye"}));
             return;
         }
         // status

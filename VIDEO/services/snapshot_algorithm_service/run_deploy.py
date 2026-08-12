@@ -4,9 +4,8 @@
 整合缓流器、抽帧器功能，按 Cron 抓拍，支持追踪和告警（不推流）
 参照test_services_pipeline.py和test_services_pipeline_tracking.py
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -510,8 +509,11 @@ def _get_minio_client():
         from minio import Minio
     except ImportError:
         return None
-    access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-    secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+    access_key = os.getenv('MINIO_ACCESS_KEY', '')
+    secret_key = os.getenv('MINIO_SECRET_KEY', '')
+    if not access_key or not secret_key:
+        logger.warning('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
+        return None
     secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
     return Minio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
 
@@ -519,6 +521,13 @@ def _get_minio_client():
 def upload_frame_to_snap_space(device_id: str, frame: np.ndarray) -> bool:
     """将帧上传到设备抓拍空间（MinIO），不产生告警记录。"""
     import os
+    try:
+        tenant_id = int(os.getenv('YFEIEYE_SNAPSHOT_TENANT_ID', ''))
+        if tenant_id <= 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        logger.warning('抓拍算法租户未配置或非法')
+        return False
     try:
         from app.utils.snap_media_client import stage_snap_frame
         from app.services.media_kafka_service import is_snap_kafka_mode
@@ -543,7 +552,8 @@ def upload_frame_to_snap_space(device_id: str, frame: np.ndarray) -> bool:
         app = get_flask_app()
         with app.app_context():
             from models import SnapSpace
-            snap_space = SnapSpace.query.filter_by(device_id=device_id).first()
+            snap_space = SnapSpace.query.filter_by(
+                tenant_id=tenant_id, device_id=device_id).first()
             if snap_space and snap_space.bucket_name:
                 bucket_name = snap_space.bucket_name
     except Exception as e:
@@ -561,7 +571,9 @@ def upload_frame_to_snap_space(device_id: str, frame: np.ndarray) -> bool:
         return False
 
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
-    object_name = f"{device_id}/{_uuid.uuid4().hex[:8]}_{ts}.jpg"
+    object_name = (
+        f"tenants/{tenant_id}/cameras/{device_id}/"
+        f"{_uuid.uuid4().hex[:8]}_{ts}.jpg")
     data = encoded.tobytes()
     try:
         client.put_object(
@@ -576,9 +588,11 @@ def upload_frame_to_snap_space(device_id: str, frame: np.ndarray) -> bool:
             _app = get_flask_app()
             with _app.app_context():
                 from models import SnapSpace
-                snap_space = SnapSpace.query.filter_by(device_id=device_id).first()
+                snap_space = SnapSpace.query.filter_by(
+                    tenant_id=tenant_id, device_id=device_id).first()
                 if snap_space:
                     upsert_snap_image(
+                        tenant_id=tenant_id,
                         space_id=snap_space.id,
                         device_id=device_id,
                         object_name=object_name,
@@ -805,8 +819,11 @@ def _download_model_from_minio_direct(bucket_name: str, object_key: str, local_p
     except ImportError:
         logger.warning('未安装 minio 包，跳过直连 MinIO 下载')
         return False
-    access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-    secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+    access_key = os.getenv('MINIO_ACCESS_KEY', '')
+    secret_key = os.getenv('MINIO_SECRET_KEY', '')
+    if not access_key or not secret_key:
+        logger.warning('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
+        return False
     secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     tmp_path = f"{local_path}.minio.tmp"
@@ -1493,7 +1510,6 @@ def _post_snapshot_alert(alert_data: Dict) -> None:
             alert_data['plate_detection_enabled'] = bool(
                 getattr(task_config, 'plate_detection_enabled', False)
             )
-
         try:
             from app.utils.algo_mqtt_bus import publish_alert
         except ImportError:

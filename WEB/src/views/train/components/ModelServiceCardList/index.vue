@@ -234,7 +234,7 @@ const toggleServiceStatus = async (item) => {
       createMessage.success('服务已启动');
     }
     await fetch();
-  } catch (error) {
+  } catch (error: any) {
     console.error('操作失败:', error);
     createMessage.error(`操作失败: ${error.message}`);
   } finally {

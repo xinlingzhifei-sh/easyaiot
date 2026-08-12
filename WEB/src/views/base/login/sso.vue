@@ -68,10 +68,10 @@ const title = computed(() => globSetting?.title ?? '')
 
 html[data-theme='dark'] {
   .@{prefix-cls} {
-    background-color: @dark-bg;
+    background: url('@/assets/svg/login-yfeiEye.svg') center center / cover no-repeat;
 
     &::before {
-      background-image: url('@/assets/svg/login-bg-dark.svg');
+      background-image: none;
     }
 
     .ant-input,
@@ -102,6 +102,7 @@ html[data-theme='dark'] {
 .@{prefix-cls} {
   min-height: 100%;
   overflow: hidden;
+  background: url('@/assets/svg/login-yfeiEye.svg') center center / cover no-repeat;
 
   @media (max-width: @screen-xl) {
     background-color: #293146;
@@ -112,17 +113,7 @@ html[data-theme='dark'] {
   }
 
   &::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    margin-left: -48%;
-    content: '';
-    background-image: url('@/assets/svg/login-bg.svg');
-    background-repeat: no-repeat;
-    background-position: 100%;
-    background-size: auto 100%;
+    display: none;
 
     @media (max-width: @screen-xl) {
       display: none;
@@ -131,32 +122,54 @@ html[data-theme='dark'] {
 
   .@{logo-prefix-cls} {
     position: absolute;
-    top: 12px;
-    height: 30px;
+    top: 16px;
+    height: 42px;
+
+    .logo-icon {
+      flex: 0 0 72px;
+      width: 72px;
+      height: 42px;
+    }
 
     &__title {
       font-size: 16px;
+      line-height: 1.2;
       color: #fff;
     }
 
     img {
-      width: 32px;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
   }
 
   .container {
     .@{logo-prefix-cls} {
       display: flex;
-      width: 60%;
-      height: 80px;
+      position: relative;
+      top: 0;
+      width: 70%;
+      max-width: 420px;
+      height: 120px;
+
+      .logo-icon {
+        flex: 0 0 154px;
+        width: 154px;
+        height: 110px;
+        border-radius: 10px;
+      }
 
       &__title {
         font-size: 24px;
+        line-height: 1.25;
         color: #fff;
       }
 
       img {
-        width: 48px;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
     }
   }

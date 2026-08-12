@@ -128,9 +128,33 @@ def _paginate(items, page_no, page_size):
     return items[start:end], total
 
 
-def _load_spaces_with_devices(space_kind):
+def _normalize_space_access_scope(space_kind, tenant_id=None, camera_ids=None):
+    if tenant_id is None and camera_ids is None and space_kind != SPACE_KIND_RECORD:
+        return None, None
+    tenant_text = str(tenant_id or '').strip()
+    if not tenant_text.isdigit() or int(tenant_text) <= 0:
+        raise ValueError('存储空间列表缺少有效租户授权范围')
+    normalized_cameras = list(dict.fromkeys(
+        str(value or '').strip()
+        for value in (camera_ids or [])
+        if str(value or '').strip()
+    ))
+    if not normalized_cameras:
+        raise ValueError('存储空间列表缺少摄像头授权范围')
+    return int(tenant_text), normalized_cameras
+
+
+def _load_spaces_with_devices(space_kind, tenant_id=None, camera_ids=None):
     SpaceModel = _space_model(space_kind)
-    spaces = SpaceModel.query.filter(SpaceModel.device_id.isnot(None)).all()
+    tenant_id, camera_ids = _normalize_space_access_scope(
+        space_kind, tenant_id, camera_ids)
+    query = SpaceModel.query.filter(SpaceModel.device_id.isnot(None))
+    if tenant_id is not None:
+        query = query.filter(
+            SpaceModel.tenant_id == tenant_id,
+            SpaceModel.device_id.in_(camera_ids),
+        )
+    spaces = query.all()
     device_ids = [s.device_id for s in spaces if s.device_id]
     devices = {}
     if device_ids:
@@ -151,8 +175,10 @@ def _classify_space(space, device):
     return 'direct', None
 
 
-def _list_root_nodes(space_kind, page_no, page_size, parent_key):
-    spaces, devices = _load_spaces_with_devices(space_kind)
+def _list_root_nodes(space_kind, page_no, page_size, parent_key,
+                     tenant_id=None, camera_ids=None):
+    spaces, devices = _load_spaces_with_devices(
+        space_kind, tenant_id, camera_ids)
     direct_spaces = []
     by_nvr = defaultdict(list)
     by_gb = defaultdict(list)
@@ -204,8 +230,10 @@ def _list_root_nodes(space_kind, page_no, page_size, parent_key):
     }
 
 
-def _list_nvr_children(space_kind, nvr_id, page_no, page_size, parent_key):
-    spaces, devices = _load_spaces_with_devices(space_kind)
+def _list_nvr_children(space_kind, nvr_id, page_no, page_size, parent_key,
+                       tenant_id=None, camera_ids=None):
+    spaces, devices = _load_spaces_with_devices(
+        space_kind, tenant_id, camera_ids)
     matched = []
     for space in spaces:
         device = devices.get(space.device_id)
@@ -228,12 +256,15 @@ def _list_nvr_children(space_kind, nvr_id, page_no, page_size, parent_key):
         'page_no': page_no,
         'page_size': page_size,
         'parent_key': parent_key,
-        'breadcrumbs': _build_breadcrumbs(parent_key),
+        'breadcrumbs': _build_breadcrumbs(parent_key) if nodes else [
+            {'key': 'root', 'name': '全部空间'}],
     }
 
 
-def _list_gb_children(space_kind, sip_device_id, page_no, page_size, parent_key):
-    spaces, devices = _load_spaces_with_devices(space_kind)
+def _list_gb_children(space_kind, sip_device_id, page_no, page_size, parent_key,
+                      tenant_id=None, camera_ids=None):
+    spaces, devices = _load_spaces_with_devices(
+        space_kind, tenant_id, camera_ids)
     matched = []
     for space in spaces:
         device = devices.get(space.device_id)
@@ -252,13 +283,22 @@ def _list_gb_children(space_kind, sip_device_id, page_no, page_size, parent_key)
         'page_no': page_no,
         'page_size': page_size,
         'parent_key': parent_key,
-        'breadcrumbs': _build_breadcrumbs(parent_key),
+        'breadcrumbs': _build_breadcrumbs(parent_key) if nodes else [
+            {'key': 'root', 'name': '全部空间'}],
     }
 
 
-def _search_space_nodes(space_kind, page_no, page_size, search):
+def _search_space_nodes(space_kind, page_no, page_size, search,
+                        tenant_id=None, camera_ids=None):
     SpaceModel = _space_model(space_kind)
     query = SpaceModel.query
+    tenant_id, camera_ids = _normalize_space_access_scope(
+        space_kind, tenant_id, camera_ids)
+    if tenant_id is not None:
+        query = query.filter(
+            SpaceModel.tenant_id == tenant_id,
+            SpaceModel.device_id.in_(camera_ids),
+        )
     pattern = f'%{search}%'
     query = query.filter(
         db.or_(
@@ -288,10 +328,18 @@ def _search_space_nodes(space_kind, page_no, page_size, search):
     }
 
 
-def _list_all_leaf_nodes(space_kind, page_no, page_size, search=None):
+def _list_all_leaf_nodes(space_kind, page_no, page_size, search=None,
+                         tenant_id=None, camera_ids=None):
     """返回全部叶子空间（供任务配置等下拉选择）。"""
     SpaceModel = _space_model(space_kind)
     query = SpaceModel.query.filter(SpaceModel.device_id.isnot(None))
+    tenant_id, camera_ids = _normalize_space_access_scope(
+        space_kind, tenant_id, camera_ids)
+    if tenant_id is not None:
+        query = query.filter(
+            SpaceModel.tenant_id == tenant_id,
+            SpaceModel.device_id.in_(camera_ids),
+        )
     if search:
         pattern = f'%{search.strip()}%'
         query = query.filter(
@@ -322,26 +370,35 @@ def _list_all_leaf_nodes(space_kind, page_no, page_size, search=None):
     }
 
 
-def list_space_folder_nodes(space_kind, page_no=1, page_size=30, search=None, parent_key=None, scope=None):
+def list_space_folder_nodes(space_kind, page_no=1, page_size=30, search=None,
+                            parent_key=None, scope=None, tenant_id=None,
+                            camera_ids=None):
     """按层级返回存储空间文件夹节点。"""
     if scope == 'leaves':
-        return _list_all_leaf_nodes(space_kind, page_no, page_size, search)
+        return _list_all_leaf_nodes(
+            space_kind, page_no, page_size, search, tenant_id, camera_ids)
 
     parent_key = _normalize_parent_key(parent_key)
     if search:
-        return _search_space_nodes(space_kind, page_no, page_size, search.strip())
+        return _search_space_nodes(
+            space_kind, page_no, page_size, search.strip(), tenant_id, camera_ids)
 
     if parent_key == 'root':
-        return _list_root_nodes(space_kind, page_no, page_size, parent_key)
+        return _list_root_nodes(
+            space_kind, page_no, page_size, parent_key, tenant_id, camera_ids)
     if parent_key.startswith('nvr_'):
         try:
             nvr_id = int(parent_key[4:])
         except ValueError as exc:
             raise ValueError(f'无效的 parentKey: {parent_key}') from exc
-        return _list_nvr_children(space_kind, nvr_id, page_no, page_size, parent_key)
+        return _list_nvr_children(
+            space_kind, nvr_id, page_no, page_size, parent_key,
+            tenant_id, camera_ids)
     if parent_key.startswith('gb_sip_'):
         sip_device_id = parent_key[7:].strip()
         if not sip_device_id:
             raise ValueError(f'无效的 parentKey: {parent_key}')
-        return _list_gb_children(space_kind, sip_device_id, page_no, page_size, parent_key)
+        return _list_gb_children(
+            space_kind, sip_device_id, page_no, page_size, parent_key,
+            tenant_id, camera_ids)
     raise ValueError(f'无效的 parentKey: {parent_key}')

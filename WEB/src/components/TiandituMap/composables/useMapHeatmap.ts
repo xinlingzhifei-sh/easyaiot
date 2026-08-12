@@ -24,7 +24,7 @@ export interface UseMapHeatmapOptions {
 
 /** 告警密度热力图层：包 ol/layer/Heatmap，按需显隐，喂入告警点 */
 export function useMapHeatmap(options: UseMapHeatmapOptions) {
-  const source = new VectorSource();
+  const source = new VectorSource<Point>();
   const layer = new Heatmap({
     source,
     zIndex: MAP_LAYER_ZINDEX.heat,
@@ -42,7 +42,7 @@ export function useMapHeatmap(options: UseMapHeatmapOptions) {
       points
         .filter((p) => Number.isFinite(p.lng) && Number.isFinite(p.lat))
         .map((p) => {
-          const f = new Feature({ geometry: new Point(toMercator(p.lng, p.lat)) });
+          const f = new Feature<Point>({ geometry: new Point(toMercator(p.lng, p.lat)) });
           if (p.weight != null) f.set('weight', p.weight);
           return f;
         }),

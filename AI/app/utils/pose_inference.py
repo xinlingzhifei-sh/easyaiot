@@ -14,6 +14,11 @@ from typing import Callable, Optional
 import cv2
 import numpy as np
 
+from app.utils.model_upload_security import (
+    require_official_pretrained_model,
+    require_web_safe_model_reference,
+)
+
 logger = logging.getLogger(__name__)
 
 _lock = threading.Lock()
@@ -27,6 +32,10 @@ def _get_yolo_model(abs_path: str):
     from ultralytics import YOLO
 
     path = os.path.abspath(abs_path)
+    if path.lower().endswith('.onnx'):
+        require_web_safe_model_reference(path)
+    else:
+        require_official_pretrained_model(os.path.basename(path))
     mtime = os.path.getmtime(path) if os.path.isfile(path) else 0
     cache_key = (path, mtime)
     with _lock:

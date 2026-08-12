@@ -8,9 +8,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 /**
  * 字典用到 Feign 的配置项
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @AutoConfiguration
 @ConditionalOnExpression("'${spring.application.name:}' != 'system-server'")

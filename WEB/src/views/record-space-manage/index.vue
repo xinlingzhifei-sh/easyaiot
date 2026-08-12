@@ -28,7 +28,7 @@
       <RadioGroup
         v-model:value="contentTab"
         button-style="solid"
-        size="middle"
+        size="default"
         class="mode-radio-group"
         @change="handleContentTabChange"
       >
@@ -225,7 +225,6 @@ import {
   type RecordVideoDate,
   type RecordSessionGroup,
 } from '@/api/device/record';
-import { resolveAlertImageDisplayUrl } from '@/utils/alertMinioImage';
 import { resolveAlertVideoUrl } from '@/utils/alertRecord';
 import {
   buildCameraStorageQuery,

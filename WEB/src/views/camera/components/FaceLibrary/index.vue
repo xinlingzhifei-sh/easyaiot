@@ -519,7 +519,8 @@ async function handleDelete(record: FaceLibrary) {
   }
 }
 
-async function handleToggleEnabled(record: FaceLibrary) {
+async function handleToggleEnabled(rawRecord: FaceLibrary | Recordable) {
+  const record = rawRecord as FaceLibrary;
   try {
     await updateFaceLibrary(record.id, { is_enabled: !record.is_enabled });
     createMessage.success(record.is_enabled ? '已停用' : '已启用');
@@ -529,7 +530,8 @@ async function handleToggleEnabled(record: FaceLibrary) {
   }
 }
 
-function getTableActions(record: FaceLibrary) {
+function getTableActions(rawRecord: FaceLibrary | Recordable) {
+  const record = rawRecord as FaceLibrary;
   return [
     {
       icon: 'ant-design:team-outlined',

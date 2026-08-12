@@ -125,21 +125,25 @@ prepare_zlmediakit_dirs_and_config() {
     local zlm_conf="${zlm_base}/conf"
     local zlm_config_file="${zlm_conf}/config.ini"
     # 必须与 iot-gb28181 中 media.secret 一致，否则 HTTP API 返回 Please login first（code -100）
-    local zlm_default_secret="AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG"
+    local zlm_secret="${ZLM_SECRET:-}"
+    if [ -z "$zlm_secret" ] || [ "$zlm_secret" = "CHANGE_ME" ]; then
+        print_error "缺少安全的 ZLM_SECRET，拒绝生成 ZLMediaKit 配置"
+        return 1
+    fi
 
     print_info "数据目录根路径: $zlm_base"
 
     mkdir -p "$zlm_www" "$zlm_log" "$zlm_conf"
     print_success "目录已就绪: www, log, conf"
 
-    # 方案 A：无论原来是否存在，都强制重置为项目默认配置（包含固定 secret）
-    print_warning "重置 ZLMediaKit 配置文件为项目默认配置（包含固定 secret）: $zlm_config_file"
+    # 方案 A：无论原来是否存在，都使用安全注入的 secret 重置配置
+    print_warning "使用安全注入的 secret 重置 ZLMediaKit 配置文件: $zlm_config_file"
     cat > "$zlm_config_file" << ZLMEOF
 [api]
 apiDebug=1
 defaultSnap=./www/logo.png
 downloadRoot=./www;
-secret=${zlm_default_secret}
+secret=${zlm_secret}
 snapRoot=./www/snap/
 
 [general]
@@ -158,6 +162,8 @@ enable_rtmp=1
 enable_rtsp=1
 
 [rtmp]
+directProxy=1
+enhanced=0
 port=10001
 
 [rtsp]

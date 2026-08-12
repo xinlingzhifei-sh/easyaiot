@@ -12,7 +12,7 @@
     weixinDetailSchemas,
     dingDetailSchemas,
     httpDetailSchemas,
-  } from '../../Data.tsx';
+  } from '../../Data';
 
   const props = defineProps({
     record: {
@@ -38,7 +38,7 @@
     },
   );
 
-  function setDescription(record) {
+  function setDescription(record: Record<string, any>) {
     // console.log('setDescription ...', record);
     const { msgType, configurationMap } = record;
     const config = {
@@ -50,7 +50,7 @@
       6: dingDetailSchemas,
     };
     const descSchema = config[msgType] || commonDetailSchema;
-    const descData = {};
+    const descData: Record<string, any> = {};
     descSchema.forEach((element) => {
       descData[element.field] = configurationMap[element.field];
     });

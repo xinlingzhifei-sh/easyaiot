@@ -12,16 +12,15 @@ import javax.validation.constraints.Size;
 /**
  * DictDataPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 字典类型分页列表 Request VO")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DictDataPageReqVO extends PageParam {
 
-    @Schema(description = "字典标签", example = "BasicLab")
+    @Schema(description = "字典标签", example = "yFeiEye")
     @Size(max = 100, message = "字典标签长度不能超过100个字符")
     private String label;
 

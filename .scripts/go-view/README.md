@@ -1,4 +1,4 @@
-# EasyAIoT GoView / VISUALIZE 脚本与 SQL
+# yFeiEye GoView / VISUALIZE 脚本与 SQL
 
 GoView 大屏（`VISUALIZE`）相关的 **演示种子、增量补丁、生成脚本与文档** 统一放在本目录，不再放在 `.scripts/postgresql/`。
 

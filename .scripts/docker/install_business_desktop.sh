@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# EasyAIoT 业务模块一键脚本（macOS / Windows · Docker Desktop · 仅镜像部署）
+# yFeiEye 业务模块一键脚本（macOS / Windows · Docker Desktop · 仅镜像部署）
 # 不含中间件；通过 EASYAIOT_DEPLOY_SCOPE=business 过滤 install_desktop_common。
 # ---------------------------------------------------------------------------
 set -euo pipefail

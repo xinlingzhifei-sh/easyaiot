@@ -1,56 +1,13 @@
 <template>
-  <div class="monitor-sidebar">
-    <!-- 全局总览 -->
-    <div class="sidebar-section overview-section">
-      <div class="section-header">
-        <Icon icon="ant-design:dashboard-outlined" :size="16" class="header-icon" />
-        <span class="section-title">全局总览</span>
-      </div>
-      <div class="statistics-cards">
-        <div class="stat-card">
-          <div class="stat-icon alarm">
-            <Icon icon="ant-design:warning-outlined" :size="24" />
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">告警数量</div>
-            <div class="stat-value">{{ statistics.alarmCount }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon camera">
-            <Icon icon="ant-design:video-camera-outlined" :size="24" />
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">摄像头数量</div>
-            <div class="stat-value">{{ statistics.cameraCount }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon algorithm">
-            <Icon icon="ant-design:code-outlined" :size="24" />
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">算法数量</div>
-            <div class="stat-value">{{ statistics.algorithmCount }}</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon model">
-            <Icon icon="ant-design:database-outlined" :size="24" />
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">模型数量</div>
-            <div class="stat-value">{{ statistics.modelCount }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <div class="monitor-sidebar" data-testid="monitor-sidebar">
     <!-- 设备目录 -->
     <div class="sidebar-section directory-section">
       <div class="section-header">
-        <Icon icon="ant-design:folder-outlined" :size="16" class="header-icon" />
-        <span class="section-title">设备目录</span>
+        <Icon icon="ant-design:apartment-outlined" :size="17" class="header-icon" />
+        <div class="section-heading">
+          <span class="section-kicker">DEVICE DIRECTORY</span>
+          <span class="section-title">设备导航</span>
+        </div>
         <div class="header-actions">
           <span class="device-count" v-if="!loading && treeData.length > 0">
             {{ playableLeafCount }} 个通道
@@ -81,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Icon } from '@/components/Icon'
 import { BasicTree } from '@/components/Tree'
 import type { TreeItem } from '@/components/Tree'
@@ -103,7 +60,6 @@ import {
   enrichWvpChannelTreeNodes,
   resolveMonitorGbChannelDisplayName,
 } from '@/views/camera/utils/monitorGbDisplay'
-import { getDashboardStatistics } from '@/api/device/calculate'
 import { useMessage } from '@/hooks/web/useMessage'
 import type { TreeProps } from 'ant-design-vue'
 
@@ -111,7 +67,7 @@ defineOptions({
   name: 'MonitorSidebar'
 })
 
-const props = defineProps<{
+defineProps<{
   selectedDevice?: any
 }>()
 
@@ -126,14 +82,6 @@ const expandedKeys = ref<string[]>([])
 const selectedKeys = ref<string[]>([])
 const treeData = ref<TreeItem[]>([])
 const loading = ref(false)
-
-// 统计数据
-const statistics = ref({
-  alarmCount: 0,
-  cameraCount: 0,
-  algorithmCount: 0,
-  modelCount: 0
-})
 
 const playableLeafCount = computed(() => countMonitorTreePlayableLeaves(treeData.value))
 
@@ -180,7 +128,7 @@ const loadTreeData = async (options?: { force?: boolean }) => {
 
   await loadMonitorDirectoryTreeWithCache({
     force: options?.force,
-    skipSync: true,
+    skipSync: false,
     onBundle: (bundle) => {
       applyMonitorTreeBundle(bundle)
     },
@@ -205,27 +153,6 @@ const syncGbDevicesInBackground = async () => {
   if (created > 0) {
     invalidateMonitorDirectoryTreeCache()
     await loadTreeData({ force: true })
-  }
-}
-
-// 加载统计数据
-const loadStatistics = async () => {
-  try {
-    // 调用统一的统计接口
-    const statsResponse = await getDashboardStatistics()
-    if (statsResponse) {
-      statistics.value.alarmCount = statsResponse.alarm_count || 0
-      statistics.value.cameraCount = statsResponse.camera_count || 0
-      statistics.value.algorithmCount = statsResponse.algorithm_count || 0
-      statistics.value.modelCount = statsResponse.model_count || 0
-    }
-  } catch (error) {
-    console.error('加载统计数据失败', error)
-    // 发生错误时使用默认值
-    statistics.value.alarmCount = 0
-    statistics.value.cameraCount = 0
-    statistics.value.algorithmCount = 0
-    statistics.value.modelCount = 0
   }
 }
 
@@ -261,26 +188,31 @@ function buildGbChannelPlayPayload(gb: GbChannelRef, node: TreeItem | null) {
 }
 
 // 处理树节点选择（与分屏监控一致：国标设备下展开通道后点播）
-const handleTreeSelect = (keys: string[], _info?: unknown) => {
+const handleTreeSelect = async (keys: string[], _info?: unknown) => {
   if (!keys.length) return
 
   const selectedKey = String(keys[0])
+  const node = findMonitorTreeNodeByKey(treeData.value, selectedKey)
+  if (!node) return
 
   if (selectedKey.startsWith('gb_dev_')) {
-    createMessage.info('请展开国标设备并选择具体通道')
+    selectedKeys.value = [selectedKey]
+    if (!node.children?.length) {
+      createMessage.info('请展开国标设备后选择通道播放')
+    }
     return
   }
   if (selectedKey.startsWith('nvr_')) {
-    createMessage.info('请展开 NVR 并选择具体通道')
+    selectedKeys.value = [selectedKey]
+    if (!node.children?.length) {
+      createMessage.info('请展开 NVR 后选择通道播放')
+    }
     return
   }
   if (selectedKey.startsWith('gb_dir_') || selectedKey.startsWith('dir_')) {
-    createMessage.info('请选择摄像头或国标通道')
+    selectedKeys.value = [selectedKey]
     return
   }
-
-  const node = findMonitorTreeNodeByKey(treeData.value, selectedKey)
-  if (!node) return
 
   if (selectedKey.startsWith('gb_ch_')) {
     let gb = parseGbChannelKey(selectedKey)
@@ -333,8 +265,6 @@ const handleTreeSelect = (keys: string[], _info?: unknown) => {
 
 // 获取完整路径
 const getFullPath = (node: TreeItem, treeNodes: TreeItem[]): string => {
-  const path: string[] = [node.title as string]
-
   // 递归查找父节点路径
   const findPath = (nodes: TreeItem[], targetKey: string, currentPath: string[] = []): string[] | null => {
     for (const n of nodes) {
@@ -356,96 +286,36 @@ const getFullPath = (node: TreeItem, treeNodes: TreeItem[]): string => {
   return fullPath ? fullPath.join(' / ') : (node.title as string)
 }
 
-// 刷新定时器
-let statisticsTimer: any = null
-let delayTimer: any = null
-let isMounted = false
-
 // 组件挂载时加载数据
 onMounted(() => {
-  isMounted = true
-  
   loadTreeData()
   syncGbDevicesInBackground()
-  // 初始加载统计数据
-  loadStatistics()
-  
-  // 错峰刷新：延迟1秒开始，每5秒刷新一次统计数据（1秒、6秒、11秒...）
-  delayTimer = setTimeout(() => {
-    // 检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    loadStatistics()
-    
-    // 再次检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    statisticsTimer = setInterval(() => {
-      // 每次执行前检查组件是否仍然挂载
-      if (!isMounted) {
-        if (statisticsTimer) {
-          clearInterval(statisticsTimer)
-          statisticsTimer = null
-        }
-        return
-      }
-      
-      loadStatistics()
-    }, 5000)
-  }, 1000)
-})
-
-// 组件卸载时清理定时器
-onUnmounted(() => {
-  isMounted = false
-  
-  // 清理延迟定时器
-  if (delayTimer) {
-    clearTimeout(delayTimer)
-    delayTimer = null
-  }
-  
-  // 清理定时器
-  if (statisticsTimer) {
-    clearInterval(statisticsTimer)
-    statisticsTimer = null
-  }
 })
 </script>
 
 <style lang="less" scoped>
 .monitor-sidebar {
-  width: 350px;
+  width: 100%;
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
   overflow: hidden;
 }
 
 .sidebar-section {
-  background: linear-gradient(135deg, rgba(15, 34, 73, 0.8), rgba(24, 46, 90, 0.6));
-  border-radius: 8px;
-  border: 1px solid rgba(52, 134, 218, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 30px rgba(52, 134, 218, 0.1);
+  background: var(--dashboard-panel);
+  border-radius: var(--dashboard-radius);
+  border: 1px solid var(--dashboard-border);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
   &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      linear-gradient(90deg, transparent 0%, rgba(52, 134, 218, 0.05) 50%, transparent 100%),
-      radial-gradient(circle at top left, rgba(52, 134, 218, 0.1), transparent 50%);
-    pointer-events: none;
-    border-radius: 8px;
+    display: none;
   }
 }
 
@@ -454,24 +324,37 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(52, 134, 218, 0.3);
-  background: rgba(52, 134, 218, 0.08);
+  min-height: 58px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--dashboard-border);
+  background: var(--dashboard-panel-strong);
   position: relative;
   z-index: 1;
 
   .header-icon {
-    color: #3486da;
-    filter: drop-shadow(0 0 4px rgba(52, 134, 218, 0.6));
+    color: var(--dashboard-cyan);
+    filter: none;
+  }
+
+  .section-heading {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .section-kicker {
+    color: var(--dashboard-weak);
+    font-family: 'IBM Plex Mono', Consolas, monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
   }
 
   .section-title {
-    font-size: 15px;
+    color: var(--dashboard-text);
+    font-size: 14px;
     font-weight: 600;
-    color: #ffffff;
-    text-shadow: 0 0 8px rgba(52, 134, 218, 0.5);
-    letter-spacing: 0.5px;
-    flex: 1;
   }
 
   .header-actions {
@@ -480,18 +363,14 @@ onUnmounted(() => {
     gap: 8px;
 
     .device-count {
-      font-size: 12px;
-      color: rgba(200, 220, 255, 0.7);
-      padding: 2px 8px;
-      background: rgba(52, 134, 218, 0.15);
-      border-radius: 4px;
-      border: 1px solid rgba(52, 134, 218, 0.3);
+      font-size: 11px;
+      color: var(--dashboard-muted);
+      padding: 3px 7px;
+      background: rgba(38, 213, 228, 0.06);
+      border-radius: 999px;
+      border: 1px solid var(--dashboard-border);
     }
   }
-}
-
-.overview-section {
-  flex-shrink: 0;
 }
 
 .directory-section {
@@ -499,117 +378,6 @@ onUnmounted(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.statistics-cards {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 8px;
-  padding: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, rgba(52, 134, 218, 0.15), rgba(48, 82, 174, 0.1));
-  border: 1px solid rgba(52, 134, 218, 0.3);
-  border-radius: 8px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(52, 134, 218, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  &:hover {
-    border-color: rgba(52, 134, 218, 0.6);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 134, 218, 0.2);
-
-    &::before {
-      opacity: 1;
-    }
-
-    .stat-icon {
-      transform: scale(1.1);
-    }
-  }
-
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    position: relative;
-    z-index: 1;
-
-    &.alarm {
-      background: linear-gradient(135deg, rgba(255, 77, 79, 0.2), rgba(255, 77, 79, 0.1));
-      color: #ff4d4f;
-      border: 1px solid rgba(255, 77, 79, 0.3);
-    }
-
-    &.camera {
-      background: linear-gradient(135deg, rgba(52, 134, 218, 0.2), rgba(52, 134, 218, 0.1));
-      color: #3486da;
-      border: 1px solid rgba(52, 134, 218, 0.3);
-    }
-
-    &.algorithm {
-      background: linear-gradient(135deg, rgba(82, 196, 26, 0.2), rgba(82, 196, 26, 0.1));
-      color: #52c41a;
-      border: 1px solid rgba(82, 196, 26, 0.3);
-    }
-
-    &.model {
-      background: linear-gradient(135deg, rgba(250, 173, 20, 0.2), rgba(250, 173, 20, 0.1));
-      color: #faad14;
-      border: 1px solid rgba(250, 173, 20, 0.3);
-    }
-  }
-
-  .stat-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    position: relative;
-    z-index: 1;
-
-    .stat-label {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.6);
-      white-space: nowrap;
-    }
-
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffffff;
-      line-height: 1;
-      text-shadow: 0 0 8px rgba(52, 134, 218, 0.5);
-    }
-  }
 }
 
 .sidebar-tree {
@@ -621,7 +389,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(to bottom, rgba(15, 34, 73, 0.4), rgba(24, 46, 90, 0.3));
+  background: #071219;
 }
 
 .sidebar-tree-scroll {
@@ -699,7 +467,7 @@ onUnmounted(() => {
 
   :deep(.ant-tree) {
     background: transparent !important;
-    color: rgba(200, 220, 255, 0.9);
+    color: var(--dashboard-text);
   }
 
   /* 与分屏监控一致：叶子前占位更窄、行高更紧凑 */
@@ -754,20 +522,20 @@ onUnmounted(() => {
     transition: all 0.25s;
 
     &:hover {
-      background: rgba(52, 134, 218, 0.12) !important;
-      color: #ffffff;
+      background: rgba(56, 189, 248, 0.1) !important;
+      color: var(--dashboard-text);
     }
   }
 
   :deep(.ant-tree-node-selected) {
     .ant-tree-node-content-wrapper {
-      background: linear-gradient(90deg, rgba(52, 134, 218, 0.3), rgba(52, 134, 218, 0.15)) !important;
-      color: #6bb3ff !important;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.1)) !important;
+      color: #7dd3fc !important;
     }
   }
 
   :deep(.ant-tree-switcher) {
-    color: rgba(52, 134, 218, 0.8);
+    color: var(--dashboard-blue);
     background: transparent !important;
   }
 
@@ -783,24 +551,24 @@ onUnmounted(() => {
   // 搜索框样式
   :deep(.tree-header-search) {
     .ant-input {
-      background: rgba(52, 134, 218, 0.15) !important;
-      border: 1px solid rgba(52, 134, 218, 0.4);
-      border-radius: 6px;
-      color: rgba(200, 220, 255, 0.95);
+      background: rgba(8, 22, 39, 0.8) !important;
+      border: 1px solid var(--dashboard-border);
+      border-radius: var(--dashboard-radius);
+      color: var(--dashboard-text);
 
       &::placeholder {
-        color: rgba(200, 220, 255, 0.5);
+        color: rgba(184, 203, 224, 0.48);
       }
 
       &:hover {
-        border-color: rgba(52, 134, 218, 0.6);
-        background: rgba(52, 134, 218, 0.2) !important;
+        border-color: var(--dashboard-border-strong);
+        background: rgba(56, 189, 248, 0.12) !important;
       }
 
       &:focus {
-        border-color: #3486da;
-        box-shadow: 0 0 12px rgba(52, 134, 218, 0.5);
-        background: rgba(52, 134, 218, 0.25) !important;
+        border-color: var(--dashboard-blue);
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.12);
+        background: rgba(56, 189, 248, 0.14) !important;
       }
     }
   }
@@ -815,11 +583,114 @@ onUnmounted(() => {
   }
 
   :deep(.scrollbar__thumb) {
-    background-color: rgba(52, 134, 218, 0.45);
+    background-color: rgba(56, 189, 248, 0.45);
   }
 
   :deep(.scrollbar__thumb:hover) {
-    background-color: rgba(52, 134, 218, 0.7);
+    background-color: rgba(56, 189, 248, 0.7);
+  }
+}
+
+.sidebar-tree-scroll {
+  :deep(.tree-header) {
+    margin: 0 0 8px !important;
+    padding: 8px 0 !important;
+    background: transparent !important;
+  }
+
+  :deep(.xingyuv-tree-header) {
+    margin-bottom: 8px !important;
+  }
+
+  :deep(.tree-header-search .ant-input) {
+    height: 34px;
+    color: var(--dashboard-text);
+    background: #0a1820 !important;
+    border-color: var(--dashboard-border);
+    border-radius: 2px;
+
+    &:hover,
+    &:focus {
+      background: #0d2029 !important;
+      border-color: var(--dashboard-cyan);
+      box-shadow: 0 0 0 2px rgba(38, 213, 228, 0.08);
+    }
+  }
+
+  :deep(.xingyuv-tree-header .ant-input-affix-wrapper),
+  :deep(.xingyuv-tree-header .ant-input) {
+    color: var(--dashboard-text) !important;
+    background: #0a1820 !important;
+  }
+
+  :deep(.xingyuv-tree-header .ant-input-affix-wrapper) {
+    border-color: var(--dashboard-border) !important;
+    border-radius: 2px 0 0 2px !important;
+    box-shadow: none !important;
+
+    &:hover,
+    &:focus,
+    &:focus-within {
+      border-color: var(--dashboard-cyan) !important;
+    }
+  }
+
+  :deep(.xingyuv-tree-header .ant-input::placeholder) {
+    color: var(--dashboard-weak) !important;
+  }
+
+  :deep(.xingyuv-tree-header .ant-input-group-addon),
+  :deep(.xingyuv-tree-header .ant-input-search-button) {
+    color: var(--dashboard-muted) !important;
+    background: #0a1820 !important;
+    border-color: var(--dashboard-border) !important;
+    border-radius: 0 2px 2px 0 !important;
+  }
+
+  :deep(.xingyuv-tree-header .ant-input-search-button:hover) {
+    color: var(--dashboard-cyan) !important;
+    border-color: var(--dashboard-cyan) !important;
+  }
+
+  :deep(.ant-tree-node-content-wrapper) {
+    color: var(--dashboard-muted);
+    border-radius: 1px;
+    transition: color 0.18s, background 0.18s;
+
+    &:hover {
+      color: var(--dashboard-text);
+      background: rgba(38, 213, 228, 0.07) !important;
+    }
+  }
+
+  :deep(.ant-tree-treenode-selected .ant-tree-node-content-wrapper),
+  :deep(.ant-tree-node-selected) {
+    color: var(--dashboard-cyan) !important;
+    background: rgba(38, 213, 228, 0.1) !important;
+    box-shadow: inset 2px 0 0 var(--dashboard-cyan);
+  }
+
+  :deep(.ant-tree-switcher) {
+    color: var(--dashboard-weak);
+  }
+
+  :deep(.ant-empty-description) {
+    color: var(--dashboard-weak) !important;
+  }
+
+  :deep(.scrollbar__thumb) {
+    background-color: var(--dashboard-border-strong);
+  }
+}
+
+@media (max-width: 767px) {
+  .monitor-sidebar {
+    height: 360px;
+    min-height: 360px;
+  }
+
+  .section-header {
+    min-height: 52px;
   }
 }
 </style>

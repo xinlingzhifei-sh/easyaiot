@@ -1,8 +1,7 @@
 """
 YOLO11n 模型推理测试脚本
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 
 使用方法:
     python test_yolo11n.py [图片路径]

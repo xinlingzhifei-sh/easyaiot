@@ -20,9 +20,8 @@ import java.util.Map;
  * 
  * 注意：告警存储和图片上传已移到iot-sink服务处理
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Component

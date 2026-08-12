@@ -2,9 +2,8 @@ package com.basiclab.iot.common.mqs;
 
 /**
  * @Description: 消费者组常量（队列）
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/4/15$ 15:53$
  * @UpdateDate: 2024/4/15$ 15:53$
  * @Version: V1.0

@@ -80,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import {onMounted, reactive, ref, computed, watch} from 'vue';
+import {onMounted, reactive, ref, watch} from 'vue';
 import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
@@ -105,7 +105,7 @@ const state = reactive({
   loading: true,
 });
 
-const [registerForm, {validate, updateSchema}] = useForm({
+const [registerForm, {validate}] = useForm({
   schemas: [
     {
       field: `status`,
@@ -228,6 +228,8 @@ function formatDate(dateString: string) {
     return dateString;
   }
 }
+void getStatusColor;
+void formatDate;
 
 function formatDateTime(dateString: string) {
   if (!dateString) return '--';
@@ -518,4 +520,3 @@ function handleDownload(record: object) {
   }
 }
 </style>
-

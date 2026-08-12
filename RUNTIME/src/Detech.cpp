@@ -15,7 +15,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/geometry.hpp>
 #include <unistd.h>
 
 // Defined in Manage.cpp — request clean process exit on finite-source EOF
@@ -1189,10 +1188,13 @@ void Detech::_display_video_loop() {
         return;
     }
     
-    // Create OpenCV window
     const char* windowName = "RTSP Live Stream - Press 'q' to exit";
-    cv::namedWindow(windowName, cv::WINDOW_NORMAL);
-    cv::resizeWindow(windowName, 1280, 720);
+    if (!_config.headless) {
+        cv::namedWindow(windowName, cv::WINDOW_NORMAL);
+        cv::resizeWindow(windowName, 1280, 720);
+    } else {
+        LOG(INFO) << "[VIDEO] Headless mode enabled, OpenCV display window disabled";
+    }
     
     // Allocate packet and frame
     AVPacket* packet = av_packet_alloc();
@@ -1429,8 +1431,9 @@ void Detech::_display_video_loop() {
                     cv::FONT_HERSHEY_SIMPLEX, 0.8, 
                     _config.enableAI ? cv::Scalar(0, 255, 255) : cv::Scalar(128, 128, 128), 2);
         
-        // Display frame
-        cv::imshow(windowName, img);
+        if (!_config.headless) {
+            cv::imshow(windowName, img);
+        }
         
         // RTMP推流（按需推流：只在_streamingEnabled=true时推流）
         if (_streamingEnabled.load() && _rtmpEncoder && _rtmpEncoder->isInitialized()) {
@@ -1445,12 +1448,13 @@ void Detech::_display_video_loop() {
             }
         }
         
-        // Check for key press
-        int key = cv::waitKey(1);
-        if (key == 'q' || key == 'Q' || key == 27) { // 'q' or ESC
-            LOG(INFO) << "[VIDEO] User requested exit";
-            _isRun = false;
-            break;
+        if (!_config.headless) {
+            int key = cv::waitKey(1);
+            if (key == 'q' || key == 'Q' || key == 27) { // 'q' or ESC
+                LOG(INFO) << "[VIDEO] User requested exit";
+                _isRun = false;
+                break;
+            }
         }
         
         av_packet_unref(packet);
@@ -1458,7 +1462,9 @@ void Detech::_display_video_loop() {
     
     // Cleanup
     LOG(INFO) << "[VIDEO] Cleaning up...";
-    cv::destroyAllWindows();
+    if (!_config.headless) {
+        cv::destroyAllWindows();
+    }
     sws_freeContext(swsCtx);
     av_free(buffer);
     av_frame_free(&frameRGB);

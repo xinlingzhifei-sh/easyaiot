@@ -1,6 +1,6 @@
 #!/bin/bash
-# EasyAIoT 统一构建缓存（项目根目录 .build-cache）
-# 用法: source 本脚本后调用 init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+# yFeiEye 统一构建缓存（项目根目录 .build-cache）
+# 用法: source 本脚本后调用 init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
 #
 # 各业务模块宿主机缓存互不共享：
 #   ai / video  → pip-cache、pip-wheels
@@ -14,35 +14,35 @@
 : "${BUILD_CACHE_UID:=1000}"
 : "${BUILD_CACHE_GID:=1000}"
 
-EASYAIOT_PYTHON_CACHE_MODULES=(ai video)
-EASYAIOT_BUILD_CACHE_MODULES=(ai video device web app visualize)
+YFEIEYE_PYTHON_CACHE_MODULES=(ai video)
+YFEIEYE_BUILD_CACHE_MODULES=(ai video device web app visualize)
 
-easyaiot_build_cache_base() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+yfeieye_build_cache_base() {
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     echo "$(cd "$root" && pwd)/.build-cache"
 }
 
-easyaiot_normalize_module() {
+yfeieye_normalize_module() {
     local module="${1,,}"
     case "$module" in
         ai|video|device|web|app|visualize) echo "$module" ;;
         *)
-            echo "未知构建缓存模块: $1（支持: ${EASYAIOT_BUILD_CACHE_MODULES[*]}）" >&2
+            echo "未知构建缓存模块: $1（支持: ${YFEIEYE_BUILD_CACHE_MODULES[*]}）" >&2
             return 1
             ;;
     esac
 }
 
 # 兼容旧名
-easyaiot_normalize_python_cache_module() {
-    easyaiot_normalize_module "$1"
+yfeieye_normalize_python_cache_module() {
+    yfeieye_normalize_module "$1"
 }
 
 module_cache_root() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module
-    module="$(easyaiot_normalize_module "$2")" || return 1
-    echo "$(easyaiot_build_cache_base "$root")/${module}"
+    module="$(yfeieye_normalize_module "$2")" || return 1
+    echo "$(yfeieye_build_cache_base "$root")/${module}"
 }
 
 python_module_cache_root() {
@@ -50,7 +50,7 @@ python_module_cache_root() {
 }
 
 pip_cache_build_context_dir_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module="$2"
     local cache
     cache="$(python_module_cache_root "$root" "$module")/pip-cache"
@@ -59,7 +59,7 @@ pip_cache_build_context_dir_for() {
 }
 
 pip_wheels_build_context_dir_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module="$2"
     local cache
     cache="$(python_module_cache_root "$root" "$module")/pip-wheels"
@@ -68,17 +68,17 @@ pip_wheels_build_context_dir_for() {
 }
 
 arm_pip_wheels_build_context_dir_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module="$2"
     local cache
-    module="$(easyaiot_normalize_module "$module")" || return 1
-    cache="$(easyaiot_build_cache_base "$root")/arm/${module}/pip-wheels"
+    module="$(yfeieye_normalize_module "$module")" || return 1
+    cache="$(yfeieye_build_cache_base "$root")/arm/${module}/pip-wheels"
     mkdir -p "$cache"
     echo "$cache"
 }
 
 maven_repository_dir_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local repo
     repo="$(module_cache_root "$root" device)/m2/repository"
     mkdir -p "$repo"
@@ -86,31 +86,31 @@ maven_repository_dir_for() {
 }
 
 pnpm_store_dir_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module="${2:-web}"
     local store
-    module="$(easyaiot_normalize_module "$module")" || return 1
+    module="$(yfeieye_normalize_module "$module")" || return 1
     store="$(module_cache_root "$root" "$module")/pnpm-store"
     mkdir -p "$store"
     echo "$store"
 }
 
 build_stamp_file_for() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local module="${2:-web}"
     local stamp
-    module="$(easyaiot_normalize_module "$module")" || return 1
+    module="$(yfeieye_normalize_module "$module")" || return 1
     stamp="$(module_cache_root "$root" "$module")/.build-stamp"
     mkdir -p "$(dirname "$stamp")"
     echo "$stamp"
 }
 
 web_build_stamp_file() {
-    build_stamp_file_for "${1:-${EASYAIOT_ROOT:-.}}" web
+    build_stamp_file_for "${1:-${YFEIEYE_ROOT:-.}}" web
 }
 
 app_build_stamp_file() {
-    build_stamp_file_for "${1:-${EASYAIOT_ROOT:-.}}" app
+    build_stamp_file_for "${1:-${YFEIEYE_ROOT:-.}}" app
 }
 
 visualize_build_stamp_file() {
@@ -118,7 +118,7 @@ visualize_build_stamp_file() {
 }
 
 app_pnpm_store_dir() {
-    pnpm_store_dir_for "${1:-${EASYAIOT_ROOT:-.}}" app
+    pnpm_store_dir_for "${1:-${YFEIEYE_ROOT:-.}}" app
 }
 
 visualize_pnpm_store_dir() {
@@ -127,11 +127,11 @@ visualize_pnpm_store_dir() {
 
 # 兼容旧调用（默认 ai / device / web）
 pip_cache_build_context_dir() {
-    pip_cache_build_context_dir_for "${1:-${EASYAIOT_ROOT:-.}}" "ai"
+    pip_cache_build_context_dir_for "${1:-${YFEIEYE_ROOT:-.}}" "ai"
 }
 
 pip_wheels_build_context_dir() {
-    pip_wheels_build_context_dir_for "${1:-${EASYAIOT_ROOT:-.}}" "ai"
+    pip_wheels_build_context_dir_for "${1:-${YFEIEYE_ROOT:-.}}" "ai"
 }
 
 pip_wheels_dir() {
@@ -139,7 +139,7 @@ pip_wheels_dir() {
 }
 
 arm_pip_wheels_build_context_dir() {
-    arm_pip_wheels_build_context_dir_for "${1:-${EASYAIOT_ROOT:-.}}" "ai"
+    arm_pip_wheels_build_context_dir_for "${1:-${YFEIEYE_ROOT:-.}}" "ai"
 }
 
 arm_pip_wheels_dir() {
@@ -151,19 +151,19 @@ maven_repository_dir() {
 }
 
 pnpm_store_dir() {
-    pnpm_store_dir_for "${1:-${EASYAIOT_ROOT:-.}}" web
+    pnpm_store_dir_for "${1:-${YFEIEYE_ROOT:-.}}" web
 }
 
 migrate_legacy_python_cache_if_needed() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local base legacy_pip legacy_wheels module target
 
-    base="$(easyaiot_build_cache_base "$root")"
+    base="$(yfeieye_build_cache_base "$root")"
     legacy_pip="${base}/pip-cache"
     legacy_wheels="${base}/pip-wheels"
 
     if [ -d "${legacy_pip}/http" ] && [ -n "$(ls -A "${legacy_pip}/http" 2>/dev/null)" ]; then
-        for module in "${EASYAIOT_PYTHON_CACHE_MODULES[@]}"; do
+        for module in "${YFEIEYE_PYTHON_CACHE_MODULES[@]}"; do
             target="$(pip_cache_build_context_dir_for "$root" "$module")/http"
             if [ ! -d "$target" ] || [ -z "$(ls -A "$target" 2>/dev/null)" ]; then
                 mkdir -p "$target"
@@ -173,7 +173,7 @@ migrate_legacy_python_cache_if_needed() {
     fi
 
     if find "$legacy_wheels" -maxdepth 1 -type f 2>/dev/null | grep -q .; then
-        for module in "${EASYAIOT_PYTHON_CACHE_MODULES[@]}"; do
+        for module in "${YFEIEYE_PYTHON_CACHE_MODULES[@]}"; do
             target="$(pip_wheels_build_context_dir_for "$root" "$module")"
             if ! find "$target" -maxdepth 1 -type f 2>/dev/null | grep -q .; then
                 mkdir -p "$target"
@@ -184,10 +184,10 @@ migrate_legacy_python_cache_if_needed() {
 }
 
 migrate_legacy_device_web_cache_if_needed() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local base legacy_m2 legacy_pnpm target
 
-    base="$(easyaiot_build_cache_base "$root")"
+    base="$(yfeieye_build_cache_base "$root")"
     legacy_m2="${base}/m2/repository"
     legacy_pnpm="${base}/pnpm-store"
 
@@ -208,12 +208,12 @@ migrate_legacy_device_web_cache_if_needed() {
     fi
 }
 
-init_easyaiot_build_cache_dirs() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+init_yfeieye_build_cache_dirs() {
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local base module
-    base="$(easyaiot_build_cache_base "$root")"
+    base="$(yfeieye_build_cache_base "$root")"
 
-    for module in "${EASYAIOT_PYTHON_CACHE_MODULES[@]}"; do
+    for module in "${YFEIEYE_PYTHON_CACHE_MODULES[@]}"; do
         pip_cache_build_context_dir_for "$root" "$module" >/dev/null
         pip_wheels_build_context_dir_for "$root" "$module" >/dev/null
         arm_pip_wheels_build_context_dir_for "$root" "$module" >/dev/null
@@ -232,12 +232,12 @@ init_easyaiot_build_cache_dirs() {
     migrate_legacy_device_web_cache_if_needed "$root"
     migrate_legacy_arm_ffmpeg_cache_if_needed "$root"
 
-    easyaiot_chown_build_cache "${base}"
+    yfeieye_chown_build_cache "${base}"
 }
 
-# 兼容旧函数名（参数为 EASYAIOT_ROOT，非模块目录）
+# 兼容旧函数名（参数为 YFEIEYE_ROOT，非模块目录）
 init_project_build_cache_dirs() {
-    init_easyaiot_build_cache_dirs "$@"
+    init_yfeieye_build_cache_dirs "$@"
 }
 
 print_build_cache_chown_hint() {
@@ -246,7 +246,7 @@ print_build_cache_chown_hint() {
 
 # 规范化构建缓存属主为构建用户（整盘递归 chown，自愈历史 root 污染）。
 # root 下 chown 必成功；非 root 但为属主时成功；否则打印提示（让用户手动 sudo chown）。
-easyaiot_chown_build_cache() {
+yfeieye_chown_build_cache() {
     local base="$1"
     command -v chown >/dev/null 2>&1 || return 0
     chown -R "${BUILD_CACHE_UID}:${BUILD_CACHE_GID}" "$base" 2>/dev/null \
@@ -349,7 +349,7 @@ ARM_FFMPEG_MIN_BYTES=1048576
 arm_ffmpeg_cache_dir_for() {
     local root="${1:-${EASYAIOT_ROOT:-.}}"
     local dir
-    dir="$(easyaiot_build_cache_base "$root")/arm/video/ffmpeg"
+    dir="$(yfeieye_build_cache_base "$root")/arm/video/ffmpeg"
     mkdir -p "$dir"
     echo "$dir"
 }
@@ -401,7 +401,7 @@ ensure_arm_ffmpeg_cached() {
     local root="${1:-${EASYAIOT_ROOT:-.}}"
     local cache_dir export_script
 
-    init_easyaiot_build_cache_dirs "$root"
+    init_yfeieye_build_cache_dirs "$root"
     migrate_legacy_arm_ffmpeg_cache_if_needed "$root"
 
     if arm_ffmpeg_ready_for "$root"; then
@@ -418,7 +418,7 @@ ensure_arm_ffmpeg_cached() {
     cache_dir="$(arm_ffmpeg_cache_dir_for "$root")"
     echo "[build-cache] ARM ffmpeg 缺失，下载到 ${cache_dir} ..."
     FFMPEG_CACHE_DIR="$cache_dir" FFMPEG_ARCH=arm64 /bin/bash "$export_script" || return 1
-    easyaiot_chown_build_cache "$(easyaiot_build_cache_base "$root")"
+    yfeieye_chown_build_cache "$(yfeieye_build_cache_base "$root")"
 }
 
 # 将 .build-cache 中的 ffmpeg 包链入 VIDEO 构建上下文（供 Dockerfile.arm COPY）
@@ -454,9 +454,9 @@ stage_arm_ffmpeg_into_build_context() {
 }
 
 arm_docker_images_dir() {
-    local root="${1:-${EASYAIOT_ROOT:-.}}"
+    local root="${1:-${YFEIEYE_ROOT:-.}}"
     local dir
-    dir="$(easyaiot_build_cache_base "$root")/arm/docker-images"
+    dir="$(yfeieye_build_cache_base "$root")/arm/docker-images"
     mkdir -p "$dir"
     echo "$dir"
 }
@@ -500,12 +500,12 @@ ensure_arm_python_wheels_cached() {
     if [ "$#" -gt 0 ]; then
         modules=("$@")
     else
-        modules=("${EASYAIOT_PYTHON_CACHE_MODULES[@]}")
+        modules=("${YFEIEYE_PYTHON_CACHE_MODULES[@]}")
     fi
     local module cache_script base
-    base="$(easyaiot_build_cache_base "$root")"
+    base="$(yfeieye_build_cache_base "$root")"
 
-    init_easyaiot_build_cache_dirs "$root"
+    init_yfeieye_build_cache_dirs "$root"
 
     for module in "${modules[@]}"; do
         if arm_pip_wheels_ready_for "$root" "$module"; then
@@ -529,5 +529,5 @@ ensure_arm_python_wheels_cached() {
         fi
     done
 
-    easyaiot_chown_build_cache "$base"
+    yfeieye_chown_build_cache "$base"
 }

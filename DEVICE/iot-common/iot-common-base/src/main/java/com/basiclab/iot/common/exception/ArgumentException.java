@@ -7,9 +7,8 @@ import com.basiclab.iot.common.enums.ResultEnum;
  * 业务参数异常
  * 用于在业务中，检测到非法参数时，进行抛出的异常。
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @version 3.5.0
  */
 public class ArgumentException extends BaseUncheckedException {

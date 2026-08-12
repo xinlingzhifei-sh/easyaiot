@@ -12,12 +12,11 @@ public class DictDataRespDTO {
 /**
  * DictDataRespDTO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
-(description = "字典标签", example = "BasicLab")
+(description = "字典标签", example = "yFeiEye")
     private String label;
 
     @Schema(description = "字典值", example = "iocoder")

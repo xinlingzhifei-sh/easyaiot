@@ -3,7 +3,7 @@
     <div class="page-head">
       <div>
         <h1>镜像中心</h1>
-        <p>{{ mode === 'manage' ? '核对本机 EasyAIoT 运行时镜像就绪情况' : '拉取预构建镜像，或执行本地构建 / 运行时构建' }}</p>
+        <p>{{ mode === 'manage' ? '核对本机 yFeiEye 运行时镜像就绪情况' : '拉取预构建镜像，或执行本地构建 / 运行时构建' }}</p>
       </div>
       <div class="mode-switch" role="tablist" aria-label="镜像功能切换">
         <button

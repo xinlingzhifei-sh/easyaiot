@@ -113,6 +113,11 @@ public class WebSecurityConfig {
                 // 配置拦截规则
                 .authorizeRequests(auth -> auth
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .antMatchers("/rpc-api/**")
+                        .access("@rpcInternalAccess.isAllowed(request)")
+                        .antMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .antMatchers("/druid/**", "/actuator", "/actuator/**")
+                        .access("@wvpSecurity.isAdmin(authentication)")
                         .antMatchers(defaultExcludes.toArray(new String[0])).permitAll()
                         .anyRequest().authenticated()
                 )

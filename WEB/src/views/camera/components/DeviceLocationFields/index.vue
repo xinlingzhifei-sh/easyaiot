@@ -112,6 +112,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { Col, Divider, FormItem, Input, InputNumber, Row } from 'ant-design-vue';
+import type { RuleObject } from 'ant-design-vue/lib/form/interface';
 import {
   formatHeadingSummary,
   formatLocationSummary,
@@ -159,25 +160,25 @@ const emit = defineEmits<{
   'update:heading': [value: number | null];
 }>();
 
-const localLongitude = ref<number | null>(props.longitude ?? null);
-const localLatitude = ref<number | null>(props.latitude ?? null);
-const localAltitude = ref<number | null>(props.altitude ?? null);
+const localLongitude = ref<number | undefined>(props.longitude ?? undefined);
+const localLatitude = ref<number | undefined>(props.latitude ?? undefined);
+const localAltitude = ref<number | undefined>(props.altitude ?? undefined);
 const localAddress = ref<string>(props.address ?? '');
-const localHeading = ref<number | null>(props.heading ?? null);
+const localHeading = ref<number | undefined>(props.heading ?? undefined);
 
 watch(
   () => [props.longitude, props.latitude, props.altitude, props.address, props.heading],
   () => {
-    localLongitude.value = props.longitude ?? null;
-    localLatitude.value = props.latitude ?? null;
-    localAltitude.value = props.altitude ?? null;
+    localLongitude.value = props.longitude ?? undefined;
+    localLatitude.value = props.latitude ?? undefined;
+    localAltitude.value = props.altitude ?? undefined;
     localAddress.value = props.address ?? '';
-    localHeading.value = props.heading ?? null;
+    localHeading.value = props.heading ?? undefined;
   },
 );
 
 const hasAnyValue = computed(() =>
-  hasDeviceLocation({ longitude: localLongitude.value, latitude: localLatitude.value })
+  hasDeviceLocation({ longitude: localLongitude.value ?? null, latitude: localLatitude.value ?? null })
     || localAltitude.value != null
     || localHeading.value != null
     || !!localAddress.value?.trim(),
@@ -185,13 +186,13 @@ const hasAnyValue = computed(() =>
 
 const summaryText = computed(() =>
   formatLocationSummary({
-    longitude: localLongitude.value,
-    latitude: localLatitude.value,
-    heading: localHeading.value,
+    longitude: localLongitude.value ?? null,
+    latitude: localLatitude.value ?? null,
+    heading: localHeading.value ?? null,
   }),
 );
 
-const headingSummaryText = computed(() => formatHeadingSummary(localHeading.value));
+const headingSummaryText = computed(() => formatHeadingSummary(localHeading.value ?? null));
 
 const locationSourceLabel = computed(() => {
   const src = props.locationSource;
@@ -201,31 +202,31 @@ const locationSourceLabel = computed(() => {
 
 const locationUpdatedAt = computed(() => props.locationUpdatedAt || '');
 
-const longitudeRules = [
+const longitudeRules: RuleObject[] = [
   { validator: validateLongitude, trigger: 'change' },
   {
-    validator: () => validateLocationPair(localLongitude.value, localLatitude.value),
+    validator: () => validateLocationPair(localLongitude.value ?? null, localLatitude.value ?? null),
     trigger: 'change',
   },
 ];
 
-const latitudeRules = [
+const latitudeRules: RuleObject[] = [
   { validator: validateLatitude, trigger: 'change' },
   {
-    validator: () => validateLocationPair(localLongitude.value, localLatitude.value),
+    validator: () => validateLocationPair(localLongitude.value ?? null, localLatitude.value ?? null),
     trigger: 'change',
   },
 ];
 
-const altitudeRules = [{ validator: validateAltitude, trigger: 'change' }];
-const headingRules = [{ validator: validateHeading, trigger: 'change' }];
+const altitudeRules: RuleObject[] = [{ validator: validateAltitude, trigger: 'change' }];
+const headingRules: RuleObject[] = [{ validator: validateHeading, trigger: 'change' }];
 
 function emitChange() {
-  emit('update:longitude', localLongitude.value);
-  emit('update:latitude', localLatitude.value);
-  emit('update:altitude', localAltitude.value);
+  emit('update:longitude', localLongitude.value ?? null);
+  emit('update:latitude', localLatitude.value ?? null);
+  emit('update:altitude', localAltitude.value ?? null);
   emit('update:address', localAddress.value?.trim() || null);
-  emit('update:heading', localHeading.value);
+  emit('update:heading', localHeading.value ?? null);
 }
 </script>
 

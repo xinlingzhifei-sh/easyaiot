@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT 节点 Ceph/共享媒体目录管理与验收
+# yFeiEye 节点 Ceph/共享媒体目录管理与验收
 # ============================================
 # 契约（与 RUNTIME / VIDEO / iot-sink / 节点 Agent 一致）：
 #   媒体根（优先 tags.ceph_mount_path / media_mount_path，否则 /mnt/easyaiot-media）：

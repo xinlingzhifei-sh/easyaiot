@@ -40,7 +40,7 @@
   import {} from 'vue';
   import { Button } from '@/components/Button';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import { getColumns, getFormConfig } from './Data.tsx';
+  import { getColumns, getFormConfig } from './Data';
   import { useMessage } from '/@/hooks/web/useMessage';
   import UserGroupModal from './component/UserGroupModal.vue';
   import { useModal } from '/@/components/Modal';

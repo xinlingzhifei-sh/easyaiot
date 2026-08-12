@@ -17,11 +17,10 @@ import java.time.LocalDateTime;
 
 /**
 * @Description: java类作用描述
-* @author 翱翔的雄库鲁
-* @email andywebjava@163.com
-* @wechat EasyAIoT2025
-* @E-mail: andywebjava@163.com
-* @Website: https://gitee.com/soaring-xiongkulu/easyaiot
+* @author reese
+* @email reese
+* @E-mail: reese
+* @Website: https://gitee.com/reese/yfeieye
 * @CreateDate: 2025/6/15 19:35
 * @UpdateDate: 2025/6/15 19:35
 * @UpdateRemark: 修改内容

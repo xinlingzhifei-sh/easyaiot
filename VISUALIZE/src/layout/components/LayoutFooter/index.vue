@@ -3,7 +3,7 @@
     <slot>
       <n-space :size="50">
         <n-text depth="2">
-          <n-a>EasyAIoT</n-a>
+          <n-a>yFeiEye</n-a>
           <n-text depth="3"> — 低代码数据可视化平台</n-text>
         </n-text>
       </n-space>

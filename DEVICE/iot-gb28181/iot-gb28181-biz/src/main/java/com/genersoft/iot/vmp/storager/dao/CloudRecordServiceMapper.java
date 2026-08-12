@@ -100,7 +100,8 @@ public interface CloudRecordServiceMapper {
             " from wvp_cloud_record " +
             " where collect = false and end_time &lt;= #{endTimeStamp} and media_server_id  = #{mediaServerId} " +
             " </script>")
-    List<CloudRecordItem> queryRecordListForDelete(@Param("endTimeStamp")Long endTimeStamp, String mediaServerId);
+    List<CloudRecordItem> queryRecordListForDelete(@Param("endTimeStamp") Long endTimeStamp,
+                                                   @Param("mediaServerId") String mediaServerId);
 
     @Update(" <script>" +
             "update wvp_cloud_record set collect = #{collect} where id = #{recordId} " +

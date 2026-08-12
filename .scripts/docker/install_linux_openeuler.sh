@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 统一安装脚本 (openEuler 24.x)
+# yFeiEye 统一安装脚本 (openEuler 24.x)
 # ============================================
 # 针对 openEuler 24.03 LTS / 24.x 的一键部署入口：
 #   1) 检测 openEuler 发行版 / SELinux / firewalld
@@ -79,7 +79,7 @@ print_section() {
 
 show_openeuler_help() {
     cat <<'EOF'
-EasyAIoT 统一安装脚本 (openEuler 24.x)
+yFeiEye 统一安装脚本 (openEuler 24.x)
 
 用法:
   sudo ./install_linux_openeuler.sh [openEuler选项...] [命令] [参数...]
@@ -652,7 +652,7 @@ delegate_to_install_linux() {
     fi
     chmod +x "$INSTALL_LINUX" 2>/dev/null || true
 
-    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (openEuler)}"
+    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (openEuler)}"
     export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_openeuler.sh"
     export DOCKER_MIRROR
     export DOCKER_DNS

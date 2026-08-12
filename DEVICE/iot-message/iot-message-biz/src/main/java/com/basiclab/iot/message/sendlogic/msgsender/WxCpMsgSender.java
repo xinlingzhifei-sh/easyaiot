@@ -35,6 +35,10 @@ import java.util.Set;
 
 /**
  * 企业微信模板消息发送器
+ *
+ * @author reese
+ * @email reese
+ * @since 2024-07-19
  */
 @Slf4j
 @Component

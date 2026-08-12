@@ -229,7 +229,6 @@ import { useMessage } from '@/hooks/web/useMessage';
 import {
   registerDevice,
   registerNvrWithChannels,
-  type NvrInfo,
   scanSegmentDevices,
   type CredentialPair,
   type SegmentScanDeviceRow,
@@ -298,7 +297,7 @@ const historyRefreshToken = ref(0);
 
 const targetsFormRules = [
   segmentScanTargetsFormRule(() => form.ports.trim() || undefined),
-];
+] as any;
 
 function applyHistoryEntry(entry: SegmentScanHistoryEntry) {
   form.targets = entry.targets;
@@ -372,9 +371,10 @@ function isRecordRegistrable(record: SegmentScanDeviceRow): boolean {
   return hasRegisterPayload(record);
 }
 
-function canRegisterRecord(record: SegmentScanDeviceRow): boolean {
+function canRegisterRecord(record: Record<string, any>): boolean {
+  const row = record as SegmentScanDeviceRow;
   if (state.batchRegistering || state.registering) return false;
-  return isRecordRegistrable(record);
+  return isRecordRegistrable(row);
 }
 
 function warnCannotRegisterNvr(record: SegmentScanDeviceRow) {
@@ -405,15 +405,16 @@ const batchRegisterButtonText = computed(() => {
   return n > 0 ? `一键批量注册（${n}）` : '一键批量注册';
 });
 
-function registerStatusLabel(ip: string, record: SegmentScanDeviceRow): string {
+function registerStatusLabel(ip: string, record: Record<string, any>): string {
+  const row = record as SegmentScanDeviceRow;
   const st = state.registerStatusMap[ip];
   if (st === 'success') return '已注册';
   if (st === 'failed') return '注册失败';
   if (st === 'skipped') return '已跳过';
-  if (!isCredentialAccessible(record)) {
+  if (!isCredentialAccessible(row)) {
     return state.mode === 'nvr' && hasFormCredentials() ? '待凭证探测' : '未认证';
   }
-  if (!hasRegisterPayload(record)) return state.mode === 'nvr' ? '不可登记' : '无 RTSP';
+  if (!hasRegisterPayload(row)) return state.mode === 'nvr' ? '不可登记' : '无 RTSP';
   return state.mode === 'nvr' ? '可登记' : '可注册';
 }
 
@@ -571,7 +572,7 @@ async function registerOneNvr(record: SegmentScanDeviceRow, silent = false): Pro
       serial_number: record.serial,
       rtsp_url: record.rtsp_url,
       scheme: record.port && [443, 8443].includes(record.port) ? 'https' : 'http',
-    });
+    } as any);
     const n = nvrRegisterRegisteredCount(res);
     if (n > 0) {
       state.registerStatusMap[record.ip] = 'success';
@@ -631,7 +632,7 @@ async function registerOneCamera(record: SegmentScanDeviceRow, silent = false): 
       manufacturer: record.vendor_label,
       model: record.model,
       serial_number: record.serial,
-    });
+    } as any);
     state.registerStatusMap[record.ip] = 'success';
     if (!silent) createMessage.success(`摄像头 ${record.ip} 注册成功`);
     return true;
@@ -648,12 +649,12 @@ async function registerOneCamera(record: SegmentScanDeviceRow, silent = false): 
   }
 }
 
-async function handleRegisterNvrWithChannels(record: SegmentScanDeviceRow) {
-  if (await registerOneNvr(record)) emit('success');
+async function handleRegisterNvrWithChannels(record: Record<string, any>) {
+  if (await registerOneNvr(record as SegmentScanDeviceRow)) emit('success');
 }
 
-async function handleRegisterCamera(record: SegmentScanDeviceRow) {
-  if (await registerOneCamera(record)) emit('success');
+async function handleRegisterCamera(record: Record<string, any>) {
+  if (await registerOneCamera(record as SegmentScanDeviceRow)) emit('success');
 }
 
 async function handleBatchRegister() {

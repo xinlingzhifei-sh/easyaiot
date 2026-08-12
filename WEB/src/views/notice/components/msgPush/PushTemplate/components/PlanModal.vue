@@ -31,12 +31,12 @@
   import { Form, FormItem, Select } from 'ant-design-vue';
 
   const { createMessage } = useMessage();
-  const formRef = ref(null);
-  const formData = ref({
+  const formRef = ref<any>(null);
+  const formData = ref<{ templateId?: string | number }>({
     templateId: undefined,
   });
 
-  const templateData = ref({
+  const templateData = ref<{ list: any[] }>({
     list: [],
   });
   const itemId = ref('');
@@ -47,10 +47,16 @@
   });
 
   const handleCancel = () => {
-    formData.value.templateId = '';
+    formData.value.templateId = undefined;
+  };
+
+  const handleChangeNoticeTemplate = () => {
   };
 
   const handleOk = () => {
+    if (!formRef.value) {
+      return;
+    }
     formRef.value
       .validate()
       .then(async () => {

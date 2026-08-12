@@ -25,18 +25,21 @@ services:
     # 数据卷挂载
     volumes:
       # 业务源码（实现「仅改代码、依赖不变」时 update 免重建镜像：git pull 后重启进程即生效）
-      # 下方更具体的子目录挂载（./data 等）会按路径深度优先覆盖此挂载，互不冲突
+      # 下方共享状态子目录会按路径深度优先覆盖此挂载，互不冲突
       - ./:/app
       # 数据目录（包含数据集、模型、推理结果、上传文件）
-      - ./data:/app/data
-      # NFS 共享媒体根（与 SRS/VIDEO/iot-sink 一致；无 sudo 时 fallback 到 $HOME/easyaiot/media）
-      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/data:rw
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/data:/app/data"
+      # mini 形态本地对象存储与 SRS 录像等同用宿主机 /data（network_mode: host 不共享 mount namespace）
+      - /data:/data:rw
       # 静态文件目录
-      - ./static:/app/static
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/static:/app/static"
       # 临时上传目录
-      - ./temp_uploads:/app/temp_uploads
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/temp_uploads:/app/temp_uploads"
       # 模型文件目录（如果存在）
-      - ./model:/app/model
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/model:/app/model"
+      # Runtime logs are state, not release content. Keep the two writers separate.
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/logs/app:/app/logs"
+      - "${YFEIEYE_AI_STATE_ROOT:-/opt/yfeieye-source/shared/ai}/logs/services:/app/services/logs"
       # 预训练模型文件
       - ./yolo11n:/app/yolo11n
       - ./yolo11n.pt:/app/yolo11n.pt
@@ -62,25 +65,25 @@ services:
       - FLASK_RUN_PORT=${FLASK_RUN_PORT:-5000}
       - FLASK_RUN_HOST=${FLASK_RUN_HOST:-0.0.0.0}
       # 数据库配置（使用localhost，因为使用host网络模式，中间件端口已映射到宿主机）
-      - DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-ai20
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-please-change-this-to-a-random-string}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
+      - JAVA_BACKEND_URL=${JAVA_BACKEND_URL:-http://127.0.0.1:48080}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
       # Nacos配置（使用localhost，因为使用host网络模式）
       - NACOS_SERVER=${NACOS_SERVER:-localhost:8848}
       - NACOS_NAMESPACE=${NACOS_NAMESPACE:-}
       - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
-      - NACOS_PASSWORD=${NACOS_PASSWORD:-basiclab@iot78475418754}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?NACOS_PASSWORD is required}
       - SERVICE_NAME=${SERVICE_NAME:-model-server}
       # Pod IP配置（容器内会自动获取，也可手动指定）
       - POD_IP=${POD_IP:-}
       # MinIO对象存储配置（使用localhost，因为使用host网络模式）
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-localhost:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-basiclab@iot975248395}
+      - MINIO_ENDPOINT=${AI_DOCKER_MINIO_ENDPOINT:-localhost:9000}
+      # MINIO_ACCESS_KEY and MINIO_SECRET_KEY are required in .env.docker.
       - MINIO_SECURE=${MINIO_SECURE:-false}
       # Redis配置（使用localhost，因为使用host网络模式）
       - REDIS_HOST=${REDIS_HOST:-localhost}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-basiclab@iot975248395}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       # Kafka配置（使用localhost，因为使用host网络模式）
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
       # TDengine配置（使用localhost，因为使用host网络模式）
@@ -95,7 +98,7 @@ services:
       # SAM 万物分割配置
       - SAM_ENABLED=${SAM_ENABLED:-false}
       - SAM_ENGINE=${SAM_ENGINE:-sam3}
-      - SAM_MODEL_PATH=${SAM_MODEL_PATH:-}
+      - SAM_MODEL_PATH=${SAM_MODEL_PATH:-/app/model/sam3/sam3.1_multiplex.pt}
       - SAM_CONF=${SAM_CONF:-0.45}
       - SAM_IMGSZ=${SAM_IMGSZ:-1078}
       - SAM_MODELSCOPE_ID=${SAM_MODELSCOPE_ID:-facebook/sam3.1}

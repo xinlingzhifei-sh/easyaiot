@@ -5,9 +5,8 @@ import java.lang.annotation.*;
 /**
  * 内部认证注解
  * 
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

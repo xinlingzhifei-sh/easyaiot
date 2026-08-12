@@ -16,7 +16,7 @@ export interface SegmentScanHistoryEntry {
   lastDeviceCount?: number;
 }
 
-const STORAGE_KEY = 'easyaiot_segment_scan_history_v1';
+const STORAGE_KEY = 'yfeieye_segment_scan_history_v1';
 const MAX_PER_MODE = 15;
 
 function loadAll(): SegmentScanHistoryEntry[] {

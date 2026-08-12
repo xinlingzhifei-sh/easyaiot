@@ -130,7 +130,7 @@ const [registerForm, { setFieldsValue, validate, updateSchema, resetFields }] = 
       label: '绑定摄像头',
       component: 'Select',
       required: true,
-      itemProps: { class: 'form-item-device-ids' },
+      itemProps: { class: 'form-item-device-ids' } as any,
       componentProps: {
         placeholder: '请选择摄像头',
         mode: 'multiple',

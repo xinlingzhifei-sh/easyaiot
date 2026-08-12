@@ -1,5 +1,5 @@
 [Unit]
-Description=EasyAIoT PANEL ops console
+Description=yFeiEye PANEL ops console
 Documentation=file:///usr/share/doc/easyaiot-panel/README
 After=network-online.target docker.service
 Wants=network-online.target

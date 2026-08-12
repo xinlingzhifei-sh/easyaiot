@@ -10,15 +10,14 @@ import javax.validation.constraints.Size;
 /**
  * UserProfileUpdateReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 用户个人信息更新 Request VO")
 @Data
 public class UserProfileUpdateReqVO {
 
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     @Size(max = 30, message = "用户昵称长度不能超过 30 个字符")
     private String nickname;
 

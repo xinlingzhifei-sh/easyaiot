@@ -40,7 +40,9 @@ if command -v exportfs >/dev/null 2>&1; then
       echo NFS_EXPORT_SKIP_CLIENT
     fi
   fi
-  if ss -ltn 2>/dev/null | grep -q ':2049'; then
+  # Do not use grep -q here: with pipefail, grep can close the pipe after the
+  # first match and make ss exit on SIGPIPE, which reports a false negative.
+  if ss -ltn 2>/dev/null | grep ':2049' >/dev/null; then
     echo NFS_PORT_OK
   else
     if _is_local_nfs_server "${NFS_SERVER}"; then

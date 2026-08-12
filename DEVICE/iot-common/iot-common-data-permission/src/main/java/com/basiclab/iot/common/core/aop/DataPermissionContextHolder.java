@@ -9,9 +9,8 @@ import java.util.List;
 /**
  * {@link DataPermission} 注解的 Context 上下文
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public class DataPermissionContextHolder {
 

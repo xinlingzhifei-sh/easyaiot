@@ -15,6 +15,10 @@ export type PropsTabKey = 1 | 2 | 3
 type ColSpanType = number | string
 
 declare type Value = [number, number] | number
+type FormItemDesignProps = Partial<FormItem> & {
+  message?: string
+  [key: string]: any
+}
 /**
  * 组件属性
  */
@@ -53,7 +57,7 @@ export interface IVFormComponent {
   // 唯一标识
   key?: string
   // Reference formModelItem
-  itemProps?: Partial<FormItem>
+  itemProps?: FormItemDesignProps
 
   colProps?: Partial<ColEx>
   // 联动字段

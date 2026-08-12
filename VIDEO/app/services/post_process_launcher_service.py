@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 from models import AlgorithmTask
 from app.utils.node_remote_python import resolve_video_bundle_python
+from app.utils.video_env import build_unprivileged_process_env
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def _post_process_workers_globally_enabled() -> bool:
     )
 
 
+def _get_video_root() -> str:
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -148,8 +150,8 @@ def _deploy_worker_local(task: AlgorithmTask, replica: int) -> None:
     worker_script = os.path.join(video_root, 'services', 'post_process_worker', 'run_worker.py')
     log_dir = os.path.join(video_root, 'logs', f'post_process_task_{task.id}', f'replica_{replica}')
     os.makedirs(log_dir, exist_ok=True)
-    env = os.environ.copy()
-    env.update(_build_worker_env(task, replica, log_dir, '127.0.0.1'))
+    env = build_unprivileged_process_env(
+        _build_worker_env(task, replica, log_dir, '127.0.0.1'))
     env['VIDEO_ROOT'] = video_root
     proc = subprocess.Popen(
         [sys.executable, worker_script],

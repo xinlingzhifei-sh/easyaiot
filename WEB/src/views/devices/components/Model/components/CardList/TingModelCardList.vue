@@ -90,7 +90,7 @@ function isBreached(item: any) {
   return false;
 }
 
-const data = ref([]);
+const data = ref<any[]>([]);
 const total = ref(0);
 
 const state = reactive({

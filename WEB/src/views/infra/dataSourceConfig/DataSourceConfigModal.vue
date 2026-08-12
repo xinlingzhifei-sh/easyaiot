@@ -35,9 +35,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateDataSourceConfig(values)
+      await updateDataSourceConfig(values as any)
     else
-      await createDataSourceConfig(values)
+      await createDataSourceConfig(values as any)
 
     closeModal()
     emit('success')

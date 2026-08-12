@@ -3,7 +3,6 @@ import type { CSSProperties, PropType, VNodeChild } from 'vue'
 import { computed, defineComponent, unref } from 'vue'
 import { Tooltip } from 'ant-design-vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
-import { getPopupContainer } from '@/utils'
 import { isArray, isString } from '@/utils/is'
 import { getSlot } from '@/utils/helper/tsxHelper'
 
@@ -38,6 +37,10 @@ const props = {
   text: {
     type: [Array, String, Object] as PropType<string[] | string | VNodeChild | JSX.Element>,
   },
+}
+
+function getPopupContainer(node?: HTMLElement): HTMLElement {
+  return (node?.parentNode as HTMLElement) ?? document.body
 }
 
 export default defineComponent({

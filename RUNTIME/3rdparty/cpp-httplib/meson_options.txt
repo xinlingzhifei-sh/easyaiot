@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Andrea Pappacoda
 #
-# SPDX-License-Identifier: MIT
 
 option('cpp-httplib_openssl', type: 'feature', value: 'auto', description: 'Enable OpenSSL support')
 option('cpp-httplib_zlib',    type: 'feature', value: 'auto', description: 'Enable zlib support')

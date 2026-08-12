@@ -9,9 +9,8 @@ import javax.validation.constraints.NotNull;
 /**
  * JobSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Schema(description = "管理后台 - 定时任务创建/修改 Request VO")

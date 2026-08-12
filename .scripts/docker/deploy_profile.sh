@@ -1,5 +1,5 @@
 #!/bin/bash
-# EasyAIoT 部署形态配置
+# yFeiEye 部署形态配置
 #
 # EASYAIOT_DEPLOY_PROFILE 取值（默认 full）：
 #   mini     | 1  — 边缘精简版，推荐宿主机内存 ≥ 4 GB（事件面统一 Gateway→iot-sink）
@@ -437,7 +437,7 @@ apply_middleware_deploy_env() {
     local env_file="${root}/.scripts/docker/.env"
     local mount_root
     mount_root="$(resolve_easyaiot_media_root)"
-    local nfs_export="${NFS_EXPORT:-/mnt/easyaiot-media}"
+    local nfs_export="${NFS_EXPORT:-$mount_root}"
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
     _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$mount_root"
@@ -449,6 +449,7 @@ apply_middleware_deploy_env() {
 apply_device_deploy_env() {
     local root="${1:-$(_deploy_profile_repo_root)}"
     local env_file="${root}/DEVICE/.env"
+    local hook_token="${YFEIEYE_SRS_HOOK_TOKEN:-}"
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
     if is_mini_deploy_profile; then
@@ -458,6 +459,18 @@ apply_device_deploy_env() {
     fi
     _set_env_docker_kv "$env_file" IOT_SINK_SPRING_PROFILES_ACTIVE "$(iot_sink_spring_profiles_active)"
     _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$(resolve_easyaiot_media_root)"
+    if [ -z "$hook_token" ]; then
+        hook_token="$(awk -F= '/^YFEIEYE_SRS_HOOK_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/VIDEO/.env.docker" 2>/dev/null || true)"
+    fi
+    if [ -z "$hook_token" ]; then
+        hook_token="$(awk -F= '/^YFEIEYE_SRS_HOOK_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/.scripts/docker/.env" 2>/dev/null || true)"
+    fi
+    if [ -n "$hook_token" ]; then
+        _set_env_docker_kv "$env_file" YFEIEYE_SRS_HOOK_TOKEN "$hook_token"
+    fi
+    _set_env_docker_kv "$env_file" YFEIEYE_DVR_TENANT_ID "${YFEIEYE_DVR_TENANT_ID:-1}"
 }
 
 # TRANSFORM：按形态写入 .env.docker（供运行脚本统一读取）
@@ -518,7 +531,15 @@ apply_python_service_deploy_env() {
     if [ -z "$root" ]; then
         root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
     fi
-    local module env_file
+    local module env_file rpc_token="${IOT_RPC_INTERNAL_TOKEN:-}"
+    if [ -z "$rpc_token" ]; then
+        rpc_token="$(awk -F= '/^IOT_RPC_INTERNAL_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/.scripts/docker/.env" 2>/dev/null || true)"
+    fi
+    if [ -z "$rpc_token" ]; then
+        rpc_token="$(awk -F= '/^IOT_RPC_INTERNAL_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/DEVICE/.env" 2>/dev/null || true)"
+    fi
     for module in VIDEO AI; do
         env_file="${root}/${module}/.env.docker"
         [ -f "$env_file" ] || continue
@@ -528,14 +549,26 @@ apply_python_service_deploy_env() {
         _set_env_docker_kv "$env_file" AUTH_CHECK_URL "http://localhost:48080/admin-api/system/auth/get-permission-info"
         if is_mini_deploy_profile; then
             _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY false
+            if [ "$module" = "VIDEO" ]; then
+                _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48099/admin-api/system/auth/media-permission-check"
+                _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST true
+                _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST true
+                if [ -n "$rpc_token" ]; then
+                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
+                fi
+            fi
+            if [ "$module" = "AI" ]; then
+                # compose 只读挂载 ../.scripts/minio -> /minio-seed-data（flat 种子数据）
+                _set_env_docker_kv "$env_file" MINIO_SEED_DATA_ROOT "/minio-seed-data"
+            fi
         else
             _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY true
-        fi
-        if [ "$module" = "VIDEO" ]; then
-            if is_mini_deploy_profile; then
-                _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST true
-            else
+            if [ "$module" = "VIDEO" ]; then
+                _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48080/admin-api/system/auth/media-permission-check"
                 _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST false
+                if [ -n "$rpc_token" ]; then
+                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
+                fi
             fi
             _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST false
             _apply_python_sink_media_env "$env_file"

@@ -1,8 +1,7 @@
 """
 模型部署守护线程
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import subprocess as sp

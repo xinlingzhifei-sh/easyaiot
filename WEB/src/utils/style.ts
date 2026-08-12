@@ -1,10 +1,10 @@
 import Color from 'color'
 import { useDesignStore } from '@/store/modules/designStore/designStore'
-import { PickCreateComponentType } from '@/design/packages/index.d'
-import { EditCanvasConfigType } from '@/store/modules/chartEditStore/chartEditStore.d'
-import { chartColors, chartColorsSearch, CustomColorsType } from '@/settings/chartThemes/index'
+import type { PickCreateComponentType } from '@/design/packages/index.d'
+import type { EditCanvasConfigType } from '@/store/modules/chartEditStore/chartEditStore.d'
+import { chartColors, chartColorsSearch } from '@/settings/chartThemes/index'
+import type { CustomColorsType } from '@/settings/chartThemes/index'
 
-type AttrType = PickCreateComponentType<'attr'>
 type StylesType = PickCreateComponentType<'styles'>
 
 // * 动画

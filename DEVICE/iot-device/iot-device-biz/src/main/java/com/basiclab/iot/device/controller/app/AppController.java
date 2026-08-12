@@ -20,9 +20,8 @@ import java.util.List;
 /**
  * AppController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "应用密钥管理")
 @RestController

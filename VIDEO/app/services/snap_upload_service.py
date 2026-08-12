@@ -3,19 +3,54 @@
 """
 import logging
 import os
+import re
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
-from urllib.parse import quote
 
 from app.services.media_dvr_utils import resolve_playback_absolute_path
 from app.services.media_kafka_service import publish_snap_dlq
 from app.services.playback_disk_guard_service import get_snap_staging_dir, remove_playback_file
-from app.utils.minio_bucket_policy import ensure_bucket_public_read_write_policy
-from app.utils.service_urls import minio_storage_enabled, now_shanghai_naive
+from app.utils.minio_bucket_policy import ensure_bucket_private
+from app.utils.service_urls import build_snap_image_api_url, minio_storage_enabled, now_shanghai_naive
 from models import SnapSpace, db
 
 logger = logging.getLogger(__name__)
+_TENANT_ID_PATTERN = re.compile(r'^[1-9][0-9]*$')
+_CAMERA_ID_PATTERN = re.compile(r'^[A-Za-z0-9._-]{1,128}$')
+
+
+def _resolve_snapshot_tenant_id(event: Dict[str, Any], snap_space=None) -> str:
+    for candidate in (
+            (event or {}).get('tenant_id'),
+            (event or {}).get('tenantId'),
+            getattr(snap_space, 'tenant_id', None),
+            getattr(snap_space, 'tenantId', None),
+            os.environ.get('YFEIEYE_SNAPSHOT_TENANT_ID')):
+        tenant_id = str(candidate or '').strip()
+        if not tenant_id:
+            continue
+        if not _TENANT_ID_PATTERN.fullmatch(tenant_id):
+            raise ValueError('snapshot tenant id must be a positive integer')
+        return tenant_id
+    raise ValueError('snapshot tenant id is required')
+
+
+def _build_snapshot_object_name(tenant_id: str, device_id: str, suffix: str) -> str:
+    tenant_id = str(tenant_id or '').strip()
+    device_id = str(device_id or '').strip()
+    suffix = str(suffix or '').strip().replace('\\', '/').lstrip('/')
+    if not _TENANT_ID_PATTERN.fullmatch(tenant_id):
+        raise ValueError('snapshot tenant id must be a positive integer')
+    if not _CAMERA_ID_PATTERN.fullmatch(device_id):
+        raise ValueError('snapshot device id contains unsafe characters')
+    if not suffix or '..' in suffix.split('/'):
+        raise ValueError('snapshot object suffix is invalid')
+    return f'tenants/{tenant_id}/cameras/{device_id}/{suffix}'
+
+
+def _protected_snapshot_url(space_id, object_name: str) -> str:
+    return build_snap_image_api_url(space_id, object_name)
 
 
 def _wait_snap_file_stable(file_path: str, max_retries: int = 6, interval: float = 0.5) -> int:
@@ -48,8 +83,9 @@ def build_snap_event(
     source: str = 'algorithm',
     task_id: Optional[int] = None,
     space_id: Optional[int] = None,
+    tenant_id: Optional[int | str] = None,
 ) -> Dict[str, Any]:
-    return {
+    event = {
         'event_id': str(uuid.uuid4()),
         'device_id': device_id,
         'file_path': file_path,
@@ -58,6 +94,16 @@ def build_snap_event(
         'space_id': space_id,
         'created_at': datetime.utcnow().isoformat() + 'Z',
     }
+    resolved_tenant = str(
+        tenant_id
+        or os.environ.get('YFEIEYE_SNAPSHOT_TENANT_ID')
+        or ''
+    ).strip()
+    if resolved_tenant:
+        if not _TENANT_ID_PATTERN.fullmatch(resolved_tenant):
+            raise ValueError('snapshot tenant id must be a positive integer')
+        event['tenant_id'] = resolved_tenant
+    return event
 
 
 def process_snap_event(event: Dict[str, Any]) -> bool:
@@ -72,17 +118,29 @@ def process_snap_event(event: Dict[str, Any]) -> bool:
         logger.warning('抓拍文件未就绪 file=%s', absolute_path)
         return False
 
-    snap_space = SnapSpace.query.filter_by(device_id=device_id).first()
+    tenant_id = _resolve_snapshot_tenant_id(event)
+    snap_space = SnapSpace.query.filter_by(
+        tenant_id=int(tenant_id), device_id=device_id).first()
     if not snap_space:
         logger.warning('设备无抓拍空间 device_id=%s', device_id)
         return False
 
     filename = os.path.basename(absolute_path)
-    object_name = f'{device_id}/{filename}'
+    if str(getattr(snap_space, 'tenant_id', '') or '') != tenant_id:
+        logger.error('snapshot space tenant mismatch device_id=%s', device_id)
+        return False
+    date_prefix = datetime.utcnow().strftime('%Y/%m/%d')
+    object_name = _build_snapshot_object_name(
+        tenant_id, device_id, f'{date_prefix}/{filename}')
     bucket_name = snap_space.bucket_name or 'snap-space'
 
     from models import SnapImage
-    if SnapImage.query.filter_by(bucket_name=bucket_name, object_name=object_name).first():
+    if SnapImage.query.filter_by(
+            tenant_id=int(tenant_id),
+            space_id=snap_space.id,
+            device_id=device_id,
+            bucket_name=bucket_name,
+            object_name=object_name).first():
         if minio_storage_enabled():
             remove_playback_file(absolute_path, reason='抓拍已上传')
         return True
@@ -92,6 +150,7 @@ def process_snap_event(event: Dict[str, Any]) -> bool:
         try:
             from app.services.space_file_metadata_service import upsert_snap_image
             upsert_snap_image(
+                tenant_id=int(tenant_id),
                 space_id=snap_space.id,
                 device_id=device_id,
                 object_name=object_name,
@@ -113,7 +172,7 @@ def process_snap_event(event: Dict[str, Any]) -> bool:
     minio_client = get_minio_client()
     if not minio_client.bucket_exists(bucket_name):
         minio_client.make_bucket(bucket_name)
-    ensure_bucket_public_read_write_policy(minio_client, bucket_name)
+    ensure_bucket_private(minio_client, bucket_name)
 
     try:
         minio_client.fput_object(
@@ -124,10 +183,11 @@ def process_snap_event(event: Dict[str, Any]) -> bool:
         publish_snap_dlq(event, str(e))
         return False
 
-    file_url = f'/api/v1/buckets/{bucket_name}/objects/download?prefix={quote(object_name, safe="")}'
+    file_url = _protected_snapshot_url(snap_space.id, object_name)
     try:
         from app.services.space_file_metadata_service import upsert_snap_image
         upsert_snap_image(
+            tenant_id=int(tenant_id),
             space_id=snap_space.id,
             device_id=device_id,
             object_name=object_name,

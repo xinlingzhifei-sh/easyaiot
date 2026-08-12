@@ -4,14 +4,14 @@ import { computeSegmentScanHttpTimeoutMs } from '@/views/camera/utils/segmentSca
 const CAMERA_PREFIX = '/video/camera';
 
 // 通用请求封装
-const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url: string, params = {}, headers = {}, isTransformResponse = true) => {
+const commonApi = <T = any>(method: 'get' | 'post' | 'delete' | 'put', url: string, params = {}, headers = {}, isTransformResponse = true): Promise<T> => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
 
   return defHttp[method]({
     url,
     headers: { ...headers },
     ...(method === 'get' ? { params } : { data: params })
-  }, { isTransformResponse: isTransformResponse });
+  }, { isTransformResponse: isTransformResponse }) as Promise<T>;
 };
 
 // ====================== 流地址 secure_link 签名票据 ======================
@@ -378,6 +378,159 @@ export const getDeviceInfo = (device_id: string, params?: { name?: string }) => 
   return commonApi('get', cameraDevicePath(device_id), params || {});
 };
 
+export interface RtmpIngestUrlInfo {
+  push_url: string;
+  device_id: string;
+  tenant_id: string;
+  app: string;
+  stream: string;
+  expires_at: number;
+  token_version: number;
+}
+
+export interface RtmpIngestTokenInfo {
+  device_id: string;
+  tenant_id: string;
+  token_version: number;
+  rotated_at?: string | null;
+}
+
+export interface WebrtcNatConfig {
+  iceServers: Array<{
+    urls: string | string[];
+    username?: string;
+    credential?: string;
+  }>;
+  candidate_ip?: string | null;
+  public_host?: string | null;
+  require_secure_context?: boolean;
+  prefer_wss?: boolean;
+}
+
+export const issueRtmpIngestUrl = (device_id: string, data?: {
+  tenant_id?: string;
+  tenantId?: string;
+  ttl?: number;
+  ttl_seconds?: number;
+  base_url?: string;
+  baseUrl?: string;
+}): Promise<RtmpIngestUrlInfo> => {
+  return commonApi('post', `${cameraDevicePath(device_id)}/rtmp-ingest-url`, data || {});
+};
+
+export const rotateRtmpIngestToken = (device_id: string, data?: {
+  tenant_id?: string;
+  tenantId?: string;
+}): Promise<RtmpIngestTokenInfo> => {
+  return commonApi('post', `${cameraDevicePath(device_id)}/rtmp-ingest-token/rotate`, data || {});
+};
+
+export const getWebrtcNatConfig = (): Promise<WebrtcNatConfig> => {
+  return commonApi('get', `${CAMERA_PREFIX}/webrtc/nat-config`);
+};
+
+export type DeviceAccessProtocol =
+  | 'gb28181'
+  | 'rtsp'
+  | 'rtmp'
+  | 'http_flv'
+  | 'webrtc'
+  | 'edge_agent';
+
+export interface DeviceAccessHealthAlert {
+  device_id: string;
+  protocol: DeviceAccessProtocol | string;
+  state: string;
+  severity: 'critical' | 'warning' | string;
+  reason_code: string;
+  reason_message?: string | null;
+  source_event?: string | null;
+  last_transition_time?: string | null;
+  stream_id?: string | null;
+  node_id?: number | null;
+  tenant_id?: string | null;
+  age_seconds?: number | null;
+}
+
+export interface DeviceAccessHealthSnapshot {
+  total: number;
+  state_counts: Record<string, number>;
+  alert_count: number;
+  alerts: DeviceAccessHealthAlert[];
+  stale_after_seconds: number;
+  snapshot_time?: string | null;
+}
+
+export const getDeviceAccessHealth = (params?: {
+  stale_after_seconds?: number;
+  staleAfterSeconds?: number;
+}): Promise<DeviceAccessHealthSnapshot> => {
+  return commonApi('get', `${CAMERA_PREFIX}/access-state/health`, {
+    stale_after_seconds: params?.stale_after_seconds ?? params?.staleAfterSeconds,
+  });
+};
+
+export interface DeviceAccessStateEvent {
+  id?: number;
+  device_id: string;
+  protocol: DeviceAccessProtocol | string;
+  state: string;
+  reason_code?: string | null;
+  reason_message?: string | null;
+  source_event?: string | null;
+  event_time?: string | null;
+  stream_id?: string | null;
+  node_id?: number | null;
+  tenant_id?: string | null;
+  created_at?: string | null;
+}
+
+export interface DeviceAccessEventsResult {
+  device_id: string;
+  limit: number;
+  events: DeviceAccessStateEvent[];
+}
+
+export const getDeviceAccessEvents = (device_id: string, params?: {
+  limit?: number;
+  protocol?: DeviceAccessProtocol | string;
+}): Promise<DeviceAccessEventsResult> => {
+  return commonApi('get', `${cameraDevicePath(device_id)}/access-state/events`, {
+    limit: params?.limit,
+    protocol: params?.protocol,
+  });
+};
+
+export interface DevicePlayStateReportPayload {
+  protocol?: DeviceAccessProtocol | string;
+  play_url?: string;
+  stream_id?: string;
+  ai?: boolean;
+  reason_code?: string;
+  reason_message?: string;
+  source_event?: string;
+}
+
+export const reportDevicePlayReady = (
+  device_id: string,
+  data: DevicePlayStateReportPayload,
+) => {
+  return commonApi('post', `${cameraDevicePath(device_id)}/access-state/play`, {
+    ...data,
+    ready: true,
+  }, {}, false);
+};
+
+export const reportDevicePlayError = (
+  device_id: string,
+  data: DevicePlayStateReportPayload,
+) => {
+  return commonApi('post', `${cameraDevicePath(device_id)}/access-state/play`, {
+    ...data,
+    ready: false,
+  }, {}, false);
+};
+
 /** 确保设备已有关联的抓拍空间与录像空间（缺失则自动创建） */
 export const ensureDeviceSpaces = (device_id: string) => {
   return commonApi('post', `${cameraDevicePath(device_id)}/ensure-spaces`, {}, {}, false);
@@ -418,6 +571,7 @@ export const updateDevice = (device_id: string, data: {
   altitude?: number | null;
   address?: string | null;
   heading?: number | null;
+  location_source?: string | null;
 }) => {
   return commonApi('put', `${CAMERA_PREFIX}/device/${device_id}`, data);
 };
@@ -800,6 +954,24 @@ export interface StartStreamResponse {
   };
 }
 
+export interface DeviceAccessStateSummary {
+  state:
+    | 'pending_config'
+    | 'registering'
+    | 'registered'
+    | 'stream_online'
+    | 'play_ready'
+    | 'ai_ready'
+    | 'error'
+    | string;
+  reason_code?: string | null;
+  reason_message?: string | null;
+  play_ready?: boolean;
+  ai_ready?: boolean;
+  last_transition_time?: string | null;
+  protocols?: string[];
+}
+
 export interface DeviceInfo {
   id: string;
   name: string;
@@ -831,6 +1003,7 @@ export interface DeviceInfo {
   rtsp_direct?: string | null;
   channel_online?: boolean | null;
   connection_status?: string | null;
+  access_state?: DeviceAccessStateSummary;
   channel_count?: number;
   longitude?: number | null;
   latitude?: number | null;

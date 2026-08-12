@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 业务系统统一管理脚本
+# yFeiEye 业务系统统一管理脚本
 # ============================================
 # 管理模块: DEVICE、AI、RTC、VIDEO、WEB、APP、VISUALIZE、TRANSFORM、PANEL（不含中间件；APP/VISUALIZE/TRANSFORM 仅 full；PANEL 全形态）
 # 各模块实际逻辑委托给对应目录下的 install_linux.sh
@@ -235,13 +235,13 @@ check_docker_compose() {
 }
 
 create_network() {
-    if docker network ls --format '{{.Name}}' | grep -qx 'easyaiot-network'; then
-        print_info "网络 easyaiot-network 已存在"
+    if docker network ls --format '{{.Name}}' | grep -qx 'yfeieye-network'; then
+        print_info "网络 yfeieye-network 已存在"
         return 0
     fi
-    print_info "创建网络 easyaiot-network..."
-    if docker network create easyaiot-network &>/dev/null; then
-        print_success "网络 easyaiot-network 已创建"
+    print_info "创建网络 yfeieye-network..."
+    if docker network create yfeieye-network &>/dev/null; then
+        print_success "网络 yfeieye-network 已创建"
     else
         print_warning "创建网络失败或网络已存在，继续执行"
     fi
@@ -496,7 +496,7 @@ execute_module() {
     print_module_banner "$module" "$mapped"
     (
         cd "$module_dir"
-        export EASYAIOT_AUTO_YES="${EASYAIOT_AUTO_YES:-0}"
+        export YFEIEYE_AUTO_YES="${YFEIEYE_AUTO_YES:-0}"
         export EASYAIOT_DEFER_PLATFORM_AGENT_SYNC=1
         export EASYAIOT_DEPLOY_PROFILE
         export EASYAIOT_SKIP_PROFILE_PROMPT
@@ -657,7 +657,7 @@ confirm_once() {
 
 usage() {
     cat <<EOF
-EasyAIoT 业务系统统一管理脚本
+yFeiEye 业务系统统一管理脚本
 
 管理模块: DEVICE、AI、RTC、VIDEO、WEB、APP、VISUALIZE、TRANSFORM、PANEL（不含 Nacos/PostgreSQL 等中间件；APP/VISUALIZE/TRANSFORM 仅 full；PANEL 全形态）
 
@@ -831,7 +831,7 @@ main() {
         stop|clean|clean-all)
             if [[ "$COMMAND" == clean* ]]; then
                 confirm_once || exit 0
-                export EASYAIOT_AUTO_YES=1
+                export YFEIEYE_AUTO_YES=1
             fi
             reverse_modules
             run_on_modules "$COMMAND" "${EXTRA_ARGS[@]}" || exit 1

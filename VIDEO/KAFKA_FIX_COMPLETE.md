@@ -77,7 +77,7 @@ if _producer is not None:
 
 ### 1. 检查配置文件
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 grep KAFKA_BOOTSTRAP_SERVERS .env.prod
 # 应该显示：KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 ```
@@ -121,7 +121,7 @@ docker restart video-service
 
 运行测试脚本验证修复：
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python3 test_kafka_config.py
 ```
 

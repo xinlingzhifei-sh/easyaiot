@@ -94,7 +94,7 @@ start_services() {
         echo "  主机: localhost"
         echo "  端口: 3306"
         echo "  用户: root"
-        echo "  密码: iot45722414822"
+        echo "  密码: configured via MYSQL_ROOT_PASSWORD (not displayed)"
     else
         print_error "MySQL 服务启动失败"
         exit 1
@@ -211,7 +211,7 @@ exec_command() {
 connect_mysql() {
     print_info "连接到 MySQL 数据库..."
     DOCKER_COMPOSE=$(get_docker_compose_cmd)
-    $DOCKER_COMPOSE exec MySQL mysql -uroot -piot45722414822
+    docker exec -it mysql-server sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot'
 }
 
 # 清理资源
@@ -283,4 +283,3 @@ main() {
 }
 
 main "$@"
-

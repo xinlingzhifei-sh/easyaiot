@@ -77,7 +77,7 @@ const httpInterceptor = {
     }
 
     // 5. add by panda：是否 API 加密
-    if (options.isEncrypt) {
+    if (options.isEncrypt && ApiEncrypt.isEnabled()) {
       try {
         // 加密请求数据
         if (options.data) {

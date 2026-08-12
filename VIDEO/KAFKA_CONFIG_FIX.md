@@ -78,7 +78,7 @@ if 'Kafka' in kafka_bootstrap_servers or 'kafka-server' in kafka_bootstrap_serve
 ### 1. 运行测试脚本
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python3 test_kafka_config.py
 ```
 

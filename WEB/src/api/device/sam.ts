@@ -1,4 +1,6 @@
 import { defHttp } from '@/utils/http/axios';
+import { unwrapSamApiPayload } from './samApiResponse';
+import { getSamHealthPayloadFromError, unwrapSamHealthPayload } from './samHealth';
 
 enum Api {
   Sam = '/model/sam',
@@ -119,28 +121,44 @@ export interface SamPredictResult {
   result_image_base64?: string;
 }
 
-export const getSamHealth = () =>
-  defHttp
-    .get(
-      { url: `${Api.Sam}/health`, headers: { ignoreCancelToken: true } },
-      // health 返回裸 JSON {status,enabled,engine,device,model_loaded}，HTTP 200/503，无 {code} 信封，不应走业务 transform
+export const getSamHealth = async () => {
+  defHttp.setHeader({ 'X-Authorization': `Bearer ${localStorage.getItem('jwt_token')}` });
+  try {
+    const res = await defHttp.get(
+      {
+        url: `${Api.Sam}/health`,
+        headers: { ignoreCancelToken: true },
+      },
       { isTransformResponse: false, errorMessageMode: 'none' },
-    )
-    .then((res) => ((res as { data?: unknown })?.data ?? res));
+    );
+    return unwrapSamHealthPayload(res);
+  }
+  catch (error) {
+    const health = getSamHealthPayloadFromError(error);
+    if (health)
+      return health;
+    throw error;
+  }
+};
 
-export const samPredict = (data: SamPredictParams) => {
+export const samPredict = async (data: SamPredictParams): Promise<SamPredictResult> => {
   // SAM 模型推理（含模型冷加载）耗时较长，超时设为 5 分钟
   // 不使用 commonApi 以避免 cloneDeep 可能丢失 timeout 配置
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
-  return defHttp.post(
-    {
-      url: `${Api.Sam}/predict`,
-      data,
-      timeout: 300000,
-      headers: { ignoreCancelToken: true },
-    },
-    { isTransformResponse: true, errorMessageMode: 'none' },
-  );
+  try {
+    const res = await defHttp.post(
+      {
+        url: `${Api.Sam}/predict`,
+        data,
+        headers: { ignoreCancelToken: true },
+        timeout: 300000,
+      },
+      { isTransformResponse: false, errorMessageMode: 'none' },
+    );
+    return unwrapSamApiPayload<SamPredictResult>(res, '识别失败');
+  } catch (error) {
+    throw new Error(parseSamApiError(error, '识别失败'));
+  }
 };
 
 export const samPredictFile = (file: File, params: Omit<SamPredictParams, 'image_base64'>) => {
@@ -151,10 +169,15 @@ export const samPredictFile = (file: File, params: Omit<SamPredictParams, 'image
   if (params.bboxes) formData.append('bboxes', JSON.stringify(params.bboxes));
   formData.append('return_masks', String(params.return_masks ?? true));
   if (params.conf != null) formData.append('conf', String(params.conf));
-  return defHttp.post(
-    { url: `${Api.Sam}/predict`, data: formData, timeout: 300000 },
-    { isTransformResponse: true, errorMessageMode: 'none' },
-  );
+  return defHttp
+    .post(
+      { url: `${Api.Sam}/predict`, data: formData, timeout: 300000 },
+      { isTransformResponse: false, errorMessageMode: 'none' },
+    )
+    .then((res) => unwrapSamApiPayload<SamPredictResult>(res, '识别失败'))
+    .catch((error) => {
+      throw new Error(parseSamApiError(error, '识别失败'));
+    });
 };
 
 export const getSamHistory = (params: { page?: number; page_size?: number; prompt_type?: string } = {}) =>

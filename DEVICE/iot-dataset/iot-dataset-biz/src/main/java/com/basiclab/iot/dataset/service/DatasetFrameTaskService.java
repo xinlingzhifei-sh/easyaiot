@@ -10,9 +10,8 @@ import javax.validation.Valid;
 /**
  * 视频流帧捕获任务 Service 接口
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public interface DatasetFrameTaskService {
 

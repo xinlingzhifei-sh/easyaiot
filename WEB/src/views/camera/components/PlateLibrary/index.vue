@@ -412,7 +412,8 @@ async function handleDelete(record: PlateLibrary) {
   }
 }
 
-async function handleToggleEnabled(record: PlateLibrary) {
+async function handleToggleEnabled(rawRecord: PlateLibrary | Recordable) {
+  const record = rawRecord as PlateLibrary;
   try {
     await updatePlateLibrary(record.id, { is_enabled: !record.is_enabled });
     createMessage.success(record.is_enabled ? '已停用' : '已启用');
@@ -422,7 +423,8 @@ async function handleToggleEnabled(record: PlateLibrary) {
   }
 }
 
-function getTableActions(record: PlateLibrary) {
+function getTableActions(rawRecord: PlateLibrary | Recordable) {
+  const record = rawRecord as PlateLibrary;
   return [
     {
       icon: 'ant-design:car-outlined',

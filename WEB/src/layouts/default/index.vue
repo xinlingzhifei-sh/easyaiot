@@ -11,6 +11,7 @@ import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
 import { useHeaderSetting } from '@/hooks/setting/useHeaderSetting'
 import { useMenuSetting } from '@/hooks/setting/useMenuSetting'
 import { useDesign } from '@/hooks/web/useDesign'
+import { useFullContent } from '@/hooks/web/useFullContent'
 import { useLockPage } from '@/hooks/web/useLockPage'
 
 import { useAppInject } from '@/hooks/web/useAppInject'
@@ -19,7 +20,6 @@ import { useMultipleTabSetting } from '@/hooks/setting/useMultipleTabSetting'
 
 defineOptions({ name: 'DefaultLayout' })
 
-const LayoutFeatures = createAsyncComponent(() => import('@/layouts/default/feature/index.vue'))
 const LayoutFooter = createAsyncComponent(() => import('@/layouts/default/footer/index.vue'))
 
 const { prefixCls } = useDesign('default-layout')
@@ -27,16 +27,17 @@ const { getIsMobile } = useAppInject()
 const { getShowFullHeaderRef } = useHeaderSetting()
 const { getShowSidebar, getIsMixSidebar, getShowMenu } = useMenuSetting()
 const { getAutoCollapse } = useMultipleTabSetting()
+const { getFullContent } = useFullContent()
 
 // Create a lock screen monitor
 const lockEvents = useLockPage()
 
 const layoutClass = computed(() => {
   const cls: string[] = ['ant-layout']
-  if (unref(getIsMixSidebar) || unref(getShowMenu))
+  if (!unref(getFullContent) && (unref(getIsMixSidebar) || unref(getShowMenu)))
     cls.push('ant-layout-has-sider')
 
-  if (!unref(getShowMenu) && unref(getAutoCollapse))
+  if (!unref(getFullContent) && !unref(getShowMenu) && unref(getAutoCollapse))
     cls.push('ant-layout-auto-collapse-tabs')
 
   return cls
@@ -46,9 +47,9 @@ const layoutClass = computed(() => {
 <template>
   <Layout :class="prefixCls" v-bind="lockEvents">
 <!--    <LayoutFeatures />-->
-    <LayoutHeader v-if="getShowFullHeaderRef" fixed />
+    <LayoutHeader v-if="!getFullContent && getShowFullHeaderRef" fixed />
     <Layout :class="[layoutClass, `${prefixCls}-out`]">
-      <LayoutSideBar v-if="getShowSidebar || getIsMobile" />
+      <LayoutSideBar v-if="!getFullContent && (getShowSidebar || getIsMobile)" />
       <Layout :class="`${prefixCls}-main`">
         <LayoutMultipleHeader />
         <LayoutContent />

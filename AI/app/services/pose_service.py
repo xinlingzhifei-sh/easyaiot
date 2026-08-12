@@ -37,9 +37,17 @@ class PoseService:
     def __init__(self, model_id: Optional[int] = None):
         self.model_id = model_id if model_id and model_id > 0 else None
         self._inference = InferenceService(model_id or 0)
+        self._official_pose_model_path: Optional[str] = None
 
     def set_model_file_path(self, model_file_path: str) -> None:
-        self._inference.set_model_path(self._resolve_model_path(model_file_path))
+        value = str(model_file_path or '').strip()
+        if value in DEFAULT_POSE_MODELS:
+            try:
+                self._official_pose_model_path = self._resolve_model_path(value)
+            except FileNotFoundError:
+                self._official_pose_model_path = value
+            return
+        self._inference.set_model_path(self._resolve_model_path(value))
 
     def _resolve_model_path(self, model_file_path: str) -> str:
         app_root = current_app.root_path
@@ -57,6 +65,8 @@ class PoseService:
 
     def get_model_path(self) -> str:
         """获取可用于姿态推理的 YOLO 权重路径。"""
+        if self._official_pose_model_path:
+            return self._official_pose_model_path
         if self._inference.specified_model_path and os.path.isfile(self._inference.specified_model_path):
             return self._inference.specified_model_path
 
@@ -83,9 +93,6 @@ class PoseService:
 
     def predict_image(self, image_bytes: bytes, conf: float = 0.25, draw: bool = True) -> dict:
         model_path = self.get_model_path()
-        if not os.path.isfile(model_path):
-            from ultralytics import YOLO
-            YOLO(model_path)
         return estimate_pose(model_path, image_bytes, conf=conf, draw=draw)
 
     def start_video_job(self, src_path: str, conf: float = 0.25) -> str:

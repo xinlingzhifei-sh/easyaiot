@@ -198,7 +198,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             }
             rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrcCheck ? Long.parseLong(ssrc) : 0, port, onlyAuto, disableAudio, reUsePort, tcpMode);
         } else {
-            rtpServerPort = mediaServer.getRtpProxyPort();
+            rtpServerPort = mediaConfig.resolveRtpPublicPort(mediaServer);
         }
         return new SSRCInfo(rtpServerPort, ssrc, "rtp", streamId, null);
     }
@@ -214,7 +214,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             }
             rtpServerPort = mediaNodeServerService.createRTPServer(mediaServer, streamId, ssrc, port, onlyAuto, disableAudio, reUsePort, tcpMode);
         } else {
-            rtpServerPort = mediaServer.getRtpProxyPort();
+            rtpServerPort = mediaConfig.resolveRtpPublicPort(mediaServer);
         }
         return rtpServerPort;
     }

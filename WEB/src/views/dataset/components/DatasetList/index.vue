@@ -30,6 +30,14 @@
               },
               {
                 tooltip: {
+                  title: '审核',
+                  placement: 'top',
+                },
+                icon: 'ant-design:audit-outlined',
+                onClick: openAuditModal.bind(null, true, { record }),
+              },
+              {
+                tooltip: {
                   title: '删除',
                   placement: 'top',
                 },
@@ -48,7 +56,7 @@
     <div v-else class="page-card-wrap">
       <DatasetCardList :params="params" :api="getDatasetPage" @get-method="getMethod"
                        @delete="handleDel"
-                       @view="handleView" @edit="handleEdit">
+                       @view="handleView" @edit="handleEdit" @verif="handleAudit">
         <template #header>
           <Button type="primary" @click="openAddModal(true, { isEdit: false, isView: false })">
             新增数据集
@@ -60,6 +68,7 @@
       </DatasetCardList>
     </div>
     <DatasetModal @register="registerAddModel" @success="handleSuccess"/>
+    <DatasetAuditModal @register="registerAuditModel" @success="handleSuccess"/>
   </div>
 </template>
 <script lang="ts" setup name="noticeSetting">
@@ -68,6 +77,8 @@ import {BasicTable, TableAction, useTable} from '@/components/Table';
 import {useMessage} from '@/hooks/web/useMessage';
 import {getBasicColumns, getFormConfig} from "./Data";
 import DatasetModal from "@/views/dataset/components/DatasetModal/index.vue";
+import DatasetAuditModal from "@/views/dataset/components/DatasetAuditModal/index.vue";
+import {useModal} from "@/components/Modal";
 import {useDrawer} from "@/components/Drawer";
 import {useRouter} from "vue-router";
 import {deleteDataset, getDatasetPage} from "@/api/device/dataset";
@@ -75,6 +86,7 @@ import {deleteDataset, getDatasetPage} from "@/api/device/dataset";
 import DatasetCardList from "@/views/dataset/components/DatasetCardList/index.vue";
 import { Button } from '@/components/Button'
 const [registerAddModel, {openDrawer: openAddModal}] = useDrawer();
+const [registerAuditModel, {openModal: openAuditModal}] = useModal();
 
 const router = useRouter();
 
@@ -107,6 +119,11 @@ function handleView(record) {
 //编辑按钮事件
 function handleEdit(record) {
   openAddModal(true, {isEdit: true, isView: false, record: record});
+}
+
+//审核按钮事件
+function handleAudit(record) {
+  openAuditModal(true, {record});
 }
 
 //删除按钮事件

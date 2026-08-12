@@ -1,8 +1,8 @@
 import { toRaw, watch, computed, ComputedRef } from 'vue'
 import { customizeHttp } from '@/api/http'
-import { CreateComponentType } from '@/design/packages'
+import type { CreateComponentType } from '@/design/packages'
 import { useChartEditStore } from '@/store/modules/chartEditStore/chartEditStore'
-import { RequestGlobalConfigType, RequestDataPondItemType } from '@/store/modules/chartEditStore/chartEditStore'
+import type { RequestGlobalConfigType, RequestDataPondItemType } from '@/store/modules/chartEditStore/chartEditStore.d'
 import { newFunctionHandle, intervalUnitHandle } from '@/utils'
 
 // 获取类型
@@ -87,12 +87,9 @@ export const useChartDataPondFetch = () => {
   // 新增全局接口
   const addGlobalDataInterface = (
     targetComponent: CreateComponentType,
-    useChartEditStore: ChartEditStoreType,
+    _useChartEditStore: ChartEditStoreType,
     updateCallback: (...args: any) => any
   ) => {
-    const chartEditStore = useChartEditStore()
-    const { requestDataPond } = chartEditStore.getRequestGlobalConfig
-
     // 组件对应的数据池 Id
     const requestDataPondId = targetComponent.request.requestDataPondId as string
     // 新增数据项

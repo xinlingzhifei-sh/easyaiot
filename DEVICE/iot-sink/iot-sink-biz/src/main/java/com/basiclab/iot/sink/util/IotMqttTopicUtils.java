@@ -8,6 +8,9 @@ import com.basiclab.iot.sink.enums.IotDeviceTopicEnum;
  * IotMqttTopicUtils
  *
  * 下行主题统一使用 /iot/{product}/{device}/... 标准（与 IotDeviceTopicEnum、EMQX 订阅对齐）。
+ *
+ * @author reese
+ * @email reese
  */
 public final class IotMqttTopicUtils {
 

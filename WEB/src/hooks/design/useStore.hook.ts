@@ -1,6 +1,6 @@
 import { useChartEditStore } from '@/store/modules/chartEditStore/chartEditStore'
 import { ChartEditStoreEnum } from '@/store/modules/chartEditStore/chartEditStore'
-import type { ChartEditStorageType } from '../index.d'
+import type { ChartEditStorage as ChartEditStorageType } from '@/store/modules/chartEditStore/chartEditStore.d'
 
 // store 相关
 export const useStore = (localStorageInfo: ChartEditStorageType) => {

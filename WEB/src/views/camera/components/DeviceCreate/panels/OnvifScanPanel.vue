@@ -112,8 +112,8 @@ async function handleScan() {
   }
 }
 
-function openRegisterModal(record: OnvifDiscoveryRow) {
-  openVideoRegisterModal(true, { record });
+function openRegisterModal(record: Record<string, any>) {
+  openVideoRegisterModal(true, { record: record as OnvifDiscoveryRow });
 }
 
 async function handleRegisterSuccess(payload: Record<string, unknown>) {

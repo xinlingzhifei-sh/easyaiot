@@ -26,7 +26,7 @@ function handleClose() {
     placement="left"
     :class="prefixCls"
     :width="getMenuWidth"
-    :get-container="null"
+    :get-container="false"
     :open="!getCollapsed"
     @close="handleClose"
   >

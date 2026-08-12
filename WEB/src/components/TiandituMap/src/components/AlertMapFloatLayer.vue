@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Checkbox, Dropdown, Menu, MenuItem } from 'ant-design-vue';
+import type { MenuClickEventHandler } from 'ant-design-vue/es/menu/src/interface';
 import type Map from 'ol/Map';
 import MapFloatToolbar from './MapFloatToolbar.vue';
 import MapToolbarStat from './MapToolbarStat.vue';
@@ -41,9 +42,9 @@ const emit = defineEmits<{
   tool: [key: string];
 }>();
 
-function onToolClick({ key }: { key: string }) {
-  emit('tool', key as string);
-}
+const onToolClick: MenuClickEventHandler = ({ key }) => {
+  emit('tool', String(key));
+};
 </script>
 
 <template>

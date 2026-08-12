@@ -21,7 +21,7 @@ export const usePackagesStore = defineStore({
       this.newPhoto = newPhoto
       this.packagesList.Photos.splice(index, 0, newPhoto)
     },
-    deletePhotos(photoInfo: ConfigType, index: number) {
+    deletePhotos(_photoInfo: ConfigType, index: number) {
       this.packagesList.Photos.splice(index, 1)
       const StoreKey = StorageEnum.GO_USER_MEDIA_PHOTOS
       const userPhotosList = getLocalStorage(StoreKey)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# EasyAIoT 运行时镜像公共库
+# yFeiEye 运行时镜像公共库
 # 供 runtime_image.sh、install_linux.sh、install_business_linux.sh 等脚本 source 复用。
 # 调用方需先设置 SCRIPT_DIR（.scripts/docker 目录）并已 source deploy_profile.sh。
 
@@ -1030,7 +1030,7 @@ runtime_images_write_pulled_marker() {
     fi
     mkdir -p "$(dirname "$marker")"
     cat > "$marker" <<EOF
-# EasyAIoT 运行时镜像拉取标记
+# yFeiEye 运行时镜像拉取标记
 # 此文件由 runtime_image.sh / install 自动生成或刷新
 # 各平台 install 脚本检测到此文件后会跳过 docker build，直接启动服务
 PULL_TIME=$(date '+%Y-%m-%d %H:%M:%S')

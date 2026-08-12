@@ -10,9 +10,8 @@ import lombok.Data;
 /**
  * 操作日志表
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @TableName(value = "system_operate_log", autoResultMap = true)
 @KeySequence("system_operate_log_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
@@ -57,7 +56,7 @@ public class OperateLogDO extends BaseDO {
     /**
      * 日志内容，记录整个操作的明细
      *
-     * 例如说，修改编号为 1 的用户信息，将性别从男改成女，将姓名从BasicLab改成源码。
+     * 例如说，修改编号为 1 的用户信息，将性别从男改成女，将姓名从yFeiEye改成源码。
      */
     private String action;
     /**

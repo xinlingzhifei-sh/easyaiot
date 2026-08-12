@@ -11,7 +11,7 @@
 
     <name>TRANSFORM</name>
     <description>
-        EasyAIoT 第十域：多向数据流转引擎。与 DEVICE 同级，按对接渠道与能力拆分模块；
+        yFeiEye 第十域：多向数据流转引擎。与 DEVICE 同级，按对接渠道与能力拆分模块；
         以 iot-sink Kafka 为唯一输入源头，无状态自感知自适应部署于任意节点，
         按约定 Group 横向扩展消费与投递能力，赋能 MES/ERP/CRM 等 N 方业务系统。
     </description>

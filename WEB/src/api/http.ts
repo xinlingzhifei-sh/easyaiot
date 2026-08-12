@@ -1,16 +1,16 @@
 import axiosInstance from './axios'
 import {
-  RequestHttpEnum,
   ContentTypeEnum,
   RequestBodyEnum,
-  RequestDataTypeEnum,
   RequestContentTypeEnum,
-  RequestParamsObjType
+  RequestDataTypeEnum,
+  RequestHttpEnum,
 } from '@/enums/httpEnum'
+import type { RequestParamsObjType } from '@/enums/httpEnum'
 import type { RequestGlobalConfigType, RequestConfigType } from '@/store/modules/chartEditStore/chartEditStore.d'
 import {useMessage} from "@/hooks/web/useMessage";
 
-const { createMessage, createConfirm } = useMessage()
+const { createMessage } = useMessage()
 
 export const get = (url: string, params?: object) => {
   return axiosInstance({

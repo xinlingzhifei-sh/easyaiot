@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * EasyAIoT 内置 FUXA 演示画面保护：平台侧识别后强制预览，避免经 SSO/编辑器改删工艺图。
+ * yFeiEye 内置 FUXA 演示画面保护：平台侧识别后强制预览，避免经 SSO/编辑器改删工艺图。
  * 与 .scripts/fuxa/seed_fuxa_demo.sh / visualize_demo_seed.sql 保持一致。
  */
 public final class FuxaDemoGuard {

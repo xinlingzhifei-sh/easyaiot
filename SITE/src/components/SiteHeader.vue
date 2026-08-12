@@ -45,8 +45,8 @@ onUnmounted(() => {
   <header class="site-header" :class="{ scrolled, open, 'over-hero': overHero }">
     <div class="container header-inner">
       <RouterLink class="brand" to="/" @click="closeMenu">
-        <img src="/logo.png" alt="EasyAIoT" class="brand-logo" />
-        <span class="brand-name">EasyAIoT</span>
+        <img src="/logo.png" alt="yFeiEye" class="brand-logo" />
+        <span class="brand-name">yFeiEye</span>
       </RouterLink>
 
       <button

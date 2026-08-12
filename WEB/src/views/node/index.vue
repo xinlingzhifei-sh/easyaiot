@@ -101,7 +101,7 @@ defineOptions({ name: 'ComputeNodeIndex' });
 const showTransformTab = isTransformEnabled();
 const NODE_TAB_KEYS = (showTransformTab
   ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
-  : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']) as const;
+  : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
 
 const route = useRoute();
 const tabRequest = useNodePageTabRequest();

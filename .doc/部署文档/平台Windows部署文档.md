@@ -1,4 +1,4 @@
-# EasyAIoT Platform Windows Local Deployment Guide
+# yFeiEye Platform Windows Local Deployment Guide
 
 > Document Version: 2.1  
 > Update Date: 2026-08-01  
@@ -139,7 +139,7 @@ After install, open: `http://localhost:8888` (Gateway `:48080`, Nacos `:8848/nac
 
 ### 1.1 Project Introduction
 
-EasyAIoT is an Internet of Things + AI video analytics platform, supporting features such as camera integration, video stream forwarding, and AI algorithm analysis.
+yFeiEye is an Internet of Things + AI video analytics platform, supporting features such as camera integration, video stream forwarding, and AI algorithm analysis.
 
 ### 1.2 System Architecture
 
@@ -224,8 +224,8 @@ Download URL: https://www.anaconda.com/
 
 Create a virtual environment:
 ```powershell
-conda create -n easyaiot python=3.10
-conda activate easyaiot
+conda create -n yfeieye python=3.10
+conda activate yfeieye
 ```
 
 #### 2.2.4 FFmpeg
@@ -252,7 +252,7 @@ Used for running the SRS streaming media server. Docker is only used for running
 
 This document assumes the project path is:
 ```
-F:\EASYLOT\easyaiot-V4.0.0\
+F:\EASYLOT\yfeieye-V4.0.0\
 ```
 
 Middleware installation paths:
@@ -274,7 +274,7 @@ F:\EASYLOT\TDengine\  #### Download yourself
 - Version: 16.x
 - Port: 5432
 - Username: postgres
-- Password: `iot45722414822`
+- Password: `<POSTGRES_PASSWORD>`
 
 #### Startup Commands
 ```powershell
@@ -287,14 +287,14 @@ net start postgresql-x64-16
 
 #### Create Databases
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-system\";"
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-video20\";"
 ```
 
 #### Verify Connection
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
 ```
 
@@ -304,7 +304,7 @@ $env:PGPASSWORD='iot45722414822'
 #### Installation Info
 - Version: 7.x
 - Port: 6379
-- Password: `basiclab@iot975248395`
+- Password: `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Startup Commands
 ```powershell
@@ -315,7 +315,7 @@ cd F:\EASYLOT\Redis
 #### Verify Connection
 ```powershell
 cd F:\EASYLOT\Redis
-.\redis-cli.exe -a "basiclab@iot975248395" ping
+.\redis-cli.exe -a "<REDIS_OR_MINIO_PASSWORD>" ping
 # Should return PONG
 ```
 
@@ -326,7 +326,7 @@ cd F:\EASYLOT\Redis
 - Version: 2.x
 - Port: 8848
 - Username: nacos
-- Password: `basiclab@iot78475418754`
+- Password: `<NACOS_PASSWORD>`
 - Namespace: local
 
 #### Startup Commands
@@ -353,7 +353,7 @@ http://localhost:8848/nacos
 - API Port: 9000
 - Console Port: 9001
 - Username: minioadmin
-- Password: `basiclab@iot975248395`
+- Password: `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Startup Commands
 ```powershell
@@ -456,7 +456,7 @@ docker run -d --name srs-server `
   -p 8080:8080 `
   -p 1985:1985 `
   -p 8000:8000/udp `
-  -v "F:\EASYLOT\easyaiot-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
+  -v "F:\EASYLOT\yfeieye-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
   ossrs/srs:5 ./objs/srs -c conf/docker.conf
 ```
 
@@ -504,20 +504,20 @@ The DEVICE directory contains multiple Spring Boot microservices, which need to 
 
 #### 4.2.1 Start Gateway Service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-gateway
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-gateway
 mvn spring-boot:run
 # Or start with an IDE
 ```
 
 #### 4.2.2 Start System Service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-system\iot-system-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-system\iot-system-biz
 mvn spring-boot:run
 ```
 
 #### 4.2.3 Start Infrastructure Service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-infra\iot-infra-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-infra\iot-infra-biz
 mvn spring-boot:run
 ```
 
@@ -531,8 +531,8 @@ mvn spring-boot:run
 
 #### 4.3.1 Install Dependencies
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
@@ -541,18 +541,18 @@ pip install -r requirements.txt
 Edit the `VIDEO/.env` file, ensure the following configurations are correct:
 ```properties
 # Database
-DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/iot-video20
 
 # Nacos
 NACOS_SERVER=localhost:8848
 NACOS_NAMESPACE=local
 NACOS_USERNAME=nacos
-NACOS_PASSWORD=basiclab@iot78475418754
+NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # MinIO
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=basiclab@iot975248395
+MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # FFmpeg Path (Must be full path on Windows)
 FFMPEG_PATH=G:/ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe
@@ -563,8 +563,8 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 
 #### 4.3.3 Start Service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 ```
 
@@ -575,15 +575,15 @@ Service starts listening on port: 6000
 
 #### 4.4.1 Install Dependencies
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
 #### 4.4.2 Start Service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 ```
 
@@ -594,7 +594,7 @@ Service starts listening on port: 8100
 
 #### 4.5.1 Install Dependencies
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm install
 # Or use pnpm
 pnpm install
@@ -602,7 +602,7 @@ pnpm install
 
 #### 4.5.2 Start Development Server
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -701,7 +701,7 @@ http_stream = f"http://127.0.0.1:8080/live/{short_stream_name}.flv"
 
 #### Manual Fix for Existing Data
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20" -c "UPDATE device SET rtmp_stream = 'rtmp://127.0.0.1:1935/live/cam_' || SUBSTRING(id, 1, 8), http_stream = 'http://127.0.0.1:8080/live/cam_' || SUBSTRING(id, 1, 8) || '.flv';"
 ```
 
@@ -801,7 +801,7 @@ VIDEO service reports a database connection error on startup.
 #### Troubleshooting Steps
 1. Confirm PostgreSQL service is running:
    ```powershell
-   $env:PGPASSWORD='iot45722414822'
+   $env:PGPASSWORD='<POSTGRES_PASSWORD>'
    & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
    ```
 
@@ -846,7 +846,7 @@ Usually caused by the DEVICE gateway service not starting, or incorrect port con
 
 ```powershell
 # Set password environment variable
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 
 # Connect to database
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20"
@@ -908,17 +908,17 @@ Invoke-RestMethod -Uri "http://127.0.0.1:1985/api/v1/versions"
 
 ```powershell
 # VIDEO service
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 
 # AI service
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 
 # WEB frontend
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -951,10 +951,10 @@ npm run dev
 
 | Service | Username | Password |
 |------|--------|------|
-| PostgreSQL | postgres | iot45722414822 |
-| Redis | - | basiclab@iot975248395 |
-| Nacos | nacos | basiclab@iot78475418754 |
-| MinIO | minioadmin | basiclab@iot975248395 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> |
+| Redis | - | <REDIS_OR_MINIO_PASSWORD> |
+| Nacos | nacos | <NACOS_PASSWORD> |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | WEB Frontend | admin | admin123 |
 | Test Camera | admin | sr336699 |

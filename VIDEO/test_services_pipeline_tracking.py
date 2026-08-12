@@ -773,7 +773,7 @@ def check_rtmp_server():
             logger.error("💡 解决方案：")
             logger.error("=" * 60)
             logger.error("1. 使用 Docker Compose 启动 SRS 服务器：")
-            logger.error("   cd /opt/projects/easyaiot/.scripts/docker")
+            logger.error("   cd /opt/projects/yfeieye/.scripts/docker")
             logger.error("   docker-compose up -d SRS")
             logger.error("")
             logger.error("2. 或者使用 Docker 直接启动 SRS：")

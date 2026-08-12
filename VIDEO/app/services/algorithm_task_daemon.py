@@ -2,9 +2,8 @@
 算法任务守护进程
 用于管理算法任务服务进程，支持自动重启
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import subprocess as sp
@@ -17,8 +16,22 @@ import signal
 from datetime import datetime
 
 import app.utils.nvidia_lib_path  # noqa: F401  子进程 run_deploy 继承 LD_LIBRARY_PATH
+from app.utils.service_urls import resolve_video_service_base_url
 
 # 不再需要导入数据库模型，所有信息都通过参数传入
+
+
+def _resolve_algorithm_heartbeat_url(task_type: str) -> str:
+    endpoint = 'patrol' if task_type == 'patrol' else 'realtime'
+    return f'{resolve_video_service_base_url()}/video/algorithm/heartbeat/{endpoint}'
+
+
+def _resolve_video_heartbeat_host() -> str:
+    for key in ('VIDEO_SERVICE_HOST', 'FLASK_RUN_HOST', 'POD_IP', 'HOST_IP'):
+        host = (os.getenv(key) or '').strip()
+        if host and host not in ('0.0.0.0', '::'):
+            return host
+    return '127.0.0.1'
 
 
 class AlgorithmTaskDaemon:
@@ -475,6 +488,17 @@ class AlgorithmTaskDaemon:
         
         # 准备环境变量（使用传入的参数）
         env = os.environ.copy()
+        from app.services.media_authorization_service import build_alert_ingest_process_env
+        for key in (
+            'YFEIEYE_MEDIA_SERVICE_HMAC_SECRET',
+            'YFEIEYE_MEDIA_SERVICE_HMAC_KEYS',
+            'YFEIEYE_MEDIA_SERVICE_POLICIES',
+            'YFEIEYE_MEDIA_SERVICE_IDS',
+            'YFEIEYE_MEDIA_SERVICE_ALLOWED_ACTIONS',
+            'YFEIEYE_MEDIA_SERVICE_ALLOWED_CAMERA_IDS',
+        ):
+            env.pop(key, None)
+        env.update(build_alert_ingest_process_env())
         # 子进程必须继承 VIDEO_ENV，run_deploy 内 load_video_env 会加载 .env.prod
         video_env = os.getenv('VIDEO_ENV', '').strip()
         if video_env:
@@ -491,6 +515,7 @@ class AlgorithmTaskDaemon:
             'SAM_PIPELINE_MODE', 'SAM_TEXT_PROMPTS', 'SAM_CONF', 'SAM_TRIGGER',
             'SAM_INTERVAL_FRAMES', 'SAM_MERGE_IOU', 'SAM_RETURN_MASKS',
             'IOT_SINK_API_URL', 'IOT_SINK_USE_GATEWAY', 'IOT_SINK_HOST', 'IOT_SINK_PORT',
+            'IOT_SINK_POST_PROCESS_TOKEN',
             'EASYAIOT_DEPLOY_PROFILE', 'ALERT_HOOK_URL', 'ALERT_KEEP_LATEST',
             'VIDEO_SERVICE_HOST', 'VIDEO_SERVICE_URL', 'VIDEO_API_USE_GATEWAY',
         ):
@@ -514,20 +539,16 @@ class AlgorithmTaskDaemon:
         gateway = os.getenv('JAVA_BACKEND_URL', os.getenv('GATEWAY_URL', 'http://localhost:48080')).rstrip('/')
         env['VIDEO_CONTROL_URL'] = f'{gateway}/admin-api/video'
         # 心跳直连本机 VIDEO 服务（host 网络 / 同机部署），避免经网关鉴权导致 500
-        video_host = (os.getenv('POD_IP') or os.getenv('HOST_IP') or '127.0.0.1').strip()
-        if self._task_type == 'patrol':
-            env['VIDEO_HEARTBEAT_URL'] = f'http://{video_host}:{video_service_port}/video/algorithm/heartbeat/patrol'
-        else:
-            env['VIDEO_HEARTBEAT_URL'] = f'http://{video_host}:{video_service_port}/video/algorithm/heartbeat/realtime'
+        env['VIDEO_HEARTBEAT_URL'] = _resolve_algorithm_heartbeat_url(self._task_type)
         
         # 重要：realtime_algorithm_service 使用 host 网络模式，必须使用 localhost 访问 Kafka
-        # 如果环境变量中配置了容器名（如 Kafka:9092），需要强制覆盖为 localhost:9092
+        # 如果环境变量中配置了容器名（如 Kafka:9092），需要强制覆盖为 EXTERNAL listener
         # 这样可以避免在 host 网络模式下尝试解析容器名导致的连接失败
-        kafka_bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        kafka_bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
         # 如果配置中包含容器名（Kafka 或 kafka-server），强制使用 localhost
         if 'Kafka' in kafka_bootstrap_servers or 'kafka-server' in kafka_bootstrap_servers:
-            self._log(f'检测到 Kafka 配置使用容器名，强制覆盖为 localhost:9092（realtime_algorithm_service 使用 host 网络模式）', 'INFO')
-            env['KAFKA_BOOTSTRAP_SERVERS'] = 'localhost:9092'
+            self._log(f'检测到 Kafka 配置使用容器名，强制覆盖为 localhost:9094（realtime_algorithm_service 使用 host 网络模式）', 'INFO')
+            env['KAFKA_BOOTSTRAP_SERVERS'] = 'localhost:9094'
         else:
             # 如果已经是 localhost 或 IP 地址，直接使用
             env['KAFKA_BOOTSTRAP_SERVERS'] = kafka_bootstrap_servers
@@ -643,4 +664,3 @@ class AlgorithmTaskDaemon:
         
         self._log(f'未找到Conda环境，将使用系统Python', 'DEBUG')
         return None
-

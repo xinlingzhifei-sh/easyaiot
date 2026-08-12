@@ -4,7 +4,7 @@
     "type": "tab",
     "label": "设备遥测采集链路",
     "disabled": false,
-    "info": "EasyAIoT 演示（只读）：MQTT 遥测接入 → JSON 解析 → 阈值判定 → 调试输出。\n禁止在界面修改/删除本链路。",
+    "info": "yFeiEye 演示（只读）：MQTT 遥测接入 → JSON 解析 → 阈值判定 → 调试输出。\n禁止在界面修改/删除本链路。",
     "env": []
   },
   {
@@ -12,7 +12,7 @@
     "type": "tab",
     "label": "告警分级推送链路",
     "disabled": false,
-    "info": "EasyAIoT 演示（只读）：告警事件分级（紧急/重要/一般）→ 格式化 → 推送通道分支。\n禁止在界面修改/删除本链路。",
+    "info": "yFeiEye 演示（只读）：告警事件分级（紧急/重要/一般）→ 格式化 → 推送通道分支。\n禁止在界面修改/删除本链路。",
     "env": []
   },
   {
@@ -20,7 +20,7 @@
     "type": "tab",
     "label": "工控协议桥接链路",
     "disabled": false,
-    "info": "EasyAIoT 演示（只读）：模拟工控点位上报 → 物模型映射 → MQTT 上行桥接。\n禁止在界面修改/删除本链路。",
+    "info": "yFeiEye 演示（只读）：模拟工控点位上报 → 物模型映射 → MQTT 上行桥接。\n禁止在界面修改/删除本链路。",
     "env": []
   },
   {
@@ -28,7 +28,7 @@
     "type": "tab",
     "label": "视觉质检联动链路",
     "disabled": false,
-    "info": "EasyAIoT 演示（只读）：HTTP 质检回调 → AI 结果解析 → NG 联动下发。\n禁止在界面修改/删除本链路。",
+    "info": "yFeiEye 演示（只读）：HTTP 质检回调 → AI 结果解析 → NG 联动下发。\n禁止在界面修改/删除本链路。",
     "env": []
   },
 
@@ -236,7 +236,7 @@
     "type": "function",
     "z": "easyaiot_demo_alert",
     "name": "规范化告警",
-    "func": "const p = msg.payload || {};\nconst severity = Number(p.severity || 3);\nconst levelMap = {1: '紧急', 2: '重要', 3: '一般'};\nmsg.severity = severity;\nmsg.levelName = levelMap[severity] || '一般';\nmsg.payload = {\n    ...p,\n    severity,\n    levelName: msg.levelName,\n    receivedAt: Date.now(),\n    source: 'EasyAIoT-Demo'\n};\nmsg.channels = severity === 1\n    ? ['sms', 'voice', 'webhook']\n    : (severity === 2 ? ['webhook', 'app'] : ['app']);\nreturn msg;",
+    "func": "const p = msg.payload || {};\nconst severity = Number(p.severity || 3);\nconst levelMap = {1: '紧急', 2: '重要', 3: '一般'};\nmsg.severity = severity;\nmsg.levelName = levelMap[severity] || '一般';\nmsg.payload = {\n    ...p,\n    severity,\n    levelName: msg.levelName,\n    receivedAt: Date.now(),\n    source: 'yFeiEye-Demo'\n};\nmsg.channels = severity === 1\n    ? ['sms', 'voice', 'webhook']\n    : (severity === 2 ? ['webhook', 'app'] : ['app']);\nreturn msg;",
     "outputs": 1,
     "timeout": 0,
     "noerr": 0,
@@ -584,7 +584,7 @@
   {
     "id": "demo_mqtt_broker",
     "type": "mqtt-broker",
-    "name": "EasyAIoT Demo MQTT",
+    "name": "yFeiEye Demo MQTT",
     "broker": "127.0.0.1",
     "port": "1883",
     "clientid": "easyaiot-nodered-demo",
@@ -612,7 +612,7 @@
     "id": "demo_global_comment",
     "type": "comment",
     "z": "easyaiot_demo_telemetry",
-    "name": "EasyAIoT 内置演示 · 只读保护",
+    "name": "yFeiEye 内置演示 · 只读保护",
     "info": "本仓库 `.scripts/node-red` 种子数据。平台与 Node-RED 中间件均禁止修改/删除四个演示页签。",
     "x": 220,
     "y": 60,

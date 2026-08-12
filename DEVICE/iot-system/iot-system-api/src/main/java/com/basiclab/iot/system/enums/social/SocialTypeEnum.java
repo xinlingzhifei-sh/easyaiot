@@ -10,9 +10,8 @@ import java.util.Arrays;
 /**
  * 社交平台的类型枚举
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Getter
 @AllArgsConstructor

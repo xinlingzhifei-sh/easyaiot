@@ -1,12 +1,14 @@
 /**
  * 算法任务、抽帧器、排序器管理接口
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 import {defHttp} from '@/utils/http/axios';
 
 const ALGORITHM_PREFIX = '/video/algorithm';
+type AlgorithmTaskRequestOptions = {
+  errorMessageMode?: 'none' | 'message' | 'modal';
+};
 
 // 通用请求封装
 const commonApi = <T = any>(method: 'get' | 'post' | 'delete' | 'put', url: string, options: { params?: any; data?: any; errorMessageMode?: 'none' | 'message' | 'modal'; timeout?: number } = {}) => {
@@ -41,6 +43,10 @@ export interface AlgorithmTask {
   device_names?: string[];
   pusher_id?: number;
   pusher_name?: string;
+  extractor_id?: number | null;
+  extractor_name?: string;
+  sorter_id?: number | null;
+  sorter_name?: string;
   // 模型配置（直接选择模型列表，不再依赖模型服务接口）
   model_ids?: number[]; // 关联的模型ID列表
   model_names?: string; // 关联的模型名称列表（逗号分隔，冗余字段，用于快速显示）
@@ -113,6 +119,19 @@ export interface AlgorithmTask {
     trigger?: 'always' | 'on_interval' | 'on_person';
     interval_frames?: number;
   };
+  /** 是否启用场景姿态意图匹配 */
+  pose_intent_enabled?: boolean;
+  /** 关联的场景姿态库 ID */
+  pose_library_ids?: number[];
+  /** 场景姿态意图匹配阈值 */
+  pose_intent_threshold?: number;
+  /** 场景姿态意图匹配配置 */
+  pose_intent_config?: {
+    suppress_same_intent_sec?: number;
+    draw_skeleton_on_alert?: boolean;
+    temporal_dtw_enabled?: boolean;
+    temporal_window_frames?: number;
+  };
   service_names?: string; // 关联的算法服务名称列表（逗号分隔，冗余字段，用于快速显示）
   defense_mode?: string; // 布防模式: full(全防), half(半防), day(白天), night(夜间)
   defense_schedule?: string | number[][]; // 布防时段: JSON字符串或二维数组，7天×24小时
@@ -148,8 +167,11 @@ export const listAlgorithmTasks = (params?: {
   device_id?: string;
   task_type?: 'realtime' | 'snap';
   is_enabled?: boolean;
-}) => {
-  return commonApi<AlgorithmTaskListResponse>('get', `${ALGORITHM_PREFIX}/task/list`, { params });
+}, options: AlgorithmTaskRequestOptions = {}) => {
+  return commonApi<AlgorithmTaskListResponse>('get', `${ALGORITHM_PREFIX}/task/list`, {
+    params,
+    errorMessageMode: options.errorMessageMode,
+  });
 };
 
 export const getAlgorithmTask = (task_id: number) => {
@@ -214,7 +236,7 @@ export const createAlgorithmTask = (data: {
       template_id: string | number;
       template_name?: string;
     }>;
-  };
+  } | string | null;
   alarm_suppress_time?: number;
   // 抓拍算法任务配置
   cron_expression?: string;
@@ -223,6 +245,8 @@ export const createAlgorithmTask = (data: {
   is_enabled?: boolean;
   defense_mode?: string;
   defense_schedule?: string;
+  schedule_policy?: 'local' | 'auto' | 'node';
+  target_node_id?: number | null;
   /** 是否启用人体姿态分析 */
   pose_analysis_enabled?: boolean;
   pose_analysis_config?: {
@@ -255,19 +279,19 @@ export const deleteAlgorithmTask = (task_id: number) => {
   return commonApi('delete', `${ALGORITHM_PREFIX}/task/${task_id}`);
 };
 
-export const startAlgorithmTask = (task_id: number) => {
+export const startAlgorithmTask = (task_id: number, options: AlgorithmTaskRequestOptions = {}) => {
   return commonApi<{ code: number; msg: string; data: AlgorithmTask }>(
     'post',
     `${ALGORITHM_PREFIX}/task/${task_id}/start`,
-    { timeout: 30000 }
+    { timeout: 30000, errorMessageMode: options.errorMessageMode }
   );
 };
 
-export const stopAlgorithmTask = (task_id: number) => {
+export const stopAlgorithmTask = (task_id: number, options: AlgorithmTaskRequestOptions = {}) => {
   return commonApi<{ code: number; msg: string; data: AlgorithmTask }>(
     'post',
     `${ALGORITHM_PREFIX}/task/${task_id}/stop`,
-    { timeout: 30000 }
+    { timeout: 30000, errorMessageMode: options.errorMessageMode }
   );
 };
 
@@ -576,6 +600,8 @@ export interface TaskServicesStatus {
   sorter: Sorter | null;
   pusher: Pusher | null;
   realtime_service: RealtimeServiceStatus | null;
+  snap_service?: RealtimeServiceStatus | null;
+  patrol_service?: RealtimeServiceStatus | null;
 }
 
 export interface TaskServicesStatusResponse {
@@ -780,4 +806,3 @@ export const listPostProcessResults = (
     errorMessageMode: 'none',
   });
 };
-

@@ -1,8 +1,7 @@
 """
 抓拍任务服务
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import uuid
@@ -209,11 +208,28 @@ def get_snap_task(task_id):
         raise ValueError(f"抓拍任务不存在: ID={task_id}")
 
 
-def list_snap_tasks(page_no=1, page_size=10, space_id=None, device_id=None, search=None, status=None):
+def list_snap_tasks(page_no=1, page_size=10, space_id=None, device_id=None,
+                    search=None, status=None, tenant_id=None, camera_ids=None):
     """查询抓拍任务列表"""
     try:
+        tenant_text = str(tenant_id or '').strip()
+        if not tenant_text.isdigit() or int(tenant_text) <= 0:
+            raise ValueError('snapshot task list requires an authorized tenant scope')
+        camera_ids = list(dict.fromkeys(
+            str(value or '').strip()
+            for value in (camera_ids or [])
+            if str(value or '').strip()
+        ))
+        if not camera_ids:
+            raise ValueError('snapshot task list requires an authorized camera scope')
         query = db.session.query(SnapTask, Device.name.label('device_name')).join(
+            SnapSpace, SnapTask.space_id == SnapSpace.id
+        ).join(
             Device, SnapTask.device_id == Device.id
+        ).filter(
+            SnapSpace.tenant_id == int(tenant_text),
+            SnapTask.device_id.in_(camera_ids),
+            SnapSpace.device_id == SnapTask.device_id,
         )
         
         if space_id:
@@ -463,8 +479,16 @@ def send_alert_for_detection(task, region, detection_result, frame, device):
         import io
         import base64
         
+        space = SnapSpace.query.get(task.space_id)
+        tenant_text = str(getattr(space, 'tenant_id', '') or '').strip()
+        if not tenant_text.isdigit() or int(tenant_text) <= 0:
+            raise ValueError('snapshot alert requires a persisted tenant owner')
+        if str(getattr(space, 'device_id', '') or '') != str(device.id):
+            raise ValueError('snapshot alert camera does not match its space owner')
+
         # 构建告警数据
         alert_data = {
+            'tenant_id': int(tenant_text),
             'object': detection_result.get('object_type', 'UNKNOWN'),
             'event': detection_result.get('event_type', 'DETECTION'),
             'device_id': device.id,
@@ -691,7 +715,8 @@ def capture_image(task, device, space):
         else:
             filename = f"{task.task_code}_{timestamp}.jpg"
         
-        object_name = f"{device_folder}{filename}"
+        tenant_id = int(space.tenant_id)
+        object_name = f"tenants/{tenant_id}/cameras/{device.id}/{filename}"
         
         # 编码图像
         success, encoded_image = cv2.imencode('.jpg', frame)
@@ -713,6 +738,7 @@ def capture_image(task, device, space):
         try:
             from app.services.space_file_metadata_service import upsert_snap_image
             upsert_snap_image(
+                tenant_id=tenant_id,
                 space_id=space.id,
                 device_id=device.id,
                 object_name=object_name,
@@ -870,4 +896,3 @@ def init_all_tasks():
             add_task_to_scheduler(task.id)
     except Exception as e:
         logger.error(f"初始化任务失败: {str(e)}", exc_info=True)
-

@@ -5,7 +5,7 @@
 </template>
 <script lang="ts" setup>
 import {ref, watch} from 'vue';
-import {deviceType, productTypeList, statusList} from '../Data.tsx';
+import { productTypeList, statusList } from '../Data';
 import {Description} from '@/components/Description/index';
 
 const props = defineProps({

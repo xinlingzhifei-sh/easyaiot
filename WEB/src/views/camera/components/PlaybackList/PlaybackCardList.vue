@@ -89,13 +89,12 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { List, Popconfirm, Spin } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
 import { propTypes } from '@/utils/propTypes';
 import { isFunction } from '@/utils/is';
 import { Icon } from '@/components/Icon';
-import { useMessage } from '@/hooks/web/useMessage';
 import type { PlaybackInfo } from '@/api/device/playback';
 
 const ListItem = List.Item;
@@ -107,8 +106,6 @@ const props = defineProps({
   // api
   api: propTypes.func
 });
-
-const { createMessage } = useMessage();
 
 // 暴露内部方法
 const emit = defineEmits(['getMethod', 'delete', 'view', 'play']);
@@ -221,7 +218,7 @@ onMounted(() => {
   emit('getMethod', fetch);
 });
 
-async function fetch(p = {}) {
+async function fetch(p: Record<string, any> = {}) {
   const { api, params } = props;
   if (api && isFunction(api)) {
     try {
@@ -510,4 +507,3 @@ defineExpose({
   }
 }
 </style>
-

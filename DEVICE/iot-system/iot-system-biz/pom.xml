@@ -95,7 +95,7 @@
             <artifactId>iot-common-mq</artifactId>
         </dependency>
 
-        <!-- 服务保障相关 TODO BasicLab：暂时去掉 -->
+        <!-- 服务保障相关 TODO yFeiEye：暂时去掉 -->
 <!--        <dependency>-->
 <!--            <groupId>com.basiclab.iot</groupId>-->
 <!--            <artifactId>iot-spring-boot-starter-protection</artifactId>-->

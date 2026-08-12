@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 from datetime import datetime, timezone, timedelta
@@ -10,10 +9,88 @@ from operator import or_
 from flask import Blueprint, request, jsonify
 from sqlalchemy import func
 
+from app.services.media_authorization_service import (
+    audit_media_response,
+    authorization_error,
+    authorize_media_request,
+)
 from models import Playback, db
 
 playback_bp = Blueprint('playback', __name__)
 logger = logging.getLogger(__name__)
+
+
+def _authorization_denied_response(decision):
+    payload, status = authorization_error(decision)
+    return jsonify(payload), status
+
+
+def _authorize_playback(action, camera_id=None, owner_tenant_id=None,
+                        require_scope=True):
+    decision = authorize_media_request(
+        request,
+        action=action,
+        camera_id=str(camera_id or '').strip() or None,
+        owner_tenant_id=owner_tenant_id,
+        resource=request.path,
+        defer_audit=True,
+    )
+    audit_media_response(decision, resource=request.path)
+    if not decision.allowed:
+        return None, _authorization_denied_response(decision)
+    tenant_id = str(decision.tenant_id or '').strip()
+    authorized_camera_id = str(decision.camera_id or '').strip()
+    if require_scope and (
+            not tenant_id.isdigit()
+            or int(tenant_id) <= 0
+            or not authorized_camera_id):
+        return None, (
+            jsonify({
+                'code': 403,
+                'msg': 'forbidden',
+                'reason': 'playback_scope_missing',
+            }),
+            403,
+        )
+    return decision, None
+
+
+def _authorize_playback_object(playback, action):
+    if playback is None:
+        return _authorize_playback(
+            action,
+            camera_id=(request.args.get('device_id') or
+                       request.args.get('camera_id')),
+            require_scope=False,
+        )
+    decision, denied = _authorize_playback(
+        action,
+        camera_id=playback.device_id,
+        owner_tenant_id=playback.tenant_id,
+    )
+    if denied:
+        return None, denied
+    owner_tenant_id = str(playback.tenant_id or '').strip()
+    owner_camera_id = str(playback.device_id or '').strip()
+    if (not owner_tenant_id.isdigit()
+            or int(owner_tenant_id) <= 0
+            or not owner_camera_id):
+        return None, (
+            jsonify({
+                'code': 403,
+                'msg': 'forbidden',
+                'reason': 'playback_owner_scope_missing',
+            }),
+            403,
+        )
+    return decision, None
+
+
+def _playback_metadata(playback):
+    data = dict(playback.to_dict() or {})
+    data.pop('file_path', None)
+    data.pop('thumbnail_path', None)
+    return data
 
 
 @playback_bp.route('/list', methods=['GET'])
@@ -21,19 +98,33 @@ def list_playbacks():
     """查询录像回放列表（支持分页和搜索）"""
     try:
         # 获取请求参数
-        page_no = int(request.args.get('pageNo', 1))
-        page_size = int(request.args.get('pageSize', 10))
         search = request.args.get('search', '').strip()
         device_id = request.args.get('device_id', '').strip()
         start_time = request.args.get('start_time', '').strip()
         end_time = request.args.get('end_time', '').strip()
+
+        decision, denied = _authorize_playback('playback', device_id)
+        if denied:
+            return denied
+        if not device_id:
+            return jsonify({
+                'code': 403,
+                'msg': 'forbidden',
+                'reason': 'playback_camera_scope_missing',
+            }), 403
+
+        page_no = int(request.args.get('pageNo', 1))
+        page_size = int(request.args.get('pageSize', 10))
 
         # 参数验证
         if page_no < 1 or page_size < 1:
             return jsonify({'code': 400, 'msg': '参数错误：pageNo和pageSize必须为正整数'}), 400
 
         # 构建基础查询
-        query = Playback.query
+        query = Playback.query.filter_by(
+            tenant_id=int(decision.tenant_id),
+            device_id=decision.camera_id,
+        )
 
         # 添加搜索条件
         if search:
@@ -75,7 +166,9 @@ def list_playbacks():
             error_out=False
         )
 
-        playback_list = [playback.to_dict() for playback in pagination.items]
+        playback_list = [
+            _playback_metadata(playback) for playback in pagination.items
+        ]
 
         return jsonify({
             'code': 0,
@@ -96,12 +189,15 @@ def get_playback_info(playback_id):
     """获取单个录像回放详情"""
     try:
         playback = Playback.query.get(playback_id)
+        _decision, denied = _authorize_playback_object(playback, 'playback')
+        if denied:
+            return denied
         if not playback:
             return jsonify({'code': 400, 'msg': f'录像回放不存在: ID={playback_id}'}), 400
         return jsonify({
             'code': 0,
             'msg': 'success',
-            'data': playback.to_dict()
+            'data': _playback_metadata(playback)
         })
     except Exception as e:
         logger.error(f'获取录像回放详情失败: {str(e)}', exc_info=True)
@@ -112,7 +208,11 @@ def get_playback_info(playback_id):
 def create_playback():
     """创建录像回放记录"""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
+        camera_id = data.get('device_id') if isinstance(data, dict) else None
+        decision, denied = _authorize_playback('record_manage', camera_id)
+        if denied:
+            return denied
         if not data:
             return jsonify({'code': 400, 'msg': '请求数据不能为空'}), 400
 
@@ -133,9 +233,10 @@ def create_playback():
         shanghai_tz = timezone(timedelta(hours=8))
         current_time = datetime.now(shanghai_tz)
         playback = Playback(
+            tenant_id=int(decision.tenant_id),
             file_path=data['file_path'],
             event_time=event_time,
-            device_id=data['device_id'],
+            device_id=decision.camera_id,
             device_name=data['device_name'],
             duration=int(data['duration']),
             thumbnail_path=data.get('thumbnail_path'),
@@ -150,7 +251,7 @@ def create_playback():
         return jsonify({
             'code': 0,
             'msg': '录像回放记录创建成功',
-            'data': playback.to_dict()
+            'data': _playback_metadata(playback)
         })
     except ValueError as e:
         db.session.rollback()
@@ -167,6 +268,10 @@ def update_playback(playback_id):
     """更新录像回放记录"""
     try:
         playback = Playback.query.get(playback_id)
+        _decision, denied = _authorize_playback_object(
+            playback, 'record_manage')
+        if denied:
+            return denied
         if not playback:
             return jsonify({'code': 400, 'msg': f'录像回放不存在: ID={playback_id}'}), 400
         data = request.get_json()
@@ -181,8 +286,13 @@ def update_playback(playback_id):
                 playback.event_time = datetime.fromisoformat(data['event_time'].replace('Z', '+00:00'))
             except (ValueError, AttributeError):
                 return jsonify({'code': 400, 'msg': 'event_time格式错误'}), 400
-        if 'device_id' in data:
-            playback.device_id = data['device_id']
+        if ('device_id' in data
+                and str(data['device_id']) != str(playback.device_id)):
+            return jsonify({
+                'code': 400,
+                'msg': 'device_id cannot be changed',
+                'reason': 'playback_camera_immutable',
+            }), 400
         if 'device_name' in data:
             playback.device_name = data['device_name']
         if 'duration' in data:
@@ -197,7 +307,7 @@ def update_playback(playback_id):
         return jsonify({
             'code': 0,
             'msg': '录像回放记录更新成功',
-            'data': playback.to_dict()
+            'data': _playback_metadata(playback)
         })
     except ValueError as e:
         db.session.rollback()
@@ -214,6 +324,10 @@ def delete_playback(playback_id):
     """删除录像回放记录"""
     try:
         playback = Playback.query.get(playback_id)
+        _decision, denied = _authorize_playback_object(
+            playback, 'record_manage')
+        if denied:
+            return denied
         if not playback:
             return jsonify({'code': 400, 'msg': f'录像回放不存在: ID={playback_id}'}), 400
         db.session.delete(playback)
@@ -234,6 +348,9 @@ def get_playback_thumbnail(playback_id):
     """获取录像回放封面图"""
     try:
         playback = Playback.query.get(playback_id)
+        _decision, denied = _authorize_playback_object(playback, 'playback')
+        if denied:
+            return denied
         if not playback:
             return jsonify({'code': 400, 'msg': f'录像回放不存在: ID={playback_id}'}), 400
         if not playback.thumbnail_path:
@@ -243,7 +360,8 @@ def get_playback_thumbnail(playback_id):
             'code': 0,
             'msg': 'success',
             'data': {
-                'thumbnail_path': playback.thumbnail_path
+                'id': playback.id,
+                'available': True,
             }
         })
     except Exception as e:
@@ -259,10 +377,20 @@ def get_playback_statistics():
         start_time = request.args.get('start_time', '').strip()
         end_time = request.args.get('end_time', '').strip()
 
-        query = Playback.query
+        decision, denied = _authorize_playback('playback', device_id)
+        if denied:
+            return denied
+        if not device_id:
+            return jsonify({
+                'code': 403,
+                'msg': 'forbidden',
+                'reason': 'playback_camera_scope_missing',
+            }), 403
 
-        if device_id:
-            query = query.filter(Playback.device_id == device_id)
+        query = Playback.query.filter_by(
+            tenant_id=int(decision.tenant_id),
+            device_id=decision.camera_id,
+        )
 
         if start_time:
             try:
@@ -301,4 +429,3 @@ def get_playback_statistics():
     except Exception as e:
         logger.error(f'获取录像回放统计信息失败: {str(e)}', exc_info=True)
         return jsonify({'code': 500, 'msg': '服务器内部错误'}), 500
-

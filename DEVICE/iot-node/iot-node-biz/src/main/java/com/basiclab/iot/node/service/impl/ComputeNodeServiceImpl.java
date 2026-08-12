@@ -177,11 +177,12 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void ensurePlatformNode() {
+        boolean configuredPlatformHost = HostIpUtil.hasConfiguredPlatformHost();
         String hostIp = HostIpUtil.detectHostIp();
         ComputeNodeDO platformNode = computeNodeMapper.selectPlatformNode();
         if (platformNode != null) {
             boolean changed = false;
-            if (!hostIp.equals(platformNode.getHost())) {
+            if (shouldRefreshPlatformHost(platformNode.getHost(), hostIp, configuredPlatformHost)) {
                 ComputeNodeDO conflict = computeNodeMapper.selectByHost(hostIp);
                 if (conflict == null || conflict.getId().equals(platformNode.getId())) {
                     platformNode.setHost(hostIp);
@@ -780,7 +781,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         return "#!/usr/bin/env bash\n"
                 + "set -euo pipefail\n"
                 + "if systemctl list-unit-files easyaiot-node-agent.service >/dev/null 2>&1; then\n"
-                + "  echo '>>> 停止 easyaiot-node-agent'\n"
+                + "  echo '>>> 停止 yFeiEye Node Agent 服务'\n"
                 + "  systemctl stop easyaiot-node-agent 2>&1 || true\n"
                 + "  echo '[OK] 服务已停止'\n"
                 + "else\n"
@@ -794,7 +795,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         return "#!/usr/bin/env bash\n"
                 + "set -euo pipefail\n"
                 + "if systemctl list-unit-files easyaiot-node-agent.service >/dev/null 2>&1; then\n"
-                + "  echo '>>> 停止并禁用 easyaiot-node-agent'\n"
+                + "  echo '>>> 停止并禁用 yFeiEye Node Agent 服务'\n"
                 + "  systemctl stop easyaiot-node-agent 2>&1 || true\n"
                 + "  systemctl disable easyaiot-node-agent 2>&1 || true\n"
                 + "fi\n"
@@ -852,6 +853,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         resp.setIsPlatform(isPlatformNode(node));
         if (exposeToken) {
             resp.setAgentToken(node.getAgentToken());
+        } else {
+            resp.setAgentToken(null);
         }
         NodeSshCredentialDO credential = nodeSshCredentialMapper.selectByNodeId(node.getId());
         if (credential != null) {
@@ -894,6 +897,24 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         return node != null
                 && node.getCapabilities() != null
                 && Boolean.TRUE.equals(node.getCapabilities().get(PLATFORM_CAPABILITY_KEY));
+    }
+
+    static boolean shouldRefreshPlatformHost(String currentHost, String detectedHost, boolean configuredPlatformHost) {
+        if (detectedHost == null || detectedHost.isBlank()) {
+            return false;
+        }
+        String detected = detectedHost.trim();
+        String current = currentHost != null ? currentHost.trim() : "";
+        if (detected.equals(current)) {
+            return false;
+        }
+        if (configuredPlatformHost) {
+            return true;
+        }
+        return current.isEmpty()
+                || "127.0.0.1".equals(current)
+                || "localhost".equalsIgnoreCase(current)
+                || "::1".equals(current);
     }
 
     private Comparator<ComputeNodeRespVO> platformNodeFirstComparator() {
@@ -1393,11 +1414,11 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         }
         if (out.contains("SERVICE_INACTIVE")) {
             step.setStatus("failed");
-            step.setOutput("已注册 easyaiot-node-agent 服务但未运行");
+            step.setOutput("已注册 yFeiEye Node Agent 服务但未运行");
             return step;
         }
         step.setStatus("failed");
-        step.setOutput("未注册 easyaiot-node-agent 服务");
+        step.setOutput("未注册 yFeiEye Node Agent 服务");
         return step;
     }
 

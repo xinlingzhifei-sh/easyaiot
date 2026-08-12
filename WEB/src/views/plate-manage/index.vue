@@ -152,7 +152,7 @@
                 </div>
               </ListItem>
             </template>
-            <template #empty>
+            <template #footer v-if="entryList.length === 0">
               <Empty description="暂无车牌，点击「录入车牌」开始添加" />
             </template>
           </List>
@@ -288,7 +288,7 @@ const [registerTable, { reload }] = useTable({
   },
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect(record: PlateEntry, selected: boolean) {
       if (selected) {
         checkedKeys.value = [...checkedKeys.value, record.id];
@@ -423,7 +423,8 @@ async function handleBatchDelete() {
   }
 }
 
-function getTableActions(record: PlateEntry) {
+function getTableActions(rawRecord: PlateEntry | Recordable) {
+  const record = rawRecord as PlateEntry;
   return [
     {
       icon: 'ant-design:edit-filled',

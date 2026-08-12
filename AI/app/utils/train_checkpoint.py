@@ -34,7 +34,7 @@ def _default_checkpoint_loader(checkpoint_path: str):
     return torch.load(
         checkpoint_path,
         map_location='cpu',
-        weights_only=False,
+        weights_only=True,
     )
 
 

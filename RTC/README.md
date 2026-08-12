@@ -1,6 +1,6 @@
-# EasyAIoT RTC 模块
+# yFeiEye RTC 模块
 
-基于 [go2rtc](https://github.com/AlexxIT/go2rtc) 的 RTC 模块，为 EasyAIoT 平台提供消费级摄像头 P2P/私有协议桥接能力。
+基于 [go2rtc](https://github.com/AlexxIT/go2rtc) 的 RTC 模块，为 yFeiEye 平台提供消费级摄像头 P2P/私有协议桥接能力。
 
 ## 支持的平台
 
@@ -26,7 +26,7 @@
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  EasyAIoT WEB / VIDEO                           │
+│  yFeiEye WEB / VIDEO                           │
 │  摄像头管理 · 流转发 · 算法任务                    │
 └────────────────────┬────────────────────────────┘
                      │ HTTP API (:6100)
@@ -220,5 +220,5 @@ bash RTC/install_linux.sh vendor
 
 ## 许可证
 
-- RTC 封装层：遵循 EasyAIoT 项目许可
+- RTC 封装层：遵循 yFeiEye 项目许可
 - go2rtc：MIT License（[AlexxIT/go2rtc](https://github.com/AlexxIT/go2rtc)）

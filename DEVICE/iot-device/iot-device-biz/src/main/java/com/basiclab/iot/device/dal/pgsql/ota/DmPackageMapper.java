@@ -12,9 +12,8 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @desc
  * @created 2025-05-27
  */
@@ -26,9 +25,8 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param packagePageQo
      * @return
-     * @author 翱翔的雄库鲁
-     * @email andywebjava@163.com
-     * @wechat EasyAIoT2025
+     * @author reese
+     * @email reese
      * @date 2025-05-27
      */
     List<DmPackagePageVo> getPackageListByCondition(DmPackagePageQo packagePageQo);
@@ -38,9 +36,8 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param dmDeviceDetectOo
      * @return
-     * @author 翱翔的雄库鲁
-     * @email andywebjava@163.com
-     * @wechat EasyAIoT2025
+     * @author reese
+     * @email reese
      * @date 2025-05-28
      */
     List<DmPackagePo> getPackageByVerifyList(DmDeviceDetectOo dmDeviceDetectOo);
@@ -50,9 +47,8 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param dmDeviceDetectOo
      * @return
-     * @author 翱翔的雄库鲁
-     * @email andywebjava@163.com
-     * @wechat EasyAIoT2025
+     * @author reese
+     * @email reese
      * @date 202/5/28
      */
     List<DmPackagePo> getPublishedPackageList(DmDeviceDetectOo dmDeviceDetectOo);
@@ -63,9 +59,8 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param type
      * @return
-     * @author 翱翔的雄库鲁
-     * @email andywebjava@163.com
-     * @wechat EasyAIoT2025
+     * @author reese
+     * @email reese
      * @date 2025-05-28
      */
     List<DmPackageVersionVo> getVersionListByType(@Param("type") Integer type);

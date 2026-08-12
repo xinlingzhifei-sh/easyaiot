@@ -22,7 +22,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Redis 密码（与 docker-compose.yml 中一致）
-REDIS_PASSWORD="${REDIS_PASSWORD:-basiclab@iot975248395}"
+REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 REDIS_PORT="${REDIS_PORT:-6379}"
 
 # 脚本所在目录（即 .scripts/docker）
@@ -53,6 +53,11 @@ print_section() {
     echo -e "${YELLOW}========================================${NC}"
     echo ""
 }
+
+if [ -z "$REDIS_PASSWORD" ]; then
+    print_error "必须通过 REDIS_PASSWORD 环境变量提供 Redis 密码"
+    exit 1
+fi
 
 # 检查 Docker 是否运行
 check_docker() {

@@ -84,13 +84,6 @@ import { Button } from '@/components/Button'
     emit('addPhsyical');
   };
 
-  const handleReload = () => {
-    emit('reload');
-  };
-
-  const handleRelease = () => {
-    emit('release');
-  };
 </script>
 
 <style lang="less" scoped>

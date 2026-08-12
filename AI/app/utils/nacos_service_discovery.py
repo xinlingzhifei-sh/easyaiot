@@ -26,7 +26,7 @@ def get_nacos_client():
         nacos_server = os.getenv('NACOS_SERVER', 'localhost:8848')
         namespace = os.getenv('NACOS_NAMESPACE', '')
         username = os.getenv('NACOS_USERNAME', 'nacos')
-        password = os.getenv('NACOS_PASSWORD', 'basiclab@iot78475418754')
+        password = os.getenv('NACOS_PASSWORD', '')
         
         # 创建Nacos客户端
         _nacos_client = NacosClient(
@@ -244,4 +244,3 @@ def get_model_service_url(model_id: int, model_format: str, model_version: str, 
     """获取模型服务的URL（通过Nacos服务发现）"""
     service_name = get_model_service_name(model_id, model_format, model_version)
     return get_service_url(service_name, healthy_only)
-

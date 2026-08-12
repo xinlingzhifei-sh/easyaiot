@@ -11,7 +11,7 @@ import { Space } from 'ant-design-vue'
 
 defineOptions({ name: 'CameraMapView' });
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   height?: string;
 }>(), {
   height: '100%',

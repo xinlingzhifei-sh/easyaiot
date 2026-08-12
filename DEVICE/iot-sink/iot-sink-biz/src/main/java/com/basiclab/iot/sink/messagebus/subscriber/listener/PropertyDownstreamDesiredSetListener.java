@@ -19,9 +19,8 @@ import org.springframework.stereotype.Component;
  * 通用下行 Topic 收到属性期望设置时，若设备已绑定工业/MQTT 网关 serverId，
  * 则转发到网关专属 Topic，供轮询协议或 MQTT 下行订阅者执行写入。
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Slf4j

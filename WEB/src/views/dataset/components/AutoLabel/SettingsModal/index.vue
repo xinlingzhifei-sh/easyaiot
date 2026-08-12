@@ -23,7 +23,7 @@
             </span>
           </template>
           <div class="about-content">
-            <p><strong>EasyAIoT 自动化标注系统</strong></p>
+            <p><strong>yFeiEye 自动化标注系统</strong></p>
             <p>版本: 1.0.0</p>
           </div>
         </CollapsePanel>
@@ -278,7 +278,7 @@ async function handleRefresh() {
 }
 
 // 删除模型
-async function handleDeleteModel(modelId: number) {
+async function handleDeleteModel(_modelId: number) {
   try {
     // TODO: 调用后端API删除模型
     createMessage.success('模型删除成功');
@@ -298,7 +298,6 @@ const triggerModelUpload = () => {
 async function handleModelSelect(e: Event) {
   const target = e.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
-    const file = target.files[0];
     try {
       // TODO: 调用后端API上传模型
       createMessage.success('模型上传成功');

@@ -156,7 +156,7 @@ get_visualize_build_cache_bust() {
 
 # 执行 docker build（BuildKit + 宿主机 .build-cache/visualize/pnpm-store 本地 cache 后端）
 docker_build_image() {
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$EASYAIOT_ROOT"
     enable_docker_buildkit
     mkdir -p "${SCRIPT_DIR}/docker-build-logs"
     local ts log_new pnpm_log ec cache_bust
@@ -854,7 +854,7 @@ clean_service() {
         fi
 
         # 使下次 install/build 失效 Docker 层缓存（否则 pnpm install/build 会全部 CACHED）
-        init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+        init_yfeieye_build_cache_dirs "$EASYAIOT_ROOT"
         date +%s > "$(visualize_build_stamp_file "$EASYAIOT_ROOT")"
         print_info "已更新 .build-cache/visualize/.build-stamp，下次构建将重新编译 VISUALIZE 前端（.build-cache/visualize/pnpm-store 依赖缓存保留）"
         
@@ -988,4 +988,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

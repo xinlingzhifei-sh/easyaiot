@@ -50,6 +50,11 @@
                           <EditOutlined />
                         </button>
                       </Tooltip>
+                      <Tooltip title="审核数据集">
+                        <button class="overlay-btn" @click="handleVerif(item)">
+                          <Icon icon="ant-design:audit-outlined" />
+                        </button>
+                      </Tooltip>
                       <Tooltip title="复制信息">
                         <button class="overlay-btn" @click="handleCopy(item)">
                           <CopyOutlined />
@@ -113,6 +118,7 @@
 import {onMounted, reactive, ref} from 'vue';
 import {List, Popconfirm, Progress, Spin, Tooltip} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
+import {Icon} from '@/components/Icon';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
 import {
@@ -133,8 +139,8 @@ const props = defineProps({
   params: propTypes.object.def({}),
   api: propTypes.func,
 });
-
-const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
+//暴露内部方法
+const emit = defineEmits(['getMethod', 'delete', 'edit', 'view', 'verif']);
 
 const data = ref([]);
 const hoverId = ref<number | null>(null);
@@ -268,6 +274,10 @@ function handleView(record: object) {
 
 function handleEdit(record: object) {
   emit('edit', record);
+}
+
+function handleVerif(record: object) {
+  emit('verif', record);
 }
 
 async function handleCopy(record: object) {

@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PlatformHostRespVO {
 
+    @Schema(description = "控制面节点 ID")
+    private Long nodeId;
+
     @Schema(description = "宿主机 IPv4")
     private String host;
 

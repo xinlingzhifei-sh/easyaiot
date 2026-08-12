@@ -15,7 +15,7 @@ const platformCount = packages.length
         <div class="hero-veil" />
       </div>
       <div class="container hero-content">
-        <h1 class="brand-title hero-anim">EasyAIoT</h1>
+        <h1 class="brand-title hero-anim">yFeiEye</h1>
         <p class="hero-line hero-anim delay-1">{{ TAGLINE }}</p>
         <p class="hero-support hero-anim delay-2">
           同一套软件贯穿边缘盒子、AI 一体摄像头与全栈一体机；安装包覆盖 Ubuntu、CentOS、Windows、macOS、麒麟 (Kylin) 与 欧拉 (openEuler)。
@@ -32,7 +32,7 @@ const platformCount = packages.length
         <SectionReveal>
           <h2 class="display section-title">三档硬件，一套平台</h2>
           <p class="lead">
-            不必为装得下而砍能力、拆版本。按现场选一档即可，同一套 EasyAIoT 贯穿试点到全栈交付。
+            不必为装得下而砍能力、拆版本。按现场选一档即可，同一套 yFeiEye 贯穿试点到全栈交付。
           </p>
         </SectionReveal>
 
@@ -93,7 +93,7 @@ const platformCount = packages.length
           <h2 class="display section-title">没有 RTSP，也能进平台</h2>
           <p class="lead">
             家庭、门店里已在用的 Tapo、涂鸦、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock
-            等设备，走厂商私有 P2P 协议、原生不提供标准 RTSP。EasyAIoT RTC 模块
+            等设备，走厂商私有 P2P 协议、原生不提供标准 RTSP。yFeiEye RTC 模块
             一次打通九大品牌取流与对讲，与国标/ONVIF 摄像头同屏共管、同挂 AI 任务。
           </p>
           <ul class="rtc-points">
@@ -144,7 +144,7 @@ const platformCount = packages.length
         <SectionReveal>
           <h2 class="display section-title">看得见场，也管得住设备</h2>
           <p class="lead">
-            纯物联看得见数却看不见场，纯视频看得见场却控不住设备。EasyAIoT 让「数」与「图」在同一屏里核实与处置。
+            纯物联看得见数却看不见场，纯视频看得见场却控不住设备。yFeiEye 让「数」与「图」在同一屏里核实与处置。
           </p>
           <div class="cta-row">
             <RouterLink class="btn btn-outline" to="/features">查看全部能力</RouterLink>

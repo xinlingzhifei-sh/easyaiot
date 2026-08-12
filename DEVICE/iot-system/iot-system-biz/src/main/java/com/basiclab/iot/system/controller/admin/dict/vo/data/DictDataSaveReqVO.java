@@ -12,9 +12,8 @@ import javax.validation.constraints.Size;
 /**
  * DictDataSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 字典数据创建/修改 Request VO")
 @Data
@@ -27,7 +26,7 @@ public class DictDataSaveReqVO {
     @NotNull(message = "显示顺序不能为空")
     private Integer sort;
 
-    @Schema(description = "字典标签", example = "BasicLab")
+    @Schema(description = "字典标签", example = "yFeiEye")
     @NotBlank(message = "字典标签不能为空")
     @Size(max = 100, message = "字典标签长度不能超过100个字符")
     private String label;

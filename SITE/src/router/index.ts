@@ -42,8 +42,8 @@ const router = createRouter({
 router.afterEach((to) => {
   const page = typeof to.meta.title === 'string' ? to.meta.title : ''
   document.title = page
-    ? `${page} · EasyAIoT`
-    : 'EasyAIoT — 云边端一体化智能算法应用平台'
+    ? `${page} · yFeiEye`
+    : 'yFeiEye — 云边端一体化智能算法应用平台'
 })
 
 export default router

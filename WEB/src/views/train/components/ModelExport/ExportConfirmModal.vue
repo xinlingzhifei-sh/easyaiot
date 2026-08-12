@@ -51,6 +51,7 @@ const props = defineProps({
     default: () => [],
   },
 });
+void props;
 
 const emit = defineEmits(['confirm']);
 
@@ -60,8 +61,8 @@ const formatOptions = [
 ];
 
 const formState = reactive({
-  modelId: null as number | null,
-  format: null as 'onnx' | 'openvino' | null,
+  modelId: undefined as number | undefined,
+  format: undefined as 'onnx' | 'openvino' | undefined,
 });
 
 const state = reactive({
@@ -72,13 +73,13 @@ const exporting = computed(() => state.exporting);
 
 // 验证表单是否有效
 const isFormValid = computed(() => {
-  return formState.modelId !== null && formState.format !== null;
+  return formState.modelId !== undefined && formState.format !== undefined;
 });
 
-const [register, { closeModal, setModalProps }] = useModalInner((data) => {
+const [register, { closeModal, setModalProps }] = useModalInner((_data) => {
   // 重置表单
-  formState.modelId = null;
-  formState.format = null;
+  formState.modelId = undefined;
+  formState.format = undefined;
   state.exporting = false;
   setModalProps({ confirmLoading: false });
 });
@@ -137,4 +138,3 @@ function handleConfirm() {
   }
 }
 </style>
-

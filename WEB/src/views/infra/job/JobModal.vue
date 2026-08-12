@@ -60,9 +60,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateJob(values)
+      await updateJob(values as any)
     else
-      await createJob(values)
+      await createJob(values as any)
 
     closeModal()
     emit('success')

@@ -55,6 +55,11 @@
                       tooltip: { title: '查看告警录像', placement: 'top' },
                       onClick: handleViewVideo.bind(null, record),
                     },
+                    {
+                      icon: 'ant-design:audit-outlined',
+                      tooltip: { title: '加入线索复核', placement: 'top' },
+                      onClick: handleCreateReviewClue.bind(null, record),
+                    },
                   ]"
                 />
               </template>
@@ -69,6 +74,7 @@
               @getMethod="getMethod"
               @viewImage="handleCardViewImage"
               @viewVideo="handleCardViewVideo"
+              @createReviewClue="handleCreateReviewClue"
             >
               <template #header>
                 <AlertListToolbar
@@ -78,6 +84,13 @@
               </template>
             </AlertCards>
           </div>
+        </TabPane>
+        <TabPane key="3" tab="线索复核">
+          <AlertReviewWorkbench
+            ref="alertReviewWorkbenchRef"
+            @view-image="handleCardViewImage"
+            @view-video="handleCardViewVideo"
+          />
         </TabPane>
       </Tabs>
     </div>
@@ -99,6 +112,7 @@ import { Icon } from '@/components/Icon';
 import AlertCards from '@/views/alert/components/AlertCards/index.vue';
 import AlertMapView from '@/views/alert/components/AlertMapView/index.vue';
 import AlertListToolbar from '@/views/alert/components/AlertListToolbar.vue';
+import AlertReviewWorkbench from '@/views/alert/components/AlertReviewWorkbench.vue';
 import ImageModal from '@/views/alert/components/ImageModal/index.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 import { useModal } from '@/components/Modal';
@@ -113,6 +127,7 @@ import { getDeviceInfo } from '@/api/device/camera';
 import { openDeviceInDialogPlayer } from '@/views/camera/utils/devicePlay';
 import { playAlertRecordInModal } from '@/utils/alertRecordPlayback';
 import { isSnapAlertTask } from '@/views/alert/alertDisplay';
+import { ingestAlertReviewClue } from '@/api/supervision/alertReview';
 
 const router = useRouter();
 const [registerImageModal, { openModal: openImageModal }] = useModal();
@@ -124,18 +139,20 @@ defineOptions({ name: 'Alarm' });
 const ALERT_TAB_KEYS = {
   MAP: '1',
   EVENTS: '2',
+  REVIEW: '3',
 } as const;
 
 const ALERT_TAB_ID_SET = new Set<string>(Object.values(ALERT_TAB_KEYS));
 
 const viewMode = ref<'table' | 'card'>('card');
 
-const state = reactive({
+const state = reactive<{ activeKey: string }>({
   activeKey: ALERT_TAB_KEYS.MAP,
 });
 
 const params = ref<Record<string, any>>({});
 const alertMapViewRef = ref<InstanceType<typeof AlertMapView>>();
+const alertReviewWorkbenchRef = ref<InstanceType<typeof AlertReviewWorkbench>>();
 
 let cardListReload = () => {};
 
@@ -144,6 +161,7 @@ const lastTableFilterParams = ref<Record<string, any>>({});
 function normalizeAlertRouteTab(tab: unknown): string {
   if (tab === 'map') return ALERT_TAB_KEYS.MAP;
   if (tab === 'events') return ALERT_TAB_KEYS.EVENTS;
+  if (tab === 'review') return ALERT_TAB_KEYS.REVIEW;
   const tabStr = String(tab);
   if (ALERT_TAB_ID_SET.has(tabStr)) return tabStr;
   return ALERT_TAB_KEYS.MAP;
@@ -165,6 +183,8 @@ function handleTabClick(activeKey: string) {
   state.activeKey = activeKey;
   if (activeKey === ALERT_TAB_KEYS.MAP) {
     void activateMapTab();
+  } else if (activeKey === ALERT_TAB_KEYS.REVIEW) {
+    alertReviewWorkbenchRef.value?.refresh?.();
   }
 }
 
@@ -174,6 +194,11 @@ const refreshData = () => {
   const tab = rawTab ? normalizeAlertRouteTab(rawTab) : ALERT_TAB_KEYS.MAP;
   if (tab === ALERT_TAB_KEYS.MAP) {
     void activateMapTab();
+    return;
+  }
+  if (tab === ALERT_TAB_KEYS.REVIEW) {
+    state.activeKey = ALERT_TAB_KEYS.REVIEW;
+    nextTick(() => alertReviewWorkbenchRef.value?.refresh?.());
     return;
   }
   state.activeKey = ALERT_TAB_KEYS.EVENTS;
@@ -220,6 +245,51 @@ function handleCardViewImage(record) {
 
 function handleCardViewVideo(record) {
   handleViewVideo(record);
+}
+
+async function handleCreateReviewClue(record: Record<string, any>) {
+  const alertTime = normalizeAlertTime(record['time']);
+  const sourceAlertId = String(record['id'] ?? record['alert_id'] ?? `${record['device_id'] || 'alert'}-${record['time'] || Date.now()}`);
+  if (!alertTime) {
+    createMessage.warn('缺少告警时间，无法加入线索复核');
+    return;
+  }
+  try {
+    await ingestAlertReviewClue({
+      sourceSystem: 'video',
+      sourceAlertId,
+      ruleCode: mapAlertEventToReviewRule(record['event']),
+      sourceAlertType: String(record['event'] || record['task_type'] || ''),
+      alertTime,
+      deviceId: record['device_id'],
+      cameraId: record['device_id'],
+      objectLabel: record['object'],
+      snapshotUri: record['image_url'],
+      recordUri: record['record_path'],
+    });
+    createMessage.success('已加入线索复核工作台');
+    state.activeKey = ALERT_TAB_KEYS.REVIEW;
+    await nextTick();
+    alertReviewWorkbenchRef.value?.refresh?.();
+  } catch (error: any) {
+    createMessage.error(error?.message || '加入线索复核失败');
+  }
+}
+
+function normalizeAlertTime(value: unknown): string {
+  if (!value) return '';
+  return String(value).trim().replace(' ', 'T');
+}
+
+function mapAlertEventToReviewRule(event: unknown): string {
+  const value = String(event || '').toLowerCase();
+  if (value.includes('fall')) return 'RULE_FALL_DOWN';
+  if (value.includes('fight')) return 'RULE_FIGHT';
+  if (value.includes('restricted') || value.includes('intrusion') || value.includes('cross')) {
+    return 'RULE_RESTRICTED_AREA';
+  }
+  if (value.includes('gather') || value.includes('crowd')) return 'RULE_ABNORMAL_GATHERING';
+  return 'RULE_ABNORMAL_GATHERING';
 }
 
 function openDeviceLocationDrawer(record: { id?: string; name?: string; device_kind?: string }) {
@@ -322,7 +392,12 @@ const handleViewVideo = async (record) => {
         id: record['id'],
         device_id: record['device_id'],
         time: record['time'],
+        seek_time: record['seek_time'],
+        record_start_time: record['record_start_time'],
+        playback_offset_seconds: record['playback_offset_seconds'],
         record_path: record['record_path'],
+        video_url: record['video_url'],
+        url: record['url'],
       },
     );
     if (ok) {
@@ -375,12 +450,13 @@ function getTaskTypeColor(taskType: string | null | undefined): string {
   return 'default';
 }
 
-async function handleCopy(record: object) {
+async function handleCopy(record: unknown) {
+  const text = typeof record === 'string' ? record : JSON.stringify(record, null, 2);
   if (navigator.clipboard) {
-    await navigator.clipboard.writeText(record);
+    await navigator.clipboard.writeText(text);
   } else {
     const textarea = document.createElement('textarea');
-    textarea.value = record;
+    textarea.value = text;
     document.body.appendChild(textarea);
     textarea.select();
     document.execCommand('copy');

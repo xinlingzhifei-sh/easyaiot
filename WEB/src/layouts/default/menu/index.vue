@@ -168,11 +168,13 @@ export default defineComponent({
 .@{prefix-cls} {
   &-logo {
     height: @header-height;
-    padding: 10px 4px 10px 10px;
+    padding: 6px 8px;
 
     img {
-      width: @logo-width;
-      height: @logo-width;
+      width: 44px;
+      height: 36px;
+      object-fit: contain;
+      border-radius: 6px;
     }
   }
 

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 项目启动成功后，提供文档相关的地址
  *
- * @author 翱翔的雄库鲁
+ * @author reese
  */
 @Slf4j
 public class BannerApplicationRunner implements ApplicationRunner {
@@ -25,9 +25,9 @@ public class BannerApplicationRunner implements ApplicationRunner {
                             "开发文档: \t{} \n\t" +
                             "视频教程: \t{} \n" +
                             "----------------------------------------------------------",
-                    "https://github.com/soaring-xiongkulu/easyaiot",
-                    "https://github.com/soaring-xiongkulu/easyaiot",
-                    "https://github.com/soaring-xiongkulu/easyaiot");
+                    "https://github.com/reese/yfeieye",
+                    "https://github.com/reese/yfeieye",
+                    "https://github.com/reese/yfeieye");
 
 //            // 数据报表
 //            System.out.println("[报表模块 yudao-module-report 教程][参考 https://cloud.iocoder.cn/report/ 开启]");

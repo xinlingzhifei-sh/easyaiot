@@ -25,7 +25,7 @@ PANEL_ALLOW_DANGEROUS = os.environ.get('PANEL_ALLOW_DANGEROUS', '1').strip().low
 )
 PANEL_JOB_TIMEOUT = int(os.environ.get('PANEL_JOB_TIMEOUT', '7200'))
 PANEL_JOB_HISTORY_LIMIT = int(os.environ.get('PANEL_JOB_HISTORY_LIMIT', '15'))
-# EasyAIoT WEB 管控台地址；空则按请求主机 + PANEL_WEB_PORT 自动拼
+# yFeiEye WEB 管控台地址；空则按请求主机 + PANEL_WEB_PORT 自动拼
 PANEL_WEB_URL = os.environ.get('PANEL_WEB_URL', '').strip()
 PANEL_WEB_PORT = (os.environ.get('PANEL_WEB_PORT', '8888').strip() or '8888')
 # 与 WEB/docker-compose.yaml 的 container_name/image（web-service）及历史命名对齐
@@ -71,7 +71,7 @@ def _default_install_script_name() -> str:
 
 
 def _detect_project_root() -> str:
-    """定位 EasyAIoT 仓库根：环境变量 > 可执行文件旁推断 > 向上查找 install 脚本。"""
+    """定位 yFeiEye 仓库根：环境变量 > 可执行文件旁推断 > 向上查找 install 脚本。"""
     env = os.environ.get('EASYAIOT_ROOT', '').strip()
     if env:
         return os.path.abspath(env)
@@ -539,7 +539,7 @@ def spa(path: str):
     STATIC_DIR, HAS_UI = static_dir, has_ui
     if not has_ui:
         return _ok({
-            'name': 'EasyAIoT PANEL',
+            'name': 'yFeiEye PANEL',
             'version': '0.1.0',
             'ui': False,
             'staticDir': static_dir,
@@ -555,7 +555,7 @@ def spa(path: str):
         if not os.path.isfile(_ui_index_path(static_dir)):
             HAS_UI = False
             return _ok({
-                'name': 'EasyAIoT PANEL',
+                'name': 'yFeiEye PANEL',
                 'version': '0.1.0',
                 'ui': False,
                 'staticDir': static_dir,

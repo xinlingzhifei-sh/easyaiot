@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT 多模块日志合并分析工具
+# yFeiEye 多模块日志合并分析工具
 # ============================================
 # 交互式选择多个模块/子服务，合并输出各源最近约 500 行日志，
 # 基础服务与 DEVICE 按 docker-compose 拆分为独立容器维度，模块间有明显分割线。
@@ -949,7 +949,7 @@ run_analysis_once() {
 
     if [ -n "$output_file" ]; then
         {
-            echo "EasyAIoT 多模块日志合并报告"
+            echo "yFeiEye 多模块日志合并报告"
             echo "生成时间: $(date '+%Y-%m-%d %H:%M:%S')"
             echo "部署形态: ${EASYAIOT_DEPLOY_PROFILE:-unknown}"
             echo "采集单元: ${SELECTED_UNITS[*]}"

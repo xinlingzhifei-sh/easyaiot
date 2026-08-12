@@ -70,7 +70,7 @@ install -m 0644 "${RPM_SRC}/easyaiot-panel.desktop" "${BUILDROOT}/usr/share/appl
 install -m 0644 "${RPM_SRC}/easyaiot-panel.service" "${BUILDROOT}/usr/lib/systemd/system/easyaiot-panel.service"
 
 cat > "${BUILDROOT}/usr/share/doc/${PKG_NAME}/README" <<EOF
-EasyAIoT PANEL ${VERSION} (CentOS/RHEL ARM64 ${DIST_TAG})
+yFeiEye PANEL ${VERSION} (CentOS/RHEL ARM64 ${DIST_TAG})
 
 1) 修改 /etc/easyaiot-panel/panel.env 中 EASYAIOT_ROOT 为本机仓库根
 2) systemctl enable --now easyaiot-panel
@@ -103,14 +103,14 @@ cat > "$SPEC_PATH" <<EOF
 Name:           ${PKG_NAME}
 Version:        ${VERSION}
 Release:        ${RELEASE}.${DIST_TAG}
-Summary:        EasyAIoT platform ops console (PANEL) for CentOS/RHEL ARM64 ${DIST_TAG}
+Summary:        yFeiEye platform ops console (PANEL) for CentOS/RHEL ARM64 ${DIST_TAG}
 License:        Apache-2.0
-URL:            https://github.com/soaring-xiongkulu/easyaiot
+URL:            https://github.com/xinlingzhifei/easyaiot
 BuildArch:      ${ARCH}
 Requires:       systemd
 
 %description
-Independent ops panel for EasyAIoT on CentOS/RHEL aarch64 (${DIST_TAG}).
+Independent ops panel for yFeiEye on CentOS/RHEL aarch64 (${DIST_TAG}).
 Deploy with .scripts/docker/install_linux_centos_arm.sh after setting EASYAIOT_ROOT.
 
 %prep

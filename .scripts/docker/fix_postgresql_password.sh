@@ -47,7 +47,11 @@ print_section() {
 }
 
 # 目标密码（与 docker-compose.yml 中的配置一致）
-TARGET_PASSWORD="iot45722414822"
+TARGET_PASSWORD="${POSTGRES_PASSWORD:-}"
+if [ -z "$TARGET_PASSWORD" ] || [ "$TARGET_PASSWORD" = "CHANGE_ME" ]; then
+    print_error "POSTGRES_PASSWORD is required and must not be CHANGE_ME"
+    exit 1
+fi
 
 print_section "PostgreSQL 密码修复工具"
 
@@ -94,7 +98,7 @@ sleep 5
 
 # 重置密码
 print_section "重置 PostgreSQL 密码"
-print_info "正在重置 postgres 用户密码为: $TARGET_PASSWORD"
+print_info "正在重置 postgres 用户密码（凭据值不输出）"
 
 # 尝试重置密码
 reset_attempts=0
@@ -134,7 +138,7 @@ if [ $reset_success -eq 0 ]; then
     print_info "  1. 检查容器日志: docker logs postgres-server"
     print_info "  2. 重启容器后重试: docker restart postgres-server"
     print_info "  3. 手动执行重置命令:"
-    print_info "     docker exec postgres-server psql -U postgres -d postgres -c \"ALTER USER postgres WITH PASSWORD '$TARGET_PASSWORD';\""
+    print_info "     请通过本脚本在受控环境重试（凭据值不输出）"
     exit 1
 fi
 
@@ -173,6 +177,5 @@ fi
 
 echo ""
 print_success "PostgreSQL 密码修复完成！"
-print_info "密码已设置为: $TARGET_PASSWORD"
+print_info "密码已更新（凭据值不输出）"
 print_info "现在可以正常连接数据库了"
-

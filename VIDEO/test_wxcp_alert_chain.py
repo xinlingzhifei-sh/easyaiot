@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """企业微信告警通知全链路测试脚本"""
 import json
+import os
 import sys
 import time
 import uuid
@@ -9,13 +10,17 @@ import requests
 GATEWAY = "http://localhost:48080/admin-api"
 VIDEO = "http://localhost:6000"
 TENANT_ID = "1"
-LOGIN = {"username": "admin", "password": "admin123"}
+LOGIN = {
+    "username": os.getenv("YFEIEYE_TEST_USERNAME", "admin"),
+    "password": os.getenv("YFEIEYE_TEST_PASSWORD", ""),
+}
 
-# 用户提供的企微应用凭证
-WXCP_CORP_ID = "ww0e9c041c3a7f8bcb"
-WXCP_AGENT_ID = "1000017"
-WXCP_SECRET = "GGCCqQInjiOFnOCakSJwAEIobDRyO0S6f9zvh-_AmI8"
-WXCP_USER_ID = "19377231530"  # 企业微信成员 UserID（用户填写）
+# 企微应用凭证必须通过本机环境变量提供，不得写入仓库。
+WXCP_CORP_ID = os.getenv("WXCP_CORP_ID", "")
+WXCP_AGENT_ID = os.getenv("WXCP_AGENT_ID", "")
+WXCP_SECRET = os.getenv("WXCP_SECRET", "")
+WXCP_USER_ID = os.getenv("WXCP_USER_ID", "")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 
 def login():
@@ -44,6 +49,21 @@ def step(title):
 
 
 def main():
+    missing = [
+        name
+        for name, value in (
+            ("YFEIEYE_TEST_PASSWORD", LOGIN["password"]),
+            ("WXCP_CORP_ID", WXCP_CORP_ID),
+            ("WXCP_AGENT_ID", WXCP_AGENT_ID),
+            ("WXCP_SECRET", WXCP_SECRET),
+            ("WXCP_USER_ID", WXCP_USER_ID),
+            ("DATABASE_URL", DATABASE_URL),
+        )
+        if not value
+    ]
+    if missing:
+        raise RuntimeError(f"缺少必需环境变量: {', '.join(missing)}")
+
     token = login()
     print("✅ 登录成功")
 
@@ -172,7 +192,7 @@ def main():
     step("6. 端到端告警 Hook 测试")
     try:
         import psycopg2
-        conn = psycopg2.connect("postgresql://postgres:iot45722414822@localhost:5432/iot-video20")
+        conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute("""
             SELECT d.id, d.name, at.id as task_id, at.alert_notification_config
@@ -207,7 +227,7 @@ def main():
             }],
         }
         try:
-            conn = psycopg2.connect("postgresql://postgres:iot45722414822@localhost:5432/iot-video20")
+            conn = psycopg2.connect(DATABASE_URL)
             cur = conn.cursor()
             cur.execute("""
                 UPDATE algorithm_task

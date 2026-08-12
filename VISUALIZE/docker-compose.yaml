@@ -32,7 +32,7 @@ services:
       start_period: 10s
 
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
     logging:
       driver: "json-file"
@@ -41,6 +41,6 @@ services:
         max-file: "3"
 
 networks:
-  easyaiot-network:
-    name: easyaiot-network
+  yfeieye-network:
+    name: yfeieye-network
     external: true

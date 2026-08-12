@@ -35,7 +35,7 @@ def convert_markdown_to_wechat_html(md_content):
         "核心优势": "⭐",
         "多语言混编架构": "🔤",
         "零样本标注技术": "🎯",
-        "云边端灵活部署": "🌍",
+        "灵活部署": "🌍",
         "丰富生态支持": "🌳",
         "持续迭代优化": "🔄",
         "应用场景": "🎬",
@@ -257,14 +257,14 @@ def escape_html(text):
 
 if __name__ == '__main__':
     # 读取markdown文件
-    with open('/projects/easyaiot/.doc/宣传文章/项目宣传2.md', 'r', encoding='utf-8') as f:
+    with open('/projects/yfeieye/.doc/宣传文章/项目宣传2.md', 'r', encoding='utf-8') as f:
         md_content = f.read()
     
     # 转换为HTML
     html_content = convert_markdown_to_wechat_html(md_content)
     
     # 保存HTML文件
-    with open('/projects/easyaiot/.doc/宣传文章/doc/项目宣传2_公众号版.html', 'w', encoding='utf-8') as f:
+    with open('/projects/yfeieye/.doc/宣传文章/doc/项目宣传2_公众号版.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
     
     print("转换完成！HTML文件已保存到: .doc/宣传文章/doc/项目宣传2_公众号版.html")

@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
   import { ref, reactive, defineExpose, defineProps } from 'vue';
-  import { Form, FormItem, Select } from 'ant-design-vue';
+  import { Form } from 'ant-design-vue';
   // import { CommonCard } from '@/components/Card';
 
   const useForm = Form.useForm;
@@ -51,10 +51,6 @@
     PROTOBUF = 'Protobuf',
   }
 
-  const payloadList = reactive([
-    { label: PayloadMode.JSON, value: PayloadMode.JSON },
-    { label: PayloadMode.PROTOBUF, value: PayloadMode.PROTOBUF },
-  ]);
   enum CoapMode {
     DEFAULT = 'DEFAULT',
     EFENTO = 'EFENTO',
@@ -75,6 +71,9 @@
     { label: '非连续接收(DRX)', value: PowerMode.DRX },
     { label: '连续接收(eDRX)', value: PowerMode.E_DRX },
   ]);
+
+  void coapList;
+  void powerList;
 
   const modelRef = reactive({
     type: props.type,

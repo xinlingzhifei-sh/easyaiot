@@ -20,13 +20,13 @@
             <a-radio-button value="2">WebRTC</a-radio-button>
             <a-radio-button value="3">Video标签</a-radio-button>
           </a-radio-group>
-          <div v-if="playerType == 1" style="width: 100%; height: 30.375vw">
+          <div v-if="playerType === '1'" style="width: 100%; height: 30.375vw">
             <Jessibuca ref="jessibuca" :play-url="playUrl" :hasAudio="false" />
           </div>
-          <div v-if="playerType == 2" style="width: 100%; height: 30.375vw">
-            <RtcPlayer ref="rtcPlayer" :play-url="playUrl" :hasAudio="false" />
+          <div v-if="playerType === '2'" style="width: 100%; height: 30.375vw">
+            <RtcPlayer ref="rtcPlayer" :play-url="playUrl" :hasAudio="false" :device-id="deviceId" />
           </div>
-          <div v-if="playerType == 3" style="width: 100%; height: 30.375vw">
+          <div v-if="playerType === '3'" style="width: 100%; height: 30.375vw">
             <video controls autoplay style="width: 100%; height: 30.375vw">
               <source :src="playUrl" type="video/mp4" />
             </video>
@@ -49,7 +49,7 @@
                 <a-select-option value="6">强制关键帧</a-select-option>
                 <a-select-option value="7">看守位控制</a-select-option>
               </a-select>
-              <div v-if="ptzControlType==1">
+              <div v-if="ptzControlType === '1'">
                 <a-input-number
                   min="1"
                   max="255"
@@ -65,7 +65,7 @@
                   <a-button @click="delPreset()" title="删除此预置位">删除</a-button>
                 </a-button-group>
               </div>
-              <div v-if="ptzControlType == 2">
+              <div v-if="ptzControlType === '2'">
                 <a-input-number
                   v-model:value="ptzCruiseId"
                   min="1"
@@ -133,7 +133,7 @@
                   </a-button-group>
                 </div>
               </div>
-              <div v-if="ptzControlType == 3">
+              <div v-if="ptzControlType === '3'">
                 <a-input-number
                   size="small"
                   min="1"
@@ -172,13 +172,13 @@
                   </a-button>
                 </div>
               </div>
-              <div v-if="ptzControlType == 4">
+              <div v-if="ptzControlType === '4'">
                 <a-button-group class="ptz-space">
                   <a-button @click="startWiper()" title="开启雨刷">开启雨刷</a-button>
                   <a-button @click="stopWiper()" title="关闭雨刷">关闭雨刷</a-button>
                 </a-button-group>
               </div>
-              <div v-if="ptzControlType == 5">
+              <div v-if="ptzControlType === '5'">
                 <a-input-number
                   min="2"
                   max="255"
@@ -193,10 +193,10 @@
                   <a-button @click="stopAuxiliarySwitch()" title="关闭辅助开关">关闭</a-button>
                 </a-button-group>
               </div>
-              <div v-if="ptzControlType == 6">
+              <div v-if="ptzControlType === '6'">
                 <a-button @click="startForceKeyframe()" title="发送强制关键帧">发送</a-button>
               </div>
-              <div v-if="ptzControlType == 7">
+              <div v-if="ptzControlType === '7'">
                 <a-input-number
                   size="small"
                   min="1"
@@ -223,13 +223,13 @@
             </div>
           </a-tab-pane>
           <a-tab-pane key="3" tab="信息" style="padding: 0 1rem 0 1rem">
-            <a-descriptions :column="1" title="资源地址" :labelStyle="{ fontsize: '12px' }">
+            <a-descriptions :column="1" title="资源地址" :labelStyle="{ fontSize: '12px' }">
               <a-descriptions-item>{{ playUrl }}</a-descriptions-item>
               <a-descriptions-item>
                 <a-button size="small" @click="showMoreUrlHandler">更多地址</a-button>
               </a-descriptions-item>
             </a-descriptions>
-            <a-descriptions :column="1" v-if="showMoreUrl" :labelStyle="{ fontsize: '12px' }">
+            <a-descriptions :column="1" v-if="showMoreUrl && streamInfo" :labelStyle="{ fontSize: '12px' }">
               <a-descriptions-item label="FLV">{{ streamInfo.flv }}</a-descriptions-item>
               <a-descriptions-item label="FLV(https)">{{
                 streamInfo.https_flv
@@ -259,7 +259,7 @@
               <a-descriptions-item label="RTSP">{{ streamInfo.rtsp }}</a-descriptions-item>
               <a-descriptions-item label="RTSPS">{{ streamInfo.rtsps }}</a-descriptions-item>
             </a-descriptions>
-            <a-descriptions :column="2" title="概况" :labelStyle="{ fontsize: '12px' }">
+            <a-descriptions :column="2" title="概况" :labelStyle="{ fontSize: '12px' }">
               <a-descriptions-item label="观看人数">{{ totalReaderCount }}</a-descriptions-item>
               <a-descriptions-item label="网络">{{ formatByteSpeed() }}</a-descriptions-item>
               <a-descriptions-item label="持续时间">{{ formatAliveSecond() }}</a-descriptions-item>
@@ -322,27 +322,27 @@
 
   const open = ref<boolean>(false)
   const showMoreUrl = ref<boolean>(false)
-  const playerType = ref<any>('1')
-  let playUrl = ref<String>('')
-  let ptzControlType = ref<String>('1')
-  let ptzPresetId = ref<String>('1')
-  let ptzCruiseId = ref<String>('1')
-  let ptzScanId = ref<String>('1')
-  let ptzPresetIdForCruise = ref<String>('1')
-  let ptzCruiseSpeed = ref<String>('1')
-  let ptzCruiseStay = ref<String>('1')
-  let scanAutoSpeed = ref<String>('1')
-  let ptzAuxiliarySwitchId = ref<String>('2')
-  let ptzPresetIdForHomePosition = ref<String>('1')
-  let resetTime = ref<String>('1')
+  const playerType = ref<string>('1')
+  let playUrl = ref<string>('')
+  let ptzControlType = ref<string>('1')
+  let ptzPresetId = ref<string>('1')
+  let ptzCruiseId = ref<string>('1')
+  let ptzScanId = ref<string>('1')
+  let ptzPresetIdForCruise = ref<string>('1')
+  let ptzCruiseSpeed = ref<string>('1')
+  let ptzCruiseStay = ref<string>('1')
+  let scanAutoSpeed = ref<string>('1')
+  let ptzAuxiliarySwitchId = ref<string>('2')
+  let ptzPresetIdForHomePosition = ref<string>('1')
+  let resetTime = ref<string>('1')
   let videoTrack = ref<Track>()
   let audioTrack = ref<Track>()
-  let title = ref<String>()
+  let title = ref<string>('')
   let timer = 0
   let streamInfo = ref<StreamInfo>()
+  let deviceId = ref<string>('')
   const jessibuca = ref()
   const rtcPlayer = ref()
-  let presetLoading = ref<boolean>(true)
   let hideControlTab = ref<boolean>(false)
   let addCruiseSwitch = ref<boolean>(false)
   let setScanSwitch = ref<boolean>(false)
@@ -350,9 +350,10 @@
   let setCruiseStaySwitch = ref<boolean>(false)
   let setScanAutoSpeedSwitch = ref<boolean>(false)
   // const presetList = ref<PresetItem[]>()
-  const play = (streamInfoParam: StreamInfo, name: string, hideControl: boolean) => {
+  const play = (streamInfoParam: StreamInfo, name: string, hideControl: boolean, currentDeviceId?: string) => {
     title.value = name
     streamInfo.value = streamInfoParam
+    deviceId.value = currentDeviceId || streamInfoParam.stream || ''
     if (hideControl) {
       hideControlTab.value = true
     } else {
@@ -378,19 +379,19 @@
     if (streamInfo.value == null) {
       return
     }
-    if (playerType.value == 1) {
+    if (playerType.value === '1') {
       if (location.protocol === 'https:') {
         playUrl.value = streamInfo.value.wss_flv
       } else {
         playUrl.value = streamInfo.value.ws_flv
       }
-    } else if (playerType.value == 2) {
+    } else if (playerType.value === '2') {
       if (location.protocol === 'https:') {
         playUrl.value = streamInfo.value.rtcs
       } else {
         playUrl.value = streamInfo.value.rtc
       }
-    } else if (playerType.value == 3) {
+    } else if (playerType.value === '3') {
       if (location.protocol === 'https:') {
         playUrl.value = streamInfo.value.https_fmp4
       } else {
@@ -532,6 +533,7 @@
     console.log('onBeforeUnmount')
     open.value = false
     playUrl.value = ''
+    deviceId.value = ''
     title.value = ''
     videoTrack.value = undefined
     audioTrack.value = undefined
@@ -580,13 +582,13 @@
   }
 
   const formatAliveSecond = () => {
-    const h = parseInt(aliveSecond.value / 3600)
-    const minute = parseInt((aliveSecond.value / 60) % 60)
+    const h = Math.floor(aliveSecond.value / 3600)
+    const minute = Math.floor((aliveSecond.value / 60) % 60)
     const second = Math.ceil(aliveSecond.value % 60)
 
     const hours = h < 10 ? '0' + h : h
     const formatSecond = second > 59 ? 59 : second
-    return `${hours > 0 ? `${hours}小时` : ''}${minute < 10 ? '0' + minute : minute}分${
+    return `${h > 0 ? `${hours}小时` : ''}${minute < 10 ? '0' + minute : minute}分${
       formatSecond < 10 ? '0' + formatSecond : formatSecond
     }秒`
   }

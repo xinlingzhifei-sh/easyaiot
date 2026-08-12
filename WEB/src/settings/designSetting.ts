@@ -12,7 +12,7 @@ export const darkMode = ThemeEnum.LIGHT
 export const lang = LangEnum.ZH
 
 // 水印文字
-export const watermarkText = "BasicLab基础架构实验室"
+export const watermarkText = "yFeiEye基础架构实验室"
 
 // 分组名称
 export const groupTitle = "分组"

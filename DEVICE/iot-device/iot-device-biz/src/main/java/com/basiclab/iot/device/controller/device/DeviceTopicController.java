@@ -16,9 +16,8 @@ import java.util.List;
 /**
  * 设备Topic数据Controller
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date 2022-06-17
  */
 @RestController

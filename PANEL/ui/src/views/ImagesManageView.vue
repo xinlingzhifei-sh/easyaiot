@@ -4,7 +4,7 @@
       <div>
         <h1>镜像管理</h1>
         <p>
-          按 EasyAIoT 模块核对本机运行时镜像 · 形态
+          按 yFeiEye 模块核对本机运行时镜像 · 形态
           <code>{{ profile }}</code>
         </p>
       </div>
@@ -172,7 +172,7 @@
 
     <div class="panel other-panel" v-if="othersFiltered.length">
       <div class="panel-hd">
-        <h2>其他本机镜像（非 EasyAIoT 目录）</h2>
+        <h2>其他本机镜像（非 yFeiEye 目录）</h2>
         <span class="muted">{{ othersFiltered.length }} 个</span>
       </div>
       <a-table

@@ -60,6 +60,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Slf4j
@@ -125,6 +127,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisRpcPlayService redisRpcPlayService;
+
+    // 仅串行化同一通道的建流，避免页面重试与 ZLM 自动点播重复创建同名 RTP Server。
+    private final ConcurrentMap<Integer, Object> playRequestLocks = new ConcurrentHashMap<>();
 
     /**
      * 流到来的处理
@@ -326,6 +331,14 @@ public class PlayServiceImpl implements IPlayService {
 
     private SSRCInfo play(MediaServer mediaServerItem, Device device, DeviceChannel channel, String ssrc, Boolean record,
                           ErrorCallback<StreamInfo> callback) {
+        Object playRequestLock = playRequestLocks.computeIfAbsent(channel.getId(), key -> new Object());
+        synchronized (playRequestLock) {
+            return playWithinChannelLock(mediaServerItem, device, channel, ssrc, record, callback);
+        }
+    }
+
+    private SSRCInfo playWithinChannelLock(MediaServer mediaServerItem, Device device, DeviceChannel channel, String ssrc,
+                                           Boolean record, ErrorCallback<StreamInfo> callback) {
         if (mediaServerItem == null ) {
             if (callback != null) {
                 callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
@@ -1246,6 +1259,13 @@ public class PlayServiceImpl implements IPlayService {
         if (deviceChannel == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelDeviceId);
         }
+        CommonGBChannel commonChannel = channelService.queryCommonChannelByDeviceChannel(deviceChannel);
+        if (commonChannel != null && Integer.valueOf(0).equals(commonChannel.getEnableBroadcast())) {
+            throw new com.basiclab.iot.common.exception.ControllerException(
+                    ErrorCode.ERROR400.getCode(),
+                    "该通道未启用语音对讲，请先确认摄像机支持并在通道配置中启用"
+            );
+        }
 
         if (!userSetting.getServerId().equals(device.getServerId())) {
             return redisRpcPlayService.audioBroadcast(device.getServerId(), deviceId, channelDeviceId, broadcastMode);
@@ -1257,10 +1277,12 @@ public class PlayServiceImpl implements IPlayService {
         }
         String app = broadcastMode?"broadcast":"talk";
         String stream = device.getDeviceId() + "_" + deviceChannel.getDeviceId();
+        String pushToken = UUID.randomUUID().toString().replace("-", "");
+        redisCatchStorage.registerAudioBroadcastAuthority(app, stream, pushToken);
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
         audioBroadcastResult.setApp(app);
         audioBroadcastResult.setStream(stream);
-        audioBroadcastResult.setStreamInfo(new StreamContent(mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null, false)));
+        audioBroadcastResult.setStreamInfo(new StreamContent(mediaServerService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, pushToken, false)));
         audioBroadcastResult.setCodec("G.711");
         return audioBroadcastResult;
     }

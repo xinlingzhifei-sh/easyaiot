@@ -1,4 +1,4 @@
-"""Ultralytics trainer adaptations required by EasyAIoT multi-GPU jobs."""
+"""Ultralytics trainer adaptations required by yFeiEye multi-GPU jobs."""
 from __future__ import annotations
 
 import os

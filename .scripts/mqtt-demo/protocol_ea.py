@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EasyAIoT 紧凑文本私有协议（EA|…）— 设备侧编解码。
+"""yFeiEye 紧凑文本私有协议（EA|…）— 设备侧编解码。
 
 与产品管理「协议脚本」模板 compact_text / ProductScriptTemplates.COMPACT_TEXT 对齐：
 

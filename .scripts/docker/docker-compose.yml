@@ -19,16 +19,17 @@ services:
       - PREFER_HOST_MODE=ip
       - MODE=standalone
       - NACOS_AUTH_ENABLE=true
-      - NACOS_AUTH_IDENTITY_KEY=nacos
-      - NACOS_AUTH_IDENTITY_VALUE=nacos
-      - NACOS_AUTH_TOKEN=SecretKey345901234567890126785678901234567890123901234567890123445678
+      - NACOS_AUTH_IDENTITY_KEY=${NACOS_AUTH_IDENTITY_KEY:?NACOS_AUTH_IDENTITY_KEY is required}
+      - NACOS_AUTH_IDENTITY_VALUE=${NACOS_AUTH_IDENTITY_VALUE:?NACOS_AUTH_IDENTITY_VALUE is required}
+      - NACOS_AUTH_TOKEN=${NACOS_AUTH_TOKEN:?NACOS_AUTH_TOKEN is required}
       - JVM_XMS=512m
       - JVM_XMX=512m
       - JVM_XMN=256m
       - JVM_MS=128m
       - JVM_MMS=320m
     volumes:
-      - ./standalone-logs/:/home/nacos/logs:rw
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/nacos_data/data:/home/nacos/data:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/nacos_data/logs:/home/nacos/logs:rw"
     ports:
       - "0.0.0.0:8848:8848"
       - "0.0.0.0:9848:9848"
@@ -44,7 +45,7 @@ services:
       retries: 30
       start_period: 300s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # PostgresSQL 初始化容器（自动修复权限）
   # 在 PostgreSQL 启动前自动运行，修复数据目录权限问题
@@ -54,8 +55,8 @@ services:
     container_name: postgres-init
     user: "0:0"
     volumes:
-      - ./db_data/data:/var/lib/postgresql/data:rw
-      - ./db_data/log:/var/log/postgresql:rw
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/db_data/data:/var/lib/postgresql/data:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/db_data/log:/var/log/postgresql:rw"
     command:
       [
         "/bin/bash",
@@ -64,7 +65,7 @@ services:
       ]
     restart: "no"
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # PostgresSQL Server
   PostgresSQL:
@@ -72,16 +73,16 @@ services:
     container_name: postgres-server
     restart: always
     ports:
-      - "0.0.0.0:5432:5432"
+      - "0.0.0.0:15432:5432"
     environment:
       - TZ=Asia/Shanghai
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=iot45722414822
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       - POSTGRES_DB=postgres
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-      - ./db_data/data:/var/lib/postgresql/data:rw
-      - ./db_data/log:/var/log/postgresql:rw
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/db_data/data:/var/lib/postgresql/data:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/db_data/log:/var/log/postgresql:rw"
       # SQL 文件挂载（按字母顺序执行）
       # 注意：确保 ../postgresql 目录存在，否则挂载会失败
       - ../postgresql:/docker-entrypoint-initdb.d:rw
@@ -111,7 +112,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # TDengine Server（默认不启动；EASYAIOT_ENABLE_TDENGINE=1 或 docker compose --profile tdengine up）
   TDengine:
@@ -122,6 +123,9 @@ services:
     restart: always
     environment:
       - TZ=Asia/Shanghai
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      # 当前部署未启动 taosKeeper，关闭 taosAdapter 的无效监控上报，避免每 15 秒连接 6043 失败。
+      - TAOS_ADAPTER_UPLOAD_KEEPER_ENABLE=false
     ports:
       - "0.0.0.0:6030:6030"
       - "0.0.0.0:6041:6041"
@@ -129,8 +133,8 @@ services:
       - "0.0.0.0:6043-6049:6043-6049/tcp"
       - "0.0.0.0:6043-6049:6043-6049/udp"
     volumes:
-      - "./taos_data/data:/var/lib/taos:rw"
-      - "./taos_data/log:/var/log/taos:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/taos_data/data:/var/lib/taos:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/taos_data/log:/var/log/taos:rw"
       # TDengine entrypoint 脚本（自动修复权限）
       # 注意：确保 ./tdengine-entrypoint.sh 文件存在，否则挂载会失败
       - ./tdengine-entrypoint.sh:/tdengine-entrypoint.sh:rw
@@ -147,7 +151,7 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # TDengine 初始化容器（在 TDengine 就绪后执行数据库和超级表初始化）
   TDengine-init:
@@ -172,7 +176,7 @@ services:
     command: ["/bin/bash", "/init-tdengine.sh"]
     restart: "no"
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # Redis Server
   Redis:
@@ -184,25 +188,26 @@ services:
       - "0.0.0.0:6379:6379"
     environment:
       - TZ=Asia/Shanghai
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     command: >
       redis-server
       --save 60 1000
       --loglevel warning
       --appendonly yes
-      --requirepass basiclab@iot975248395
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       --maxclients 10000
       --timeout 300
       --tcp-keepalive 60
       --tcp-backlog 511
       --maxmemory-policy allkeys-lru
     volumes:
-      - "./redis_data/data:/data:rw"
-      - "./redis_data/logs:/logs:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/redis_data/data:/data:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/redis_data/logs:/logs:rw"
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "redis-cli -a basiclab@iot975248395 ping | grep PONG || exit 1",
+          "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG || exit 1",
         ]
       interval: 10s
       timeout: 5s
@@ -213,7 +218,7 @@ services:
         max-size: "20M"
         max-file: "10"
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # kafka
   Kafka:
@@ -262,7 +267,7 @@ services:
       - KAFKA_LOG_RETENTION_HOURS=168
       - KAFKA_LOG_DIRS=/var/lib/kafka/data
     volumes:
-      - ./mq_data/data:/var/lib/kafka/data:rw
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/mq_data/data:/var/lib/kafka/data:rw"
     # 使用 extra_hosts 让 Kafka 容器内也能通过 hosts 解析服务
     # host.docker.internal 指向宿主机（Docker 20.10+ 支持）
     # 如果系统不支持，可以通过环境变量 HOST_IP 动态配置
@@ -279,7 +284,7 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # MinIO Server
   MinIO:
@@ -287,16 +292,16 @@ services:
     container_name: minio-server
     restart: always
     ports:
-      - "0.0.0.0:9000:9000"
-      - "0.0.0.0:9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       - TZ=Asia/Shanghai
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=basiclab@iot975248395
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
     command: server /data --console-address ":9001"
     volumes:
-      - "./minio_data/data:/data:rw"
-      - "./minio_data/config:/root/.minio:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/minio_data/data:/data:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/minio_data/config:/root/.minio:rw"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -304,11 +309,11 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # Milvus Vector Database
   Milvus:
-    image: milvusdb/milvus:v2.6.0
+    image: ${MILVUS_IMAGE:-milvusdb/milvus:v2.6.3}
     container_name: milvus-server
     restart: always
     command: ["milvus", "run", "standalone"]
@@ -323,7 +328,7 @@ services:
       - "0.0.0.0:19530:19530"
       - "0.0.0.0:9091:9091"
     volumes:
-      - "./milvus_data:/var/lib/milvus:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/milvus_data:/var/lib/milvus:rw"
       - "./milvus_config/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro"
       - "./milvus_config/user.yaml:/milvus/configs/user.yaml:ro"
     healthcheck:
@@ -333,7 +338,7 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # SRS Server
   SRS:
@@ -344,9 +349,9 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - "./srs_data/conf:/usr/local/srs/conf:rw"
-      - "./srs_data/conf:/opt/srs/trunk/conf:rw"
-      # NFS 媒体根挂载为容器 /data（playbacks/logs 与 sink/VIDEO 同根）
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/srs_data/conf:/usr/local/srs/conf:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/srs_data/conf:/opt/srs/trunk/conf:rw"
+      # 宿主机数据目录映射为容器内录像与日志目录
       - "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/data:rw"
       - "./srs-entrypoint.sh:/usr/local/bin/srs-entrypoint.sh:ro"
       - "./srs-healthcheck.sh:/usr/local/bin/srs-healthcheck.sh:ro"
@@ -360,21 +365,21 @@ services:
       retries: 5
       start_period: 30s
 
-  # Node-RED Server（页面标题 EasyAIoT；演示规则链只读，见 .scripts/node-red/）
+  # Node-RED Server（页面标题 yFeiEye；演示规则链只读，见 .scripts/node-red/）
   # 编辑器: http://localhost:1880  恢复演示: bash .scripts/node-red/seed_nodered_demo.sh
   NodeRED:
     image: nodered/node-red:latest
     container_name: nodered-server
     restart: always
     ports:
-      - "0.0.0.0:1880:1880"
+      - "127.0.0.1:1880:1880"
     environment:
       - TZ=Asia/Shanghai
       - NODE_OPTIONS=--max-old-space-size=512
     user: "1000:1000"
     volumes:
-      - "./nodered_data/data:/data:rw"
-      # EasyAIoT 标题 + 演示规则链只读中间件
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/nodered_data/data:/data:rw"
+      # yFeiEye 标题 + 演示规则链只读中间件
       - "../node-red/settings.js:/data/settings.js:ro"
       - "../node-red/easyaiot_flows_demo.json:/data/easyaiot_flows_demo.json:ro"
       - "../node-red/public:/data/public:ro"
@@ -385,7 +390,7 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # FUXA Web SCADA / HMI（组态编辑器 + 运行态；仅 full 形态启动，mini/standard 跳过且不拉取镜像）
   # 编辑器: http://localhost:1881/editor  运行态: http://localhost:1881/home
@@ -400,11 +405,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - "./fuxa_data/appdata:/usr/src/app/FUXA/server/_appdata:rw"
-      - "./fuxa_data/db:/usr/src/app/FUXA/server/_db:rw"
-      - "./fuxa_data/logs:/usr/src/app/FUXA/server/_logs:rw"
-      - "./fuxa_data/images:/usr/src/app/FUXA/server/_images:rw"
-      # EasyAIoT → FUXA 免登桥接页（写入 sessionStorage 后跳转编辑器/运行态）
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/fuxa_data/appdata:/usr/src/app/FUXA/server/_appdata:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/fuxa_data/db:/usr/src/app/FUXA/server/_db:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/fuxa_data/logs:/usr/src/app/FUXA/server/_logs:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/fuxa_data/images:/usr/src/app/FUXA/server/_images:rw"
+      # yFeiEye → FUXA 免登桥接页（写入 sessionStorage 后跳转编辑器/运行态）
       - "../fuxa/easyaiot-sso.html:/usr/src/app/FUXA/client/dist/easyaiot-sso.html:ro"
     healthcheck:
       # 官方镜像无 curl；用 Node 探测 HTTP 200
@@ -420,7 +425,7 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # EMQX MQTT Broker（mini 默认不启动；standard/full 或 EASYAIOT_ENABLE_EMQX=1 / --profile emqx）
   EMQX:
@@ -438,10 +443,10 @@ services:
       - TZ=Asia/Shanghai
       - EMQX_NAME=emqx
       - EMQX_HOST=127.0.0.1
-      - EMQX_NODE__COOKIE=emqxsecretcookie
+      - EMQX_NODE__COOKIE=${EMQX_NODE_COOKIE:?EMQX_NODE_COOKIE is required}
       - EMQX_CLUSTER__DISCOVERY_STRATEGY=static
       - EMQX_DASHBOARD__DEFAULT_USERNAME=admin
-      - EMQX_DASHBOARD__DEFAULT_PASSWORD=basiclab@iot6874125784
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=${EMQX_DASHBOARD_PASSWORD:?EMQX_DASHBOARD_PASSWORD is required}
       - EMQX_LOG__LEVEL=warning
     volumes:
       - emqx_data:/opt/emqx/data
@@ -452,7 +457,7 @@ services:
       timeout: 25s
       retries: 5
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
   # ZLMediaKit Media Server
   # 注意：ZLMediaKit 启动时会 setrlimit(RLIMIT_NPROC)，需要 CAP_SYS_RESOURCE
@@ -486,11 +491,11 @@ services:
 
     environment:
       - TZ=Asia/Shanghai
-    # 数据目录：.scripts/zlmediakit（相对本文件为 ../zlmediakit）
+    # 可变数据统一落到 release 之外的共享根。
     volumes:
-      - "../zlmediakit/www:/opt/media/bin/www:rw"
-      - "../zlmediakit/log:/opt/media/log:rw"
-      - "../zlmediakit/conf:/conf:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/zlmediakit/www:/opt/media/bin/www:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/zlmediakit/log:/opt/media/log:rw"
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/zlmediakit/conf:/conf:rw"
     command:
       [
         "MediaServer",
@@ -510,7 +515,39 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - easyaiot-network
+      - yfeieye-network
+
+  # GPUStack v2.1.2 — GPU/算力资源监测与管控（Web UI、集群与 Worker 管理）
+  # Web UI: http://localhost:10180  用户 admin，密码见 GPUSTACK_BOOTSTRAP_PASSWORD（仅首次初始化生效）
+  # Dify 由 install_middleware_linux.sh 独立 compose 部署，目录: ./dify_data（端口默认 10190）
+  # 首次安装请访问 http://<宿主机IP>:10190/install 完成管理员初始化
+  GPUStack:
+    image: gpustack/gpustack:v2.1.2
+    container_name: gpustack-server
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      # Worker 注册地址（install 脚本会根据宿主机 IP 注入 GPUSTACK_SERVER_EXTERNAL_URL）
+      - GPUSTACK_SERVER_EXTERNAL_URL=${GPUSTACK_SERVER_EXTERNAL_URL:-http://host.docker.internal:10180}
+      # 默认 admin 初始密码（bootstrap 仅在首次创建数据目录时生效）
+      - GPUSTACK_BOOTSTRAP_PASSWORD=${GPUSTACK_BOOTSTRAP_PASSWORD:?GPUSTACK_BOOTSTRAP_PASSWORD is required}
+    volumes:
+      - "${YFEIEYE_DOCKER_DATA_ROOT:-/opt/yfeieye-source/shared/docker}/gpustack_data:/var/lib/gpustack:rw"
+      # 用于在本机注册 Worker、管理推理容器
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "0.0.0.0:10180:80" # Web UI 与 API（避免占用宿主机 80）
+      - "0.0.0.0:10161:10161" # Server metrics
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:80/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - yfeieye-network
 
 # 磁盘挂载
 volumes:
@@ -539,10 +576,10 @@ volumes:
 
 # 网络配置
 # 注意：当宿主机IP发生变化后，如果容器无法加入网络，请执行以下命令修复：
-# 1. docker network rm easyaiot-network
-# 2. docker network create easyaiot-network
+# 1. docker network rm yfeieye-network
+# 2. docker network create yfeieye-network
 # 3. docker-compose restart
 networks:
-  easyaiot-network:
-    name: easyaiot-network
+  yfeieye-network:
+    name: yfeieye-network
     external: true

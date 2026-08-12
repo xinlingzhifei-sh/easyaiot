@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import logging
@@ -43,8 +42,6 @@ def _alert_to_dict(alert: Alert) -> dict:
         'region': alert.region,
         'device_id': alert.device_id,
         'device_name': alert.device_name,
-        'image_path': alert.image_path,
-        'record_path': alert.record_path,
         'task_id': alert.task_id if hasattr(alert, 'task_id') else None,
         'task_name': alert.task_name if hasattr(alert, 'task_name') else None,
         'edge_node_id': getattr(alert, 'edge_node_id', None),
@@ -130,31 +127,14 @@ def _alert_to_dict(alert: Alert) -> dict:
     else:
         result['notification_sent_time'] = None
 
-    # MinIO 图片下载路径（列表与前端展示优先使用）
-    image_url = alert.image_url if hasattr(alert, 'image_url') else ''
-    try:
-        from app.utils.service_urls import (
-            is_local_filesystem_path,
-            minio_storage_enabled,
-            build_alert_image_api_url,
-        )
-        if not minio_storage_enabled() and is_local_filesystem_path(image_url or ''):
-            image_url = build_alert_image_api_url(image_url)
-    except Exception:
-        pass
-    result['image_url'] = image_url or ''
-
-    record_path = result.get('record_path') or ''
-    try:
-        from app.utils.service_urls import (
-            is_local_filesystem_path,
-            minio_storage_enabled,
-        )
-        if not minio_storage_enabled() and is_local_filesystem_path(record_path):
-            from urllib.parse import quote
-            result['record_path'] = f'/video/alert/record?path={quote(record_path, safe="")}'
-    except Exception:
-        pass
+    has_image = bool(
+        str(getattr(alert, 'image_url', '') or '').strip()
+        or str(getattr(alert, 'image_path', '') or '').strip())
+    has_record = bool(str(getattr(alert, 'record_path', '') or '').strip())
+    result['image_url'] = (
+        f'/video/alert/image?alert_id={alert.id}' if has_image else '')
+    result['record_path'] = (
+        f'/video/alert/record?alert_id={alert.id}' if has_record else '')
 
     business_tags = []
     if hasattr(alert, 'business_tags') and alert.business_tags:
@@ -186,10 +166,25 @@ def _alert_to_dict(alert: Alert) -> dict:
     return result
 
 
-def _get_alert_filter_query(args: dict) -> Query:
+def _required_alert_scope(tenant_id, camera_ids):
+    tenant_text = str(tenant_id or '').strip()
+    cameras = list(dict.fromkeys(
+        str(camera_id or '').strip()
+        for camera_id in (camera_ids or [])
+        if str(camera_id or '').strip()
+    ))
+    if not tenant_text.isdigit() or int(tenant_text) <= 0 or not cameras:
+        raise ValueError('tenant and camera scope are required')
+    return int(tenant_text), cameras
+
+
+def _get_alert_filter_query(args: dict, tenant_id=None, camera_ids=None) -> Query:
     """构建报警查询过滤器"""
     # 仅返回告警图已上传 MinIO 的记录；抓拍任务无 DVR，不要求 record_path
+    tenant_id, camera_ids = _required_alert_scope(tenant_id, camera_ids)
     query: Query = Alert.query.filter(
+        Alert.tenant_id == tenant_id,
+        Alert.device_id.in_(camera_ids),
         Alert.image_url.isnot(None),
         db.func.trim(Alert.image_url) != '',
     )
@@ -297,7 +292,7 @@ def _should_skip_backfill(args: dict) -> bool:
     return str(val).lower() in ('1', 'true', 'yes')
 
 
-def get_alert_list(args: dict) -> dict:
+def get_alert_list(args: dict, tenant_id=None, camera_ids=None) -> dict:
     """获取报警列表（仅返回 image_url 已写入 MinIO 的记录；record_path 可选）
 
     Args:
@@ -316,7 +311,9 @@ def get_alert_list(args: dict) -> dict:
     Returns:
         dict: 包含 alert_list 和 total 的字典
     """
-    query = _get_alert_filter_query(args).order_by(Alert.time.desc())
+    query = _get_alert_filter_query(
+        args, tenant_id=tenant_id, camera_ids=camera_ids,
+    ).order_by(Alert.time.desc())
 
     if 'pageSize' in args and args['pageSize']:
         try:
@@ -342,7 +339,7 @@ def get_alert_list(args: dict) -> dict:
         }
 
 
-def get_correlation_events(correlation_id: str) -> dict:
+def get_correlation_events(correlation_id: str, tenant_id=None, camera_ids=None) -> dict:
     """按 correlation_id 聚合查询同一帧的算法告警、人脸匹配、车牌匹配记录。"""
     from models import FaceMatchRecord, PlateMatchRecord
 
@@ -350,28 +347,54 @@ def get_correlation_events(correlation_id: str) -> dict:
     if not cid:
         raise ValueError('correlation_id 不能为空')
 
-    alerts = Alert.query.filter(Alert.correlation_id == cid).order_by(Alert.id.asc()).all()
+    tenant_id, camera_ids = _required_alert_scope(tenant_id, camera_ids)
+    alerts = Alert.query.filter(
+        Alert.tenant_id == tenant_id,
+        Alert.device_id.in_(camera_ids),
+        Alert.correlation_id == cid,
+    ).order_by(Alert.id.asc()).all()
+    if not alerts:
+        return {
+            'correlation_id': cid,
+            'alerts': [],
+            'face_match_records': [],
+            'plate_match_records': [],
+        }
     face_records = (
-        FaceMatchRecord.query.filter(FaceMatchRecord.correlation_id == cid)
+        FaceMatchRecord.query.filter(
+            FaceMatchRecord.correlation_id == cid,
+            FaceMatchRecord.device_id.in_(camera_ids),
+        )
         .order_by(FaceMatchRecord.id.asc())
         .all()
     )
     plate_records = (
-        PlateMatchRecord.query.filter(PlateMatchRecord.correlation_id == cid)
+        PlateMatchRecord.query.filter(
+            PlateMatchRecord.correlation_id == cid,
+            PlateMatchRecord.device_id.in_(camera_ids),
+        )
         .order_by(PlateMatchRecord.id.asc())
         .all()
     )
     return {
         'correlation_id': cid,
         'alerts': [_alert_to_dict(a) for a in alerts],
-        'face_match_records': [r.to_dict() for r in face_records],
-        'plate_match_records': [r.to_dict() for r in plate_records],
+        'face_match_records': [_redact_match_media(r.to_dict()) for r in face_records],
+        'plate_match_records': [_redact_match_media(r.to_dict()) for r in plate_records],
     }
 
 
-def get_alert_count(args: dict) -> dict:
+def _redact_match_media(payload):
+    result = dict(payload or {})
+    result.pop('face_image_path', None)
+    result.pop('plate_image_path', None)
+    return result
+
+
+def get_alert_count(args: dict, tenant_id=None, camera_ids=None) -> dict:
     """获取报警统计（与列表一致：仅统计 image_url 已写入 MinIO 的记录，筛选条件同 get_alert_list）"""
-    query = _get_alert_filter_query(args)
+    query = _get_alert_filter_query(
+        args, tenant_id=tenant_id, camera_ids=camera_ids)
 
     if 'group' in args and args['group']:
         group_type = args['group']
@@ -434,6 +457,8 @@ def create_alert(alert_data: dict) -> dict:
         dict: 创建的报警记录字典
     """
     try:
+        tenant_id, _ = _required_alert_scope(
+            alert_data.get('tenant_id'), [alert_data.get('device_id')])
         # 验证必填字段
         required_fields = ['object', 'event', 'device_id', 'device_name']
         for field in required_fields:
@@ -531,6 +556,7 @@ def create_alert(alert_data: dict) -> dict:
 
         # 创建报警记录
         alert = Alert(
+            tenant_id=tenant_id,
             object=object_value,
             event=alert_data['event'],
             device_id=alert_data['device_id'],
@@ -582,7 +608,8 @@ def _normalize_to_shanghai_naive(value):
     return normalize_to_shanghai_naive(value)
 
 
-def find_playback_for_alert(device_id: str, alert_time, time_range: int = 300):
+def find_playback_for_alert(device_id: str, alert_time, time_range: int = 300,
+                            tenant_id=None):
     """查找与告警时间最匹配的 Playback 记录。"""
     from models import Playback
 
@@ -591,11 +618,14 @@ def find_playback_for_alert(device_id: str, alert_time, time_range: int = 300):
     start_time = alert_sh - timedelta(seconds=extended_range)
     end_time = alert_sh + timedelta(seconds=extended_range)
 
-    candidates = Playback.query.filter(
+    filters = [
         Playback.device_id == device_id,
         Playback.event_time >= start_time,
         Playback.event_time <= end_time,
-    ).all()
+    ]
+    if tenant_id is not None:
+        filters.insert(0, Playback.tenant_id == int(tenant_id))
+    candidates = Playback.query.filter(*filters).all()
 
     matched = []
     for playback in candidates:
@@ -609,7 +639,8 @@ def find_playback_for_alert(device_id: str, alert_time, time_range: int = 300):
     return None
 
 
-def find_record_file_for_alert(device_id: str, alert_time, time_range: int = 300):
+def find_record_file_for_alert(device_id: str, alert_time, time_range: int = 300,
+                               tenant_id=None):
     """在 RecordFile 元数据中查找与告警时间最匹配的录像片段（Playback 未命中时的兜底）。"""
     from models import RecordFile, RecordSpace
 
@@ -617,7 +648,10 @@ def find_record_file_for_alert(device_id: str, alert_time, time_range: int = 300
     if not alert_naive:
         return None
 
-    space = RecordSpace.query.filter_by(device_id=device_id).first()
+    space_query = RecordSpace.query.filter_by(device_id=device_id)
+    if tenant_id is not None:
+        space_query = space_query.filter_by(tenant_id=int(tenant_id))
+    space = space_query.first()
     if not space:
         return None
 
@@ -627,6 +661,8 @@ def find_record_file_for_alert(device_id: str, alert_time, time_range: int = 300
 
     candidates = (
         RecordFile.query.filter(
+            *([RecordFile.tenant_id == int(tenant_id)]
+              if tenant_id is not None else []),
             RecordFile.device_id == device_id,
             RecordFile.space_id == space.id,
             RecordFile.event_time >= start_time,
@@ -656,7 +692,56 @@ def find_record_file_for_alert(device_id: str, alert_time, time_range: int = 300
     return best
 
 
-def _record_path_playback_payload(record_path: str, device_id: str) -> dict:
+def _record_start_time_for_path(
+    record_path: str,
+    device_id: str,
+    alert_time,
+    time_range: int = 300,
+    tenant_id=None,
+):
+    """从与 record_path 对应的录像元数据或文件名解析真实片段起点。"""
+    from app.services.media_dvr_utils import (
+        parse_srs_dvr_segment_start_from_filename,
+    )
+    from app.services.space_file_metadata_service import extract_prefix_from_url
+
+    record_path = (record_path or '').strip()
+    if not record_path or not device_id or alert_time is None:
+        return None
+
+    path_or_object = extract_prefix_from_url(record_path) or record_path
+    filename_start = parse_srs_dvr_segment_start_from_filename(path_or_object)
+    if filename_start is not None:
+        return filename_start
+
+    try:
+        playback = find_playback_for_alert(
+            device_id, alert_time, time_range, tenant_id=tenant_id)
+        if playback and (getattr(playback, 'file_path', '') or '').strip() == record_path:
+            return getattr(playback, 'event_time', None)
+    except Exception as exc:
+        logger.debug('record_path Playback 起点解析跳过 path=%s: %s', record_path, exc)
+
+    try:
+        record_file = find_record_file_for_alert(
+            device_id, alert_time, time_range, tenant_id=tenant_id)
+        if record_file:
+            stored_url = (getattr(record_file, 'url', '') or '').strip()
+            object_name = (getattr(record_file, 'object_name', '') or '').strip()
+            path_prefix = extract_prefix_from_url(record_path)
+            if record_path == stored_url or (object_name and path_prefix == object_name):
+                return getattr(record_file, 'event_time', None)
+    except Exception as exc:
+        logger.debug('record_path RecordFile 起点解析跳过 path=%s: %s', record_path, exc)
+
+    return None
+
+
+def _record_path_playback_payload(
+    record_path: str,
+    device_id: str,
+    record_start_time=None,
+) -> dict:
     """将 alert.record_path 转为可播放响应。"""
     from urllib.parse import quote
 
@@ -666,20 +751,23 @@ def _record_path_playback_payload(record_path: str, device_id: str) -> dict:
     if not record_path:
         return {}
     if is_minio_download_path(record_path):
+        api_path = f'/video/alert/record?path={quote(record_path, safe="")}'
         return {
-            'video_url': record_path,
-            'file_path': record_path,
+            'video_url': api_path,
             'device_id': device_id,
             'source': 'alert_record_path',
+            'record_start_time': (
+                record_start_time.isoformat() if record_start_time else None),
         }
     if not minio_storage_enabled() and is_local_filesystem_path(record_path):
         from app.utils.service_urls import build_alert_record_api_url
         api_path = build_alert_record_api_url(record_path)
         return {
             'video_url': api_path,
-            'file_path': record_path,
             'device_id': device_id,
             'source': 'alert_record_path',
+            'record_start_time': (
+                record_start_time.isoformat() if record_start_time else None),
         }
     return {}
 
@@ -689,12 +777,17 @@ def resolve_alert_record_video(
     alert_time,
     time_range: int = 300,
     alert_id=None,
+    tenant_id=None,
 ) -> Optional[dict]:
     """解析告警录像播放地址：record_path → Playback → RecordFile。"""
     alert_row = None
     if alert_id is not None:
         try:
-            alert_row = Alert.query.get(int(alert_id))
+            alert_query = Alert.query.filter(Alert.id == int(alert_id))
+            if tenant_id is not None:
+                alert_query = alert_query.filter(
+                    Alert.tenant_id == int(tenant_id))
+            alert_row = alert_query.first()
         except (TypeError, ValueError):
             alert_row = None
 
@@ -707,38 +800,51 @@ def resolve_alert_record_video(
                 try_backfill_alert_record_from_playback(alert_row)
             except Exception as exc:
                 logger.debug('查询前回填 record_path 跳过 alert_id=%s: %s', alert_row.id, exc)
-        payload = _record_path_playback_payload(alert_row.record_path, alert_row.device_id)
+        record_start_time = _record_start_time_for_path(
+            alert_row.record_path,
+            alert_row.device_id,
+            alert_time,
+            time_range,
+            tenant_id=tenant_id,
+        )
+        payload = _record_path_playback_payload(
+            alert_row.record_path,
+            alert_row.device_id,
+            record_start_time,
+        )
         if payload:
             return payload
 
     if not device_id or alert_time is None:
         return None
 
-    playback = find_playback_for_alert(device_id, alert_time, time_range)
+    playback = find_playback_for_alert(
+        device_id, alert_time, time_range, tenant_id=tenant_id)
     if playback and (playback.file_path or '').strip():
         from app.utils.service_urls import resolve_playback_display_url
         file_path = playback.file_path.strip()
         return {
             'playback_id': playback.id,
-            'file_path': file_path,
             'video_url': resolve_playback_display_url(file_path),
             'event_time': playback.event_time.isoformat() if playback.event_time else None,
+            'record_start_time': playback.event_time.isoformat() if playback.event_time else None,
             'duration': playback.duration,
             'device_id': playback.device_id,
             'device_name': playback.device_name,
             'source': 'playback_match',
         }
 
-    record_file = find_record_file_for_alert(device_id, alert_time, time_range)
+    record_file = find_record_file_for_alert(
+        device_id, alert_time, time_range, tenant_id=tenant_id)
     if record_file:
         item = record_file.to_list_item()
         file_path = (item.get('url') or record_file.url or '').strip()
         if file_path:
             return {
                 'record_file_id': record_file.id,
-                'file_path': file_path,
                 'video_url': file_path,
                 'event_time': record_file.event_time.isoformat() if record_file.event_time else None,
+                'record_start_time': record_file.event_time.isoformat() if record_file.event_time else None,
                 'duration': record_file.duration,
                 'device_id': record_file.device_id,
                 'source': 'record_file_match',
@@ -746,8 +852,10 @@ def resolve_alert_record_video(
     return None
 
 
-def _find_playback_for_alert(device_id: str, alert_time, time_range: int = 300):
-    return find_playback_for_alert(device_id, alert_time, time_range)
+def _find_playback_for_alert(device_id: str, alert_time, time_range: int = 300,
+                             tenant_id=None):
+    return find_playback_for_alert(
+        device_id, alert_time, time_range, tenant_id=tenant_id)
 
 
 def backfill_alert_records_for_list(alerts) -> None:
@@ -768,7 +876,8 @@ def try_backfill_alert_record_from_playback(alert: Alert) -> bool:
     if alert.task_type == 'snap':
         return False
 
-    playback = _find_playback_for_alert(alert.device_id, alert.time)
+    playback = _find_playback_for_alert(
+        alert.device_id, alert.time, tenant_id=alert.tenant_id)
     if not playback or not (playback.file_path or '').strip():
         return False
 
@@ -831,8 +940,11 @@ def patch_alerts_record(dvr_info: dict):
         legacy_start = begin_time - timedelta(seconds=duration)
         end_time = begin_time + timedelta(seconds=duration)
         device_id = dvr_info['device_id']
+        tenant_id, _ = _required_alert_scope(
+            dvr_info.get('tenant_id'), [device_id])
 
         alerts = Alert.query.filter(
+            Alert.tenant_id == tenant_id,
             Alert.time >= legacy_start,
             Alert.time <= end_time,
             Alert.device_id == device_id,
@@ -858,7 +970,7 @@ def patch_alerts_record(dvr_info: dict):
         raise
 
 
-def get_dashboard_statistics() -> dict:
+def get_dashboard_statistics(tenant_id=None, camera_ids=None) -> dict:
     """获取仪表板统计信息
     
     Returns:
@@ -870,10 +982,15 @@ def get_dashboard_statistics() -> dict:
             - model_count: 模型数量（如果AI服务可用则返回实际值，否则返回0）
     """
     try:
-        from models import Device, AlgorithmTask
+        from models import AlgorithmTask
+        tenant_id, camera_ids = _required_alert_scope(tenant_id, camera_ids)
         
         # 统计告警总数
-        alarm_count = Alert.query.count()
+        scoped_alerts = Alert.query.filter(
+            Alert.tenant_id == tenant_id,
+            Alert.device_id.in_(camera_ids),
+        )
+        alarm_count = scoped_alerts.count()
         
         # 统计今日告警数（从今天00:00:00开始，使用北京时区）
         from datetime import timezone
@@ -885,10 +1002,10 @@ def get_dashboard_statistics() -> dict:
         today_start = beijing_now.replace(hour=0, minute=0, second=0, microsecond=0)
         
         # 由于Alert.time是带时区的，需要确保时区一致
-        today_alarm_count = Alert.query.filter(Alert.time >= today_start).count()
+        today_alarm_count = scoped_alerts.filter(Alert.time >= today_start).count()
         
         # 统计摄像头数量
-        camera_count = Device.query.count()
+        camera_count = len(camera_ids)
         
         # 统计算法数量（算法任务数量）
         algorithm_count = AlgorithmTask.query.count()
@@ -942,13 +1059,17 @@ def get_dashboard_statistics() -> dict:
         }
 
 
-def clear_all_alerts() -> dict:
+def clear_all_alerts(tenant_id=None, camera_ids=None) -> dict:
     """清空所有告警记录
 
     Returns:
         dict: 包含删除数量的字典
     """
-    alerts = Alert.query.all()
+    tenant_id, camera_ids = _required_alert_scope(tenant_id, camera_ids)
+    alerts = Alert.query.filter(
+        Alert.tenant_id == tenant_id,
+        Alert.device_id.in_(camera_ids),
+    ).all()
     delete_count = len(alerts)
 
     for alert in alerts:
@@ -962,7 +1083,7 @@ def clear_all_alerts() -> dict:
     }
 
 
-def clear_alerts_by_task_name(task_name: str) -> dict:
+def clear_alerts_by_task_name(task_name: str, tenant_id=None, camera_ids=None) -> dict:
     """按任务名称清空告警记录
 
     说明：当前工程中 task_name 对应告警表的 object 字段。
@@ -971,7 +1092,12 @@ def clear_alerts_by_task_name(task_name: str) -> dict:
     if not task_name:
         raise ValueError('task_name参数不能为空')
 
-    alerts = Alert.query.filter(Alert.object == task_name).all()
+    tenant_id, camera_ids = _required_alert_scope(tenant_id, camera_ids)
+    alerts = Alert.query.filter(
+        Alert.tenant_id == tenant_id,
+        Alert.device_id.in_(camera_ids),
+        Alert.object == task_name,
+    ).all()
     delete_count = len(alerts)
 
     for alert in alerts:

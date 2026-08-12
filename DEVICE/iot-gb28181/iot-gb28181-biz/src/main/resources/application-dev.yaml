@@ -25,7 +25,7 @@ spring:
             multi-statement-allow: true
     dynamic: # 多数据源配置
       druid:
-        initial-size: 5
+        initial-size: 0 # 由创建线程建立首连接，避免 PostgreSQL 短暂重启时 Druid 将数据源永久关闭
         min-idle: 5
         maxActive: 20
         maxWait: 60000
@@ -44,15 +44,15 @@ spring:
         master:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://14.18.122.2:5432/iot-gb2818110?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
 
   # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优
   redis:
     host: 14.18.122.2 # 地址
     port: 6379 # 端口
     database: 7 # 数据库索引
-    password: basiclab@iot975248395 # 密码，建议生产环境开启
+    password: ${REDIS_PASSWORD} # 密码，建议生产环境开启
     lettuce:
       pool:
         max-active: 8    # 根据业务需求设置（生产环境建议8-16）
@@ -145,7 +145,7 @@ media:
   # 如果未配置或配置为 127.0.0.1，系统会自动获取宿主机 IP（排除 docker 接口和回环地址）
   # hook-ip: 172.16.13.220  # 已注释，将自动获取宿主机 IP
   # [必选选] zlm服务器的hook.admin_params=secret
-  secret: AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG
+  secret: ${ZLM_SECRET}
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -169,7 +169,7 @@ sip:
   # [可选]
   id: 44010200492000000001
   # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-  password: admin123
+  password: ${GB28181_SIP_PASSWORD}
   # [可选] 是否启用设备REGISTER密码鉴权；关闭后将跳过401挑战与密码校验（仅用于兼容不支持鉴权的设备）
   register-password-auth: true
   # 是否存储alarm信息
@@ -180,8 +180,8 @@ sip:
 # Minio配置
 minio:
   endpoint: http://14.18.122.2:9000
-  user: minio_root
-  password: minio_123456
+  user: ${MINIO_ACCESS_KEY}
+  password: ${MINIO_SECRET_KEY}
 
 --- #################### 计算任务配置（开发环境） ####################
 
@@ -255,4 +255,3 @@ basiclab:
   iot:
     message-bus:
       type: kafka # 消息总线类型：local、kafka
-

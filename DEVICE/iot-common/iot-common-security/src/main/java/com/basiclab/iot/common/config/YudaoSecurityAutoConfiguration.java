@@ -5,6 +5,7 @@ import com.basiclab.iot.common.context.TransmittableThreadLocalSecurityContextHo
 import com.basiclab.iot.common.filter.TokenAuthenticationFilter;
 import com.basiclab.iot.common.handler.AccessDeniedHandlerImpl;
 import com.basiclab.iot.common.handler.AuthenticationEntryPointImpl;
+import com.basiclab.iot.common.service.RpcInternalAccess;
 import com.basiclab.iot.common.service.SecurityFrameworkService;
 import com.basiclab.iot.common.service.SecurityFrameworkServiceImpl;
 import com.basiclab.iot.common.web.core.handler.GlobalExceptionHandler;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,9 +34,8 @@ import static com.basiclab.iot.common.utils.RpcApiBeanUtils.resolveLocalApi;
  * 注意，不能和 {@link YudaoWebSecurityConfigurerAdapter} 用一个，原因是会导致初始化报错。
  * 参见 https://stackoverflow.com/questions/53847050/spring-boot-delegatebuilder-cannot-be-null-on-autowiring-authenticationmanager 文档。
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @AutoConfiguration
 @AutoConfigureOrder(-1) // 目的：先于 Spring Security 自动配置，避免一键改包后，org.* 基础包无法生效
@@ -43,6 +44,17 @@ public class YudaoSecurityAutoConfiguration {
 
     @Resource
     private SecurityProperties securityProperties;
+
+    @Bean
+    @ConfigurationProperties(prefix = "iot.rpc")
+    public RpcInternalTokenProperties rpcInternalTokenProperties() {
+        return new RpcInternalTokenProperties();
+    }
+
+    @Bean("rpcInternalAccess")
+    public RpcInternalAccess rpcInternalAccess(RpcInternalTokenProperties properties) {
+        return new RpcInternalAccess(properties);
+    }
 
     /**
      * 处理用户未登录拦截的切面的 Bean

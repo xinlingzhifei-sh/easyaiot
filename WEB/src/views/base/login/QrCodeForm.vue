@@ -23,7 +23,7 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.QR_CODE)
         <template #content>
           <QRCode :value="qrCodeUrl" class="enter-x flex justify-center xl:justify-start" :width="280" :bordered="false" />
         </template>
-        <img width="100" height="100" :src="loginImg">
+        <img class="login-qr-logo" :src="loginImg" alt="Logo">
       </Popover>
       <Divider class="enter-x">
         {{ t('sys.login.scanSign') }}
@@ -34,3 +34,13 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.QR_CODE)
     </div>
   </div>
 </template>
+
+<style lang="less" scoped>
+.login-qr-logo {
+  display: block;
+  width: 140px;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+</style>

@@ -1,14 +1,14 @@
-# EasyAIoT (클라우드-엣지-디바이스 통합 지능형 알고리즘 응용 플랫폼)
+# yFeiEye (클라우드-엣지-디바이스 통합 지능형 알고리즘 응용 플랫폼)
 
-[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/stargazers)
-[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/members)
+[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/reese/easyaiot/stargazers)
+[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/reese/easyaiot/members)
 
 <p style="font-size: 16px; line-height: 1.8; color: #555; font-weight: 400; margin: 20px 0;">
 전 세계 사람들이 이 시스템을 사용하여 AI의 진정한 무장벽화를 실현하고, AI가 가져다주는 혜택을 누리길 바랍니다. 이는 소수의 사람들만이 접근할 수 있는 것이 아닙니다.
 </p>
 
 <div align="center">
-    <img src=".image/logo.png" width="30%" height="30%" alt="EasyAIoT">
+    <img src=".image/logo.png" width="30%" height="30%" alt="yFeiEye">
 </div>
 
 <h4 align="center" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; font-weight: bold;">
@@ -27,18 +27,18 @@
 
 ## 🌐 공식 웹사이트
 
-EasyAIoT 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
+yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
 제품 소개, 기능 설명, 3단계 하드웨어 선택, 설치 패키지 다운로드와 문서 진입점을 제공하여 플랫폼 가치를 빠르게 이해하고 배포를 시작할 수 있습니다.
 
 ## 📖 프로젝트 소개
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>EasyAIoT</strong>(Easy AI Internet of Things)는 <strong>클라우드-엣지-디바이스 통합 지능형 알고리즘 애플리케이션 플랫폼</strong>으로, 인공지능과 사물인터넷의 깊은 융합에 전념합니다. 카메라, 센서, 엣지 연산 자원이 현장에서 협력하여 동작하도록 하며—디바이스 접속과 데이터 수집부터 실시간 영상 분석, 지능형 판단, 알람 연동까지 전 과정을 하나의 소프트웨어 스택에서 완성합니다.
+<strong>yFeiEye</strong>는 <strong>클라우드-엣지-디바이스 통합 지능형 알고리즘 애플리케이션 플랫폼</strong>으로, 인공지능과 사물인터넷의 깊은 융합에 전념합니다. 카메라, 센서, 엣지 연산 자원이 현장에서 협력하여 동작하도록 하며—디바이스 접속과 데이터 수집부터 실시간 영상 분석, 지능형 판단, 알람 연동까지 전 과정을 하나의 소프트웨어 스택에서 완성합니다.
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-많은 스마트 IoT 프로젝트가 배포 단계에서 같은 벽에 부딪힙니다. 영상 시스템, 디바이스 플랫폼, 알고리즘 서비스가 각각 분리되어 있어 통합 비용이 높고, 운영이 파편화되며, 확장이 어렵습니다. <strong>EasyAIoT는 하나의 플랫폼으로 이 모순을 해소합니다</strong>—동일한 소프트웨어를 4 GB 엣지 박스에 배포해 단일 지점 지능을 구현하거나, AI 일체형 카메라에 탑재해 층 단위 커버리지를 달성하거나, 기업용 풀스택 어플라이언스에 탑재해 IoT 관리, 대규모 영상 접속, AI 분석 판단을 한 상자에 담을 수 있습니다. 여러 버전을 유지하거나 이기종 시스템을 반복 연동할 필요가 없습니다.
+많은 스마트 IoT 프로젝트가 배포 단계에서 같은 벽에 부딪힙니다. 영상 시스템, 디바이스 플랫폼, 알고리즘 서비스가 각각 분리되어 있어 통합 비용이 높고, 운영이 파편화되며, 확장이 어렵습니다. <strong>yFeiEye는 하나의 플랫폼으로 이 모순을 해소합니다</strong>—동일한 소프트웨어를 4 GB 엣지 박스에 배포해 단일 지점 지능을 구현하거나, AI 일체형 카메라에 탑재해 층 단위 커버리지를 달성하거나, 기업용 풀스택 어플라이언스에 탑재해 IoT 관리, 대규모 영상 접속, AI 분석 판단을 한 상자에 담을 수 있습니다. 여러 버전을 유지하거나 이기종 시스템을 반복 연동할 필요가 없습니다.
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -46,11 +46,11 @@ EasyAIoT 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
-<strong>한 문장으로:</strong> EasyAIoT = AI + IoT — 만물을 연결하는 동시에 만물에 지능형 시각과 지능형 제어를 실현합니다.
+<strong>한 문장으로:</strong> yFeiEye = AI + IoT — 만물을 연결하는 동시에 만물에 지능형 시각과 지능형 제어를 실현합니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-📄 보다 완전한 그림·문자 소개는 <a href=".doc/项目介绍/EasyAIoT项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">EasyAIoT 프로젝트 소개 V2.0 (PPT)</a>, 그리고 <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">AI 영상 감시 분석 플랫폼 (PDF)</a>를 참조하세요.
+📄 보다 완전한 그림·문자 소개는 <a href=".doc/项目介绍/yFeiEye项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">yFeiEye 프로젝트 소개 V2.0 (PPT)</a>와 <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">AI 영상 감시 분석 플랫폼 (PDF)</a>를 참조하세요.
 </p>
 
 ## 🌟 프로젝트에 대한 몇 가지 생각
@@ -58,7 +58,7 @@ EasyAIoT 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:
 ### 📍 프로젝트 포지셔닝
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지-디바이스 통합 지능형 사물인터넷 플랫폼입니다. 플랫폼은 알고리즘 태스크 관리, 실시간 스트림 분석, 모델 서비스 클러스터 추론 등의 핵심 기능을 통해, 디바이스 접속부터 데이터 수집, AI 분석, 지능형 의사결정에 이르는 전 과정의 폐쇄 루프를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
+yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지-디바이스 통합 지능형 사물인터넷 플랫폼입니다. 플랫폼은 알고리즘 태스크 관리, 실시간 스트림 분석, 모델 서비스 클러스터 추론 등의 핵심 기능을 통해, 디바이스 접속부터 데이터 수집, AI 분석, 지능형 의사결정에 이르는 전 과정의 폐쇄 루프를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
 </p>
 
 ### 🎛️ PANEL: 일체기 도착 당일 설치·인수, 당직은 원격 개발자를 기다리지 않음
@@ -86,7 +86,7 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
 ### 📡 RTC: 소비자급 카메라 P2P 브리지 — 「RTSP 없음」 장치도 플랫폼에
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-가정, 매장, 경량 보안 현장에서 이미 사용 중인 <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 등은 벤더 전용 P2P 프로토콜을 사용하며 <strong>표준 RTSP를 제공하지 않습니다</strong>. EasyAIoT는 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a> 기반 <strong>RTC 모듈</strong>로 <strong>9대 브랜드의 스트리밍·양방향 오디오를 통합</strong> — GB28181/ONVIF와 동일하게 등록, 미리보기, 릴레이, AI 작업, 경보 연동이 가능합니다.
+가정, 매장, 경량 보안 현장에서 이미 사용 중인 <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 등은 벤더 전용 P2P 프로토콜을 사용하며 <strong>표준 RTSP를 제공하지 않습니다</strong>. yFeiEye는 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a> 기반 <strong>RTC 모듈</strong>로 <strong>9대 브랜드의 스트리밍·양방향 오디오를 통합</strong> — GB28181/ONVIF와 동일하게 등록, 미리보기, 릴레이, AI 작업, 경보 연동이 가능합니다.
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px;">
@@ -117,7 +117,7 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
 ### 🎯 세 가지 하드웨어, 하나의 플랫폼
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-많은 지능형 IoT 프로젝트가 배포 단계에서 막힙니다. <strong>기능을 모두 넣으면 작은 기기에 안 들어가고, 들어가게 하려면 기능을 줄이고 버전을 나누고 여러 배포 패키지를 유지해야 합니다.</strong> EasyAIoT는 하나의 플랫폼으로 이 딜레마를 해결합니다 — <strong>엣지 박스로 점 단위 지능, AI 일체형 카메라로 벽면 즉시 분석, AIoT 풀스택 일체기로 한 박스에 전체 스택</strong>. 현장 하드웨어에 맞는 등급을 선택하면, 단일 지점 시범부터 층면 커버리지, 풀스택 납품까지 동일 소프트웨어로 진행 — 버전 분리 없음.
+많은 지능형 IoT 프로젝트가 배포 단계에서 막힙니다. <strong>기능을 모두 넣으면 작은 기기에 안 들어가고, 들어가게 하려면 기능을 줄이고 버전을 나누고 여러 배포 패키지를 유지해야 합니다.</strong> yFeiEye는 하나의 플랫폼으로 이 딜레마를 해결합니다 — <strong>엣지 박스로 점 단위 지능, AI 일체형 카메라로 벽면 즉시 분석, AIoT 풀스택 일체기로 한 박스에 전체 스택</strong>. 현장 하드웨어에 맞는 등급을 선택하면, 단일 지점 시범부터 층면 커버리지, 풀스택 납품까지 동일 소프트웨어로 진행 — 버전 분리 없음.
 </p>
 
 | 등급 | 대표 하드웨어 (예) | 권장 메모리 | 할 수 있는 것 | 실측 검증 |
@@ -134,12 +134,21 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
 |:---:|:---:|:---:|
 | ![엣지 박스 mini](.image/deploy-profile-mini.png) | ![AI 일체형 카메라 standard](.image/deploy-profile-standard.png) | ![풀스택 일체형 full](.image/deploy-profile-full.png) |
 
+<div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
+  <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 yFeiEye 무한 연합 엣지 클러스터 모드</p>
+  <p style="font-size: 14px; line-height: 1.8; color: #333; margin: 0;">
+    메모리 약 <strong>512MB</strong>, <strong>Ceph 엣지 로컬 디스크 점유 0</strong>(알람 이미지·비즈니스 객체는 공유 Ceph에 기록, 엣지 로컬 비즈니스 디스크 없음); 컴퓨팅을 현장에 바로 펼쳐 배포할 수 있습니다; <strong>한 줄 명령</strong>으로 일반 개발 보드를 바로 지능화하고, 알람·이벤트를 클라우드로 집약합니다.
+    상단 세 가지 풀스택 배포 등급과 상호 보완합니다 — 풀스택은 클라우드-엣지 관제·비즈니스 오케스트레이션을 담당하고, EDGE 노드는 현장 경량 추론과 무한 수평 확장을 담당하여 「중앙 한곳에서 관제, 엣지는 어디서나 펼침」을 실현합니다.
+  </p>
+</div>
+
 #### 🧠 AI 기능
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>RUNTIME 고속 실행 계층</strong>: 「보기·계산·푸시」를 인터프리터 경로에서 분리해 <strong>네이티브 바이너리</strong>가 <strong>풀링 → 디코딩 → 추론 → 경보 콜백 → 박스 푸시</strong>를 관통합니다. Python 경로 대비 GIL·다중 프로세스 오버헤드를 피해 동일 하드웨어에서 <strong>박스당 채널 수↑, 종단 지연↓, CPU/메모리↓</strong>; 실시간 / 스냅샷 / 순찰과 다중 원본 전달이 동일 실행 능력을 공유하며 기본 <code>executor=cpp</code>. 업무상 NVR 수십 채널을 먼저 선명·안정적으로 띄운 뒤 핵심 채널에만 AI를 켜고, 원본·박스 판정을 전환해도 서로를 끌어내리지 않으며, VIDEO/WEB는 오케스트레이션·아카이브·권한을, 실행 계층은 처리량·지연에 집중 — 채널 확장이 곧 장비 교체로 이어지지 않습니다</li>
-  <li><strong>고성능 스트림 전달</strong>: 「먼저 대시보드/분할 화면을 채우고, 모든 채널에 알고리즘을 켤 필요는 없음」 — NVR 일괄·다지점 원클릭 작업화. 기본 경로는 <strong>RUNTIME</strong> 고성능(호환 모드 전환 가능)으로 다중 원본을 더 낮은 자원으로 상영. 원본 시청과 AI 판정 병행; 알고리즘 시작/중지 후 전달 정책 자동 추종. 나란히 미리보기로 인수 주기 단축</li>
-  <li><strong>전체 접점에서 플랫폼 이름 및 Logo 사용자 정의</strong>: EasyAIoT를 현장에 배포한 후 사용자가 보는 것은 범용 제품명이 아니라 「자신의 플랫폼」이어야 합니다. 모니터링 대시보드에 시각적 「플랫폼 식별 설정」이 내장되어 있어, 관리자가 UI에서 브랜드를 교체할 수 있습니다 — 관리 콘솔의 플랫폼 이름·Logo(사이드바·브라우저 제목 동기화), 모니터링 대시보드 독립 지휘 타이틀, 로그인 페이지 이름·Logo·폼 제목·밝은/어두운 배경 이미지. 세 접점 시각 통일, 즉시 적용, 저장 및 원클릭 초기화 지원.
+  <li><strong>RUNTIME 고성능 비디오 실행기</strong>: 현장 영상을 「볼 수 있고 계산할 수 있음」에서 「채널을 더 띄우고 근무가 따라감」으로 끌어올립니다 — 동일 실행 능력이 <strong>실시간 판정·예약 스냅샷·다중 순찰</strong>을 커버하고, 동시에 <strong>다중 원본 상영</strong>을 지원합니다. 업무적으로는: 단지 NVR 수십 채널을 먼저 「선명하고 끊김 없이」 보장한 뒤 핵심 채널에만 AI를 켜고; 원본 미리보기와 박스 판정 화면을 같은 화면에서 전환하되 서로를 끌어내리지 않으며; 검출 표기를 읽기 쉽게 해 「박스가 흐리고 오경보가 눈을 뺏는」 간섭을 줄입니다. 플랫폼은 장치 오케스트레이션·경보 아카이브·권한 관리를 계속 담당하고, 실행 계층은 처리량과 지연에 집중해 채널·시나리오 확장이 곧바로 장비 교체로 이어지지 않게 합니다. 자세한 내용: <a href="RUNTIME/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RUNTIME/README.md</a></li>
+  <li><strong>고성능 스트림 전달</strong>: 「먼저 대시보드/분할 화면을 채우고, 모든 채널에 알고리즘을 켤 필요는 없음」이라는 실제 납품 요구에 맞춰 — NVR 일괄 채널·건물 다지점을 원클릭으로 전달 작업화합니다. 기본은 고성능 모드로 다중 원본을 더 낮은 자원 비용으로 안정 상영; 특수 현장은 호환 모드로 전환 가능. 원본 시청과 AI 판정은 동일 장치에서 병행: 미표기 실황을 보거나 박스 결과로 전환; 알고리즘 시작/중지 후 전달 정책이 자동 추종해 수동 설정·합동 조정을 줄입니다. 나란히 미리보기로 지연·표기 품질을 바로 비교해 인수 주기를 단축합니다</li>
+  <li><strong>RUNTIME 원자 모드(경량 연산 노드)</strong>: 엣지 박스 / 클러스터 워커는 <strong>RUNTIME 실행기만 설치</strong>할 수 있습니다 — 로컬 VIDEO/WEB/DEVICE 없음. <code>VIDEO_BASE_URL</code>로 경보·하트비트를 센터 VIDEO에 집약; 센터가 실시간 / 캡처 / 순찰(<code>executor=cpp</code>)을 동일 바이너리에 하달하며, 실시간은 여전히 기본으로 박스 검출 스트림을 센터/클러스터 SRS에 푸시. 원자 ≠ 영상 미푸시: 원자는 「로컬 비즈니스 스택 없음」만 의미. 진입점: <code>VIDEO_BASE_URL=http://&lt;센터&gt;:6000 bash .scripts/docker/install_linux.sh runtime</code>; 또는 WEB / iot-node SSH 일괄 설치</li>
+  <li><strong>전체 접점에서 플랫폼 이름 및 Logo 사용자 정의</strong>: yFeiEye를 현장에 배포한 후 사용자가 보는 것은 범용 제품명이 아니라 「자신의 플랫폼」이어야 합니다. 모니터링 대시보드에 시각적 「플랫폼 식별 설정」이 내장되어 있어, 관리자가 UI에서 브랜드를 교체할 수 있습니다 — 관리 콘솔의 플랫폼 이름·Logo(사이드바·브라우저 제목 동기화), 모니터링 대시보드 독립 지휘 타이틀, 로그인 페이지 이름·Logo·폼 제목·밝은/어두운 배경 이미지. 세 접점 시각 통일, 즉시 적용, 저장 및 원클릭 초기화 지원.
     <ul style="margin: 5px 0; padding-left: 20px;">
       <li><strong>시스템 통합사 및 솔루션 제공사</strong>: 프론트엔드 스킨 변경·맞춤 개발·배포 비용 절감; PoC 시연과 정식 납품 간 고객 브랜드 빠른 전환, 단일 코드베이스로 다고객 프로젝트 지원, 회수 주기 단축 및 솔루션 재사용률 향상</li>
       <li><strong>정부·단지·병원 등 최종 사용자</strong>: 로그인 페이지, 지휘 대시보드, 일상 관리 콘솔에 소속 기관 명칭·식별 표시 — 지도 방문 및 대내 홍보 시 소속감과 신뢰성 강화, 공공기관 및 대기업 IT 브랜드 요구 충족</li>
@@ -200,7 +209,7 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
 #### 🌐 IoT 기능
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-많은 프로젝트가 IoT를 「디바이스 대장 + 메시지 중계」로 만들고 결과는 이렇습니다: 연결은 되지만 관리되지 않고, 보고는 되지만 밀어내지 못하며, 경보는 되지만 현장을 보지 못하고, 데이터는 있지만 화면으로 펼치지 못하며 공정과 맞지 않습니다. EasyAIoT는 IoT를 <strong>감지—이해—결정—실행</strong> 폐루프의 실행 신경으로 둡니다. 센서와 액추에이터가 「수치」를, 카메라와 AI가 「영상」을 제공하고, 시각화 대형 화면과 SCADA가 「수치」를 지휘 가능한 상황으로, 규칙과 섀도가 둘을 운영 가능한 업무 동작으로 엮어 — 플랫폼이 「보이기만」 하는 것이 아니라 「화면으로 펼치고, 공정을 이해하고, 관리하고, 정확히 제어하며, 확장할 수 있게」 합니다.
+많은 프로젝트가 IoT를 「디바이스 대장 + 메시지 중계」로 만들고 결과는 이렇습니다: 연결은 되지만 관리되지 않고, 보고는 되지만 밀어내지 못하며, 경보는 되지만 현장을 보지 못하고, 데이터는 있지만 화면으로 펼치지 못하며 공정과 맞지 않습니다. yFeiEye는 IoT를 <strong>감지—이해—결정—실행</strong> 폐루프의 실행 신경으로 둡니다. 센서와 액추에이터가 「수치」를, 카메라와 AI가 「영상」을 제공하고, 시각화 대형 화면과 SCADA가 「수치」를 지휘 가능한 상황으로, 규칙과 섀도가 둘을 운영 가능한 업무 동작으로 엮어 — 플랫폼이 「보이기만」 하는 것이 아니라 「화면으로 펼치고, 공정을 이해하고, 관리하고, 정확히 제어하며, 확장할 수 있게」 합니다.
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
@@ -241,7 +250,7 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
   <li><strong>오프라인 명령 대기열</strong>: 약한 네트워크나 짧은 오프라인에서 명령이 바로 사라지면 복귀 후 다시 해야 합니다. 일시 오프라인 시 명령을 기대 섀도에 먼저 쓰고, 온라인 후 프로토콜에 따라 자동 가져오기/수신 — 약한 네트워크 지터에도 제어 의도 유지; 복귀 시 보완, 반복 조작 한 번 감소</li>
   <li><strong>하위 디바이스 게이트웨이 프록시 제어</strong>: 엣지 단말이 모두 플랫폼에 직결되어야 하면 접속 복잡도와 인증서 관리 비용이 지수적으로 뜁니다. 하위 디바이스 제어는 소속 게이트웨이를 통해 하달 — 엣지 단말이 플랫폼에 직결되지 않아도 통일 원격 제어; 단말 접속 복잡도 감소, 게이트웨이가 진짜 운영 가능한 집약면이 됨</li>
   <li><strong>연관 카메라</strong>: 센서 경보에 현장이 보이지 않으면 근무자는 「수치만 듣고 추측」합니다. IoT 디바이스가 카탈로그의 카메라를 바인딩해 측정점과 영상 위치를 대응 — 이상 발생 시 어느 영상을 볼지 파악; 「숫자 하나」에서 「화면을 찾을 수 있음」으로</li>
-  <li><strong>분할 화면 모니터링·AI 연동</strong>: EasyAIoT가 순수 IoT 대비 갖는 핵심 차이 — 순수 IoT는 「수치는 보이지만 현장은 안 보이고」, 순수 비디오는 「현장은 보이지만 장비를 제어하지 못함」. 기능 호출에서 연관 카메라를 1/4/9 분할 미리보기로 전환하고 AI 분석을 바로 기동 — 파라미터 변경·명령 하달과 동시에 현장 주시; 「수치」와 「영상」을 같은 화면에서 검증·조치, 시스템 전환·누락 감소, AI + IoT 융합 가치를 실제로 구현</li>
+  <li><strong>분할 화면 모니터링·AI 연동</strong>: yFeiEye가 순수 IoT 대비 갖는 핵심 차이 — 순수 IoT는 「수치는 보이지만 현장은 안 보이고」, 순수 비디오는 「현장은 보이지만 장비를 제어하지 못함」. 기능 호출에서 연관 카메라를 1/4/9 분할 미리보기로 전환하고 AI 분석을 바로 기동 — 파라미터 변경·명령 하달과 동시에 현장 주시; 「수치」와 「영상」을 같은 화면에서 검증·조치, 시스템 전환·누락 감소, AI + IoT 융합 가치를 실제로 구현</li>
   <li><strong>이벤트 로그</strong>: 경보 팝업이 스치고 지나면 사후 복기는 기억과 다툼에만 남습니다. 정보/경고/오류 이벤트를 집약하고 유형·이름·시간으로 필터 — 복기는 원시 이벤트 스트림을 읽음; 「현장에서 무엇이 있었는지」에 근거가 있고 순간 팝업에만 의존하지 않음</li>
   <li><strong>명령 로그</strong>: 연동 장애 대응에서 가장 두려운 것은 양측이 각각 「명령이 내려갔는지, 장비가 수락했는지」를 주장하는 것입니다. 속성 설정·서비스 호출의 처리 중/성공/실패가 전 과정 기록 — 연동·장애 대응이 구두 대사를 끝내고; 명령 체인이 대조·추책 가능</li>
   <li><strong>디바이스 로그</strong>: 펌웨어·업무 이상을 찾으려 장비에 로그인해 로컬 파일을 뒤지면 현장 네트워크·권한에 막힙니다. 디바이스 측 다단계 로그가 클라우드로 모이고 키워드·시간 검색 — 클라우드에서 이상 위치 파악; 장비에 다시 로그인할 필요 없음</li>
@@ -257,7 +266,7 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
   <li><strong>메시지 푸시</strong>: 아무리 정확한 검출·완전한 이벤트라도 시스템 안에 갇혀 사람이 열어보기를 기다리면 가치는 제로입니다. 채널별 푸시 작업 생성, 테스트 후 정식 시작 — 경보·업무 이벤트가 담당자의 일상 업무 입구로 바로 도착; 시스템 안에 막히지 않음</li>
   <li><strong>푸시 이력</strong>: 발송·도달 기록이 없으면 감사와 최적화는 추측에 의존합니다. 채널별 푸시 기록 회고 — 발송 여부·도달 여부에 근거; 감사와 도달 전략 최적화에 기반 확보</li>
   <li><strong>알림 사용자·그룹</strong>: 핵심 경보를 전원에게 뿌리면 경보 피로가 생기고, 필요한 사람에게 안 가면 누락이 납니다. 알림 사용자·그룹을 유지해 역할/교대별 정밀 도달 — 필요한 사람이 받고, 전원 스팸 피로는 줄어듦; 「감지—판단—알림—조치」가 사람에게까지 진짜 폐루프</li>
-  <li><strong>TRANSFORM 다방향 업무 흐름</strong>: 플랫폼 측 경보·장치 이벤트·업무 결과가 EasyAIoT 안에만 머무르면 MES / ERP / CRM / WMS 연동은 여전히 프로젝트별 맞춤 API가 되어 납품 주기와 재작업 비용이 커집니다. TRANSFORM은 「누구에게, 어떤 규칙으로, 필드를 어떻게 맞추고, 전달됐는지」를 구성 가능 능력으로 모읍니다: 목적지·전달 규칙·매핑 템플릿을 한 번 구성해 재사용하고, 전달 과정을 모니터링·회고 — 다자 시스템 연동이 「파트너마다 맞춤 API」에서 「계약으로 연결·궤적으로 인수」로 바뀌어 플랫폼 데이터가 고객의 기존 업무 루프에 실제로 들어갑니다</li>
+  <li><strong>TRANSFORM 다방향 업무 흐름</strong>: 플랫폼 측 경보·장치 이벤트·업무 결과가 yFeiEye 안에만 머무르면 MES / ERP / CRM / WMS 연동은 여전히 프로젝트별 맞춤 API가 되어 납품 주기와 재작업 비용이 커집니다. TRANSFORM은 「누구에게, 어떤 규칙으로, 필드를 어떻게 맞추고, 전달됐는지」를 구성 가능 능력으로 모읍니다: 목적지·전달 규칙·매핑 템플릿을 한 번 구성해 재사용하고, 전달 과정을 모니터링·회고 — 다자 시스템 연동이 「파트너마다 맞춤 API」에서 「계약으로 연결·궤적으로 인수」로 바뀌어 플랫폼 데이터가 고객의 기존 업무 루프에 실제로 들어갑니다</li>
 </ul>
 
 #### 📱 모바일 APP
@@ -301,18 +310,18 @@ EasyAIoT는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣�
 ### 💡 기술 철학
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. 그러나 다섯 가지 프로그래밍 언어의 심층적인 융합을 통해 EasyAIoT는 각 언어의 장점을 발휘하여 강력한 기술 생태계를 구축합니다.
+우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. 그러나 다섯 가지 프로그래밍 언어의 심층적인 융합을 통해 yFeiEye는 각 언어의 장점을 발휘하여 강력한 기술 생태계를 구축합니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만, 네트워크 프로그래밍과 AI 개발에는 맞지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘에 능숙하지만, 고채널·저지연 프레임 실행에서는 GIL과 프로세스 오버헤드 병목이 있습니다. C++는 고성능 태스크 실행에 능숙하지만, 플랫폼 아키텍처와 알고리즘 오케스트레이션에는 적합하지 않습니다 — 그래서 플랫폼은 <strong>풀링·디코딩·추론·박스 푸시·다중 원본 전달</strong>을 <strong>RUNTIME</strong>으로 내리고, WEB/VIDEO는 오케스트레이션과 업무면을 유지합니다. Go는 고병행 네트워크 프로그래밍과 프로토콜 구현에 능숙하지만, 플랫폼 제어면과 AI 알고리즘에는 적합하지 않습니다. TypeScript는 복잡한 프론트엔드 인터랙션과 타입 안전한 엔지니어링 UI에 능숙하지만, 고성능 백엔드 연산과 AI 추론에는 적합하지 않습니다. EasyAIoT는 다섯 언어 혼합 아키텍처로 각 언어가 제 역할을 하게 하여, 구현은 도전적이지만 사용은 매우 편리한 AIoT 플랫폼을 구축합니다.
+Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만, 네트워크 프로그래밍과 AI 개발에는 맞지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘에 능숙하지만, 고성능 실행에서는 병목이 있습니다. C++는 고성능 태스크 실행에 능숙하지만, 플랫폼 아키텍처와 AI 프로그래밍에는 적합하지 않습니다. Go는 고병행 네트워크 프로그래밍과 프로토콜 구현에 능숙하지만, 플랫폼 제어면과 AI 알고리즘에는 적합하지 않습니다. TypeScript는 복잡한 프론트엔드 인터랙션과 타입 안전한 엔지니어링 UI에 능숙하지만, 고성능 백엔드 연산과 AI 추론에는 적합하지 않습니다. yFeiEye는 다섯 언어 혼합 아키텍처로 각 언어가 제 역할을 하게 하여, 구현은 도전적이지만 사용은 매우 편리한 AIoT 플랫폼을 구축합니다.
 </p>
 
-![EasyAIoT 플랫폼 아키텍처.jpg](.image/iframe2.jpg)
+![yFeiEye 플랫폼 아키텍처](.image/iframe2-yfeieye.png)
 
 ### 🔄 모듈 데이터 흐름
 
-<img src=".image/iframe3.jpg" alt="EasyAIoT 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe3.jpg" alt="yFeiEye 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🤖 제로샷 라벨링 기술
 
@@ -320,12 +329,12 @@ Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 �
 대형 모델을 기반으로 제로샷 라벨링 기술 시스템을 혁신적으로 구축합니다 (이상적으로는 인공 라벨링 단계를 완전히 제거하여 라벨링 프로세스의 자동화를 실현). 이 기술은 대형 모델을 통해 초기 데이터를 생성하고 프롬프트 기술을 통해 자동 라벨링을 완료한 후, 인-기 협업 검증(옵션)을 통해 데이터 품질을 보장합니다. 그런 다음 초기 소형 모델을 학습시킵니다. 이 소형 모델은 지속적인 반복과 자기 최적화를 통해 라벨링 효율성과 모델 정밀도의 협력적 진화를 실현하며, 궁극적으로 시스템 성능의 지속적인 향상을 촉진합니다.
 </p>
 
-<img src=".image/iframe4.jpg" alt="EasyAIoT 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe4.jpg" alt="yFeiEye 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🏗️ 프로젝트 아키텍처 특징
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-EasyAIoT는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, VIDEO, RTC, AI 등 여러 독립 배포 가능한 하위 프로젝트로 구성됩니다.
+yFeiEye는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, VIDEO, RTC, AI 등 여러 독립 배포 가능한 하위 프로젝트로 구성됩니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -344,7 +353,8 @@ EasyAIoT는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, VIDEO, RTC, AI
 ### 🌍 현지화 지원
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨어와 운영체제를 전면적으로 지원하여 사용자에게 안전하고 제어 가능한 AIoT 솔루션을 제공합니다. 이미 <strong>Kylin (麒麟) / openEuler (欧拉)</strong> 등 국산 OS의 배포와 PANEL 설치 패키지 납품을 지원합니다.</p>
+yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨어와 운영체제를 전면적으로 지원하여 사용자에게 안전하고 제어 가능한 AIoT 솔루션을 제공합니다. 이미 <strong>Kylin (麒麟) / openEuler (欧拉)</strong> 등 국산 OS의 배포와 PANEL 설치 패키지 납품을 지원합니다.
+</p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
 
@@ -387,7 +397,7 @@ EasyAIoT는 현지화 전략에 적극적으로 대응하며, 현지화 하드�
 ## 🧩 프로젝트 구조
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
+yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -565,7 +575,7 @@ EasyAIoT는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFOR
 ## 🖥️ 크로스 플랫폼 배포 장점
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT는 Linux, Mac, Windows 세 가지 주류 운영체제에서의 배포를 지원하여 다양한 환경의 사용자에게 유연하고 편리한 배포 솔루션을 제공합니다; <strong>COMPILE</strong>로 대상 OS별 설치 패키지·실행 파일을 만들고, <strong>PANEL</strong>로 현장 설치와 일상 당직을 완료합니다:
+yFeiEye는 Linux, Mac, Windows 배포를 지원합니다. COMPILE은 대상 운영체제별 설치 패키지와 실행 파일을 만들고, PANEL은 현장 설치와 일상 운영을 지원합니다:
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -604,17 +614,17 @@ EasyAIoT는 Linux, Mac, Windows 세 가지 주류 운영체제에서의 배포�
 
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>통일된 경험</strong>: 어떤 운영체제를 선택하든 EasyAIoT는 일관된 설치 스크립트와 배포 문서를 제공하여 크로스 플랫폼 배포 경험의 일관성을 보장합니다.
+<strong>통일된 경험</strong>: 어떤 운영체제를 선택하든 yFeiEye는 일관된 설치 스크립트와 배포 문서를 제공하여 크로스 플랫폼 배포 경험의 일관성을 보장합니다.
 </p>
 
-## ☁️ EasyAIoT = AI + IoT = 클라우드-엣지-디바이스 통합 솔루션
+## ☁️ yFeiEye = AI + IoT = 클라우드-엣지-디바이스 통합 솔루션
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 수천 가지 수직 시나리오를 지원하며, AI 모델 맞춤화 및 AI 알고리즘 맞춤형 개발을 지원하고, 심층적으로 융합됩니다.
 </p>
 
 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
-<h3 style="color: #2c3e50; margin-top: 0;">만물 지능형 시각화를 위한 역량 부여: EasyAIoT</h3>
+<h3 style="color: #2c3e50; margin-top: 0;">만물 지능형 시각화를 위한 역량 부여: yFeiEye</h3>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
 IoT 디바이스(특히 대량의 카메라)의 효율적인 접속 및 제어 네트워크를 구축했습니다. 우리는 스트리밍 미디어 실시간 전송 기술과 최첨단 인공지능(AI)을 심층적으로 융합하여 통합 서비스 핵심을 구축했습니다. 이 솔루션은 이기종 디바이스의 상호 연결 및 통신을 뚫을 뿐만 아니라 고화질 비디오 스트림과 강력한 AI 해석 엔진을 심층적으로 통합하여 모니터링 시스템에 "지능형 눈"을 부여합니다. 이는 얼굴 인식, 이상 행동 분석, 위험 인원 배치 및 주변 침입 감지를 정확하게 실현합니다.
 </p>
@@ -622,15 +632,15 @@ IoT 디바이스(특히 대량의 카메라)의 효율적인 접속 및 제어 �
 플랫폼은 실시간·캡처·순찰 유형의 알고리즘 태스크를 지원합니다: 세 유형 모두 기본으로 <strong>RUNTIME 고속 실행 계층</strong>(<code>executor=cpp</code>)을 사용할 수 있습니다 — 네이티브 바이너리로 장시간 풀링·디코딩·YOLO 추론·결과 회신을 수행하고, 실시간은 <strong>기본 박스 AI 검출 스트림 푸시</strong>; 캡처는 Cron 채집; 순찰은 다채널 라운드로빈; 스트림 전달도 동일 고성능 경로로 다중 원본 절약 상영. Python 호환 백엔드 대비 RUNTIME이 고채널·저지연에 더 잘 견딥니다. 경보·하트비트는 VIDEO로 회신합니다. 알고리즘 태스크 관리로 프레임 추출·정렬을 유연하게 두고, 모델 서비스 클러스터 추론으로 밀리초 응답·고가용성을 확보합니다. 완전/반방어 모드로 시간대별 정밀 모니터링·경보를 구성합니다.
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-IoT 디바이스 관리 측면에서 EasyAIoT는 완전한 디바이스 생명주기 관리 능력을 제공하며, 다양한 IoT·산업 프로토콜(MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA)을 지원하여 디바이스의 빠른 접속, 안전 인증, 실시간 모니터링 및 지능형 제어를 실현합니다. 규칙 엔진을 통해 디바이스 데이터의 지능형 흐름 및 처리를 실현하며, AI 기능과 결합하여 디바이스 데이터를 심층 분석합니다. 이는 디바이스 접속, 데이터 수집, 지능형 분석에서 의사결정 실행에 이르는 전 과정 자동화를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
+IoT 디바이스 관리 측면에서 yFeiEye는 완전한 디바이스 생명주기 관리 능력을 제공하며, 다양한 IoT·산업 프로토콜(MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA)을 지원하여 디바이스의 빠른 접속, 안전 인증, 실시간 모니터링 및 지능형 제어를 실현합니다. 규칙 엔진을 통해 디바이스 데이터의 지능형 흐름 및 처리를 실현하며, AI 기능과 결합하여 디바이스 데이터를 심층 분석합니다. 이는 디바이스 접속, 데이터 수집, 지능형 분석에서 의사결정 실행에 이르는 전 과정 자동화를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
 </p>
 </div>
 
-<img src=".image/iframe1.jpg" alt="EasyAIoT 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src=".image/iframe1.jpg" alt="yFeiEye 플랫폼 아키텍처" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 
 ## ⚠️ 책임 한계
 
-EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합니다. 사용자는 이 프로젝트를 사용할 때 법률 및 규정을 준수해야 하며 불법 활동을 해서는 안 됩니다. 만약 EasyAIoT가 사용자의 불법 행위를 발견하면 관련 기관의 조사에 협력하고 정부 부서에 신고할 것입니다. 사용자의 불법 행위로 인한 모든 법적 책임은 사용자가 스스로 부담하며, 사용자의 사용으로 인해 제3자에게 손해가 발생한 경우 사용자는 법에 따라 배상해야 합니다. EasyAIoT의 모든 관련 리소스 사용은 사용자가 스스로 위험을 부담합니다.
+yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합니다. 사용자는 이 프로젝트를 사용할 때 법률 및 규정을 준수해야 하며 불법 활동을 해서는 안 됩니다. 만약 yFeiEye가 사용자의 불법 행위를 발견하면 관련 기관의 조사에 협력하고 정부 부서에 신고할 것입니다. 사용자의 불법 행위로 인한 모든 법적 책임은 사용자가 스스로 부담하며, 사용자의 사용으로 인해 제3자에게 손해가 발생한 경우 사용자는 법에 따라 배상해야 합니다. yFeiEye의 모든 관련 리소스 사용은 사용자가 스스로 위험을 부담합니다.
 
 ## 📚 배포 문서
 
@@ -639,16 +649,10 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 - [Windows 이미지 배포](.doc/部署文档/平台Windows部署文档_ko.md) — `install_windows.ps1` 권장 진입점
 - [배포 모범 사례](.doc/部署文档/部署最佳实践_ko.md) — 프로파일, 환경 요구, 원클릭 배포(CentOS **7–9** / **CentOS ARM** / **Kylin (麒麟) / openEuler (欧拉)** 포함), 운영 문제 해결 및 프로덕션 권장
 
-## 🎮 데모 환경
-
-- 데모 주소: http://36.111.47.113:8888/
-- 계정: admin
-- 비밀번호: admin123
-
 ## ⚙️ 프로젝트 주소
 
-- Gitee: https://gitee.com/soaring-xiongkulu/easyaiot
-- Github: https://github.com/soaring-xiongkulu/easyaiot
+- Gitee: [yFeiEye](https://gitee.com/reese/easyaiot)
+- Github: [yFeiEye](https://github.com/xinlingzhifei/easyaiot)
 
 ## 📸 스크린샷
 
@@ -770,6 +774,43 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 | ![경보](.image/banner/app/app_1003.jpg) | ![재생](.image/banner/app/app_1004.jpg) | ![디바이스](.image/banner/app/app_1005.jpg) |
 | ![메시지](.image/banner/app/app_1006.jpg) | ![마이](.image/banner/app/app_1007.jpg) |  |
 
+## 🛠️ 서비스 및 지원
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+yFeiEye 플랫폼과 코드를 깊이 이해하실 수 있도록 다양한 서비스 방식을 제공해 드립니다. 제품 문서, 기술 교류 그룹, 유료 교육 등을 통해 다음과 같은 서비스를 받으실 수 있습니다:
+</p>
+
+<table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<thead>
+<tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+<th style="padding: 15px; text-align: left; font-weight: 600;">서비스 항목</th>
+<th style="padding: 15px; text-align: left; font-weight: 600;">서비스 내용</th>
+<th style="padding: 15px; text-align: center; font-weight: 600;">서비스 비용</th>
+<th style="padding: 15px; text-align: left; font-weight: 600;">서비스 방식</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color: #f8f9fa;">
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">시스템 배포</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">고객이 지정한 네트워크 및 하드웨어 환경에서 yFeiEye 배포 완료</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">1000위안</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">온라인 배포 지원</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">기술 지원</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">다양한 배포, 기능 사용 중 발생한 문제에 대한 답변 제공</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">500위안</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">30분 이내 온라인 원격 지원</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">기타 서비스</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">수직 영역 솔루션 맞춤형 개발; 맞춤형 기간, 기능 서비스 등</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">협의</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">협의</td>
+</tr>
+</tbody>
+</table>
+
 ## 📞 연락처
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -785,12 +826,8 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 ## 💬 기술 교류 그룹
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-공식 계정을 팔로우한 후, WeChat으로 아래 QR 코드를 스캔하여 EasyAIoT 기술 교류 그룹에 가입하세요.
+공식 계정을 팔로우한 후, WeChat으로 아래 QR 코드를 스캔하여 yFeiEye 기술 교류 그룹에 가입하세요.
 </p>
-
-<div>
-  <img src=".image/交流群3群.jpg" alt="EasyAIoT 기술 교류 그룹" width="30%">
-</div>
 
 ## 💬 WeChat 연락처
 
@@ -818,7 +855,7 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 ## 🤝 기여 가이드
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-우리는 모든 형태의 기여를 환영합니다! 코드 개발자, 문서 작성자, 문제 보고자이든 상관없이 여러분의 기여가 EasyAIoT를 더 좋게 만드는 데 도움이 될 것입니다. 다음은 주요 기여 방법입니다:
+우리는 모든 형태의 기여를 환영합니다! 코드 개발자, 문서 작성자, 문제 보고자이든 상관없이 여러분의 기여가 yFeiEye를 더 좋게 만드는 데 도움이 될 것입니다. 다음은 주요 기여 방법입니다:
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -859,7 +896,7 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 ## 🌟 주요 기여자
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-다음은 EasyAIoT 프로젝트에 중요한 기여를 한 탁월한 기여자들입니다. 그들의 기여는 프로젝트 개발을 촉진하는 데 핵심적인 역할을 했습니다. 진심으로 감사드립니다!
+다음은 yFeiEye 프로젝트에 중요한 기여를 한 탁월한 기여자들입니다. 그들의 기여는 프로젝트 개발을 촉진하는 데 핵심적인 역할을 했습니다. 진심으로 감사드립니다!
 </p>
 
 <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -872,82 +909,78 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 <tbody>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>℡夏别</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT 프로젝트를 위해 Windows 배포 문서를 기여하여 Windows 플랫폼 사용자에게 완전한 배포 가이드를 제공하고, Windows 환경에서의 배포 난이도를 크게 낮춰 더 많은 사용자가 EasyAIoT 플랫폼을 편리하게 사용할 수 있도록 했습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye 프로젝트를 위해 Windows 배포 문서를 기여하여 Windows 플랫폼 사용자에게 완전한 배포 가이드를 제공하고, Windows 환경에서의 배포 난이도를 크게 낮춰 더 많은 사용자가 yFeiEye 플랫폼을 편리하게 사용할 수 있도록 했습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>YiYaYiYaho</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT 프로젝트를 위해 Mac 컨테이너 원클릭 배포 스크립트를 기여하여 Mac 플랫폼 사용자에게 자동화된 배포 솔루션을 제공하고, Mac 환경에서의 배포 프로세스를 크게 단순화하여 개발자와 사용자의 배포 경험을 향상시켰습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye 프로젝트를 위해 Mac 컨테이너 원클릭 배포 스크립트를 기여하여 Mac 플랫폼 사용자에게 자동화된 배포 솔루션을 제공하고, Mac 환경에서의 배포 프로세스를 크게 단순화하여 개발자와 사용자의 배포 경험을 향상시켰습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>山寒</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT 프로젝트를 위해 Linux 컨테이너 배포 스크립트를 기여하여 Linux 플랫폼 사용자에게 컨테이너화된 배포 솔루션을 제공하고, 빠르고 안정적인 컨테이너 배포를 실현하여 프로덕션 환경의 안정적인 운영을 위한 중요한 보장을 제공했습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye 프로젝트를 위해 Linux 컨테이너 배포 스크립트를 기여하여 Linux 플랫폼 사용자에게 컨테이너화된 배포 솔루션을 제공하고, 빠르고 안정적인 컨테이너 배포를 실현하여 프로덕션 환경의 안정적인 운영을 위한 중요한 보장을 제공했습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>玖零。</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT 프로젝트를 위해 Linux 컨테이너 배포 스크립트를 기여하여 Linux 플랫폼의 컨테이너화된 배포 솔루션을 더욱 개선하고, 다양한 Linux 배포판 사용자에게 더 많은 선택권을 제공하며, 프로젝트의 크로스 플랫폼 배포 능력을 촉진했습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye 프로젝트를 위해 Linux 컨테이너 배포 스크립트를 기여하여 Linux 플랫폼의 컨테이너화된 배포 솔루션을 더욱 개선하고, 다양한 Linux 배포판 사용자에게 더 많은 선택권을 제공하며, 프로젝트의 크로스 플랫폼 배포 능력을 촉진했습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>爱吃小柚子</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT가 「제대로 돌아가고, 안정적으로 돌아가며, 부담 없이 돌릴 수 있는」 학습 경험을 갖추도록, 멀티 GPU 학습·체크포인트 이어학습·노드 측 배포를 체계적으로 연결하여 현장 연산력을 실제로 쓸 수 있게 하고 학습 작업을 통제 가능하게 만들었습니다. 서버의 모든 GPU를 자동 인식·활용하고, 학습 페이지에서 필요에 따라 단일/다중 카드를 선택할 수 있어 더 이상 한 장만 보이는 제한에 묶이지 않습니다. 일반 데이터셋 형식과 디렉터리 구조를 폭넓게 호환하고 대용량 로컬 데이터셋 업로드를 지원하며, 학습 실패 후에도 원본 데이터를 남겨 빠르게 재시도할 수 있어 데이터 준비와 반복 작업 비용을 크게 줄였습니다. 학습 진행 상황을 보이게 하고 작업을 멈추고 이어갈 수 있게 하여, 중단 후 결과 손실이나 「중지」를 눌렀는데도 백그라운드에서 계속 도는 문제를 줄였으며, 로컬·원격 스케줄링 실패 시에도 신속히 되돌리고 명확한 피드백을 제공합니다 — 「학습—게시—사용」 루프를 더 원활하고 신뢰성 있게 만들었습니다. 이전에 국가 표준 GB28181과 AI 업무 프로세스의 종단 간 연동 검증 및 화면 선명도 전담 평가도 주도하여, 국표 접속 신뢰성과 시청 경험 개선에 중요한 근거를 제공하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye가 「제대로 돌아가고, 안정적으로 돌아가며, 부담 없이 돌릴 수 있는」 학습 경험을 갖추도록, 멀티 GPU 학습·체크포인트 이어학습·노드 측 배포를 체계적으로 연결하여 현장 연산력을 실제로 쓸 수 있게 하고 학습 작업을 통제 가능하게 만들었습니다. 서버의 모든 GPU를 자동 인식·활용하고, 학습 페이지에서 필요에 따라 단일/다중 카드를 선택할 수 있어 더 이상 한 장만 보이는 제한에 묶이지 않습니다. 일반 데이터셋 형식과 디렉터리 구조를 폭넓게 호환하고 대용량 로컬 데이터셋 업로드를 지원하며, 학습 실패 후에도 원본 데이터를 남겨 빠르게 재시도할 수 있어 데이터 준비와 반복 작업 비용을 크게 줄였습니다. 학습 진행 상황을 보이게 하고 작업을 멈추고 이어갈 수 있게 하여, 중단 후 결과 손실이나 「중지」를 눌렀는데도 백그라운드에서 계속 도는 문제를 줄였으며, 로컬·원격 스케줄링 실패 시에도 신속히 되돌리고 명확한 피드백을 제공합니다. 프론트엔드의 GPU 선택·이어학습·중지 상태 표시도 함께 개선하고, 모델 게시 성공이 실패로 오인되거나 사용자 지정 미리보기 이미지가 덮어써지거나 이름/버전으로 모델을 찾지 못하거나 데이터셋 동기화가 타임아웃·충돌하는 문제를 고쳐 「학습—게시—사용」 루프를 더 원활하고 신뢰성 있게 만들었습니다. 이전에 국가 표준 GB28181과 AI 업무 프로세스의 종단 간 연동 검증 및 화면 선명도 전담 평가도 주도하여, 국표 접속 신뢰성과 시청 경험 개선에 중요한 근거를 제공하였습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Dark</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">국가 표준 영상 감시 방향에서 EasyAIoT의 GB28181 기능을 종단 간으로 연결하는 데 기여하였으며, 영상 재생과 PTZ(팬·틸트) 제어를 구현하여 GB28181 장치 접속에 실시간 모니터링과 원격 카메라 제어가 가능하도록 하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">국가 표준 영상 감시 방향에서 yFeiEye의 GB28181 기능을 종단 간으로 연결하는 데 기여하였으며, 영상 재생과 PTZ(팬·틸트) 제어를 구현하여 GB28181 장치 접속에 실시간 모니터링과 원격 카메라 제어가 가능하도록 하였습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>machh</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT-Edge 프로젝트에 기여하여 카메라 연동과 AI 기능을 종단 간으로 검증하고, 관련 기능을 엣지 환경에서 하나의 연속된 흐름으로 연결하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye-Edge 프로젝트에 기여하여 카메라 연동과 AI 기능을 종단 간으로 검증하고, 관련 기능을 엣지 환경에서 하나의 연속된 흐름으로 연결하였습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>遗忘的星空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 직접 연결 기기 온보딩 발전에 기여하여 다중 브랜드 IP 카메라 자산 인벤토리 및 서브넷 스캐너를 제공하고, 하이크비전 IPC·NVR 등 장비의 일괄 발견·식별을 지원함. 동일·교차 서브넷 환경에서 직접 연결 장비의 일괄 검색 및 원클릭 등록 절차를 개선하고, 장치 네이티브 프로토콜 기반 접속으로 하이크비전 SDK를 우회·플랫폼 의존을 줄여, 개방적이고 통제 가능한 대규모 카메라 접속 기반을 마련함.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 직접 연결 기기 온보딩 발전에 기여하여 다중 브랜드 IP 카메라 자산 인벤토리 및 서브넷 스캐너를 제공하고, 하이크비전 IPC·NVR 등 장비의 일괄 발견·식별을 지원함. 동일·교차 서브넷 환경에서 직접 연결 장비의 일괄 검색 및 원클릭 등록 절차를 개선하고, 장치 네이티브 프로토콜 기반 접속으로 하이크비전 SDK를 우회·플랫폼 의존을 줄여, 개방적이고 통제 가능한 대규모 카메라 접속 기반을 마련함.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>阿龙</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">지도 시각화 및 공간 분석 방향에서 EasyAIoT의 발전을 위해 국가 천지도(Tianditu) 공간 시각화 기능의 완전한 코드 구현을 독립적으로 기여하였습니다. 국가 천지도 베이스맵 연동, 카메라·알람 장치 배치, 지도 분포 뷰, 장소 검색 및 좌표 일괄 가져오기, 알람 이벤트 자동 지도 표시, 인물·차량 추적 및 이동 장치 궤적 재생 등 핵심 기능을 포함하여, 플랫폼의 「천지도 공간 시각화 및 지도 기반 분석」 역량을 설계 단계에서 실제 운영 가능한 형태로 구현하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">지도 시각화 및 공간 분석 방향에서 yFeiEye의 발전을 위해 국가 천지도(Tianditu) 공간 시각화 기능의 완전한 코드 구현을 독립적으로 기여하였습니다. 국가 천지도 베이스맵 연동, 카메라·알람 장치 배치, 지도 분포 뷰, 장소 검색 및 좌표 일괄 가져오기, 알람 이벤트 자동 지도 표시, 인물·차량 추적 및 이동 장치 궤적 재생 등 핵심 기능을 포함하여, 플랫폼의 「천지도 공간 시각화 및 지도 기반 분석」 역량을 설계 단계에서 실제 운영 가능한 형태로 구현하였습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>雨落流殇</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">초대규모 스트리밍 미디어 처리 방향에서 EasyAIoT의 발전을 위해 이기종 스트리밍 미디어 서버 클러스터의 배포·스케줄링 접근법을 기여하였습니다. 다중 노드 풀 협업, 스트리밍 미디어와 업무 계층 분리, 노드 등록·스케줄링 등 확장 가능한 방안을 제시하여, 플랫폼이 수만 대 카메라의 동시 접속, 안정적인 배포 및 탄력적 확장을 지원할 수 있는 중요한 아키텍처 기반을 마련하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">초대규모 스트리밍 미디어 처리 방향에서 yFeiEye의 발전을 위해 SRS와 ZLMediaKit 이기종 스트리밍 미디어 서버 클러스터의 배포 아키텍처 및 스케줄링 접근법을 기여하였습니다. 다중 노드 풀 협업, 스트리밍 미디어 제어 평면과 비즈니스 계층의 분리, 스토리지·업로드 파이프라인, 노드 등록 및 스케줄링 등 확장 가능한 방안을 제시하여, 플랫폼이 수만 대 카메라의 동시 접속, 안정적인 배포 및 탄력적 확장을 지원할 수 있는 중요한 아키텍처 기반을 마련하였습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>常康</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">지능형 교통 및 차량 통제 방향에서 EasyAIoT의 발전을 위해 번호판 인식 알고리즘과 완전한 코드 구현을 독립적으로 기여하였습니다. 번호판 위치 검출, 번호·색상 인식, 이중층 번호판 병합 및 기울기·원근 보정, 번호판 라이브러리 관리 및 다중 라이브러리 순차 매칭, 알고리즘 태스크 원클릭 연동 및 비동기 비교 등 핵심 기능을 포함하며, 청/황/녹/백색판 및 신에너지 차량 번호판 등 주류 유형을 포괄적으로 지원하여, 플랫폼의 「번호판 인식 및 라이브러리 관리」 역량을 기획 단계에서 실제 운영 가능한 폐루프 애플리케이션으로 구현하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">지능형 교통 및 차량 통제 방향에서 yFeiEye의 발전을 위해 번호판 인식 알고리즘과 완전한 코드 구현을 독립적으로 기여하였습니다. ONNX 기반 번호판 검출·위치 추정, 번호·색상 인식, 이중층 번호판 병합 및 기울기·원근 보정, 번호판 라이브러리 관리 및 다중 라이브러리 순차 매칭, 알고리즘 태스크 원클릭 연동, Kafka 비동기 비교 등 핵심 기능을 포함하며, 청/황/녹/백색판 및 신에너지 차량 번호판 등 주류 유형을 포괄적으로 지원하여, 플랫폼의 「번호판 인식 및 라이브러리 관리」 역량을 기획 단계에서 실제 운영 가능한 폐루프 애플리케이션으로 구현하였습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Li</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">청년 개발자 커뮤니티 및 협업 생태계 구축을 위해 뛰어난 조직 리더십과 모범력으로 교내 학생들을 이끌어 프로젝트 공동 구축에 깊이 참여하게 하고, 청년의 지혜와 팀의 결속력을 모아 EasyAIoT에 끊임없이 지속되는 발전 동력을 불어넣었으며, 프로젝트 홍보·실천 적용·후속 인재 양성 등에서도 중차대하고 대체 불가능한 기여를 하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">청년 개발자 커뮤니티 및 협업 생태계 구축을 위해 뛰어난 조직 리더십과 모범력으로 교내 학생들을 이끌어 프로젝트 공동 구축에 깊이 참여하게 하고, 청년의 지혜와 팀의 결속력을 모아 yFeiEye에 끊임없이 지속되는 발전 동력을 불어넣었으며, 프로젝트 홍보·실천 적용·후속 인재 양성 등에서도 중차대하고 대체 불가능한 기여를 하였습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>陈家林</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 IoT 장치 상호운용·산업 프로토콜 접속·공중–지상 영상 융합 발전을 위해 장치 명령·상태 데이터의 상·하행 폐루프를 열어 플랫폼이 진정으로 「내려보내고, 보고, 제어할 수 있게」 하였으며; Modbus-TCP·Modbus-RTU·OPC UA 산업 프로토콜 접속을 체계적으로 기여해 이더넷·시리얼 측 산업 장치 및 OPC UA 노드의 통합 수집·레지스터/포인트 읽기쓰기·물모델 매핑을 완성, 전력량계·센서·PLC·컨트롤러 등 대량 산업 장치 데이터를 통합 집계·모니터링·연동할 수 있게 하여 「현장을 보고 장치도 들을 수 있는」 핵심 퍼즐을 보완; 동시에 DJI FlightHub 도크·드론 영상 접속을 기여해 공중 순찰 시야를 통합 영상·알람 체계에 포함시키고, 산업 데이터 수집·라인 지능 제어·광역 순찰·비상 정찰·천지일체 협동 감지에서의 현장 가치를 크게 확장하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 IoT 장치 상호운용 및 공중–지상 영상 융합 발전을 위해 장치 명령·상태 데이터의 상·하행 폐루프를 열어 플랫폼이 진정으로 「내려보내고, 보고, 제어할 수 있게」 하였으며, 동시에 DJI FlightHub 도크 및 드론 영상 접속 능력을 기여해 공중 순찰 시야를 통합 영상·알람 체계에 포함시키고, 광역 순찰·비상 정찰·천지일체 협동 감지에서의 현장 가치를 크게 확장하였습니다.</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>NULL</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 산업 현장 장치 접속 발전을 위해 Modbus 프로토콜 상행 수집 능력을 열어 전력량계·센서·컨트롤러 등 대량의 산업 장치 데이터를 플랫폼에서 통합 집계·모니터링·연동할 수 있게 하였으며, 「현장을 보고 장치도 들을 수 있는」 핵심 퍼즐을 완성해 산업 데이터 수집·라인 지능 제어·보안 연동 시나리오에 견고한 기반을 제공하였습니다.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>空空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 카메라 직접 연결을 「발견 가능」에서 「현장 배포 가능」으로 발전시키기 위해, 인증·채널 동기화·설정 변경·다중 브랜드 출류 등 핵심 공백을 보완하여 실제 NVR / 다중 벤더 현장에서 납품 가능한 가용성을 갖추게 하였습니다: 장치 로그인 인증을 열어 직접 연결 장치가 진정으로 「로그인되고 관리될 수 있게」 하였으며; NVR 채널 동기화 이후의 스트림 취득 모델을 개선하여 일괄 동기화된 스트림이 재생·사용 가능하도록 해 NVR 규모화 접속 효율을 크게 높였으며; 접속 파라미터가 지속적으로 유지보수 가능하도록 보장하였고; 국내 주요 감시 브랜드 출류 규칙 라이브러리를 구축하고 사용자 정의 브랜드 규칙을 개방하여, 이종 벤더·이종 모델 장치가 원클릭으로 출류할 수 있게 하여 수동 주소 시도에 의존하지 않도록 하였습니다 — 직접 연결 역량을 「장치 스캔 가능」에서 「로그인 가능·동기화 정확·설정 변경 가능·다중 브랜드 출류 가능」한 생산 가용 형태로 끌어올려, 이후 PTZ·줌 등 제어 역량 고도화의 견고한 기반을 마련하였습니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 카메라 직접 연결을 「발견 가능」에서 「현장 배포 가능」으로 발전시키기 위해, 인증·채널 동기화·설정 변경·다중 브랜드 출류 등 핵심 공백을 보완하여 실제 NVR / 다중 벤더 현장에서 납품 가능한 가용성을 갖추게 하였습니다: 장치 로그인 자격 증명 체인을 열어 계정·비밀번호 인증이 안정적으로 동작하고 직접 연결 장치가 진정으로 「로그인되고 관리될 수 있게」 하였으며; NVR 채널 동기화 이후의 스트림 취득 모델을 재구성—이전에는 동기화 결과가 각 채널 카메라 자체의 IP를 RTSP 호스트로 기록하여 「NVR을 통한 집중 취득」이라는 현장 토폴로지와 심각하게 불일치했고, 동기화는 성공처럼 보이나 실황이 재생되지 않았습니다; 수정 후에는 NVR 호스트 IP로 채널 RTSP 주소를 통일 생성하여 일괄 동기화된 스트림이 재생·사용 가능하도록 해 NVR 규모화 접속 효율을 크게 높였으며; 장치 편집 저장 실패·오류 문제를 수정해 접속 파라미터가 「한 번 쓰고 다시 못 고치는」 상태가 아니라 지속적으로 유지보수 가능하게 하였고; 국내 주요 감시 브랜드 RTSP URL 규칙 라이브러리를 구축하고 사용자 정의 브랜드 규칙을 개방하여, 이종 벤더·이종 모델 장치가 규칙에 따라 원클릭으로 스트림 URL을 조합할 수 있게 해 수동 주소 시도나 브랜드마다 플랫폼 코드 수정에 의존하지 않도록 하였으며, 직접 연결 역량을 「장치 스캔 가능」에서 「로그인 가능·동기화 정확·설정 변경 가능·다중 브랜드 출류 가능」한 생산 가용 형태로 끌어올려 이후 PTZ·줌 등 제어 역량 고도화의 견고한 기반을 마련하였습니다.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 「IoT 데이터를 화면으로 전시」 방향 발전을 위해, 시각화 Board(드래그 대시보드) 모듈 제품 구상을 선제적으로 제안: 전통 대형 화면은 화면마다·컴포넌트마다 SQL을 따로 작성해야 해 납품이 느리고 한 번 수정하면 전체가 움직이며, 업무 담당자가 스스로 화면을 만들기 거의 불가능. Board 방안은 차트, 지표, 레이아웃을 드래그 캔버스로 구성하고, 컴포넌트 변수를 플랫폼 IoT 사물 모델 측정점에 직접 연결 — 실시간·이력 값을 장치 측에서 원클릭 취득, 대시보드마다 쿼리를 따로 짤 필요 없음; 단지 상황, 생산라인 KPI, 장비 운영 등 대형 화면을 「개발이 SQL을 써야 화면이 나옴」에서 「측정점 선택·컴포넌트 드래그로 화면 완성」으로 업그레이드, 시각화 납품 주기를 크게 단축, IoT 「백엔드에 데이터」를 「프론트에 화면」 운영 역량으로. 이전에도 센서 부동 데이터 예측, 운행 상태 속성 상·하한 임계값 설정, 임계값 알람·규칙 연동, 중심 장치 연관 하위 장치 운행 상태 한 화면 표시를 기여해 「예측—경계—알람—규칙—한 화면 장악」 장치 운행 폐루프를 열었으며, 플랫폼 장치 측이 「숫자를 보고, 경계를 관리하고, 알람을 내고, 전체를 파악하는」 역량을 갖추게 하였습니다.</td>
-</tr>
-<tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>大老刘</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 대외 소개 및 솔루션 표현 방향 발전을 위해 《AI 영상 감시 분석 플랫폼》 도문 소개 자료를 기여하여, AI 영상 감시 분석 시나리오에서 플랫폼의 역량 전모와 현장 가치를 체계적으로 정리함으로써, 더 많은 사용자·시스템 통합사·파트너가 플랫폼 포지셔닝과 핵심 강점을 빠르게 이해하도록 도왔으며, 프로젝트의 대외 전파와 비즈니스 커뮤니케이션 효율을 크게 높였습니다.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>刘兆中ᯤ⁵ᴳ</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">EasyAIoT의 macOS 원클릭 배포 방향 발전을 위해 Mac 원클릭 배포 스크립트의 일부를 선도적으로 기여하여, 이미지 풀·컨테이너 오케스트레이션·환경 사전 검사 등 주요 경로를 대부분 열어 「마지막 1마일」만 보완하면 되도록 만들었습니다. 그의 탐색과 실천은 팀이 Mac 측 배포 체인의 핵심 노드와 리스크를 명확히 하는 데 도움을 주었고, 이후 엔지니어링 마무리 경로를 크게 단축시켰으며, macOS 배포 역량이 제로에서 가용까지 이르는 과정에서 없어서는 안 될 기반 기여입니다.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 「IoT 데이터를 화면으로 전시」 방향 발전을 위해, 오픈소스 GoView 기반 시각화 Board(드래그 대시보드) 모듈 제품 구상을 선제적으로 제안: 전통 대형 화면은 화면마다·컴포넌트마다 SQL을 따로 작성해야 해 납품이 느리고 한 번 수정하면 전체가 움직이며, 업무 담당자가 스스로 화면을 만들기 거의 불가능. Board 방안은 차트, 지표, 레이아웃을 드래그 캔버스로 구성하고, 컴포넌트 변수를 플랫폼 IoT 사물 모델 측정점에 직접 연결 — 실시간·이력 값을 장치 측에서 원클릭 취득, 대시보드마다 쿼리를 따로 짤 필요 없음; 단지 상황, 생산라인 KPI, 장비 운영 등 대형 화면을 「개발이 SQL을 써야 화면이 나옴」에서 「측정점 선택·컴포넌트 드래그로 화면 완성」으로 업그레이드, 시각화 납품 주기를 크게 단축, IoT 「백엔드에 데이터」를 「프론트에 화면」 운영 역량으로. 이전에도 센서 부동 데이터 예측, 운행 상태 속성 상·하한 임계값 설정, 임계값 알람·규칙 연동, 중심 장치 연관 하위 장치 운행 상태 한 화면 표시를 기여해 「예측—경계—알람—규칙—한 화면 장악」 장치 운행 폐루프를 열었으며, 플랫폼 장치 측이 「숫자를 보고, 경계를 관리하고, 알람을 내고, 전체를 파악하는」 역량을 갖추게 하였습니다.</td>
 </tr>
 </tbody>
 </table>
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>특별 감사</strong>: 위 기여자들의 노력은 크로스 플랫폼 배포 문서·스크립트, macOS 원클릭 배포 스크립트 기반 구축과 경로 탐색, 국가 표준 영상(GB28181) 역량 구현, AI 연동 검증, 멀티 GPU 학습 가용성 및 체크포인트 이어학습 역량 구현, 다중 브랜드 카메라 직접 연결 발견 및 일괄 온보딩, 천지도 공간 시각화 완전 구현, 이기종 스트리밍 미디어 클러스터 배포 및 스케줄링 아키텍처, 번호판 인식 알고리즘 및 완전한 코드 구현, EasyAIoT-Edge 종단 간 연동(카메라·AI), 교내 개발자 커뮤니티 조직 및 청년 협업 생태계 구축, IoT 장치 상·하행 폐루프와 DJI FlightHub 공중 시야 접속, Modbus-TCP / Modbus-RTU / OPC UA 산업 프로토콜 접속, 카메라 직접 연결의 발견부터 로그인/동기화/설정/다중 브랜드 출류까지의 현장 폐루프, 드래그 대시보드(Board) 구상 및 IoT 측정점 실시간/이력 값 직접 연동, 센서 부동 데이터 예측과 임계값 알람·규칙 및 중심 장치 연관 하위 장치 운행 상태 한 화면 표시, AI 영상 감시 분석 플랫폼 도문 소개 자료 등 여러 측면에서 EasyAIoT의 발전에 기여했습니다. 그들의 전문성과 헌신은 우리가 배우고 존경할 만합니다. 다시 한 번 이 탁월한 기여자들에게 진심으로 감사드립니다! 🙏
+<strong>특별 감사</strong>: 위 기여자들의 노력은 크로스 플랫폼 배포 문서·스크립트, 국가 표준 영상(GB28181) 역량 구현, AI 연동 검증, 멀티 GPU 학습 가용성 및 체크포인트 이어학습 역량 구현, 다중 브랜드 카메라 직접 연결 발견 및 일괄 온보딩, 천지도 공간 시각화 완전 구현, 이기종 스트리밍 미디어 클러스터 배포 및 스케줄링 아키텍처, 번호판 인식 알고리즘 및 완전한 코드 구현, yFeiEye-Edge 종단 간 연동(카메라·AI), 교내 개발자 커뮤니티 조직 및 청년 협업 생태계 구축, IoT 장치 상·하행 폐루프와 DJI FlightHub 공중 시야 접속, Modbus-TCP / Modbus-RTU / OPC UA 산업 프로토콜 접속, 카메라 직접 연결의 발견부터 로그인/동기화/설정/다중 브랜드 출류까지의 현장 폐루프, GoView 기반 드래그 대시보드(Board) 구상 및 IoT 측정점 실시간/이력 값 직접 연동, 센서 부동 데이터 예측과 임계값 알람·규칙 및 중심 장치 연관 하위 장치 운행 상태 한 화면 표시 등 여러 측면에서 yFeiEye의 발전에 기여했습니다. 그들의 전문성과 헌신은 우리가 배우고 존경할 만합니다. 다시 한 번 이 탁월한 기여자들에게 진심으로 감사드립니다! 🙏
 </p>
 
 ## 💝 오픈소스 수호자
 
-오픈소스 프로젝트를 지속적으로 발전시키는 것은 코드와 문서만으로는 충분하지 않습니다. EasyAIoT의 연산 자원이 가장 부족하고 프로젝트가 거의 멈춰설 위기에 처했던 그 시기, 아래 분들께서 실질적인 재정 지원으로 프로젝트에 가장 필요한 추진력을 불어넣어 주셨습니다. 한 줄의 코드도 기여하지 않으셨을지 모르지만, 매 한 번의 신뢰와 지지가 EasyAIoT가 가장 어려운 고비를 넘기고 계속 전진할 수 있게 해 주었습니다. 사용자가 있고 지지자가 있는 한, 오픈소스 생태계는 더 멀리 나아갈 가치가 있습니다. EasyAIoT가 오늘 이 자리에 이를 수 있었던 것은 위기의 순간에 손을 내밀어 주신 동행자들 덕분입니다. 도움의 손길을 보내 주신 모든 분께 깊은 존경과 감사를 드립니다! 아래 순위는 특별한 순서 없이 나열되었습니다:
+오픈소스 프로젝트를 지속적으로 발전시키는 것은 코드와 문서만으로는 충분하지 않습니다. yFeiEye의 연산 자원이 가장 부족하고 프로젝트가 거의 멈춰설 위기에 처했던 그 시기, 아래 분들께서 실질적인 재정 지원으로 프로젝트에 가장 필요한 추진력을 불어넣어 주셨습니다. 한 줄의 코드도 기여하지 않으셨을지 모르지만, 매 한 번의 신뢰와 지지가 yFeiEye가 가장 어려운 고비를 넘기고 계속 전진할 수 있게 해 주었습니다. 사용자가 있고 지지자가 있는 한, 오픈소스 생태계는 더 멀리 나아갈 가치가 있습니다. yFeiEye가 오늘 이 자리에 이를 수 있었던 것은 위기의 순간에 손을 내밀어 주신 동행자들 덕분입니다. 도움의 손길을 보내 주신 모든 분께 깊은 존경과 감사를 드립니다! 아래 순위는 특별한 순서 없이 나열되었습니다:
 
 <table>
   <tbody>
@@ -1140,7 +1173,7 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 
 ## 🏆 최우수 실천자
 
-그들은 EasyAIoT를 「사용 가능」에서 「쉽고 잘 사용」으로 이끄는 선구자입니다. 아래 분들은 EasyAIoT 프로젝트 배포 또는 업무 시나리오 구축을 완료하였으며, 그들의 탐색과 성과는 커뮤니티에 복제·참고 가능한 벤치마크를 제시했습니다. 이 뛰어난 실천자들에게 경의와 진심 어린 축하를 드립니다! 아래 순서는 무작위입니다:
+그들은 yFeiEye를 「사용 가능」에서 「쉽고 잘 사용」으로 이끄는 선구자입니다. 아래 분들은 yFeiEye 프로젝트 배포 또는 업무 시나리오 구축을 완료하였으며, 그들의 탐색과 성과는 커뮤니티에 복제·참고 가능한 벤치마크를 제시했습니다. 이 뛰어난 실천자들에게 경의와 진심 어린 축하를 드립니다! 아래 순서는 무작위입니다:
 
 <table>
   <tbody>
@@ -1354,15 +1387,15 @@ EasyAIoT는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합
 ## 💡 기대
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-더 나은 의견을 환영합니다. easyaiot을 함께 완성해 주세요.
+좋은 의견을 제안하여 yFeiEye을 완성하는 데 도움을 주세요.
 </p>
 
 ## 📄 저작권
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-Soaring Xiongkulu / easyaiot는 <a href="https://gitee.com/soaring-xiongkulu/easyaiot/blob/main/LICENSE" style="color: #3498db; text-decoration: none; font-weight: 600;">MIT LICENSE</a> 오픈소스 라이선스를 채택합니다. AI 기술의 대중화와 발전을 촉진하여 더 많은 사람들이 이 기술을 자유롭게 사용하고 혜택을 받을 수 있도록 노력하고 있습니다.
+<strong>사용 라이선스</strong>: 개인과 기업은 100% 무료로 사용할 수 있으며, 작성자 또는 저작권 정보를 유지할 필요가 없습니다. 우리는 기술의 가치가 널리 사용되고 지속적인 혁신에 있다고 믿으며, 저작권에 얽매이지 않습니다. 여러분이 이 프로젝트를 자유롭게 사용, 수정 및 배포하여 AI 기술이 모든 사람에게 진정으로 혜택을 줄 수 있기를 희망합니다.
 </p>
 
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>사용 라이선스</strong>: 개인과 기업은 100% 무료로 사용할 수 있으며, 작성자 또는 Copyright 정보를 유지할 필요가 없습니다. 기술의 가치는 널리 사용되고 지속적인 혁신에 있다고 믿으며, 저작권에 얽매이지 않기를 바랍니다. 여러분이 이 프로젝트를 자유롭게 사용, 수정, 배포하여 AI 기술이 모든 사람에게 진정으로 혜택을 줄 수 있기를 희망합니다.
-</p>
+## 🌟 Star 증가 추세도
+
+[![Stargazers over time](https://starchart.cc/xinlingzhifei/easyaiot.svg?variant=adaptive)](https://starchart.cc/xinlingzhifei/easyaiot)

@@ -1,4 +1,4 @@
-# EasyAIoT 平台 macOS 部署文档
+# yFeiEye 平台 macOS 部署文档
 
 > 文档版本：1.1  
 > 更新日期：2026-08-01  

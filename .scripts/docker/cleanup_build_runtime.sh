@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT build-runtime 构建产物清理工具
+# yFeiEye build-runtime 构建产物清理工具
 # ============================================
 # 清理 build-runtime / runtime_image.sh 构建过程中产生的：
 #   - 本地运行时镜像（ai-service / rtc-service / video-service / web-service / app-service / visualize-service / iot-* 等）
@@ -42,7 +42,7 @@ source "${SCRIPT_DIR}/init-build-cache-dirs.sh"
 
 TAG="${EASYAIOT_RUNTIME_TAG:-latest}"
 REGISTRY=""
-BUILD_CACHE_DIR="$(easyaiot_build_cache_base "$PROJECT_ROOT")"
+BUILD_CACHE_DIR="$(yfeieye_build_cache_base "$PROJECT_ROOT")"
 LOG_DIR="${SCRIPT_DIR}/logs"
 RUNTIME_MARKER="${RUNTIME_IMAGES_MARKER}"
 

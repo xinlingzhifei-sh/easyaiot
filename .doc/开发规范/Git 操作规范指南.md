@@ -4,7 +4,7 @@
 
 ---
 
-## 1. 主分支 [master](file:///projects/easyaiot/WEB/src/api/infra/fileConfig/index.ts#L19-L19)
+## 1. 主分支 [master](file:///projects/yfeieye/WEB/src/api/infra/fileConfig/index.ts#L19-L19)
 
 - **用途**：用于发布提供给用户使用的正式版本。
 - **特点**：
@@ -18,7 +18,7 @@
 - **用途**：日常功能开发和集成使用。
 - **操作规范**：
     - 所有新功能和改进应在此分支上进行开发或合并。
-    - 当准备对外发布时，需将 `dev` 分支合并至 [master](file:///projects/easyaiot/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 分支。
+    - 当准备对外发布时，需将 `dev` 分支合并至 [master](file:///projects/yfeieye/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 分支。
 
 ---
 
@@ -37,12 +37,12 @@
 ### 3.2 Bug 修复分支（Hotfix Branch）
 
 - **用途**：紧急修复线上问题。
-- **来源分支**：[master](file:///projects/easyaiot/WEB/src/api/infra/fileConfig/index.ts#L19-L19)
-- **目标分支**：修复完成后需同时合入 [master](file:///projects/easyaiot/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 和 `dev`
+- **来源分支**：[master](file:///projects/yfeieye/WEB/src/api/infra/fileConfig/index.ts#L19-L19)
+- **目标分支**：修复完成后需同时合入 [master](file:///projects/yfeieye/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 和 `dev`
 - **命名规范**：`hotfix-{功能名称}-{姓名缩写}`  
   示例：`hotfix-payment-fail-tj`
 
 > ⚠️ 注意事项：
 >
 > - 在修复过程中，应先 `merge origin master` 获取最新修改，避免冲突。
-> - 该类型分支**仅允许合并到 [master](file:///projects/easyaiot/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 和 `dev`**，不可主动合并其他非主干分支，以防引入无关变更。
+> - 该类型分支**仅允许合并到 [master](file:///projects/yfeieye/WEB/src/api/infra/fileConfig/index.ts#L19-L19) 和 `dev`**，不可主动合并其他非主干分支，以防引入无关变更。

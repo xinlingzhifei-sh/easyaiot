@@ -59,7 +59,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import {onMounted, reactive, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {BasicTable, TableAction, useTable} from "@/components/Table";
 import {getBasicColumns, getFormConfig} from "./data";
 import {useMessage} from "@/hooks/web/useMessage";
@@ -83,8 +83,6 @@ onMounted(() => {
 });
 
 const route = useRoute()
-const state = reactive({});
-
 const [taskModalRegister, {openModal: openTaskMolal}] = useModal();
 const [videoSearchRegister, {openModal: openVideoSearchMolal}] = useModal();
 
@@ -104,7 +102,7 @@ const [registerTable, {reload}] = useTable({
   rowKey: 'id',
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
   },

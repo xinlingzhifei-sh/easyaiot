@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT Python 离线 wheel 预下载（按模块隔离）
+# yFeiEye Python 离线 wheel 预下载（按模块隔离）
 # 目录: .build-cache/{ai,video}/pip-wheels
 # Docker 构建使用各模块 requirements-docker.txt，与镜像内 pip install 一致
 # ============================================
@@ -21,12 +21,12 @@ print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 check_command() { command -v "$1" >/dev/null 2>&1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 # shellcheck source=init-build-cache-dirs.sh
 source "${SCRIPT_DIR}/init-build-cache-dirs.sh"
 
-AI_DIR="${EASYAIOT_ROOT}/AI"
-VIDEO_DIR="${EASYAIOT_ROOT}/VIDEO"
+AI_DIR="${YFEIEYE_ROOT}/AI"
+VIDEO_DIR="${YFEIEYE_ROOT}/VIDEO"
 DEFAULT_PYTORCH_DEVEL_IMAGE="pytorch/pytorch:2.9.0-cuda12.8-cudnn9-devel"
 PYTORCH_BASE_IMAGE="${BASE_IMAGE:-$DEFAULT_PYTORCH_DEVEL_IMAGE}"
 
@@ -57,7 +57,7 @@ resolve_sdist_wheel_build_image() {
 TARGET_MODULE="${1:-all}"
 
 module_req_docker_file() {
-    case "$(easyaiot_normalize_python_cache_module "$1")" in
+    case "$(yfeieye_normalize_python_cache_module "$1")" in
         ai) echo "${AI_DIR}/requirements-docker.txt" ;;
         video) echo "${VIDEO_DIR}/requirements-docker.txt" ;;
     esac
@@ -104,7 +104,7 @@ prepare_flattened_requirements() {
     req_file="$(module_req_docker_file "$module")"
     # ★ 使用确定性文件名（按模块），避免 mktemp 随机后缀在 Docker 挂载时产生隐式竞态
     #    路径固定在 .build-cache/tmp/ 下，确保 Docker Daemon 可访问
-    out_dir="$(easyaiot_build_cache_base "$EASYAIOT_ROOT")/tmp"
+    out_dir="$(yfeieye_build_cache_base "$EASYAIOT_ROOT")/tmp"
     mkdir -p "$out_dir"
     out_file="${out_dir}/requirements-${module}-docker-flat.txt"
     echo "--index-url https://pypi.tuna.tsinghua.edu.cn/simple" > "$out_file"
@@ -154,8 +154,8 @@ download_module_wheels() {
     local module="$1"
     local wheels_dir base_image flat_req status
 
-    module="$(easyaiot_normalize_python_cache_module "$module")" || return 1
-    wheels_dir="$(pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" "$module")"
+    module="$(yfeieye_normalize_python_cache_module "$module")" || return 1
+    wheels_dir="$(pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" "$module")"
     base_image="$(module_base_image "$module")"
     flat_req="$(prepare_flattened_requirements "$module")"
     trap 'rm -f "$flat_req"' RETURN
@@ -222,13 +222,13 @@ if ! check_command docker; then
     exit 1
 fi
 
-init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
 
 print_warning "依赖包体积较大，首次按模块下载可能需要 10–30 分钟/模块，请勿中断"
 
 case "${TARGET_MODULE,,}" in
     all)
-        for module in "${EASYAIOT_PYTHON_CACHE_MODULES[@]}"; do
+        for module in "${YFEIEYE_PYTHON_CACHE_MODULES[@]}"; do
             download_module_wheels "$module"
         done
         ;;
@@ -241,5 +241,5 @@ case "${TARGET_MODULE,,}" in
         ;;
 esac
 
-du -sh "$(easyaiot_build_cache_base "$EASYAIOT_ROOT")" 2>/dev/null || true
+du -sh "$(yfeieye_build_cache_base "$YFEIEYE_ROOT")" 2>/dev/null || true
 print_success "Python 离线 wheel 预下载完成（模块: ${TARGET_MODULE})"

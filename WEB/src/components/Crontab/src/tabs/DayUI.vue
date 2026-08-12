@@ -13,7 +13,7 @@ export default defineComponent({
     },
   }),
   emits: useTabEmits(),
-  setup(props, context) {
+  setup(props: any, context) {
     const disabledChoice = computed(() => {
       return (props.week && props.week !== '?') || props.disabled
     })

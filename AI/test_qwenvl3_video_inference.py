@@ -6,9 +6,8 @@
 API 文档参考：
 https://bailian.console.aliyun.com/?spm=5176.29597918.J_C-NDPSQ8SFKWB4aef8i6I.4.298d7b08IRr02o&tab=doc#/doc/?type=model&url=2877996
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -45,17 +44,17 @@ def parse_script_args():
         epilog="""
 示例:
   # 使用默认设置测试视频（Base64编码）
-  python test_video_inference.py /opt/projects/easyaiot/VIDEO/video/video2.mp4
+  python test_video_inference.py /opt/projects/yfeieye/VIDEO/video/video2.mp4
 
   # 使用公网URL
   python test_video_inference.py --video-url https://example.com/video.mp4
 
   # 使用自定义提示词进行推理
-  python test_video_inference.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_video_inference.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --prompt "请分析这个视频中的对象、场景和可能的行为"
 
   # 指定模型
-  python test_video_inference.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_video_inference.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --model qwen-vl-max-latest
         """
     )

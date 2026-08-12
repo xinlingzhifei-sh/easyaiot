@@ -10,9 +10,8 @@ import com.alibaba.excel.metadata.property.ExcelContentProperty;
 /**
  * Excel Json 转换器
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public class JsonConvert implements Converter<Object> {
 

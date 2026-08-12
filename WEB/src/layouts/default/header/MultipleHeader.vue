@@ -84,11 +84,11 @@ const getClass = computed(() => {
 
 <template>
   <div
-    v-if="getIsShowPlaceholderDom"
+    v-if="!getFullContent && getIsShowPlaceholderDom"
     :class="[`${prefixCls}__placeholder`]"
     :style="getPlaceholderDomStyle"
   />
-  <div :style="getWrapStyle" :class="getClass">
+  <div v-if="!getFullContent" :style="getWrapStyle" :class="getClass">
     <LayoutHeader v-if="getShowInsetHeaderRef" />
     <MultipleTabs v-if="getShowTabs" :key="tabStore.getLastDragEndIndex" />
   </div>

@@ -131,7 +131,7 @@ import {
   PictureOutlined,
   FileTextOutlined,
 } from '@ant-design/icons-vue';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useDrawer } from '@/components/Drawer';
 import { useModal } from '@/components/Modal';
 import { useMessage } from '@/hooks/web/useMessage';
@@ -328,39 +328,40 @@ function handleViewLogs(record: SnapTask) {
   });
 }
 
-function getTableActions(record: SnapTask) {
+function getTableActions(record: Record<string, any>): ActionItem[] {
+  const task = record as SnapTask;
   return [
     {
       icon: 'ant-design:picture-outlined',
       tooltip: '查看图库',
-      onClick: () => handleViewGallery(record),
+      onClick: () => handleViewGallery(task),
     },
     {
       icon: 'ant-design:file-text-outlined',
       tooltip: '运行日志',
-      onClick: () => handleViewLogs(record),
+      onClick: () => handleViewLogs(task),
     },
     {
       icon: 'ant-design:eye-filled',
       tooltip: '查看',
-      onClick: () => handleView(record),
+      onClick: () => handleView(task),
     },
     {
       icon: 'ant-design:edit-filled',
       tooltip: '编辑',
-      onClick: () => handleEdit(record),
+      onClick: () => handleEdit(task),
     },
     {
       icon: record.is_enabled ? 'ant-design:pause-circle-outlined' : 'ant-design:play-circle-outlined',
       tooltip: record.is_enabled ? '停用' : '启用',
-      onClick: () => handleToggleEnabled(record),
+      onClick: () => handleToggleEnabled(task),
     },
     {
       icon: 'material-symbols:delete-outline-rounded',
       tooltip: '删除',
       popConfirm: {
         title: '确定删除此抓拍任务？',
-        confirm: () => handleDelete(record),
+        confirm: () => handleDelete(task),
       },
     },
   ];
@@ -427,13 +428,14 @@ const handleDelete = async (record: SnapTask) => {
   }
 };
 
-const handleToggleEnabled = async (record: SnapTask) => {
+const handleToggleEnabled = async (record: Record<string, any>) => {
+  const task = record as SnapTask;
   try {
-    const response = record.is_enabled
-      ? await stopSnapTask(record.id)
-      : await startSnapTask(record.id);
+    const response = task.is_enabled
+      ? await stopSnapTask(task.id)
+      : await startSnapTask(task.id);
     if (response.code === 0) {
-      createMessage.success(record.is_enabled ? '任务已停用' : '任务已启用');
+      createMessage.success(task.is_enabled ? '任务已停用' : '任务已启用');
       handleSuccess();
     } else {
       createMessage.error(response.msg || '操作失败');

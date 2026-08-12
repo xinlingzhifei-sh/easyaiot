@@ -6,14 +6,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @program: easyaiot-util-pro
+ * @program: yfeieye-util-pro
  * @description: 协议Topic变量提取工具类
  * RegexVariableExtractor is a utility class that provides methods to extract
  * specific variables (version and deviceId) from a given input string.
  * @packagename: com.mqttsnet.basic.utils.protocol
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date: 2023-05-07 14:10
  **/
 public class ProtocolRegexTopicVariableExtractorUtils {

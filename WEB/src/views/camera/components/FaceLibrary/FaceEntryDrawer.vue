@@ -315,7 +315,8 @@ async function handleDelete(entryId: number) {
   }
 }
 
-function getTableActions(record: FaceEntry) {
+function getTableActions(rawRecord: FaceEntry | Recordable) {
+  const record = rawRecord as FaceEntry;
   return [
     {
       icon: 'ant-design:eye-filled',

@@ -1,4 +1,4 @@
-/** EasyAIoT PANEL 运维控制台地址（默认当前主机 :9200，可通过环境变量覆盖） */
+/** yFeiEye PANEL 运维控制台地址（默认当前主机 :9200，可通过环境变量覆盖） */
 
 const trimEnv = (value: string | undefined) => (value ?? '').trim()
 

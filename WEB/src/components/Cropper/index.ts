@@ -1,6 +1,6 @@
 import cropperImage from './src/Cropper.vue'
 import avatarCropper from './src/CropperAvatar.vue'
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 
 export * from './src/typing'
 export const CropperImage = withInstall(cropperImage)

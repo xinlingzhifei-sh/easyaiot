@@ -95,7 +95,7 @@
 <script lang="ts" setup>
   import { computed, ref } from 'vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
-  import { BasicForm, useForm } from '/@/components/Form';
+  import { BasicForm, useForm, type FormSchema } from '/@/components/Form';
 
   import { useMessage } from '/@/hooks/web/useMessage';
   import {
@@ -127,8 +127,8 @@
 
   const emits = defineEmits(['success']);
   const { createMessage } = useMessage();
-  const httpParamsRef = ref(null);
-  const describeRef = ref(null);
+  const httpParamsRef = ref<InstanceType<typeof HttpParams> | null>(null);
+  const describeRef = ref<InstanceType<typeof Describe> | null>(null);
   const opertionType = ref('add');
 
   const MSG_TYPE_MAP: Record<string, number> = {
@@ -150,7 +150,15 @@
     feishu: 'feishu',
   };
 
-  const formData = ref({
+  const formData = ref<{
+    variableDefinitions: any[];
+    attachments: any[];
+    templateDataList: any[];
+    userGroupList: any[];
+    templateList: any[];
+    agent: any[];
+    selectedTemplate: { radioType?: string; webHook?: string } | null;
+  }>({
     variableDefinitions: [],
     attachments: [],
     templateDataList: [],
@@ -184,7 +192,7 @@
       resetFields,
     },
   ] = useForm({
-    schemas: formSchemas({ isVariable }),
+    schemas: formSchemas({ isVariable }) as FormSchema[],
     labelWidth: '100px',
     layout: 'vertical',
     baseColProps: { span: 24 },

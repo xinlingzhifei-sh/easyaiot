@@ -1,5 +1,6 @@
 import {defHttp} from '@/utils/http/axios';
 import { normalizeWvpChannelItem } from '@/views/camera/utils/gb28181Channel';
+import { filterValidWvpDevices } from '@/views/camera/utils/gb28181DeviceId';
 import { isGb28181Enabled } from '@/utils/deployProfile';
 
 // GB28181 通过网关转发到 WVP：Path=/admin-api/gb28181/** -> RewritePath -> /api/${segment}
@@ -12,6 +13,8 @@ const PROXY_PREFIX = '/gb28181/proxy';
 const PLAYBACK_PREFIX = '/gb28181/playback';
 const GB_RECORD_PREFIX = '/gb28181/gb_record';
 const CLOUD_RECORD_PREFIX = '/gb28181/cloud/record';
+const GB28181_PLAY_REQUEST_TIMEOUT_MS = 60 * 1000;
+const GB28181_TALK_REQUEST_TIMEOUT_MS = 12 * 1000;
 
 /**
  * 通用请求封装
@@ -19,7 +22,13 @@ const CLOUD_RECORD_PREFIX = '/gb28181/cloud/record';
  */
 const GB28181_DISABLED_PAGE_BODY = { data: { list: [], total: 0 } };
 
-const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url: string, params: any = {}, isTransformResponse = true) => {
+const commonApi = (
+  method: 'get' | 'post' | 'delete' | 'put',
+  url: string,
+  params: any = {},
+  isTransformResponse = true,
+  requestConfig: Record<string, any> = {},
+) => {
   if (!isGb28181Enabled()) {
     if (isTransformResponse) {
       return Promise.resolve(null);
@@ -33,6 +42,7 @@ const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url: string, param
       url,
       ...(isGet || isDelete ? { params } : { data: params }),
       ...(isGet && url.includes('/devices') ? { timeout: 60 * 1000 } : {}),
+      ...requestConfig,
     },
     {
       isTransformResponse,
@@ -63,25 +73,34 @@ const normalizeDeviceList = (list: any[]) => (list || []).map((item) => ({
 /** 设备列表：统一返回 { data, list, total }，并补齐页面依赖字段 */
 const normalizeGbDeviceList = (res: any) => {
   const { data, total } = normalizePageResponse(res);
-  const list = normalizeDeviceList(data).map((item) => ({
+  const rawList = Array.isArray(data) ? data : [];
+  const validData = filterValidWvpDevices(rawList);
+  const removedCount = rawList.length - validData.length;
+  const normalizedTotal = Number(total) > rawList.length
+    ? Math.max(0, Number(total) - removedCount)
+    : validData.length;
+  const list = normalizeDeviceList(validData).map((item) => ({
     ...item,
     localIp: item.localIp ?? item.ip,
     updatedTime: item.updatedTime ?? item.updateTime,
   }));
-  return { data: list, list, total };
+  return { data: list, list, total: normalizedTotal, rawCount: rawList.length };
 };
 
 /** 通道列表：统一返回 { data, list, total }，并补齐页面依赖字段 */
-const normalizeGbChannelList = (res: any) => {
+const normalizeGbChannelList = (res: any, sipDeviceId?: string) => {
   const { data, total } = normalizePageResponse(res);
-  const list = (data || []).map((item: any) => ({
-    ...item,
-    deviceIdentification: item.deviceIdentification ?? item.deviceId ?? item.parentId,
-    manufacturer: item.manufacturer ?? item.manufacture ?? '',
-    manufacture: item.manufacture ?? item.manufacturer ?? '',
-    createdTime: item.createdTime ?? item.createTime,
-    updatedTime: item.updatedTime ?? item.updateTime,
-  }));
+  const list = (data || []).map((item: any) => {
+    const normalized = normalizeWvpChannelItem(item, sipDeviceId);
+    return {
+      ...normalized,
+      deviceIdentification: normalized.deviceIdentification ?? normalized.deviceId ?? normalized.parentId,
+      manufacturer: normalized.manufacturer ?? normalized.manufacture ?? '',
+      manufacture: normalized.manufacture ?? normalized.manufacturer ?? '',
+      createdTime: normalized.createdTime ?? normalized.createTime,
+      updatedTime: normalized.updatedTime ?? normalized.updateTime,
+    };
+  });
   return { data: list, list, total };
 };
 
@@ -93,6 +112,7 @@ const normalizeGbChannelList = (res: any) => {
  */
 export const queryVideoList = async (params: {
   page?: number;
+  pageNo?: number;
   pageNum?: number;
   count?: number;
   pageSize?: number;
@@ -102,6 +122,8 @@ export const queryVideoList = async (params: {
   const requestParams: any = {};
   if (params.pageNum !== undefined) {
     requestParams.page = params.pageNum;
+  } else if (params.pageNo !== undefined) {
+    requestParams.page = params.pageNo;
   } else if (params.page !== undefined) {
     requestParams.page = params.page;
   }
@@ -117,8 +139,7 @@ export const queryVideoList = async (params: {
     requestParams.status = params.status;
   }
   const res = await commonApi('get', `${GB28181_PREFIX}/devices`, requestParams, false);
-  const { data, total } = normalizePageResponse(res);
-  return { data: normalizeDeviceList(data), total };
+  return normalizeGbDeviceList(res);
 };
 
 /** 拉取全部国标 SIP 设备（自动分页，避免单页遗漏） */
@@ -136,7 +157,8 @@ export const queryAllVideoList = async (
     if (!batch.length) break;
     total = res.total ?? all.length + batch.length;
     all = all.concat(batch);
-    if (batch.length < pageSize || all.length >= total) break;
+    const rawCount = Number((res as any).rawCount ?? batch.length);
+    if (rawCount < pageSize || all.length >= total) break;
     page += 1;
   } while (page <= maxPages);
   return { data: all, total: all.length };
@@ -214,11 +236,18 @@ export const startGbAudioBroadcast = (
     `/gb28181/play/broadcast/${deviceId}/${channelId}`,
     { broadcastMode },
     false,
+    { timeout: GB28181_TALK_REQUEST_TIMEOUT_MS },
   );
 
 /** 停止国标语音广播 */
 export const stopGbAudioBroadcast = (deviceId: string, channelId: string) =>
-  commonApi('get', `/gb28181/play/broadcast/stop/${deviceId}/${channelId}`);
+  commonApi(
+    'get',
+    `/gb28181/play/broadcast/stop/${deviceId}/${channelId}`,
+    {},
+    true,
+    { timeout: GB28181_TALK_REQUEST_TIMEOUT_MS },
+  );
 
 /**
  * 添加设备
@@ -304,11 +333,7 @@ export const queryChannelList = async (params: {
     ? `${GB28181_PREFIX}/devices/${sipDeviceId}/channels`
     : `${CHANNEL_PREFIX}/list`;
   const res = await commonApi('get', url, requestParams, false);
-  const { data, total } = normalizePageResponse(res);
-  const list = (data || []).map((item: any) =>
-    normalizeWvpChannelItem(item, sipDeviceId ? String(sipDeviceId) : undefined),
-  );
-  return { data: list, total };
+  return normalizeGbChannelList(res, sipDeviceId ? String(sipDeviceId) : undefined);
 };
 
 /**
@@ -390,7 +415,9 @@ export const play = (channelId: number) => {
  * @param channelId 通道国标编号
  */
 export const playByDeviceAndChannel = (deviceId: string, channelId: string) => {
-  return commonApi('get', `/gb28181/play/start/${deviceId}/${channelId}`, {}, false);
+  return commonApi('get', `/gb28181/play/start/${deviceId}/${channelId}`, {}, false, {
+    timeout: GB28181_PLAY_REQUEST_TIMEOUT_MS,
+  });
 };
 
 /**
@@ -993,8 +1020,10 @@ export const subscribeMobilePosition = (id: number, cycle: number, interval: num
  * 生成国标设备接入信息（调用后端脚本，返回文本）
  * @param count 生成组数，1～100，默认 10
  */
-export const generateDeviceAccessInfo = (count?: number) => {
-  const params = count != null && count >= 1 && count <= 100 ? { count } : {};
+export const generateDeviceAccessInfo = (count?: number, force?: boolean) => {
+  const params = {
+    ...(count != null && count >= 1 && count <= 100 ? { count } : {}),
+    ...(force ? { force: true } : {}),
+  };
   return commonApi('get', `${GB28181_PREFIX}/device-access-info/generate`, params, false);
 };
-

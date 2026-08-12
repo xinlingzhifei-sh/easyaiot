@@ -12,15 +12,14 @@ public class SmsChannelSimpleRespVO {
 /**
  * SmsChannelSimpleRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 description = "编号", example = "1024")
     private Long id;
 
-    @Schema(description = "短信签名", example = "BasicLab源码")
+    @Schema(description = "短信签名", example = "yFeiEye")
     private String signature;
 
     @Schema(description = "渠道编码，参见 SmsChannelEnum 枚举类", example = "YUN_PIAN")

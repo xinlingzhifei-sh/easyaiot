@@ -4,6 +4,9 @@
 services:
   video-service:
     image: video-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: video-service
     user: root
     # runtime: nvidia  # 由 install_linux.sh 检测到 GPU 后自动启用
@@ -12,11 +15,11 @@ services:
     # 这样宿主机 docker-entrypoint.sh 即使没有可执行位也能正常启动。
     # 注意：覆盖 entrypoint 会重置镜像 CMD，故必须同时显式声明 command。
     entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]
-    command: ["python", "run.py"]
+    command: ["/bin/sh", "-c", "python /app/prepare_database.py && python /app/apply_migrations.py --verify-only && python /app/enforce_private_media_buckets.py && exec python /app/run.py"]
 
     # 环境变量文件（用于Docker部署）
     env_file:
-      - .env.docker
+      - ${YFEIEYE_VIDEO_COMPOSE_ENV_FILE:-.env.docker}
 
     # 网络模式：使用host模式以访问宿主机局域网（ONVIF发现需要）
     # 注意：使用host模式后，端口映射将失效，服务直接使用宿主机网络
@@ -28,21 +31,31 @@ services:
       # 下方更具体的子目录挂载（./data 等）会按路径深度优先覆盖此挂载，互不冲突
       - ./:/app
       # 数据目录（包含数据集、模型、推理结果、上传文件）
-      - ./data:/app/data
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/data:/app/data
       # 静态文件目录
-      - ./static:/app/static
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/static:/app/static
       # 临时上传目录
-      - ./temp_uploads:/app/temp_uploads
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/temp_uploads:/app/temp_uploads
       # 模型文件目录（如果存在）
-      - ./model:/app/model
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/model:/app/model
       # face_rec.onnx 经上方 ./:/app 卷持久化，勿单独挂载文件路径：
       # 宿主机不存在时 Docker 会把 ./face_rec.onnx 建成目录，导致 WEB 下载后 os.replace 报 Errno 21
-      # NFS 共享媒体根（唯一存储；生产 /mnt/easyaiot-media，开发可设 EASYAIOT_MEDIA_ROOT=/tmp/easyaiot-nfs-mount）
+      # 告警图片目录（与iot-sink服务共享，用于大模型实时分析等服务的图片上传）
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/alert_images:/app/alert_images
+      # Runtime logs must survive versioned release/current switches.
+      - ${YFEIEYE_VIDEO_STATE_ROOT:-/data/yfeieye-video}/logs:/app/logs
+      # SRS录像目录（与SRS服务共享，用于访问SRS生成的录像文件）
+      # 重要说明：
+      # 1. 与 .scripts/docker/docker-compose.yml 中 SRS 一致：宿主机 /data -> 容器 /data
+      # 2. SRS录像实际存储在 /data/playbacks 目录下（由SRS配置的 dvr_path 决定）
+      # 3. 这里挂载相同宿主机目录到容器的 /data，确保 VIDEO 服务可访问 SRS 生成的录像
+      # 4. 在容器内，SRS录像文件位于 /data/playbacks/live/{device_id}/YYYY/MM/DD/*.flv
+      # 5. 应用数据目录在 /app/data，SRS录像目录在 /data，两者是不同的挂载点
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/data:rw
       - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/mnt/easyaiot-media:rw
-      # SRS Hook 契约路径 /data/playbacks → 映射 NFS playbacks
-      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}/playbacks:/data/playbacks:rw
+      - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}/yfeieye-record-exports:/data/yfeieye-record-exports:rw
       # 环境变量配置文件（用于Docker部署，使用.env.docker）
-      - ./.env.docker:/app/.env:ro
+      - ${YFEIEYE_VIDEO_COMPOSE_ENV_FILE:-.env.docker}:/app/.env:ro
 
     # 环境变量
     environment:
@@ -53,47 +66,103 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       # Flask配置
       - FLASK_RUN_PORT=${FLASK_RUN_PORT:-6000}
-      - FLASK_RUN_HOST=${FLASK_RUN_HOST:-0.0.0.0}
+      - FLASK_RUN_HOST=${FLASK_RUN_HOST:?FLASK_RUN_HOST must be set to the Docker bridge gateway}
       - DEBUG=${DEBUG:-False}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-[*]}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:?ALLOWED_HOSTS must be set}
       # 数据库配置（使用localhost，因为使用host网络模式，中间件端口已映射到宿主机）
-      - DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-please-change-this-to-a-random-string}
+      # DATABASE_URL and SECRET_KEY are required in .env.docker.
+      - YFEIEYE_MEDIA_SERVICE_MAX_SKEW_SECONDS=${YFEIEYE_MEDIA_SERVICE_MAX_SKEW_SECONDS:-300}
+      - VIDEO_ENV=${VIDEO_ENV:-production}
+      - YFEIEYE_LOCAL_MEDIA_ROOTS=/mnt/easyaiot-media/alert_images,/app/alert_images,/data/playbacks,/data/yfeieye-record-exports
+      - YFEIEYE_ALERT_INGEST_SERVICE_ID=${YFEIEYE_ALERT_INGEST_SERVICE_ID:-video-algorithm}
+      - YFEIEYE_ALERT_INGEST_TENANT_ID=${YFEIEYE_ALERT_INGEST_TENANT_ID:-1}
+      - YFEIEYE_SNAPSHOT_TENANT_ID=${YFEIEYE_SNAPSHOT_TENANT_ID:-1}
+      - YFEIEYE_DVR_TENANT_ID=${YFEIEYE_DVR_TENANT_ID:-1}
+      - YFEIEYE_VIDEO_LEGACY_TENANT_ID=${YFEIEYE_VIDEO_LEGACY_TENANT_ID:-1}
+      - MQTT_ALGO_TENANT=${MQTT_ALGO_TENANT:-1}
+      - YFEIEYE_MODEL_ROOT=/app/model
+      - YFEIEYE_RECORD_EXPORT_STORE_DIR=/data/yfeieye-record-exports
+      - YFEIEYE_MEDIA_ACCESS_AUDIT_MAX_BYTES=${YFEIEYE_MEDIA_ACCESS_AUDIT_MAX_BYTES:-67108864}
+      - YFEIEYE_MEDIA_ACCESS_AUDIT_BACKUP_COUNT=${YFEIEYE_MEDIA_ACCESS_AUDIT_BACKUP_COUNT:-5}
+      - YFEIEYE_RECORD_CACHE_EVENT_DIR=/data/yfeieye-record-exports/record-cache-events
+      - YFEIEYE_RECORD_CACHE_EVENT_RETENTION_HOURS=${YFEIEYE_RECORD_CACHE_EVENT_RETENTION_HOURS:-168}
+      - YFEIEYE_RECORD_CACHE_EVENT_MAX_FILES=${YFEIEYE_RECORD_CACHE_EVENT_MAX_FILES:-10000}
+      - YFEIEYE_RECORD_DRIFT_LOOKBACK_HOURS=${YFEIEYE_RECORD_DRIFT_LOOKBACK_HOURS:-720}
+      - YFEIEYE_SEEKABLE_PLAYBACK_CACHE_DIR=/data/yfeieye-record-exports/seekable-playback
+      - YFEIEYE_SEEKABLE_PLAYBACK_CACHE_TTL_SECONDS=${YFEIEYE_SEEKABLE_PLAYBACK_CACHE_TTL_SECONDS:-86400}
+      - YFEIEYE_SEEKABLE_PLAYBACK_CACHE_MAX_BYTES=${YFEIEYE_SEEKABLE_PLAYBACK_CACHE_MAX_BYTES:-2147483648}
+      - YFEIEYE_SEEKABLE_PLAYBACK_LOCK_STALE_SECONDS=${YFEIEYE_SEEKABLE_PLAYBACK_LOCK_STALE_SECONDS:-60}
+      - YFEIEYE_SEEKABLE_PLAYBACK_LOCK_HEARTBEAT_SECONDS=${YFEIEYE_SEEKABLE_PLAYBACK_LOCK_HEARTBEAT_SECONDS:-5}
+      - YFEIEYE_SEEKABLE_PLAYBACK_READ_LEASE_STALE_SECONDS=${YFEIEYE_SEEKABLE_PLAYBACK_READ_LEASE_STALE_SECONDS:-86400}
+      - YFEIEYE_VIDEO_SCHEMA_LOCK_WAIT_SECONDS=${YFEIEYE_VIDEO_SCHEMA_LOCK_WAIT_SECONDS:-60}
+      - YFEIEYE_VIDEO_SCHEMA_STATEMENT_TIMEOUT_MS=${YFEIEYE_VIDEO_SCHEMA_STATEMENT_TIMEOUT_MS:-300000}
+      - YFEIEYE_VIDEO_SCHEMA_DB_LOCK_TIMEOUT_MS=${YFEIEYE_VIDEO_SCHEMA_DB_LOCK_TIMEOUT_MS:-10000}
+      - YFEIEYE_RECORD_EXPORT_RETENTION_DAYS=${YFEIEYE_RECORD_EXPORT_RETENTION_DAYS:-7}
+      - YFEIEYE_RECORD_EXPORT_MAX_SEGMENTS=${YFEIEYE_RECORD_EXPORT_MAX_SEGMENTS:-16}
+      - YFEIEYE_RECORD_EXPORT_MAX_TOTAL_DURATION_SECONDS=${YFEIEYE_RECORD_EXPORT_MAX_TOTAL_DURATION_SECONDS:-3600}
+      - YFEIEYE_RECORD_EXPORT_MAX_INPUT_BYTES=${YFEIEYE_RECORD_EXPORT_MAX_INPUT_BYTES:-2147483648}
+      - YFEIEYE_RECORD_EXPORT_MAX_OUTPUT_BYTES=${YFEIEYE_RECORD_EXPORT_MAX_OUTPUT_BYTES:-2147483648}
+      - YFEIEYE_RECORD_EXPORT_STORE_MAX_BYTES=${YFEIEYE_RECORD_EXPORT_STORE_MAX_BYTES:-2147483648}
+      - YFEIEYE_RECORD_EXPORT_TEMP_DIR=/data/yfeieye-record-exports/tmp
+      - YFEIEYE_RECORD_EXPORT_TEMP_MAX_BYTES=${YFEIEYE_RECORD_EXPORT_TEMP_MAX_BYTES:-1073741824}
+      - YFEIEYE_RECORD_EXPORT_ORPHAN_TTL_SECONDS=${YFEIEYE_RECORD_EXPORT_ORPHAN_TTL_SECONDS:-3600}
+      - YFEIEYE_FFMPEG_MAX_CONCURRENT=${YFEIEYE_FFMPEG_MAX_CONCURRENT:-1}
+      - YFEIEYE_FFMPEG_SLOT_WAIT_SECONDS=${YFEIEYE_FFMPEG_SLOT_WAIT_SECONDS:-30}
+      - YFEIEYE_FFMPEG_THREADS=${YFEIEYE_FFMPEG_THREADS:-1}
+      - YFEIEYE_FFMPEG_FILTER_THREADS=${YFEIEYE_FFMPEG_FILTER_THREADS:-1}
+      - YFEIEYE_FFMPEG_TIMEOUT_BASE_SECONDS=${YFEIEYE_FFMPEG_TIMEOUT_BASE_SECONDS:-30}
+      - YFEIEYE_FFMPEG_TIMEOUT_PER_MEDIA_SECOND=${YFEIEYE_FFMPEG_TIMEOUT_PER_MEDIA_SECOND:-4}
+      - YFEIEYE_FFMPEG_TIMEOUT_MAX_SECONDS=${YFEIEYE_FFMPEG_TIMEOUT_MAX_SECONDS:-600}
+      - YFEIEYE_MEDIA_DISK_MIN_FREE_BYTES=${YFEIEYE_MEDIA_DISK_MIN_FREE_BYTES:-2147483648}
+      - YFEIEYE_SEEKABLE_PLAYBACK_MAX_OUTPUT_BYTES=${YFEIEYE_SEEKABLE_PLAYBACK_MAX_OUTPUT_BYTES:-1073741824}
+      # Auth/HMAC/object-storage secrets and endpoints come from .env.docker.
+      # Do not mirror them here with empty ${VAR:-} substitutions: Compose's
+      # environment section would override the secured env_file values.
+      # .env.docker must allow service ids iot-system,video-algorithm and actions
+      # coverage,export,download,alert_ingest, with an explicit camera-id list
+      # (never an unbounded wildcard in production).
       # 流地址 secure_link 签名密钥 STREAM_TICKET_SECRET 由挂载的 .env.docker 提供（容器内 /app/.env，
       # 经 dotenv 加载进 os.environ），无需在此重复；密钥须与 WEB/conf/nginx.conf 的 $stream_secret 一致。
       # Nacos配置（使用localhost，因为使用host网络模式）
       - NACOS_SERVER=${NACOS_SERVER:-localhost:8848}
       - NACOS_NAMESPACE=${NACOS_NAMESPACE:-}
       - NACOS_USERNAME=${NACOS_USERNAME:-nacos}
-      - NACOS_PASSWORD=${NACOS_PASSWORD:-basiclab@iot78475418754}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?NACOS_PASSWORD is required}
       - SERVICE_NAME=${SERVICE_NAME:-video-server}
       # Pod IP配置（容器内会自动获取，也可手动指定）
       - POD_IP=${POD_IP:-}
       # MinIO对象存储配置（使用localhost，因为使用host网络模式）
       - MINIO_ENDPOINT=${MINIO_ENDPOINT:-localhost:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-basiclab@iot975248395}
+      # MINIO_ACCESS_KEY and MINIO_SECRET_KEY are required in .env.docker.
       - MINIO_SECURE=${MINIO_SECURE:-false}
       # Redis配置（使用localhost，因为使用host网络模式）
       - REDIS_HOST=${REDIS_HOST:-localhost}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-basiclab@iot975248395}
-      # Kafka配置（使用宿主机IP或localhost，因为使用host网络模式，不能使用容器名）
-      # 如果Kafka运行在宿主机上，使用localhost:9092
-      # 如果Kafka运行在其他机器上，使用宿主机IP，例如：192.168.1.100:9092
-      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      # Kafka配置（使用host网络模式时走Kafka EXTERNAL listener，避免broker回传Kafka:9092导致DNS失败）
+      # 如果Kafka运行在其他机器上，使用宿主机IP，例如：192.168.1.100:9094
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}
       # TDengine配置（使用localhost，因为使用host网络模式）
       - TDENGINE_HOST=${TDENGINE_HOST:-localhost}
       - TDENGINE_PORT=${TDENGINE_PORT:-6030}
-      # 告警图片落盘（NFS 共享根，与 iot-sink basiclab.media.mount-root 一致）
+      # 告警图片落盘根目录（与外置 alert_images 卷一致，供 iot-sink 读取并上传 MinIO）
       - ALERT_IMAGES_DIR=/mnt/easyaiot-media/alert_images
-      # iot-sink 经 Gateway + Nacos 负载（内网回调统一走 48080）
-      - IOT_SINK_USE_GATEWAY=1
-      - SINK_DVR_HOOK_URL=http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr
-      - IOT_SINK_MEDIA_HOOK_URL=http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr
       # 视频服务特有配置
       - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-pro.basiclab.top:1935}
       - CAMERA_ONLINE_INTERVAL=${CAMERA_ONLINE_INTERVAL:-10}
+      - GB28181_PLAY_PROTOCOL=${GB28181_PLAY_PROTOCOL:-fmp4_first}
+      - AI_OUTPUT_FPS=${AI_OUTPUT_FPS:-25}
+      - AI_TARGET_WIDTH=${AI_TARGET_WIDTH:-1280}
+      - AI_TARGET_HEIGHT=${AI_TARGET_HEIGHT:-720}
+      - AI_FFMPEG_PRESET=${AI_FFMPEG_PRESET:-veryfast}
+      - AI_FFMPEG_VIDEO_BITRATE=${AI_FFMPEG_VIDEO_BITRATE:-3500k}
+      - AI_FFMPEG_GOP_SIZE=${AI_FFMPEG_GOP_SIZE:-50}
+      - FFMPEG_THREADS=${FFMPEG_THREADS:-}
+      - EXTRACT_INTERVAL=200
+      - ALERT_EXTRACT_INTERVAL=1000
+      - YOLO_IMG_SIZE=640
+      - OVERLAY_DETECTION_QUEUE_SIZE=1
+      - AUTO_QUALITY_ENABLED=false
       # ONVIF配置（可选）
       - ONVIF_WSDL_DIR=${ONVIF_WSDL_DIR:-/etc/onvif/wsdl}
       # 时区配置
@@ -116,8 +185,8 @@ services:
 
     # 注意：使用host网络模式时，不需要配置extra_hosts
     # 容器直接使用宿主机网络栈，Kafka配置应使用宿主机IP或localhost，不能使用容器名
-    # 如果Kafka运行在宿主机上，使用localhost:9092
-    # 如果Kafka运行在其他机器上，使用宿主机IP，例如：192.168.1.100:9092
+    # 如果Kafka运行在宿主机上，使用localhost:9094
+    # 如果Kafka运行在其他机器上，使用宿主机IP，例如：192.168.1.100:9094
     # extra_hosts:
     #   - "kafka-server:host-gateway"
 
@@ -128,7 +197,9 @@ services:
     # 注意：start_period设置为90秒，因为应用启动时会等待Nacos服务（最多30秒）
     # 加上应用初始化时间，总共可能需要60-90秒
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6000/actuator/health"]
+      # Resolve inside the container so a production host-network deployment can
+      # bind only the Docker bridge gateway instead of exposing port 6000 publicly.
+      test: ["CMD-SHELL", "curl -f http://$${FLASK_RUN_HOST}:$${FLASK_RUN_PORT:-6000}/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

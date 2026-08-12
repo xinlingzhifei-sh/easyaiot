@@ -1,13 +1,13 @@
-import { ref, watch, computed } from 'vue'
+import { ref } from 'vue'
 import { icon } from '@/design/component'
 import { renderLang, renderIcon } from '@/utils'
 import { themeColor, setItem, getCharts } from './useLayout.hook'
 import { PackagesCategoryEnum, PackagesCategoryName, ConfigType } from '@/design/packages/index.d'
 import { usePackagesStore } from '@/store/modules/packagesStore/packagesStore'
-import { ChartLayoutStoreEnum } from '@/store/modules/chartLayoutStore/chartLayoutStore.d'
+import { ChartLayoutStoreEnum } from '@/store/modules/chartLayoutStore/chartLayoutStore'
 // 图标
 const { AirPlaneOutlineIcon, ImageIcon, BarChartIcon } = icon.ionicons5
-const { TableSplitIcon, RoadmapIcon, SpellCheckIcon, GraphicalDataFlowIcon } = icon.carbon
+const { TableSplitIcon, SpellCheckIcon, GraphicalDataFlowIcon } = icon.carbon
 
 // 图表
 export type MenuOptionsType = {
@@ -18,10 +18,6 @@ export type MenuOptionsType = {
 }
 
 const packagesListObj = {
-  [PackagesCategoryEnum.CHARTS]: {
-    icon: renderIcon(RoadmapIcon),
-    label: PackagesCategoryName.CHARTS
-  },
   [PackagesCategoryEnum.INFORMATIONS]: {
     icon: renderIcon(SpellCheckIcon),
     label: PackagesCategoryName.INFORMATIONS

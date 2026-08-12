@@ -5,9 +5,8 @@ import lombok.Data;
 /**
  * response相应实体
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @since 2023-07-19
  **/
 @Data

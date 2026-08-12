@@ -1,8 +1,7 @@
 """
 推流转发任务管理路由
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import os
@@ -509,6 +508,49 @@ def get_service_logs(service_obj, lines: int = 100, date: str = None):
 
 
 # ====================== 设备推流转发任务检查接口 ======================
+@stream_forward_bp.route('/device/<string:device_id>/ensure-edge-task', methods=['POST'])
+def ensure_edge_task(device_id):
+    try:
+        from app.services.edge_stream_forward_service import ensure_edge_rtsp_forward
+
+        data = request.get_json(silent=True) or {}
+        edge_node_id = data.get('edge_node_id') or data.get('edgeNodeId')
+        transport = (data.get('transport') or 'tcp').strip().lower()
+        result = ensure_edge_rtsp_forward(device_id, edge_node_id=int(edge_node_id), transport=transport)
+        return jsonify({'code': 0, 'msg': 'success', 'data': result})
+    except Exception as e:
+        logger.error('ensure edge stream-forward task failed device_id=%s: %s', device_id, e, exc_info=True)
+        return jsonify({'code': 500, 'msg': str(e)}), 500
+
+
+@stream_forward_bp.route('/device/<string:device_id>/reconcile-edge-task', methods=['POST'])
+def reconcile_edge_task(device_id):
+    try:
+        from app.services.edge_stream_forward_service import reconcile_edge_rtsp_forward_command
+
+        data = request.get_json(silent=True) or {}
+        edge_node_id = data.get('edge_node_id') or data.get('edgeNodeId')
+        if not edge_node_id:
+            return jsonify({'code': 400, 'msg': 'edge_node_id is required'}), 400
+
+        transport = (data.get('transport') or 'tcp').strip().lower()
+        timeout_seconds = int(data.get('timeout_seconds') or data.get('timeoutSeconds') or 120)
+        max_attempts = int(data.get('max_attempts') or data.get('maxAttempts') or 3)
+        result = reconcile_edge_rtsp_forward_command(
+            device_id,
+            edge_node_id=int(edge_node_id),
+            transport=transport,
+            timeout_seconds=timeout_seconds,
+            max_attempts=max_attempts,
+        )
+        return jsonify({'code': 0, 'msg': 'success', 'data': result})
+    except ValueError as e:
+        return jsonify({'code': 400, 'msg': str(e)}), 400
+    except Exception as e:
+        logger.error('reconcile edge stream-forward task failed device_id=%s: %s', device_id, e, exc_info=True)
+        return jsonify({'code': 500, 'msg': str(e)}), 500
+
+
 @stream_forward_bp.route('/device/<string:device_id>/ensure-task', methods=['POST'])
 def ensure_device_task(device_id):
     """检查并确保摄像头存在推流转发任务，如果不存在则自动创建并启动"""
@@ -541,4 +583,3 @@ def ensure_device_task(device_id):
     except Exception as e:
         logger.error(f"确保设备推流转发任务失败: {str(e)}", exc_info=True)
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
-

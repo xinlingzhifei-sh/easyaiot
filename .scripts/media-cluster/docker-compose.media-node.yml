@@ -1,13 +1,13 @@
 # 单 SRS 媒体节点 Compose 模板（host 网络）
 # 用法:
-#   export MEDIA_NODE_ID=srs-live-01 MEDIA_HOOK_HOST=10.10.40.10 MEDIA_HOOK_PORT=48080 SRS_CANDIDATE_IP=10.10.20.11
+#   export MEDIA_NODE_ID=media-live-01 MEDIA_HOOK_HOST=10.10.40.10 MEDIA_HOOK_PORT=6000 SRS_CANDIDATE_IP=10.10.20.11 YFEIEYE_SRS_HOOK_TOKEN=<32+-url-safe>
 #   envsubst < srs/cluster.conf.template > /opt/srs/conf/docker.conf
 #   docker compose -f docker-compose.media-node.yml up -d
 
 services:
   srs:
     image: ossrs/srs:5
-    container_name: "${MEDIA_NODE_ID:-srs-node}"
+    container_name: "${MEDIA_NODE_ID}-srs"
     restart: always
     network_mode: host
     environment:
@@ -28,7 +28,7 @@ services:
 
   zlm:
     image: zlmediakit/zlmediakit:master
-    container_name: "${MEDIA_NODE_ID:-zlm-node}"
+    container_name: "${MEDIA_NODE_ID}-zlm"
     restart: always
     network_mode: host
     environment:

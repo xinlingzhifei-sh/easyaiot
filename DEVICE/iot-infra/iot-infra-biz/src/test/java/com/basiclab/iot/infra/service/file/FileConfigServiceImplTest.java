@@ -41,9 +41,8 @@ import static org.mockito.Mockito.*;
 /**
  * {@link FileConfigServiceImpl} 的单元测试类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Import(FileConfigServiceImpl.class)
 public class FileConfigServiceImplTest extends BaseDbUnitTest {
@@ -180,7 +179,7 @@ public class FileConfigServiceImplTest extends BaseDbUnitTest {
     @Test
     public void testGetFileConfigPage() {
         // mock 数据
-        FileConfigDO dbFileConfig = randomFileConfigDO().setName("BasicLab源码")
+        FileConfigDO dbFileConfig = randomFileConfigDO().setName("yFeiEye")
                 .setStorage(FileStorageEnum.LOCAL.getStorage());
         dbFileConfig.setCreateTime(LocalDateTimeUtil.parse("2020-01-23", DatePattern.NORM_DATE_PATTERN));// 等会查询到
         fileConfigMapper.insert(dbFileConfig);
@@ -192,7 +191,7 @@ public class FileConfigServiceImplTest extends BaseDbUnitTest {
         fileConfigMapper.insert(cloneIgnoreId(dbFileConfig, o -> o.setCreateTime(LocalDateTimeUtil.parse("2020-11-23", DatePattern.NORM_DATE_PATTERN))));
         // 准备参数
         FileConfigPageReqVO reqVO = new FileConfigPageReqVO();
-        reqVO.setName("BasicLab");
+        reqVO.setName("yFeiEye");
         reqVO.setStorage(FileStorageEnum.LOCAL.getStorage());
         reqVO.setCreateTime((new LocalDateTime[]{buildTime(2020, 1, 1),
                 buildTime(2020, 1, 24)}));

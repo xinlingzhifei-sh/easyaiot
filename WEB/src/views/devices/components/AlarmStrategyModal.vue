@@ -57,7 +57,7 @@
               <Input
                 v-model:value="form.strategyName"
                 placeholder="例如：产线关键告警策略"
-                maxlength="64"
+                :maxlength="64"
                 allow-clear
               />
             </div>
@@ -164,7 +164,7 @@
               v-model:value="form.remark"
               :rows="3"
               placeholder="可选：值班说明、通知对象等"
-              maxlength="200"
+              :maxlength="200"
               show-count
             />
           </div>

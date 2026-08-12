@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.framework.security.MediaHookTokenSupport;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
@@ -60,6 +61,9 @@ public class ZLMMediaServerStatusManager {
 
     @Value("${server.servlet.context-path:}")
     private String serverServletContextPath;
+
+    @Value("${media.hook-token:}")
+    private String mediaHookToken;
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -247,25 +251,26 @@ public class ZLMMediaServerStatusManager {
         String hookPrefix = String.format("%s://%s:%s%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort, (serverServletContextPath == null || "/".equals(serverServletContextPath)) ? "" : serverServletContextPath);
 
         Map<String, Object> param = new HashMap<>();
+        param.put("general.mediaServerId", mediaServerItem.getId());
         if (mediaServerItem.getRtspPort() != 0) {
             param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -frames:v 1 %s");
         }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
-        param.put("hook.on_play",String.format("%s/on_play", hookPrefix));
+        param.put("hook.on_play", hookUrl(hookPrefix, "on_play"));
         param.put("hook.on_http_access","");
-        param.put("hook.on_publish", String.format("%s/on_publish", hookPrefix));
+        param.put("hook.on_publish", hookUrl(hookPrefix, "on_publish"));
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
         param.put("hook.on_rtsp_realm","");
-        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrefix));
+        param.put("hook.on_server_started", hookUrl(hookPrefix, "on_server_started"));
         param.put("hook.on_shell_login","");
-        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrefix));
-        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrefix));
-        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrefix));
-        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrefix));
-        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrefix));
-        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrefix));
+        param.put("hook.on_stream_changed", hookUrl(hookPrefix, "on_stream_changed"));
+        param.put("hook.on_stream_none_reader", hookUrl(hookPrefix, "on_stream_none_reader"));
+        param.put("hook.on_stream_not_found", hookUrl(hookPrefix, "on_stream_not_found"));
+        param.put("hook.on_server_keepalive", hookUrl(hookPrefix, "on_server_keepalive"));
+        param.put("hook.on_send_rtp_stopped", hookUrl(hookPrefix, "on_send_rtp_stopped"));
+        param.put("hook.on_rtp_server_timeout", hookUrl(hookPrefix, "on_rtp_server_timeout"));
         param.put("hook.on_record_mp4","");
         param.put("hook.timeoutSec","30");
         // 录像由 SRS 负责，ZLM 仅做流媒体转发
@@ -297,6 +302,12 @@ public class ZLMMediaServerStatusManager {
             log.info("[媒体服务节点] 设置媒体服务节点失败 {} -> {}:{}",
                     mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }
+    }
+
+    private String hookUrl(String hookPrefix, String hookName) {
+        return MediaHookTokenSupport.appendToUrl(
+                String.format("%s/%s", hookPrefix, hookName),
+                mediaHookToken);
     }
 
     private void refreshDefaultServerNetworkIp(MediaServer mediaServerItem) {

@@ -51,6 +51,7 @@ export function useFormValid<T extends object = any>(formRef: Ref<FormInstance>)
 export function useFormRules(formData?: Recordable) {
   const { t } = useI18n()
 
+  const getTenantFormRule = computed(() => createRule(t('sys.login.tenantPlaceholder')))
   const getAccountFormRule = computed(() => createRule(t('sys.login.accountPlaceholder')))
   const getPasswordFormRule = computed(() => createRule(t('sys.login.passwordPlaceholder')))
   const getSmsFormRule = computed(() => createRule(t('sys.login.smsPlaceholder')))
@@ -73,6 +74,7 @@ export function useFormRules(formData?: Recordable) {
   }
 
   const getFormRules = computed((): { [k: string]: Rule | Rule[] } => {
+    const tenantFormRule = unref(getTenantFormRule)
     const accountFormRule = unref(getAccountFormRule)
     const passwordFormRule = unref(getPasswordFormRule)
     const smsFormRule = unref(getSmsFormRule)
@@ -107,7 +109,8 @@ export function useFormRules(formData?: Recordable) {
       // login form rules
       default:
         return {
-          account: accountFormRule,
+          tenantName: tenantFormRule,
+          username: accountFormRule,
           password: passwordFormRule,
         }
     }

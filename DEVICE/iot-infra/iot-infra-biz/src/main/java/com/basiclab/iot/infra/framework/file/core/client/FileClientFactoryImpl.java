@@ -11,9 +11,8 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 文件客户端的工厂实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 public class FileClientFactoryImpl implements FileClientFactory {

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { ChartEditStorageType } from '../index.d'
-import { CreateComponentType, CreateComponentGroupType } from '@/design/packages'
+import type { ChartEditStorage as ChartEditStorageType } from '@/store/modules/chartEditStore/chartEditStore.d'
+import type { CreateComponentType, CreateComponentGroupType } from '@/design/packages'
 import { fetchChartComponent } from '@/design/packages/index'
 
 export const useComInstall = (localStorageInfo: ChartEditStorageType) => {

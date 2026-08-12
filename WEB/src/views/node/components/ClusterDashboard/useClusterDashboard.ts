@@ -69,7 +69,7 @@ function mergeComputeNode(existing: ComputeNodeVO, patch: ComputeNodeVO): Comput
   (Object.keys(safePatch) as Array<keyof ComputeNodeVO>).forEach((key) => {
     const value = safePatch[key];
     if (value !== undefined && value !== null) {
-      (merged as Record<string, unknown>)[key as string] = value;
+      (merged as unknown as Record<string, unknown>)[key as string] = value;
     }
   });
   return merged;

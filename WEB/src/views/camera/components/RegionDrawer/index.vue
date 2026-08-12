@@ -309,7 +309,8 @@ const drawRegion = (region: DetectionRegion) => {
 
 // 绘制当前正在创建的区域
 const drawCurrentRegion = () => {
-  if (!ctx.value || !imageDisplaySize.value || currentPoints.value.length === 0) return;
+  const context = ctx.value;
+  if (!context || !imageDisplaySize.value || currentPoints.value.length === 0) return;
 
   const { x: imgX, y: imgY, width: imgWidth, height: imgHeight } = imageDisplaySize.value;
 
@@ -318,33 +319,33 @@ const drawCurrentRegion = () => {
     y: imgY + point.y * imgHeight,
   });
 
-  ctx.value.save();
-  ctx.value.strokeStyle = '#FF5252';
-  ctx.value.lineWidth = 2;
-  ctx.value.fillStyle = '#FF525250';
+  context.save();
+  context.strokeStyle = '#FF5252';
+  context.lineWidth = 2;
+  context.fillStyle = '#FF525250';
 
   if (currentPoints.value.length > 0) {
-    ctx.value.beginPath();
+    context.beginPath();
     const firstPoint = toCanvasCoords(currentPoints.value[0]);
-    ctx.value.moveTo(firstPoint.x, firstPoint.y);
+    context.moveTo(firstPoint.x, firstPoint.y);
 
     for (let i = 1; i < currentPoints.value.length; i++) {
       const point = toCanvasCoords(currentPoints.value[i]);
-      ctx.value.lineTo(point.x, point.y);
+      context.lineTo(point.x, point.y);
     }
 
-    ctx.value.stroke();
+    context.stroke();
 
     // 绘制点
     currentPoints.value.forEach(point => {
       const canvasPoint = toCanvasCoords(point);
-      ctx.value.beginPath();
-      ctx.value.arc(canvasPoint.x, canvasPoint.y, 4, 0, Math.PI * 2);
-      ctx.value.fill();
+      context.beginPath();
+      context.arc(canvasPoint.x, canvasPoint.y, 4, 0, Math.PI * 2);
+      context.fill();
     });
   }
 
-  ctx.value.restore();
+  context.restore();
 };
 
 // 鼠标事件处理
@@ -367,7 +368,7 @@ const handleMouseDown = (e: MouseEvent) => {
   draw();
 };
 
-const handleMouseMove = (e: MouseEvent) => {
+const handleMouseMove = (_e: MouseEvent) => {
   if (!isDrawing.value || !canvas.value) return;
   draw();
 };
@@ -640,4 +641,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

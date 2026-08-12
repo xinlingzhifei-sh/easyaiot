@@ -126,11 +126,11 @@ function normalizeNodeDetail(res: unknown): ComputeNodeVO | null {
   if (!res || typeof res !== 'object') return null;
   const payload = res as Record<string, unknown>;
   if (payload.id != null || payload.name != null) {
-    return payload as ComputeNodeVO;
+    return payload as unknown as ComputeNodeVO;
   }
   const nested = payload.data;
   if (nested && typeof nested === 'object') {
-    return nested as ComputeNodeVO;
+    return nested as unknown as ComputeNodeVO;
   }
   return null;
 }

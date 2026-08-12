@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT RTC 容器入口：渲染 go2rtc 配置 → 启动 go2rtc → 启动 Python 管理服务
+# yFeiEye RTC 容器入口：渲染 go2rtc 配置 → 启动 go2rtc → 启动 Python 管理服务
 set -euo pipefail
 
 CONFIG_DIR="${GO2RTC_CONFIG_DIR:-/config}"

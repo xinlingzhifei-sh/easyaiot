@@ -1,4 +1,4 @@
-# EasyAIoT 플랫폼 macOS 배포 문서
+# yFeiEye 플랫폼 macOS 배포 문서
 
 > 문서 버전: 1.1  
 > 업데이트 날짜: 2026-08-01  

@@ -46,7 +46,7 @@
             <div class="header-toolbar">
               <a-radio-group
                 v-model:value="state.splitMode"
-                size="middle"
+                size="default"
                 button-style="solid"
                 class="split-mode-group"
                 @change="handleSplitModeChange"
@@ -141,6 +141,9 @@
                   :ref="(el) => setPlayerRef(el, i - 1)"
                   :playUrl="state.playCells[i - 1]!.url"
                   :hasAudio="false"
+                  :playerEngine="state.playCells[i - 1]!.playerEngine || ''"
+                  :videoCodec="state.playCells[i - 1]!.videoCodec || ''"
+                  @playing="handleCellPlaying(i - 1, $event)"
                   :fill-video="true"
                   :multi-view="state.splitMode > 1"
                   :ai-with-fallback="!!state.playCells[i - 1]!.fallbackUrl"
@@ -192,6 +195,7 @@ import {
 import { formatCameraDeviceLabel, isGb28181Device } from '@/views/camera/utils/deviceLabel';
 import {
   AI_PLAY_FALLBACK_MS,
+  loadGbChannelSyncedDevice,
   pickDirectPlayUrls,
   schedulePendingAiStreamUpgrade,
   resolveGbChannelPlayUrls} from '@/views/camera/utils/devicePlay';
@@ -206,6 +210,7 @@ import {
   parseGbChannelKey,
   type GbChannelRef} from '@/views/camera/utils/gb28181Tree';
 import { getDeviceChannels } from '@/api/device/gb28181';
+import type { WvpPlaySourceOption } from '@/views/camera/utils/livePlayer';
 import { collectWvpGbChannelsForSync } from '@/views/camera/utils/wvpGbSync';
 import {
   enrichWvpChannelTreeNodes,
@@ -221,6 +226,20 @@ import Jessibuca from '@/components/Player/module/jessibuca.vue';
 import { Button } from '@/components/Button';
 import LayoutPresetPanel from './LayoutPresetPanel.vue';
 import {
+  createAlgorithmTask,
+  listAlgorithmTasks,
+  startAlgorithmTask,
+  stopAlgorithmTask,
+} from '@/api/device/algorithm_task';
+import { getModelPage } from '@/api/device/model';
+import {
+  extractDashboardGuardErrorMessage,
+  startDashboardGuardTask,
+  stopDashboardGuardTask,
+  type DashboardGuardScope,
+  type DashboardGuardTaskApi,
+} from '@/views/dashboard/monitor/dashboardGuardTask';
+import {
   loadCameraMonitorLayoutStorage,
   saveCameraMonitorLayoutStorage,
   serializeDeviceSnapshot,
@@ -235,14 +254,103 @@ interface PlayCell {
   url: string;
   /** 播放中断时可回退的原始流地址（仅在播 AI 流且存在原始流时设置） */
   fallbackUrl?: string | null;
+  playerEngine?: string | null;
+  videoCodec?: string | null;
+  playSources?: WvpPlaySourceOption[] | null;
   pendingRestore?: boolean;
   device?: MonitorTreeDeviceNode;
 }
 
 const { createMessage, createConfirm } = useMessage();
 
-/** 勾选后点播 AI 流（检测框由算法任务烧录在此路流上）；默认关，与推流转发预览一致先播 /live */
-const enableAi = ref(true);
+/** 勾选后点播 AI 流（检测框由算法任务烧录在此路流上） */
+const enableAi = ref(false);
+
+const splitScreenGuardApi: DashboardGuardTaskApi = {
+  listAlgorithmTasks: (params) => listAlgorithmTasks(params, { errorMessageMode: 'none' }),
+  listAvailableModels: () => getModelPage(
+    { pageNo: 1, pageSize: 1000 },
+    { errorMessageMode: 'none' },
+  ),
+  createAlgorithmTask: createAlgorithmTask as DashboardGuardTaskApi['createAlgorithmTask'],
+  startAlgorithmTask: (taskId) => startAlgorithmTask(taskId, { errorMessageMode: 'none' }),
+  stopAlgorithmTask: (taskId) => stopAlgorithmTask(taskId, { errorMessageMode: 'none' }),
+};
+
+function getSplitScreenAiDeviceId(device?: MonitorTreeDeviceNode | null) {
+  const id = String(device?.id ?? '').trim();
+  if (!id || id.startsWith('gb_ch_')) return '';
+  return id;
+}
+
+function collectSplitScreenAiDevices(extraDevice?: MonitorTreeDeviceNode | null): MonitorTreeDeviceNode[] {
+  const byId = new Map<string, MonitorTreeDeviceNode>();
+  const addDevice = (device?: MonitorTreeDeviceNode | null) => {
+    const id = getSplitScreenAiDeviceId(device);
+    if (!id || byId.has(id)) return;
+    byId.set(id, device as MonitorTreeDeviceNode);
+  };
+
+  state.playCells.forEach((cell) => {
+    if (!cell?.deviceId || cell.deviceId.startsWith('gb_ch_')) return;
+    const device = findMonitorDeviceById(treeData.value, cell.deviceId);
+    addDevice(device ?? ({ id: cell.deviceId, name: cell.name } as MonitorTreeDeviceNode));
+  });
+
+  addDevice(extraDevice);
+  return [...byId.values()];
+}
+
+function buildSplitScreenAiScope(devices: MonitorTreeDeviceNode[]): DashboardGuardScope | null {
+  const deviceIds = [...new Set(devices.map(getSplitScreenAiDeviceId).filter(Boolean))];
+  if (!deviceIds.length) return null;
+  const sortedIds = [...deviceIds].sort();
+  const firstDeviceName = formatCameraDeviceLabel(devices[0]) || devices[0]?.name || sortedIds[0];
+  return {
+    key: `split-screen-ai:${sortedIds.join(',')}`,
+    label: deviceIds.length === 1 ? firstDeviceName : `分屏播放 ${deviceIds.length} 路`,
+    deviceIds,
+  };
+}
+
+async function ensureSplitScreenAiRecognitionForDevices(devices: MonitorTreeDeviceNode[]) {
+  const scope = buildSplitScreenAiScope(devices);
+  if (!scope) return true;
+  try {
+    await startDashboardGuardTask({ scope, api: splitScreenGuardApi });
+    return true;
+  } catch (error) {
+    createMessage.error(`AI 识别启动失败：${extractDashboardGuardErrorMessage(error)}`);
+    return false;
+  }
+}
+
+async function ensureSplitScreenAiRecognitionForVisibleDevices() {
+  return ensureSplitScreenAiRecognitionForDevices(collectSplitScreenAiDevices());
+}
+
+async function ensureGbSplitScreenAiRecognition(
+  gb: { sipDeviceId: string; channelId: string },
+  fallbackDevice?: MonitorTreeDeviceNode | null,
+) {
+  const aiDevice = await loadGbChannelSyncedDevice(gb.sipDeviceId, gb.channelId, fallbackDevice);
+  if (!getSplitScreenAiDeviceId(aiDevice)) {
+    createMessage.warning('国标通道尚未同步到设备库，无法启动 AI 识别；请先同步该通道');
+    return { ready: false, device: fallbackDevice ?? null };
+  }
+  const ready = await ensureSplitScreenAiRecognitionForDevices(collectSplitScreenAiDevices(aiDevice));
+  return { ready, device: aiDevice };
+}
+
+async function stopSplitScreenAiRecognitionForVisibleDevices() {
+  const scope = buildSplitScreenAiScope(collectSplitScreenAiDevices());
+  if (!scope) return;
+  try {
+    await stopDashboardGuardTask({ scope, api: splitScreenGuardApi });
+  } catch (error) {
+    console.warn('停止分屏 AI 识别任务失败:', error);
+  }
+}
 
 const selectedKeys = ref<string[]>([]);
 const expandedKeys = ref<string[]>([]);
@@ -251,7 +359,6 @@ const treeLoading = ref(false);
 /** 有缓存时后台静默刷新 */
 const treeRefreshing = ref(false);
 const playerRefs = ref<any[]>([]);
-const aiFallbackTimers = new Map<number, number>();
 
 const state = reactive({
   playCells: [] as (PlayCell | null)[],
@@ -320,9 +427,9 @@ function resolveDeviceForCell(cell: PlayCell): MonitorTreeDeviceNode | undefined
   if (playId.startsWith('gb_ch_')) {
     const gb = parseGbChannelKey(playId);
     if (!gb) return undefined;
-    return findMonitorGbDeviceByChannel(treeData.value, gb.sipDeviceId, gb.channelId);
+    return findMonitorGbDeviceByChannel(treeData.value, gb.sipDeviceId, gb.channelId) ?? undefined;
   }
-  return findMonitorDeviceById(treeData.value, playId);
+  return findMonitorDeviceById(treeData.value, playId) ?? undefined;
 }
 
 function buildCurrentLayoutSlots(): CameraMonitorLayoutSlot[] {
@@ -564,12 +671,23 @@ async function resolveDirectPlayUrl(device: MonitorTreeDeviceNode) {
   return pickDirectPlayUrls(device, enableAi.value);
 }
 
+const aiFallbackTimers = new Map<number, number>();
+const aiFallbackPlayingUrls = new Map<number, string>();
 function clearAiFallbackTimer(cellIdx: number) {
   const timerId = aiFallbackTimers.get(cellIdx);
   if (timerId != null) {
     window.clearTimeout(timerId);
     aiFallbackTimers.delete(cellIdx);
   }
+}
+
+function handleCellPlaying(cellIdx: number, playUrl?: string) {
+  const cell = state.playCells[cellIdx];
+  const currentUrl = cell?.url?.trim();
+  const reportedUrl = playUrl?.trim();
+  if (!currentUrl || (reportedUrl && reportedUrl !== currentUrl)) return;
+  aiFallbackPlayingUrls.set(cellIdx, currentUrl);
+  clearAiFallbackTimer(cellIdx);
 }
 
 /** 首帧已播原始流后，后台探测 AI 就绪再无缝切换 */
@@ -613,13 +731,22 @@ async function startPlayAtCell(
     url: string;
     fallbackUrl?: string | null;
     preferAi?: boolean;
+    playerEngine?: string | null;
+    videoCodec?: string | null;
+    playSources?: WvpPlaySourceOption[] | null;
     pendingAiUrl?: string | null;
   },
 ) {
   clearAiFallbackTimer(cellIdx);
+  aiFallbackPlayingUrls.delete(cellIdx);
+  const existing = state.playCells[cellIdx];
+  if (existing && playerRefs.value[cellIdx]?.destroy) {
+    playerRefs.value[cellIdx].destroy();
+  }
 
   const fallbackUrl = payload.fallbackUrl?.trim();
   const hasFallback = !!(payload.preferAi && fallbackUrl && fallbackUrl !== payload.url);
+  const playSources = payload.playSources?.filter((source) => source.url?.trim()) ?? null;
   const pendingAi = payload.pendingAiUrl?.trim();
 
   state.playerIdx = cellIdx;
@@ -627,7 +754,10 @@ async function startPlayAtCell(
     deviceId: payload.deviceId,
     name: payload.name,
     url: payload.url,
-    fallbackUrl: hasFallback ? fallbackUrl : null};
+    fallbackUrl: hasFallback ? fallbackUrl : null,
+    playerEngine: payload.playerEngine ?? null,
+    videoCodec: payload.videoCodec ?? null,
+    playSources};
 
   await nextTick();
 
@@ -642,21 +772,50 @@ async function startPlayAtCell(
     aiFallbackTimers.delete(cellIdx);
     const cell = state.playCells[cellIdx];
     if (!cell || cell.url !== primaryUrl) return;
+    if (aiFallbackPlayingUrls.get(cellIdx) === primaryUrl) return;
     if (playerRefs.value[cellIdx]?.playing) return;
 
+    createMessage.warning(
+      'AI 流暂不可用（请确认算法任务已启动且媒体服务器已收到 AI 推流），已切换为原始画面（无检测框）',
+    );
     state.playCells[cellIdx] = { ...cell, url: fallbackUrl, fallbackUrl: null };
   }, AI_PLAY_FALLBACK_MS);
   aiFallbackTimers.set(cellIdx, timerId);
 }
 
-/** AI 流播放后中断（timeout/error）：回退到原始流，避免无限"疯狂加载中" */
+function findNextPlaySource(cell: PlayCell): WvpPlaySourceOption | null {
+  const sources = cell.playSources?.filter((source) => source.url?.trim()) ?? [];
+  if (!sources.length) return null;
+  const currentUrl = cell.url.trim();
+  const currentIndex = sources.findIndex((source) => source.url.trim() === currentUrl);
+  return sources.find((_, index) => index > currentIndex) ?? null;
+}
+
+/** 播放中断（timeout/error）：AI 流先回退原始流，原始流失败继续尝试备用播放源 */
 function handleCellStreamError(cellIdx: number) {
   const cell = state.playCells[cellIdx];
   if (!cell) return;
   const fb = cell.fallbackUrl?.trim();
-  if (!fb || fb === cell.url) return;
   clearAiFallbackTimer(cellIdx);
-  state.playCells[cellIdx] = { ...cell, url: fb, fallbackUrl: null };
+  aiFallbackPlayingUrls.delete(cellIdx);
+  if (fb && fb !== cell.url) {
+    createMessage.warning('AI 流已中断，已切换为原始画面（无检测框）');
+    state.playCells[cellIdx] = { ...cell, url: fb, fallbackUrl: null };
+    nextTick(() => playerRefs.value[cellIdx]?.play?.());
+    return;
+  }
+
+  const nextSource = findNextPlaySource(cell);
+  if (!nextSource) return;
+  createMessage.warning('当前视频流播放失败，正在尝试备用播放源');
+  state.playCells[cellIdx] = {
+    ...cell,
+    url: nextSource.url,
+    fallbackUrl: null,
+    playerEngine: nextSource.playerEngine,
+    videoCodec: nextSource.videoCodec,
+  };
+  nextTick(() => playerRefs.value[cellIdx]?.play?.());
 }
 
 async function reloadPlayCellAtIndex(cellIdx: number) {
@@ -667,8 +826,15 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
   if (playId.startsWith('gb_ch_')) {
     const gb = parseGbChannelKey(playId);
     if (gb) {
-      const synced = findMonitorGbDeviceByChannel(treeData.value, gb.sipDeviceId, gb.channelId);
-      const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveGbChannelPlayUrls(
+      let synced = findMonitorGbDeviceByChannel(treeData.value, gb.sipDeviceId, gb.channelId);
+      if (enableAi.value) {
+        const recognition = await ensureGbSplitScreenAiRecognition(gb, synced);
+        synced = recognition.device ?? synced;
+        if (!recognition.ready) {
+          enableAi.value = false;
+        }
+      }
+      const { url, fallbackUrl, preferAi, pendingAiUrl, playerEngine, videoCodec, playSources } = await resolveGbChannelPlayUrls(
         gb.sipDeviceId,
         gb.channelId,
         { enableAi: enableAi.value, synced },
@@ -680,6 +846,9 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
           url,
           fallbackUrl,
           preferAi,
+          playerEngine,
+          videoCodec,
+          playSources,
           pendingAiUrl});
       }
     }
@@ -688,6 +857,13 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
 
   const device = findMonitorDeviceById(treeData.value, playId);
   if (!device) return;
+
+  if (enableAi.value) {
+    const recognitionReady = await ensureSplitScreenAiRecognitionForDevices(collectSplitScreenAiDevices(device));
+    if (!recognitionReady) {
+      enableAi.value = false;
+    }
+  }
 
   const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveDirectPlayUrl(device);
   if (!url) {
@@ -711,7 +887,21 @@ async function reloadAllPlayCellsForAiToggle() {
   await Promise.all(tasks);
 }
 
-watch(enableAi, () => {
+let aiToggleRequestSeq = 0;
+
+watch(enableAi, async (checked) => {
+  const requestSeq = ++aiToggleRequestSeq;
+  if (checked) {
+    const recognitionReady = await ensureSplitScreenAiRecognitionForVisibleDevices();
+    if (requestSeq !== aiToggleRequestSeq) return;
+    if (!recognitionReady) {
+      enableAi.value = false;
+      return;
+    }
+  } else {
+    await stopSplitScreenAiRecognitionForVisibleDevices();
+    if (requestSeq !== aiToggleRequestSeq) return;
+  }
   reloadAllPlayCellsForAiToggle();
 });
 
@@ -835,10 +1025,18 @@ async function playGbChannel(cellIdx: number, gb: GbChannelRef) {
     const synced =
       findMonitorGbDeviceByChannel(treeData.value, gb.sipDeviceId, gb.channelId) ??
       ((node as any)?.device as MonitorTreeDeviceNode | undefined);
-    const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveGbChannelPlayUrls(
+    let playDevice: MonitorTreeDeviceNode | null | undefined = synced;
+    if (enableAi.value) {
+      const recognition = await ensureGbSplitScreenAiRecognition(gb, synced);
+      playDevice = recognition.device ?? synced;
+      if (!recognition.ready) {
+        enableAi.value = false;
+      }
+    }
+    const { url, fallbackUrl, preferAi, pendingAiUrl, playerEngine, videoCodec, playSources } = await resolveGbChannelPlayUrls(
       gb.sipDeviceId,
       gb.channelId,
-      { enableAi: enableAi.value, synced },
+      { enableAi: enableAi.value, synced: playDevice },
     );
     if (!url) {
       createMessage.warn(
@@ -855,6 +1053,9 @@ async function playGbChannel(cellIdx: number, gb: GbChannelRef) {
       url,
       fallbackUrl,
       preferAi,
+      playerEngine,
+      videoCodec,
+      playSources,
       pendingAiUrl});
   } catch (e) {
     console.error(e);
@@ -928,6 +1129,12 @@ async function handleTreeSelect(keys: string[] | string) {
   state.loadingCells.push(cellIdx);
 
   try {
+    if (enableAi.value) {
+      const recognitionReady = await ensureSplitScreenAiRecognitionForDevices(collectSplitScreenAiDevices(device));
+      if (!recognitionReady) {
+        enableAi.value = false;
+      }
+    }
     const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveDirectPlayUrl(device);
     if (!url) {
       createMessage.warn(
@@ -1021,6 +1228,7 @@ onUnmounted(() => {
   document.removeEventListener('fullscreenchange', handleFullscreenChange);
   aiFallbackTimers.forEach((id) => window.clearTimeout(id));
   aiFallbackTimers.clear();
+  aiFallbackPlayingUrls.clear();
   playerRefs.value.forEach((p) => p?.destroy?.());
 });
 

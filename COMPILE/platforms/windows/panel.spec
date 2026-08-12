@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Windows PyInstaller spec for EasyAIoT PANEL
+# Windows PyInstaller spec for yFeiEye PANEL
 
 import os
 

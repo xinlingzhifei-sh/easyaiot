@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================
-# EasyAIoT 统一安装脚本 (Windows · 仅镜像部署)
+# yFeiEye 统一安装脚本 (Windows · 仅镜像部署)
 # ============================================
 # 推荐在 Git Bash 中运行，或通过 install_windows.ps1 启动：
 #   ./install_windows.sh              # 交互引导
@@ -62,7 +62,7 @@ if [ "$_is_windows" -eq 0 ]; then
 fi
 
 export EASYAIOT_DESKTOP_OS=windows
-export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (Windows · 仅镜像部署)}"
+export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (Windows · 仅镜像部署)}"
 
 # shellcheck source=install_desktop_common.sh
 source "${SCRIPT_DIR}/install_desktop_common.sh"

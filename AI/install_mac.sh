@@ -178,17 +178,17 @@ configure_architecture() {
 
 # 检查并创建 Docker 网络
 check_network() {
-    print_info "检查 Docker 网络 easyaiot-network..."
-    if ! docker network ls --quiet 2>/dev/null | grep -q "^easyaiot-network$"; then
-        print_info "网络 easyaiot-network 不存在，正在创建..."
-        if docker network create easyaiot-network >/dev/null 2>&1; then
-            print_success "网络 easyaiot-network 已创建"
+    print_info "检查 Docker 网络 yfeieye-network..."
+    if ! docker network ls --quiet 2>/dev/null | grep -q "^yfeieye-network$"; then
+        print_info "网络 yfeieye-network 不存在，正在创建..."
+        if docker network create yfeieye-network >/dev/null 2>&1; then
+            print_success "网络 yfeieye-network 已创建"
         else
-            print_error "无法创建网络 easyaiot-network"
+            print_error "无法创建网络 yfeieye-network"
             exit 1
         fi
     else
-        print_info "网络 easyaiot-network 已存在"
+        print_info "网络 yfeieye-network 已存在"
     fi
 }
 
@@ -216,18 +216,11 @@ create_env_file() {
             # 自动配置中间件连接信息（使用Docker服务名称）
             print_info "自动配置中间件连接信息..."
             
-            # 更新数据库连接（使用中间件服务名称，注意：服务名是PostgresSQL）
-            sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@PostgresSQL:5432/iot-ai20|' .env.docker
-            
             # 更新Nacos配置（使用中间件服务名称，注意：服务名是Nacos）
             sed -i '' 's|^NACOS_SERVER=.*|NACOS_SERVER=Nacos:8848|' .env.docker
             
             # 更新MinIO配置（使用中间件服务名称，注意：服务名是MinIO）
             sed -i '' 's|^MINIO_ENDPOINT=.*|MINIO_ENDPOINT=MinIO:9000|' .env.docker
-            sed -i '' 's|^MINIO_SECRET_KEY=.*|MINIO_SECRET_KEY=basiclab@iot975248395|' .env.docker
-            
-            # 更新Nacos密码
-            sed -i '' 's|^NACOS_PASSWORD=.*|NACOS_PASSWORD=basiclab@iot78475418754|' .env.docker
             
             # 确保Nacos命名空间为空（使用默认命名空间）
             sed -i '' 's|^NACOS_NAMESPACE=.*|NACOS_NAMESPACE=|' .env.docker
@@ -244,7 +237,7 @@ create_env_file() {
         
         # 检查并更新数据库连接（如果还是localhost或旧的服务名）
         if grep -q "DATABASE_URL=.*localhost" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-            sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@PostgresSQL:5432/iot-ai20|' .env.docker
+            sed -i '' -e '/^DATABASE_URL=/ s|localhost:[0-9][0-9]*|PostgresSQL:5432|' -e '/^DATABASE_URL=/ s|postgres-server:5432|PostgresSQL:5432|' .env.docker
             print_info "已更新数据库连接为 PostgresSQL:5432"
         fi
         
@@ -532,4 +525,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

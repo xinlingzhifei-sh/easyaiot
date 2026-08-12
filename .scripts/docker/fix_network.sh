@@ -49,7 +49,7 @@ check_docker() {
 
 # 修复网络
 fix_network() {
-    local network_name="easyaiot-network"
+    local network_name="yfeieye-network"
     local compose_file="$(dirname "$0")/docker-compose.yml"
     
     print_section "修复Docker网络"
@@ -208,7 +208,7 @@ clean_compose_cache() {
     
     # 3. 清理可能的网络残留连接
     print_info "检查并清理网络残留连接..."
-    local network_name="easyaiot-network"
+    local network_name="yfeieye-network"
     if docker network inspect "$network_name" &> /dev/null; then
         # 获取连接到该网络的所有容器
         local containers=$(docker network inspect "$network_name" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")

@@ -12,6 +12,8 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static com.basiclab.iot.common.enums.RpcConstants.RPC_API_PREFIX;
+import static com.basiclab.iot.common.exception.GlobalErrorStatus.FORBIDDEN;
 import static com.basiclab.iot.common.exception.GlobalErrorStatus.UNAUTHORIZED;
 
 /**
@@ -28,6 +30,12 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
         log.debug("[commence][访问 URL({}) 时，没有登录]", request.getRequestURI(), e);
+        String requestUri = request.getRequestURI();
+        if (RPC_API_PREFIX.equals(requestUri) || requestUri.startsWith(RPC_API_PREFIX + "/")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            ServletUtils.writeJSON(response, CommonResult.error(FORBIDDEN));
+            return;
+        }
         // 返回 401
         ServletUtils.writeJSON(response, CommonResult.error(UNAUTHORIZED));
     }

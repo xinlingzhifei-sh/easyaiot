@@ -8,7 +8,7 @@ import { CropperAvatar } from '@/components/Cropper'
 import { useMessage } from '@/hooks/web/useMessage'
 import headerImg from '@/assets/images/header.jpg'
 import { useUserStore } from '@/store/modules/user'
-import { getUserProfileApi, updateUserProfileApi, uploadAvatarApi } from '@/api/base/profile'
+import { getUserProfileApi, type UserProfileUpdateReqVO, updateUserProfileApi, uploadAvatarApi } from '@/api/base/profile'
 import { Button } from '@/components/Button'
 const { createMessage } = useMessage()
 const userStore = useUserStore()
@@ -39,7 +39,7 @@ async function updateAvatar({ data }) {
 async function handleSubmit() {
   try {
     const values = await validate()
-    await updateUserProfileApi(values)
+    await updateUserProfileApi(values as UserProfileUpdateReqVO)
   }
   finally {
     createMessage.success('更新成功！')

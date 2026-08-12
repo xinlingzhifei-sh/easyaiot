@@ -21,40 +21,7 @@
           <a class="node-link" @click="handleView(record)">{{ record.name }}</a>
         </template>
         <template v-else-if="column.dataIndex === 'action'">
-          <TableAction
-            :actions="[
-              ...(record.status === 'pending'
-                ? [{
-                    icon: 'ant-design:rocket-outlined',
-                    tooltip: { title: NODE_TERM.continueOnboard, placement: 'top' },
-                    onClick: handleContinueOnboard.bind(null, record),
-                  }]
-                : []),
-              {
-                icon: IconEnum.VIEW,
-                tooltip: { title: NODE_TERM.viewDetail, placement: 'top' },
-                onClick: handleView.bind(null, record),
-              },
-              ...(isPlatformNode(record)
-                ? []
-                : [{
-                    icon: IconEnum.EDIT,
-                    tooltip: { title: NODE_TERM.editNode, placement: 'top' },
-                    onClick: handleEdit.bind(null, record),
-                  }]),
-              ...(isPlatformNode(record)
-                ? []
-                : [{
-                    icon: IconEnum.DELETE,
-                    tooltip: { title: '删除', placement: 'top' },
-                    popConfirm: {
-                      placement: 'topRight',
-                      title: '确认删除该节点？',
-                      confirm: handleDelete.bind(null, record),
-                    },
-                  }]),
-            ]"
-          />
+          <TableAction :actions="getTableActions(record)" />
         </template>
       </template>
     </BasicTable>
@@ -107,7 +74,7 @@ import ClusterSwimlane from '../ClusterSwimlane/index.vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useDrawer } from '@/components/Drawer';
 import { IconEnum } from '@/enums/appEnum';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { Button } from '@/components/Button';
 import {
   deleteNode,
@@ -129,6 +96,7 @@ const detailDrawerRef = ref<InstanceType<typeof NodeDetailDrawer> | null>(null);
 const swimlaneRef = ref<InstanceType<typeof ClusterSwimlane> | null>(null);
 const [registerNodeDrawer, { openDrawer: openNodeDrawer }] = useDrawer();
 const [registerDetailDrawer, { openDrawer: openDetailDrawer }] = useDrawer();
+const hiddenCancelButtonProps = { style: { display: 'none' } } as any;
 
 const state = reactive<{ viewMode: ViewMode }>({
   viewMode: 'swimlane',
@@ -197,6 +165,39 @@ function handleContinueOnboard(record: Recordable) {
   navigateToOnboardService(router, record);
 }
 
+function getTableActions(record: Recordable): ActionItem[] {
+  const actions: ActionItem[] = [];
+  if (record.status === 'pending') {
+    actions.push({
+      icon: 'ant-design:rocket-outlined',
+      tooltip: { title: NODE_TERM.continueOnboard, placement: 'top' },
+      onClick: handleContinueOnboard.bind(null, record),
+    });
+  }
+  actions.push({
+    icon: IconEnum.VIEW,
+    tooltip: { title: NODE_TERM.viewDetail, placement: 'top' },
+    onClick: handleView.bind(null, record),
+  });
+  if (!isPlatformNode(record)) {
+    actions.push({
+      icon: IconEnum.EDIT,
+      tooltip: { title: NODE_TERM.editNode, placement: 'top' },
+      onClick: handleEdit.bind(null, record),
+    });
+    actions.push({
+      icon: IconEnum.DELETE,
+      tooltip: { title: '删除', placement: 'top' },
+      popConfirm: {
+        placement: 'topRight',
+        title: '确认删除该节点？',
+        confirm: handleDelete.bind(null, record),
+      },
+    });
+  }
+  return actions;
+}
+
 async function handleHostExists(host: string) {
   let existing: ComputeNodeVO | undefined;
   try {
@@ -213,7 +214,7 @@ async function handleHostExists(host: string) {
       title: '该主机地址已存在',
       content: `主机 ${host} 已在系统中注册，请在列表中点击「${NODE_TERM.continueOnboard}」。`,
       okText: '我知道了',
-      cancelButtonProps: { style: { display: 'none' } },
+      cancelButtonProps: hiddenCancelButtonProps,
     });
     return;
   }

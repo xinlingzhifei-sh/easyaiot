@@ -9,14 +9,24 @@
     <div class="monitor-dialog" :class="{ 'monitor-dialog--vod': state.vodMode }">
       <template v-if="state.vodMode">
         <div class="monitor-dialog__vod-viewer">
-          <div class="monitor-dialog__video-body">
+          <div
+            class="monitor-dialog__video-body"
+            data-testid="alert-review-dialog-player-stage"
+            :data-current-url="state.currentUrl"
+            :data-record-path="state.recordPath"
+            :data-seek-time="state.seekTime"
+            :data-playback-offset-seconds="state.seekOffsetSeconds"
+          >
             <Jessibuca
               v-if="state.currentUrl"
               :key="`${playerKey}-${state.currentUrl}`"
               ref="jessibucaRef"
               :playUrl="state.currentUrl"
               :hasAudio="false"
+              :playerEngine="state.playerEngine"
+              :videoCodec="state.videoCodec"
               :vodMode="true"
+              :seekOffsetSeconds="state.seekOffsetSeconds"
             />
             <div v-else-if="state.playLoading" class="monitor-dialog__loading">
               <Spin size="large" />
@@ -34,20 +44,20 @@
       <MonitorControlPanel
         v-if="showControlPanel"
         :talk-protocol="talkProtocol"
-        :talk-status="activeTalk.status"
-        :talk-info-text="activeTalk.infoText"
-        :talk-volume="activeTalk.volume"
-        :talk-noise-suppression="activeTalk.noiseSuppression"
-        :talk-echo-cancellation="activeTalk.echoCancellation"
-        :talk-level="activeTalk.level"
+        :talk-status="activeTalkStatus"
+        :talk-info-text="activeTalkInfoText"
+        :talk-volume="activeTalkVolume"
+        :talk-noise-suppression="activeTalkNoiseSuppression"
+        :talk-echo-cancellation="activeTalkEchoCancellation"
+        :talk-level="activeTalkLevel"
         :show-presets="state.isGb28181 || state.isOnvif"
         :presets="state.presets"
         :preset-loading="state.presetLoading"
         @talk-start="handleStartTalk"
         @talk-stop="handleStopTalk"
         @talk-volume-change="activeTalk.updateVolume"
-        @talk-noise-change="(v) => (activeTalk.noiseSuppression = v)"
-        @talk-echo-change="(v) => (activeTalk.echoCancellation = v)"
+        @talk-noise-change="handleTalkNoiseChange"
+        @talk-echo-change="handleTalkEchoChange"
         @ptz="handlePtzCamera"
         @aux="handleAuxControl"
         @preset-call="handlePresetCall"
@@ -73,16 +83,33 @@
               <span class="monitor-dialog__status-chip" :class="playStatusClass">{{ playStatusText }}</span>
             </div>
           </div>
-          <div class="monitor-dialog__video-body">
+          <div
+            class="monitor-dialog__video-body"
+            data-testid="alert-review-dialog-player-stage"
+            :data-current-url="state.currentUrl"
+            :data-record-path="state.recordPath"
+            :data-seek-time="state.seekTime"
+            :data-playback-offset-seconds="state.seekOffsetSeconds"
+          >
+            <RtcPlayer
+              v-if="state.currentUrl && state.playerEngine === 'webrtc'"
+              :key="`${playerKey}-${state.currentUrl}`"
+              :videoUrl="state.currentUrl"
+              :hasaudio="!!talkProtocol"
+              @stream-error="handleStreamError"
+            />
             <Jessibuca
-              v-if="state.currentUrl"
+              v-else-if="state.currentUrl"
               :key="`${playerKey}-${state.currentUrl}`"
               ref="jessibucaRef"
               :playUrl="state.currentUrl"
               :hasAudio="!!talkProtocol"
+              :playerEngine="state.playerEngine"
+              :videoCodec="state.videoCodec"
               :vodMode="state.vodMode"
               :fill-video="!state.vodMode"
               :ai-with-fallback="!state.vodMode && !!state.fallbackUrl"
+              :seekOffsetSeconds="state.seekOffsetSeconds"
               @stream-error="handleStreamError"
             />
             <div v-else-if="state.playLoading" class="monitor-dialog__loading">
@@ -111,6 +138,7 @@ import { Spin, Checkbox } from 'ant-design-vue';
 import { useModalInner } from '@/components/Modal';
 import BasicModal from '@/components/Modal/src/BasicModal.vue';
 import Jessibuca from '@/components/Player/module/jessibuca.vue';
+import RtcPlayer from '@/components/VideoPlayer/rtcPlayer.vue';
 import { Icon } from '@/components/Icon';
 import { useMessage } from '@/hooks/web/useMessage';
 import { controlPTZ, callOnvifPreset, deleteOnvifPreset, queryOnvifPresets, setOnvifPreset } from '@/api/device/camera';
@@ -130,7 +158,7 @@ import {
   shouldPlayViaGb28181,
 } from '@/views/camera/utils/deviceLabel';
 import {
-  pickWvpPlayUrl,
+  pickWvpPlaySources,
   AI_PLAY_FALLBACK_MS,
   isAiStreamPlayUrl,
   pickDirectPlayUrls,
@@ -147,6 +175,7 @@ import MonitorControlPanel from './monitor/MonitorControlPanel.vue';
 import { useOnvifAudioTalk } from './monitor/useOnvifAudioTalk';
 import { useGb28181AudioTalk } from './monitor/useGb28181AudioTalk';
 import type { PresetItem } from './monitor/MonitorPresetPanel.vue';
+import type { WvpPlaySourceOption } from '@/views/camera/utils/livePlayer';
 
 const emit = defineEmits<{ cancel: [] }>();
 
@@ -163,6 +192,9 @@ const state = reactive({
   channelId: '',
   presetPos: '',
   currentUrl: '',
+  playerEngine: '',
+  videoCodec: '',
+  playSources: [] as WvpPlaySourceOption[],
   fallbackUrl: null as string | null,
   preferAi: false,
   playLoading: false,
@@ -172,9 +204,12 @@ const state = reactive({
   presets: [] as PresetItem[],
   presetLoading: false,
   record: null as Record<string, any> | null,
+  seekOffsetSeconds: -1,
+  seekTime: '',
+  recordPath: '',
 });
 
-let aiFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+let aiFallbackTimer: number | null = null;
 
 function clearAiFallbackTimer() {
   if (aiFallbackTimer != null) {
@@ -194,6 +229,8 @@ function schedulePendingAiUpgrade(primaryUrl: string, pendingAiUrl: string) {
     () => {
       state.fallbackUrl = primaryUrl;
       state.preferAi = false;
+      state.playerEngine = '';
+      state.videoCodec = '';
       state.currentUrl = '';
       void nextTick().then(() => {
         state.currentUrl = pendingAiUrl.trim();
@@ -218,21 +255,31 @@ function scheduleAiFallback(primaryUrl: string) {
   }, AI_PLAY_FALLBACK_MS);
 }
 
-async function switchToFallbackUrl(url: string) {
+async function switchToFallbackUrl(value: string) {
   clearAiFallbackTimer();
   state.fallbackUrl = null;
   state.preferAi = false;
+  const source = state.playSources.find((source) => source.url === value);
+  state.playerEngine = source?.playerEngine ?? '';
+  state.videoCodec = source?.videoCodec ?? '';
   state.currentUrl = '';
   await nextTick();
-  state.currentUrl = url;
+  state.currentUrl = value;
   playerKey.value += 1;
 }
 
 function handleStreamError() {
   const fb = state.fallbackUrl?.trim();
-  if (!fb || fb === state.currentUrl) return;
-  clearAiFallbackTimer();
-  void switchToFallbackUrl(fb);
+  if (fb && fb !== state.currentUrl) {
+    clearAiFallbackTimer();
+    void switchToFallbackUrl(fb);
+    return;
+  }
+
+  const fallbackSource = state.playSources.find(
+    (source) => source.url !== state.currentUrl && source.playerEngine !== 'webrtc',
+  );
+  if (fallbackSource) void switchToFallbackUrl(fallbackSource.url);
 }
 
 const talkProtocol = computed(() => resolveDeviceTalkProtocol(state.record));
@@ -245,6 +292,20 @@ const gbTalk = useGb28181AudioTalk(
 
 const audioTalk = computed(() => (talkProtocol.value === 'gb28181' ? gbTalk : onvifTalk));
 const activeTalk = computed(() => audioTalk.value);
+const activeTalkStatus = computed(() => activeTalk.value.status.value);
+const activeTalkInfoText = computed(() => activeTalk.value.infoText.value);
+const activeTalkVolume = computed(() => activeTalk.value.volume.value);
+const activeTalkNoiseSuppression = computed(() => activeTalk.value.noiseSuppression.value);
+const activeTalkEchoCancellation = computed(() => activeTalk.value.echoCancellation.value);
+const activeTalkLevel = computed(() => activeTalk.value.level.value);
+
+function handleTalkNoiseChange(value: boolean) {
+  activeTalk.value.noiseSuppression.value = value;
+}
+
+function handleTalkEchoChange(value: boolean) {
+  activeTalk.value.echoCancellation.value = value;
+}
 
 const showControlPanel = computed(() => supportsMonitorControl(state.record, state.vodMode));
 const showEnableAiToggle = computed(
@@ -296,6 +357,9 @@ async function applyResolvedStream(
     fallbackUrl?: string | null;
     preferAi?: boolean;
     pendingAiUrl?: string | null;
+    playerEngine?: string | null;
+    videoCodec?: string | null;
+    playSources?: WvpPlaySourceOption[] | null;
   },
 ) {
   if (!resolved.url) {
@@ -305,6 +369,9 @@ async function applyResolvedStream(
     state.currentUrl = '';
     state.fallbackUrl = null;
     state.preferAi = false;
+    state.playerEngine = '';
+    state.videoCodec = '';
+    state.playSources = [];
     return;
   }
 
@@ -312,6 +379,9 @@ async function applyResolvedStream(
   state.fallbackUrl = resolved.fallbackUrl?.trim() || null;
   state.preferAi = !!resolved.preferAi;
   state.vodMode = false;
+  state.playerEngine = resolved.playerEngine?.trim() || '';
+  state.videoCodec = resolved.videoCodec?.trim() || '';
+  state.playSources = resolved.playSources?.filter((source) => source.url?.trim()) ?? [];
   state.currentUrl = '';
   await nextTick();
   state.currentUrl = resolved.url;
@@ -375,6 +445,17 @@ async function loadStream(record: Record<string, any>) {
   clearAiFallbackTimer();
   state.fallbackUrl = null;
   state.preferAi = false;
+  state.playerEngine = '';
+  state.videoCodec = '';
+  state.playSources = [];
+  state.playLoading = false;
+  state.vodMode = false;
+  state.seekOffsetSeconds = -1;
+  state.seekTime = String(record['seek_time'] ?? '');
+  state.recordPath = String(record['record_path'] ?? record['http_stream'] ?? '');
+  const hasSeekOffset = record['playback_offset_seconds'] != null;
+  const rawSeekOffset = hasSeekOffset ? Number(record['playback_offset_seconds']) : Number.NaN;
+  state.seekOffsetSeconds = Number.isFinite(rawSeekOffset) && rawSeekOffset >= 0 ? rawSeekOffset : -1;
 
   const preResolvedUrl = String(record.http_stream ?? '').trim();
   const recordFallback = String(record._fallbackUrl ?? '').trim() || null;
@@ -398,6 +479,10 @@ async function loadStream(record: Record<string, any>) {
     state.vodMode = isVodPlaybackUrl(preResolvedUrl);
     state.fallbackUrl = recordFallback;
     state.preferAi = recordPreferAi;
+    state.playerEngine = String(record._playerEngine ?? '').trim()
+      || (shouldUseNativeSeekPlayback(preResolvedUrl, state.seekOffsetSeconds, state.seekTime) ? 'native' : '');
+    state.videoCodec = String(record._videoCodec ?? '');
+    state.playSources = Array.isArray(record._playSources) ? record._playSources : [];
     await nextTick();
     state.currentUrl = preResolvedUrl;
     if (preResolvedUrl) {
@@ -417,10 +502,14 @@ async function loadStream(record: Record<string, any>) {
     try {
       const res = await playByDeviceAndChannel(sipDeviceId, channelId);
       const streamContent = res?.data?.data ?? res?.data;
-      const url = pickWvpPlayUrl(streamContent) || '';
-      if (url) {
+      const playSources = pickWvpPlaySources(streamContent);
+      const playSource = playSources[0];
+      if (playSource?.url) {
         state.vodMode = false;
-        state.currentUrl = url;
+        state.playSources = playSources;
+        state.playerEngine = playSource.playerEngine ?? '';
+        state.videoCodec = playSource.videoCodec ?? '';
+        state.currentUrl = playSource.url;
         playerKey.value += 1;
         triggerPlayerFillResize();
       } else {
@@ -445,8 +534,12 @@ async function loadStream(record: Record<string, any>) {
 
   state.playLoading = false;
   state.vodMode = isVodPlaybackUrl(streamUrl);
+  state.playerEngine = '';
+  state.videoCodec = '';
+  state.playSources = [];
   await nextTick();
   state.currentUrl = streamUrl;
+  state.playerEngine = shouldUseNativeSeekPlayback(streamUrl, state.seekOffsetSeconds, state.seekTime) ? 'native' : '';
   if (streamUrl) playerKey.value += 1;
 }
 
@@ -587,6 +680,21 @@ const gbCommandMap: Record<string, string> = {
   ZOOM_OUT: 'zoomout',
   STOP: 'stop',
 };
+
+function shouldUseNativeSeekPlayback(url: string, _seekOffsetSeconds: number, _seekTime: string): boolean {
+  if (!url) return false;
+  const normalized = safeDecode(url).toLowerCase();
+  return /\.mp4(?:[?#]|$)/.test(normalized)
+    || /[?&]playback_format=mp4(?:[&#]|$)/.test(normalized);
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 async function handlePtzCamera(command: string, speed: number) {
   if (state.deviceIdentification && state.presetPos) {

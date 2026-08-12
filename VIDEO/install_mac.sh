@@ -124,19 +124,19 @@ check_docker_compose() {
 
 # 检查并创建 Docker 网络（注意：使用host网络模式后，此函数不再需要，但保留以兼容其他服务）
 check_network() {
-    print_info "检查 Docker 网络 easyaiot-network..."
-    print_info "注意：VIDEO服务使用host网络模式，不需要加入easyaiot-network网络"
+    print_info "检查 Docker 网络 yfeieye-network..."
+    print_info "注意：VIDEO服务使用host网络模式，不需要加入yfeieye-network网络"
     print_info "但中间件服务仍需要此网络，检查网络是否存在..."
-    if ! docker network ls | grep -q easyaiot-network; then
-        print_info "网络 easyaiot-network 不存在，正在创建..."
-        if docker network create easyaiot-network 2>/dev/null; then
-            print_success "网络 easyaiot-network 已创建"
+    if ! docker network ls | grep -q yfeieye-network; then
+        print_info "网络 yfeieye-network 不存在，正在创建..."
+        if docker network create yfeieye-network 2>/dev/null; then
+            print_success "网络 yfeieye-network 已创建"
         else
-            print_error "无法创建网络 easyaiot-network"
+            print_error "无法创建网络 yfeieye-network"
             exit 1
         fi
     else
-        print_info "网络 easyaiot-network 已存在"
+        print_info "网络 yfeieye-network 已存在"
     fi
 }
 
@@ -218,7 +218,7 @@ clean_compose_cache() {
     
     # 3. 清理可能的网络残留连接
     print_info "检查并清理网络残留连接..."
-    local network_name="easyaiot-network"
+    local network_name="yfeieye-network"
     if docker network inspect "$network_name" &> /dev/null; then
         # 获取连接到该网络的所有容器
         local containers=$(docker network inspect "$network_name" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
@@ -255,27 +255,20 @@ create_env_file() {
             # 自动配置中间件连接信息（使用localhost，因为使用host网络模式）
             print_info "自动配置中间件连接信息（使用host网络模式，通过localhost访问中间件）..."
             
-            # 更新数据库连接（使用localhost，因为使用host网络模式）
-            sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20|' .env.docker
-            
             # 更新Nacos配置（使用localhost，因为使用host网络模式）
             sed -i '' 's|^NACOS_SERVER=.*|NACOS_SERVER=localhost:8848|' .env.docker
             
             # 更新MinIO配置（使用localhost，因为使用host网络模式）
             sed -i '' 's|^MINIO_ENDPOINT=.*|MINIO_ENDPOINT=localhost:9000|' .env.docker
-            sed -i '' 's|^MINIO_SECRET_KEY=.*|MINIO_SECRET_KEY=basiclab@iot975248395|' .env.docker
             
             # 更新Redis配置（使用localhost，因为使用host网络模式）
             sed -i '' 's|^REDIS_HOST=.*|REDIS_HOST=localhost|' .env.docker
             
-            # 更新Kafka配置（使用localhost，因为使用host网络模式）
-            sed -i '' 's|^KAFKA_BOOTSTRAP_SERVERS=.*|KAFKA_BOOTSTRAP_SERVERS=localhost:9092|' .env.docker
+            # 更新Kafka配置（使用EXTERNAL listener，因为使用host网络模式）
+            sed -i '' 's|^KAFKA_BOOTSTRAP_SERVERS=.*|KAFKA_BOOTSTRAP_SERVERS=localhost:9094|' .env.docker
             
             # 更新TDengine配置（使用localhost，因为使用host网络模式）
             sed -i '' 's|^TDENGINE_HOST=.*|TDENGINE_HOST=localhost|' .env.docker
-            
-            # 更新Nacos密码
-            sed -i '' 's|^NACOS_PASSWORD=.*|NACOS_PASSWORD=basiclab@iot78475418754|' .env.docker
             
             print_success "中间件连接信息已自动配置（使用host网络模式）"
             print_info "注意：使用host网络模式后，容器可以直接访问宿主机局域网，支持ONVIF摄像头发现"
@@ -290,7 +283,7 @@ create_env_file() {
         
         # 检查并更新数据库连接（如果还是旧的服务名，改为localhost）
         if grep -q "DATABASE_URL=.*PostgresSQL" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-            sed -i '' 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20|' .env.docker
+            sed -i '' -e '/^DATABASE_URL=/ s|PostgresSQL:5432|localhost:5432|' -e '/^DATABASE_URL=/ s|postgres-server:5432|localhost:5432|' .env.docker
             print_info "已更新数据库连接为 localhost:5432（host网络模式）"
         fi
         
@@ -314,8 +307,8 @@ create_env_file() {
         
         # 检查并更新Kafka配置（如果还是旧的服务名，改为localhost）
         if grep -q "KAFKA_BOOTSTRAP_SERVERS=.*Kafka" .env.docker || grep -q "KAFKA_BOOTSTRAP_SERVERS=.*kafka-server" .env.docker; then
-            sed -i '' 's|^KAFKA_BOOTSTRAP_SERVERS=.*|KAFKA_BOOTSTRAP_SERVERS=localhost:9092|' .env.docker
-            print_info "已更新Kafka连接为 localhost:9092（host网络模式）"
+            sed -i '' 's|^KAFKA_BOOTSTRAP_SERVERS=.*|KAFKA_BOOTSTRAP_SERVERS=localhost:9094|' .env.docker
+            print_info "已更新Kafka连接为 localhost:9094（host网络模式）"
         fi
         
         # 检查并更新TDengine配置（如果还是旧的服务名，改为localhost）
@@ -593,4 +586,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

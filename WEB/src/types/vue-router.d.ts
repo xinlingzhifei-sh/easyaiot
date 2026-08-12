@@ -41,6 +41,8 @@ declare module 'vue-router' {
     currentActiveMenu?: string
     // 当前路由不再标签页显示
     hideTab?: boolean
+    // 当前路由全屏显示内容，不展示菜单、顶部栏和多标签栏
+    fullContent?: boolean
     // 当前路由不再菜单显示
     hideMenu?: boolean
     // 菜单排序，只对第一级有效

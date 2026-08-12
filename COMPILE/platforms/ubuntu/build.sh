@@ -67,7 +67,7 @@ write_run_sh() {
   cp -f "${REPO_ROOT}/PANEL/panel.env.example" "${OUT_DIR}/panel.env.example"
   cat > "${OUT_DIR}/run.sh" <<'EOF'
 #!/usr/bin/env bash
-# 运行编译后的 EasyAIoT PANEL（需本机 docker CLI + 仓库根）
+# 运行编译后的 yFeiEye PANEL（需本机 docker CLI + 仓库根）
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export EASYAIOT_ROOT="${EASYAIOT_ROOT:-$(cd "${HERE}/../../.." && pwd)}"

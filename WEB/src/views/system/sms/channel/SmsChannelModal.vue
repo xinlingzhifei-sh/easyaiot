@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateSmsChannel(values)
+      await updateSmsChannel(values as any)
     else
-      await createSmsChannel(values)
+      await createSmsChannel(values as any)
 
     closeModal()
     emit('success')

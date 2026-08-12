@@ -8,7 +8,7 @@
           class="icon-btn"
           :class="{ active: showAdd }"
           title="添加类别"
-          @click="toggleAdd"
+          @click="() => toggleAdd()"
         >
           <Icon icon="ant-design:plus-outlined"/>
         </button>

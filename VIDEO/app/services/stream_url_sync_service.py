@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 import os
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+from urllib.parse import urlparse
 
 from models import Device, StreamForwardTask, db
 
@@ -34,12 +35,80 @@ def build_stream_urls_for_host(
     """根据 SRS 节点 host/tags 生成 live/ai 流地址。"""
     rtmp_port = _tag_int(tags, 'srs_rtmp_port', 1935)
     http_port = _tag_int(tags, 'srs_http_port', 8080)
-    play_host = (http_play_host or os.getenv('MEDIA_HTTP_PLAY_HOST') or '').strip() or host
     rtmp_stream = f'rtmp://{host}:{rtmp_port}/live/{device_id}'
-    http_stream = f'http://{play_host}:{http_port}/live/{device_id}.flv'
+    http_stream = _build_http_flv_url(http_play_host, host, http_port, f'live/{device_id}.flv')
     ai_rtmp_stream = f'rtmp://{host}:{rtmp_port}/ai/{device_id}'
-    ai_http_stream = f'http://{play_host}:{http_port}/ai/{device_id}.flv'
+    ai_http_stream = _build_http_flv_url(http_play_host, host, http_port, f'ai/{device_id}.flv')
     return rtmp_stream, http_stream, ai_rtmp_stream, ai_http_stream
+
+
+def _build_http_flv_url(
+    http_play_host: Optional[str],
+    node_host: str,
+    http_port: int,
+    path: str,
+) -> str:
+    play_host = (http_play_host or os.getenv('MEDIA_HTTP_PLAY_HOST') or '').strip()
+    clean_path = path.lstrip('/')
+
+    if play_host:
+        parsed = urlparse(play_host)
+        if parsed.scheme in ('http', 'https') and parsed.netloc:
+            return f'{parsed.scheme}://{parsed.netloc}/{clean_path}'
+
+        host = play_host.strip('/').split('/')[0]
+        if host:
+            return f'http://{host}:{http_port}/{clean_path}'
+
+    return f'http://{node_host}:{http_port}/{clean_path}'
+
+
+def parse_gb28181_virtual_device_id(device_id: str) -> Optional[Tuple[str, str]]:
+    device_id = (device_id or '').strip()
+    prefix = 'gb28181_'
+    if not device_id.startswith(prefix):
+        return None
+    rest = device_id[len(prefix):]
+    if not rest or '_' not in rest:
+        return None
+    sip_device_id, channel_id = rest.rsplit('_', 1)
+    sip_device_id = sip_device_id.strip()
+    channel_id = channel_id.strip()
+    if not sip_device_id or not channel_id:
+        return None
+    return sip_device_id, channel_id
+
+
+def build_gb28181_zlm_http_flv_url(
+    device_id: str,
+    *,
+    http_play_host: Optional[str] = None,
+    node_host: Optional[str] = None,
+    http_port: Optional[int] = None,
+) -> Optional[str]:
+    parsed = parse_gb28181_virtual_device_id(device_id)
+    if not parsed:
+        return None
+
+    sip_device_id, channel_id = parsed
+    stream_id = f'{sip_device_id}_{channel_id}'
+    host = (
+        (node_host or '').strip()
+        or (os.getenv('ZLM_HTTP_HOST') or '').strip()
+        or (os.getenv('MEDIA_HTTP_HOST') or '').strip()
+        or (os.getenv('POD_IP') or '').strip()
+        or '127.0.0.1'
+    )
+    try:
+        port = int(http_port or os.getenv('ZLM_HTTP_PORT') or 80)
+    except (TypeError, ValueError):
+        port = 80
+    return _build_http_flv_url(
+        http_play_host,
+        host,
+        port,
+        f'rtp/{stream_id}.live.flv?originTypeStr=rtp_push&videoCodec=H265',
+    )
 
 
 def _find_stream_forward_deployment(device_id: str) -> Optional[Dict[str, Any]]:
@@ -69,6 +138,19 @@ def _find_stream_forward_deployment(device_id: str) -> Optional[Dict[str, Any]]:
 def resolve_device_stream_urls(device: Device) -> Tuple[str, str, str, str]:
     """解析设备当前应使用的流地址（只读，不写库）。"""
     device_id = device.id
+    source = (getattr(device, 'source', None) or '').strip().lower()
+    gb28181_http_stream = (
+        build_gb28181_zlm_http_flv_url(device_id)
+        if source.startswith('gb28181://')
+        else None
+    )
+    if gb28181_http_stream:
+        return (
+            '',
+            gb28181_http_stream,
+            device.ai_rtmp_stream or '',
+            device.ai_http_stream or '',
+        )
     try:
         from app.utils.media_client import (
             get_device_media_binding,

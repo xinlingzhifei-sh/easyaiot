@@ -1,6 +1,6 @@
 # Modbus RTU Demo
 
-验证 EasyAIoT `MODBUS_RTU`（RS-485）上行采集与下行写入。
+验证 yFeiEye `MODBUS_RTU`（RS-485）上行采集与下行写入。
 
 ## 前置
 
@@ -46,5 +46,5 @@ python3 03_platform_set_properties.py \
 
 ## 建议点位
 
-与 Modbus TCP Demo 相同：绑定 `temperature@0`、`setpoint@1`（可写）、`running` 线圈 `@0`（可写）。  
+与 Modbus TCP Demo 相同：绑定 `temperature@0`、`setpoint@1`（可写）、`running` 线圈 `@0`（可写）。
 下行键为物模型属性：`{"setpoint":30}`。

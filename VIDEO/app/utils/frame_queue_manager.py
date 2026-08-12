@@ -1,8 +1,7 @@
 """
 帧队列管理器 - 管理抽帧器、排序器、推送器的内存队列
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import threading

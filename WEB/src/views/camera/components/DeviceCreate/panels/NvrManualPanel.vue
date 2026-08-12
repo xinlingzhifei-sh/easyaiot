@@ -79,7 +79,7 @@ const [registerForm, { validate, getFieldsValue }] = useForm({
       component: 'Input',
       required: true,
       slot: 'rtsp_template_slot',
-      ifValues: (values: Record<string, any>) => isCustomBrand(values.vendor),
+      ifShow: ({ values }) => isCustomBrand(values.vendor),
     },
     {
       field: 'channel_count',
@@ -89,7 +89,7 @@ const [registerForm, { validate, getFieldsValue }] = useForm({
       required: true,
       componentProps: { min: 1, max: 1024, ...DEVICE_CREATE_NUMBER_PROPS },
       helpMessage: '自定义品牌时需手动指定通道总数',
-      ifValues: (values: Record<string, any>) => isCustomBrand(values.vendor),
+      ifShow: ({ values }) => isCustomBrand(values.vendor),
     },
     {
       field: 'username',
@@ -155,7 +155,7 @@ async function handleSubmit() {
     const username = String(values.username || '').trim();
     const password = values.password || '';
 
-    const requestData: Record<string, any> = {
+    const requestData: Parameters<typeof registerNvrWithChannels>[0] = {
       ip,
       port,
       username,

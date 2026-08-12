@@ -1,7 +1,7 @@
 import type { TreeItem } from '@/components/Tree';
 import type { MonitorTreeDeviceNode, MonitorTreeDirectoryNode } from '@/api/device/camera';
 import { formatCameraDeviceLabel, isGb28181Device, isNvrChannelDevice, parseGb28181Source } from './deviceLabel';
-import { resolveWvpSipDeviceId } from './gb28181DeviceGroup';
+import { filterValidWvpDevices, resolveWvpSipDeviceId } from './gb28181DeviceId';
 import {
   buildGbChannelNodesFromSynced,
   buildGbSipDeviceNode,
@@ -93,7 +93,7 @@ export function appendDevicesToMonitorTreeChildren(
   });
 
   if (options?.appendUnsyncedWvpGb && options.wvpDevices?.length) {
-    for (const wvp of options.wvpDevices) {
+    for (const wvp of filterValidWvpDevices(options.wvpDevices)) {
       const sipId = resolveWvpSipDeviceId(wvp);
       if (!sipId || addedGbSip.has(sipId)) continue;
       addedGbSip.add(sipId);

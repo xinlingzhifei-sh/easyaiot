@@ -57,7 +57,7 @@ function goHome() {
 <template>
   <div class="ant-icon" :class="getAppLogoClass" @click="goHome">
     <div class="logo-icon">
-      <img class="uc-logo" :src="displayLogo" alt="logo"/>
+      <img class="uc-logo" :src="displayLogo" :alt="displayTitle" />
     </div>
     <div v-show="showTitle" class="truncate md:opacity-100 logo-title" :class="getTitleClass">
       {{ displayTitle }}
@@ -67,19 +67,31 @@ function goHome() {
 
 <style lang="less" scoped>
 .ant-icon{
-  margin-top: -1.28rem;
   display: flex;
   align-items: center;
-  gap:0.58rem;
+  gap: 0.58rem;
+  min-width: 0;
   .logo-icon{
-    width: 32px;height: 32px;
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 36px;
+    overflow: hidden;
+    border-radius: 6px;
     .uc-logo {
       width: 100% !important;
       height: 100%;
+      display: block;
+      object-fit: contain;
     }
   }
   .logo-title{
-    font-family: moon,sans-serif;font-size: 2rem !important;margin-top: -5px;
+    margin-top: 0;
+    font-family: moon,sans-serif;
+    font-size: 1.45rem !important;
+    line-height: 1.15;
   }
 }
 

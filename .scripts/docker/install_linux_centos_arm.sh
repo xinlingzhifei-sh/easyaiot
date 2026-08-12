@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 统一安装脚本 (CentOS / RHEL 系 · ARM)
+# yFeiEye 统一安装脚本 (CentOS / RHEL 系 · ARM)
 # ============================================
 # 针对 CentOS 7/8/Stream、Rocky、Alma、RHEL 等 aarch64/arm64 的一键部署入口：
 #   1) 检测发行版 / ARM 架构 / SELinux / firewalld
@@ -74,7 +74,7 @@ print_section() {
 
 show_centos_arm_help() {
     cat <<'EOF'
-EasyAIoT 统一安装脚本 (CentOS / RHEL 系 · ARM)
+yFeiEye 统一安装脚本 (CentOS / RHEL 系 · ARM)
 
 用法:
   sudo ./install_linux_centos_arm.sh [CentOS ARM选项...] [命令] [参数...]
@@ -527,7 +527,7 @@ delegate_to_install_linux_arm() {
     fi
     chmod +x "$INSTALL_LINUX_ARM" 2>/dev/null || true
 
-    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (CentOS / RHEL · ARM)}"
+    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (CentOS / RHEL · ARM)}"
     export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_centos_arm.sh"
     export DOCKER_MIRROR
     export DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/arm64}"

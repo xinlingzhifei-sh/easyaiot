@@ -29,7 +29,7 @@ pg_dump: detail: server version: 18.1; pg_dump version: 16.11
 ### 基本使用
 
 ```bash
-cd /opt/projects/easyaiot/.scripts/postgresql
+cd /opt/projects/yfeieye/.scripts/postgresql
 ./backup_databases.sh
 ```
 
@@ -74,7 +74,7 @@ POSTGRES_CONTAINER="postgres-server"
 
 # PostgreSQL 连接信息
 POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="iot45722414822"
+POSTGRES_PASSWORD="<POSTGRES_PASSWORD>"
 POSTGRES_HOST="localhost"
 POSTGRES_PORT="5432"
 
@@ -108,7 +108,7 @@ DATABASES=(
 [INFO] PostgreSQL 数据库备份脚本
 [INFO] ==========================================
 [INFO] PostgreSQL 容器 postgres-server 运行正常
-[INFO] 备份目录: /opt/projects/easyaiot/.scripts/postgresql/20241201_143022
+[INFO] 备份目录: /opt/projects/yfeieye/.scripts/postgresql/20241201_143022
 [INFO] 开始备份数据库: iot-ai20
 [INFO] ✓ 数据库 iot-ai20 备份成功: .../iot-ai20.sql (大小: 2.5M)
 
@@ -118,7 +118,7 @@ DATABASES=(
 [INFO] ==========================================
 [INFO] 备份完成统计:
 [INFO]   成功: 5 个数据库
-[INFO] 备份目录: /opt/projects/easyaiot/.scripts/postgresql/20241201_143022
+[INFO] 备份目录: /opt/projects/yfeieye/.scripts/postgresql/20241201_143022
 [INFO] ==========================================
 ```
 
@@ -131,7 +131,7 @@ DATABASES=(
 crontab -e
 
 # 添加以下行（每天凌晨 2 点执行备份）
-0 2 * * * /opt/projects/easyaiot/.scripts/postgresql/backup_databases.sh >> /opt/projects/easyaiot/.scripts/postgresql/backup.log 2>&1
+0 2 * * * /opt/projects/yfeieye/.scripts/postgresql/backup_databases.sh >> /opt/projects/yfeieye/.scripts/postgresql/backup.log 2>&1
 ```
 
 ## 恢复数据库
@@ -140,10 +140,10 @@ crontab -e
 
 ```bash
 # 方法1：使用本地 psql（需要版本匹配）
-PGPASSWORD=iot45722414822 psql -h localhost -U postgres -d iot-ai20 < backup_dir/iot-ai20.sql
+PGPASSWORD=<POSTGRES_PASSWORD> psql -h localhost -U postgres -d iot-ai20 < backup_dir/iot-ai20.sql
 
 # 方法2：使用 Docker 容器内的 psql（推荐，版本匹配）
-docker exec -i -e PGPASSWORD=iot45722414822 postgres-server \
+docker exec -i -e PGPASSWORD=<POSTGRES_PASSWORD> postgres-server \
     psql -U postgres -h localhost -p 5432 -d iot-ai20 < backup_dir/iot-ai20.sql
 ```
 

@@ -12,9 +12,8 @@ import java.util.List;
 
 /**
  * @Description: 网关设备添加子设备数据模型
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/4/25$ 12:52$
  * @UpdateDate: 2024/4/25$ 12:52$
  * @Version: V1.0

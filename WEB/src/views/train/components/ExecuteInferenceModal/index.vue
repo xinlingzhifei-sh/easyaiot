@@ -79,7 +79,7 @@
 <script lang="ts" setup>
 import {computed, reactive, ref} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
-import {Form, FormItem, Input, Select, SelectOption, Spin, Upload} from 'ant-design-vue';
+import {Form, FormItem, Select, SelectOption, Spin, Upload} from 'ant-design-vue';
 import ApiSelect from '@/components/Form/src/components/ApiSelect.vue';
 import {useMessage} from '@/hooks/web/useMessage';
 import {createInferenceTask, getModelPage, updateInferenceTask} from "@/api/device/model";
@@ -89,7 +89,7 @@ import { Button } from '@/components/Button'
 // 定义类型
 interface InferenceModel {
   id?: number | null;
-  model_id: number | string | null; // 修改为支持字符串类型
+  model_id: number | string | undefined; // 修改为支持字符串类型
   inference_type: 'image' | 'video';
   input_source: string;
 }
@@ -173,7 +173,7 @@ const [register, {closeModal}] = useModalInner((data: any) => {
   } else {
     resetFields();
     modelRef.inference_type = 'image';
-    modelRef.model_id = null; // 重置模型选择
+    modelRef.model_id = undefined; // 重置模型选择
   }
 });
 
@@ -204,23 +204,17 @@ async function handleOk() {
     await validate();
     state.editLoading = true;
 
-    const payload: Partial<InferenceModel> = {
+    const payload: Omit<Partial<InferenceModel>, 'model_id'> & {
+      model_id?: number | string | null;
+    } = {
       model_id: modelRef.model_id === 'default' ? null : modelRef.model_id,
       inference_type: modelRef.inference_type,
       input_source: modelRef.input_source,
     };
 
-    // 根据是否编辑调用不同API
-    const api = state.isEdit && modelRef.id
-      ? updateInferenceTask
-      : createInferenceTask;
-
-    // 编辑时需要传递ID
-    if (state.isEdit && modelRef.id) {
-      payload.id = modelRef.id;
-    }
-
-    const res = await api(payload);
+    const res = state.isEdit && modelRef.id
+      ? await updateInferenceTask(modelRef.id, payload)
+      : await createInferenceTask(payload);
     if (res.code === 0) {
       createMessage.success(state.isEdit ? '更新成功' : '创建成功');
       closeModal();

@@ -20,24 +20,17 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, reactive, ref} from 'vue';
+import {computed, reactive} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, Spin,} from 'ant-design-vue';
 import {useMessage} from '@/hooks/web/useMessage';
 import {createDatasetVideo, updateDatasetVideo} from "@/api/device/dataset";
-import {useUserStoreWithOut} from "@/store/modules/user";
 import {useGlobSetting} from "@/hooks/setting";
-import {useI18n} from "@/hooks/web/useI18n";
-
-const {t} = useI18n()
 
 defineOptions({name: 'DatasetVideoPlayModal'})
 
 const {createMessage} = useMessage();
 
-const userStore = useUserStoreWithOut();
-const token = userStore.getAccessToken;
-const headers = ref({'Authorization': `Bearer ${token}`});
 const {uploadUrl} = useGlobSetting();
 
 const state = reactive({
@@ -47,7 +40,7 @@ const state = reactive({
   fileList: [],
   loading: false,
   editLoading: false,
-  playUrl: null,
+  playUrl: undefined as string | undefined,
 });
 
 const modelRef = reactive({
@@ -74,11 +67,11 @@ const rulesRef = reactive({
 });
 
 const useForm = Form.useForm;
-const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
+const {validate, resetFields} = useForm(modelRef, rulesRef);
 
 function handleCancel() {
   //console.log('handleCancel');
-  state.playUrl = null;
+  state.playUrl = undefined;
   resetFields();
 }
 

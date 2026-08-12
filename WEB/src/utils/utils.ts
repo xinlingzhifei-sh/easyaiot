@@ -9,10 +9,9 @@ import cloneDeep from 'lodash/cloneDeep'
 import { WinKeyboard } from '@/enums/editPageEnum'
 import { RequestHttpIntervalEnum, RequestParamsObjType } from '@/enums/httpEnum'
 import { CreateComponentType, CreateComponentGroupType } from '@/design/packages/index.d'
-import { excludeParseEventKeyList, excludeParseEventValueList } from '@/enums/eventEnum'
 import {useMessage} from "@/hooks/web/useMessage";
 
-const { createMessage, createConfirm } = useMessage()
+const { createMessage } = useMessage()
 
 /**
  * * 判断是否是开发环境
@@ -36,7 +35,7 @@ export const getUUID = (randomLength = 10) => {
  *  @param set 设置项
  */
 export const renderIcon = (icon: any, set = {}) => {
-  return () => h(NIcon, set, { default: () => h(icon) })
+  return () => h(icon, set)
 }
 /**
  * * render 语言
@@ -302,7 +301,7 @@ export const setKeyboardDressShow = (keyCode?: number) => {
 export const JSONStringify = <T>(data: T) => {
   return JSON.stringify(
     data,
-    (key, val) => {
+    (_key, val) => {
       // 处理函数丢失问题
       if (typeof val === 'function') {
         return `${val}`

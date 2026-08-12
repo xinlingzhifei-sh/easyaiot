@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT PANEL：构建独立前端镜像并启动容器（与 WEB 完全解耦）
+# yFeiEye PANEL：构建独立前端镜像并启动容器（与 WEB 完全解耦）
 #
 # 用法:
 #   bash PANEL/install.sh build    # 构建 easyaiot/panel 镜像（含 UI）

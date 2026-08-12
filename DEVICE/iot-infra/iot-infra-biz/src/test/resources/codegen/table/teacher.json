@@ -7,7 +7,7 @@
     "businessName" : "demo",
     "className" : "InfraStudentTeacher",
     "classComment" : "学生班主任",
-    "author" : "BasicLab源码"
+    "author" : "yFeiEye"
   },
   "columns": [ {
     "columnName" : "id",

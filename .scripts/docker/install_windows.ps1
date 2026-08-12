@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.0
 <#
 .SYNOPSIS
-  EasyAIoT Windows 镜像部署入口（PowerShell）
+  yFeiEye Windows 镜像部署入口（PowerShell）
 
 .DESCRIPTION
   先汇总检测 Docker Desktop / Compose / Git Bash（或 WSL），
@@ -294,7 +294,7 @@ function Install-DockerDesktopIfNeeded {
     return $false
 }
 
-function Get-EasyAIoTResourceTargets {
+function Get-yFeiEyeResourceTargets {
     $profile = if ($env:EASYAIOT_DEPLOY_PROFILE) { $env:EASYAIOT_DEPLOY_PROFILE.ToLower() } else { "full" }
     $hostMem = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 0)
     $hostCpu = (Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
@@ -349,18 +349,21 @@ function Update-DockerDesktopSettingsStore {
             if (-not (Test-Path $bak)) { Copy-Item $path $bak -Force }
             $json = Get-Content -Raw -Encoding UTF8 $path | ConvertFrom-Json
             # PSCustomObject：动态加属性
-            $map = @{
-                memoryMiB = $MemoryMiB; MemoryMiB = $MemoryMiB
-                cpus = $Cpus; Cpus = $Cpus
-                diskSizeMiB = $DiskMiB; DiskSizeMiB = $DiskMiB
-                swapMiB = $SwapMiB; SwapMiB = $SwapMiB
-                useResourceSaver = $false; UseResourceSaver = $false
-            }
-            foreach ($k in $map.Keys) {
-                if ($null -eq $json.PSObject.Properties[$k]) {
-                    $json | Add-Member -NotePropertyName $k -NotePropertyValue $map[$k] -Force
+            $settings = @(
+                @{ Names = @('memoryMiB', 'MemoryMiB'); Value = $MemoryMiB }
+                @{ Names = @('cpus', 'Cpus'); Value = $Cpus }
+                @{ Names = @('diskSizeMiB', 'DiskSizeMiB'); Value = $DiskMiB }
+                @{ Names = @('swapMiB', 'SwapMiB'); Value = $SwapMiB }
+                @{ Names = @('useResourceSaver', 'UseResourceSaver'); Value = $false }
+            )
+            foreach ($setting in $settings) {
+                $property = $json.PSObject.Properties |
+                    Where-Object { $setting.Names -ccontains $_.Name } |
+                    Select-Object -First 1
+                if ($null -eq $property) {
+                    $json | Add-Member -NotePropertyName $setting.Names[0] -NotePropertyValue $setting.Value -Force
                 } else {
-                    $json.$k = $map[$k]
+                    $property.Value = $setting.Value
                 }
             }
             $json | ConvertTo-Json -Depth 40 | Set-Content -Encoding UTF8 -Path $path
@@ -531,7 +534,7 @@ function Invoke-ConfigureDockerResources {
     Write-Host ""
     Write-Host "======== 调配 Docker 引擎资源（CPU / 内存 / 磁盘）========" -ForegroundColor Yellow
     Ensure-DockerOnPath | Out-Null
-    $t = Get-EasyAIoTResourceTargets
+    $t = Get-yFeiEyeResourceTargets
     $curMem = Get-DockerEngineMemoryGB
     Write-Info ("部署形态: {0} · 主机约 {1}GB / {2} CPU" -f $t.Profile, $t.HostMemGB, $t.HostCpus)
     Write-Info ("目标: {0} CPU / {1}GB 内存 / {2}GB 磁盘" -f $t.Cpus, $t.MemoryGB, $t.DiskGB)

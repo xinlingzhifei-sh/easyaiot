@@ -19,7 +19,7 @@ SRS服务器配置了 `on_publish` 回调，当客户端尝试推流时，SRS会
 
 运行诊断工具：
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python diagnose_rtmp_issue.py
 ```
 
@@ -34,7 +34,7 @@ python diagnose_rtmp_issue.py
 ### 方案1: 启动VIDEO服务（推荐用于开发测试）
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python run.py
 ```
 
@@ -49,7 +49,7 @@ VIDEO服务会在端口6000上启动，但SRS配置的是通过网关(48080)访�
 如果VIDEO服务或网关服务未运行，可以使用临时mock回调服务器：
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python mock_callback_server.py --port 48080
 ```
 

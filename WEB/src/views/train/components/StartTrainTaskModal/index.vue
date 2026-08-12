@@ -563,8 +563,8 @@ const resetDatasetSelection = () => {
   selectedDatasetId.value = undefined;
 };
 
-const onDatasetSourceChange = (e: { target: { value: DatasetSourceTab } }) => {
-  onDatasetTabChange(e.target.value);
+const onDatasetSourceChange = (e: any) => {
+  onDatasetTabChange(e.target.value as DatasetSourceTab);
 };
 
 const onDatasetTabChange = (key: string | number) => {
@@ -951,9 +951,11 @@ async function initTrainDrawer(data: Record<string, unknown> = {}) {
   await loadGpuStatus();
 
   if ((data?.isRetrain || data?.isResume) && data?.record) {
-    const hp = parseTrainHyperparameters(data.record.hyperparameters);
+    const hp = parseTrainHyperparameters((data.record as Record<string, unknown>).hyperparameters);
     if (hp.use_gpu !== undefined) {
-      const savedGpuIds = hasManualGpuSelection(data.record.hyperparameters)
+      const savedGpuIds = hasManualGpuSelection(
+        (data.record as Record<string, unknown>).hyperparameters,
+      )
       && Array.isArray(hp.gpu_ids)
         ? hp.gpu_ids
           .map((gpuId) => Number(gpuId))
@@ -982,7 +984,7 @@ const [registerDrawer, { closeDrawer, getOpen }] = useDrawerInner((data) => {
 });
 
 watch(
-  () => getOpen.value,
+  () => getOpen?.value,
   (open) => {
     if (!open) {
       return;

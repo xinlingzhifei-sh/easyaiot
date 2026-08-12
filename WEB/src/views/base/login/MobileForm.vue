@@ -3,6 +3,7 @@ import { computed, reactive, ref, unref } from 'vue'
 import { Form, Input } from 'ant-design-vue'
 import LoginFormTitle from './LoginFormTitle.vue'
 import { LoginStateEnum, useFormRules, useFormValid, useLoginState } from './useLogin'
+import { resolveLoginTenantId } from './loginSubmit'
 import { CountdownInput } from '@/components/CountDown'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useMessage } from '@/hooks/web/useMessage'
@@ -61,10 +62,13 @@ async function getCode() {
 
 // 获取租户ID
 async function getTenantId() {
-  if (tenantEnable === 'true') {
-    const res = await getTenantIdByName(formData.tenantName)
-    authUtil.setTenantId(res)
-  }
+  await resolveLoginTenantId({
+    tenantEnable,
+    tenantName: formData.tenantName,
+    website: '',
+    getTenantIdByName,
+    setTenantId: authUtil.setTenantId,
+  })
 }
 
 async function handleLogin() {

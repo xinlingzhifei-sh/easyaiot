@@ -14,7 +14,7 @@ import { Button } from '@/components/Button'
           包含Bootstrap Server更新
         </Checkbox>
       </Popconfirm>
-      <Collapse v-model:activeKey="modelRef.activeKey" expand-icon-position="right">
+      <Collapse v-model:activeKey="modelRef.activeKey" expand-icon-position="end">
         <CollapsePanel
           v-for="(item, index) in modelRef.collapseFormList"
           :key="index"

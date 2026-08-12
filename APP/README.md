@@ -1,6 +1,6 @@
-# EasyAIoT APP模块
+# yFeiEye APP模块
 
-EasyAIoT APP 是基于 uni-app 3 构建的跨端移动端管理后台，一套代码编译 H5、微信小程序与原生 App，与 PC 端（WEB）共用同一套后端 API（`/admin-api`），面向移动场景的运维与管理人员提供随时随地管控能力。
+yFeiEye APP 是基于 uni-app 3 构建的跨端移动端管理后台，一套代码编译 H5、微信小程序与原生 App，与 PC 端（WEB）共用同一套后端 API（`/admin-api`），面向移动场景的运维与管理人员提供随时随地管控能力。
 
 ## 功能特性
 

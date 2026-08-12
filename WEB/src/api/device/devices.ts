@@ -650,7 +650,7 @@ export const getDeviceCameraLinks = (params: {
 
 /** 查询已被绑定的流媒体摄像头 ID */
 export const getBoundCameraIds = () => {
-  return commonApi('get', API.Devices + '/boundCameraIds');
+  return commonApi('get', API.Devices + '/boundCameraIds', {});
 };
 
 /** 关联流媒体摄像头 */

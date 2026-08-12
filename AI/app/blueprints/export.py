@@ -1,22 +1,21 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import os
+import shutil
 import tempfile
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from flask import Blueprint, jsonify, current_app, url_for, send_file, request
-from ultralytics import YOLO
-from sqlalchemy import desc
 import pytz
 
 from app.services.minio_service import ModelService
-from db_models import db, Model, ExportRecord, TrainTask
+from app.utils.model_upload_security import require_web_safe_model_reference
+from db_models import db, Model, ExportRecord
 
 export_bp = Blueprint('export', __name__)
 logger = logging.getLogger(__name__)
@@ -94,37 +93,33 @@ def parse_minio_url(url: str):
         logger.error(f"解析MinIO URL失败: {url}, 错误: {str(e)}")
         return None, None
 
+
+def _require_onnx_source(model_record: Model) -> str:
+    if not model_record.onnx_model_path:
+        raise ValueError(
+            'Web 进程不再反序列化或转换 .pt；请先通过隔离转换环境导入 ONNX 模型'
+        )
+    return require_web_safe_model_reference(model_record.onnx_model_path)
+
+
 @export_bp.route('/<int:model_id>/export/<format>', methods=['POST'])
 def api_export_model(model_id, format):
     try:
         # 验证格式支持
         if format not in SUPPORTED_FORMATS:
             return jsonify({'code': 400, 'msg': f'不支持的导出格式: {format}'}), 400
+        if format != 'onnx':
+            return jsonify({
+                'code': 409,
+                'msg': 'Web 进程禁用模型格式转换；请在隔离转换环境生成目标格式',
+            }), 409
 
         # 获取模型信息
         model_record = Model.query.get_or_404(model_id)
-        
-        # 检查模型路径：优先使用Model.model_path，其次从TrainTask获取minio_model_path
-        minio_model_path = None
-        if model_record.model_path:
-            minio_model_path = model_record.model_path
-        else:
-            # 查找该模型的最新训练任务（优先查找已完成的，且有minio_model_path的）
-            train_task = TrainTask.query.filter_by(
-                model_id=model_id
-            ).filter(
-                TrainTask.minio_model_path.isnot(None),
-                TrainTask.minio_model_path != ''
-            ).order_by(
-                desc(TrainTask.end_time).nullslast(),
-                desc(TrainTask.start_time)
-            ).first()
-            
-            if train_task and train_task.minio_model_path:
-                minio_model_path = train_task.minio_model_path
-
-        if not minio_model_path:
-            return jsonify({'code': 400, 'msg': '模型未上传到Minio，无法导出'}), 400
+        try:
+            _require_onnx_source(model_record)
+        except ValueError as model_error:
+            return jsonify({'code': 400, 'msg': str(model_error)}), 400
 
         # 获取请求参数（图片尺寸写死为640，OPSet使用默认值）
         export_config = {
@@ -210,34 +205,16 @@ def process_export_async(model_id, format, export_config, export_id, task_id):
                 export_record.model_name = model_record.name
                 db.session.commit()
             
-            # 检查模型路径：优先使用Model.model_path，其次从TrainTask获取minio_model_path
-            minio_model_path = None
-            if model_record.model_path:
-                minio_model_path = model_record.model_path
-            else:
-                # 查找该模型的最新训练任务（优先查找已完成的，且有minio_model_path的）
-                train_task = TrainTask.query.filter_by(
-                    model_id=model_id
-                ).filter(
-                    TrainTask.minio_model_path.isnot(None),
-                    TrainTask.minio_model_path != ''
-                ).order_by(
-                    desc(TrainTask.end_time).nullslast(),
-                    desc(TrainTask.start_time)
-                ).first()
-                
-                if train_task and train_task.minio_model_path:
-                    minio_model_path = train_task.minio_model_path
-            
-            if not minio_model_path:
-                raise Exception("未找到有效的模型路径，模型未上传到Minio")
+            if format != 'onnx':
+                raise ValueError('Web 进程禁用模型格式转换')
+            minio_model_path = _require_onnx_source(model_record)
 
             logger.info(f"找到模型路径: {minio_model_path}")
 
             # 创建临时目录
             with tempfile.TemporaryDirectory() as tmp_dir:
-                # 从Minio下载原始模型
-                local_pt_path = os.path.join(tmp_dir, 'model.pt')
+                # Web 工作进程只处理 ONNX，不接触 pickle-backed 权重。
+                local_source_path = os.path.join(tmp_dir, 'source.onnx')
 
                 export_tasks[task_id]['progress'] = 20
                 export_record.status = 'PROCESSING'
@@ -258,54 +235,19 @@ def process_export_async(model_id, format, export_config, export_id, task_id):
                 success, error_msg = ModelService.download_from_minio(
                         bucket_name=bucket_name,
                         object_name=object_name,
-                        destination_path=local_pt_path
+                        destination_path=local_source_path
                 )
                 if not success:
                     raise Exception(f"原始模型下载失败: {bucket_name}/{object_name}. {error_msg or ''}")
 
-                logger.info(f"模型下载成功: {local_pt_path}")
+                logger.info(f"模型下载成功: {local_source_path}")
                 export_tasks[task_id]['progress'] = 40
 
-                # 执行模型导出
-                logger.info(f"开始执行模型导出: format={format}")
-                model = YOLO(local_pt_path)
+                # ONNX 导出只是复制已验证格式的制品；格式转换必须在隔离环境执行。
                 export_filename = f"model{SUPPORTED_FORMATS[format]['ext']}"
                 export_local_path = os.path.join(tmp_dir, export_filename)
-
-                # 执行模型导出
-                export_params = {
-                    'format': format,
-                    'imgsz': export_config['img_size'],
-                    'device': 'cpu'
-                }
-
-                if format == 'openvino':
-                    export_params['half'] = False
-                elif format == 'onnx':
-                    export_params['opset'] = export_config.get('opset', 12)
-                    # YOLO26 默认 end2end 输出 (1,N,6)，与现有 ONNX NMS 后处理不兼容
-                    export_params['end2end'] = False
-
-                model.export(**export_params)
-                logger.info(f"模型导出完成，查找导出文件")
-
-                # 处理导出文件
-                if format == 'openvino':
-                    # OpenVINO导出为目录
-                    exported_files = [f for f in os.listdir(tmp_dir) if f.endswith('_openvino_model')]
-                else:
-                    # ONNX导出为单个文件
-                    exported_files = [f for f in os.listdir(tmp_dir) if f.endswith('.onnx')]
-                
-                if not exported_files:
-                    raise Exception("模型导出失败，未生成目标文件")
-
-                logger.info(f"找到导出文件: {exported_files}")
-
-                if format == 'onnx':
-                    # ONNX格式：重命名文件
-                    os.rename(os.path.join(tmp_dir, exported_files[0]), export_local_path)
-                    logger.info(f"ONNX文件已重命名: {export_local_path}")
+                shutil.copyfile(local_source_path, export_local_path)
+                logger.info(f"ONNX制品已复制: {export_local_path}")
 
                 # 上传到Minio
                 minio_export_path = f"exports/model_{model_id}/{format}/{export_filename}"
@@ -313,20 +255,11 @@ def process_export_async(model_id, format, export_config, export_id, task_id):
                 logger.info(f"开始上传到MinIO: {minio_export_path}")
                 logger.info(f"本地文件路径: {export_local_path}, 文件是否存在: {os.path.exists(export_local_path) if format == 'onnx' else 'N/A'}")
 
-                if format == 'openvino':
-                    openvino_dir = os.path.join(tmp_dir, exported_files[0])
-                    logger.info(f"OpenVINO目录路径: {openvino_dir}, 目录是否存在: {os.path.exists(openvino_dir)}")
-                    upload_success, upload_error = ModelService.upload_directory_to_minio(
-                        bucket_name="export-bucket",
-                        object_prefix=minio_export_path.rstrip('/') + '/',
-                        local_dir=openvino_dir
-                    )
-                else:
-                    upload_success, upload_error = ModelService.upload_to_minio(
-                        bucket_name="export-bucket",
-                        object_name=minio_export_path,
-                        file_path=export_local_path
-                    )
+                upload_success, upload_error = ModelService.upload_to_minio(
+                    bucket_name="export-bucket",
+                    object_name=minio_export_path,
+                    file_path=export_local_path
+                )
 
                 if not upload_success:
                     error_detail = upload_error or "未知错误"

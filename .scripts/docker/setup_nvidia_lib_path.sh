@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # 非 Docker 部署：在启动 Python 前补全 onnxruntime-gpu 所需的 nvidia 库路径。
 # 用法:
-#   source /path/to/easyaiot/.scripts/docker/setup_nvidia_lib_path.sh
+#   source /path/to/yfeieye/.scripts/docker/setup_nvidia_lib_path.sh
 #   python VIDEO/run.py
 #
 # systemd 示例 (ExecStartPre):
-#   ExecStartPre=/bin/bash -c 'source /opt/easyaiot/.scripts/docker/setup_nvidia_lib_path.sh'
+#   ExecStartPre=/bin/bash -c 'source /opt/yfeieye/.scripts/docker/setup_nvidia_lib_path.sh'
 
 if [ "${_ONNX_NVIDIA_LD_PATH_DONE:-}" = "1" ]; then
   return 0 2>/dev/null || exit 0

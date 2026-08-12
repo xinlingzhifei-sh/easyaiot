@@ -7,8 +7,7 @@
  * 4. db：数据库
  * 5. s3：支持 S3 协议的云存储服务，例如说 MinIO、阿里云、华为云、腾讯云、七牛云等等
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 package com.basiclab.iot.infra.framework.file;

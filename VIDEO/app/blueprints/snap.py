@@ -1,16 +1,16 @@
 """
 抓拍空间和任务管理路由
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
 
 from models import db, DetectionRegion
 from app.services.snap_space_service import (
     create_snap_space, update_snap_space, delete_snap_space,
-    get_snap_space, list_snap_spaces, get_snap_space_by_device_id, sync_spaces_to_minio
+    get_snap_space, list_snap_spaces, get_snap_space_by_device_id,
+    sync_spaces_to_minio,
 )
 from app.services.snap_task_service import (
     create_snap_task, update_snap_task, delete_snap_task,
@@ -29,9 +29,389 @@ from app.services.snap_image_service import (
     list_snap_images, delete_snap_images, get_snap_image, cleanup_old_images_by_save_time,
     sync_snap_images_metadata,
 )
+from app.services.media_authorization_service import (
+    MediaAuthorizationDecision,
+    append_media_access_audit,
+    audit_media_response,
+    authorization_error,
+    authorize_media_request,
+)
 
 snap_bp = Blueprint('snap', __name__)
 logger = logging.getLogger(__name__)
+
+_MULTI_SCOPE_ENDPOINTS = {
+    'snap.list_spaces',
+    'snap.sync_spaces_minio',
+    'snap.list_tasks',
+    'snap.update_group_policy',
+}
+
+
+def _authorization_denied_response(decision):
+    payload, status = authorization_error(decision)
+    return jsonify(payload), status
+
+
+def _scope_mismatch_decision(decision, reason, status_code=403, audit=True):
+    denied = MediaAuthorizationDecision(
+        False,
+        decision.user_id,
+        decision.tenant_id,
+        decision.camera_id,
+        decision.action,
+        reason,
+        status_code,
+        decision.auth_type,
+        decision.service_id,
+    )
+    if audit:
+        append_media_access_audit(denied, resource=request.path)
+    return denied
+
+
+def _request_data():
+    if request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return {}
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else {}
+
+
+def _requested_camera_id(data=None):
+    data = data or {}
+    return str(
+        request.args.get('camera_id')
+        or request.args.get('cameraId')
+        or request.args.get('device_id')
+        or request.args.get('deviceId')
+        or data.get('camera_id')
+        or data.get('cameraId')
+        or data.get('device_id')
+        or data.get('deviceId')
+        or ''
+    ).strip() or None
+
+
+def _space_scope(space):
+    if space is None:
+        return None, None, 'snap_space_scope_missing'
+    camera_id = str(getattr(space, 'device_id', '') or '').strip() or None
+    tenant_id = getattr(space, 'tenant_id', None)
+    tenant_text = str(tenant_id or '').strip()
+    if not camera_id:
+        return None, tenant_id, 'snap_camera_scope_missing'
+    if not tenant_text.isdigit() or int(tenant_text) <= 0:
+        return camera_id, None, 'snap_tenant_scope_missing'
+    return camera_id, int(tenant_text), None
+
+
+def _task_scope(task):
+    if task is None:
+        return None, None, None, 'snap_task_scope_missing'
+    space = get_snap_space(int(getattr(task, 'space_id', 0) or 0))
+    camera_id, tenant_id, error = _space_scope(space)
+    if error:
+        return space, camera_id, tenant_id, error
+    task_camera = str(getattr(task, 'device_id', '') or '').strip()
+    if not task_camera or task_camera != camera_id:
+        return space, camera_id, tenant_id, 'snap_task_camera_scope_mismatch'
+    return space, camera_id, tenant_id, None
+
+
+def _algorithm_task_scope(task):
+    if task is None or str(getattr(task, 'task_type', '') or '') != 'snap':
+        return None, None, None, 'snap_algorithm_task_scope_missing'
+    space_id = getattr(task, 'space_id', None)
+    if space_id is None:
+        return None, None, None, 'snap_algorithm_task_space_scope_missing'
+    space = get_snap_space(int(space_id))
+    camera_id, tenant_id, error = _space_scope(space)
+    if error:
+        return space, camera_id, tenant_id, error
+    task_cameras = {
+        str(getattr(device, 'id', '') or '').strip()
+        for device in (getattr(task, 'devices', None) or [])
+        if str(getattr(device, 'id', '') or '').strip()
+    }
+    if camera_id not in task_cameras:
+        return space, camera_id, tenant_id, 'snap_algorithm_task_camera_scope_mismatch'
+    return space, camera_id, tenant_id, None
+
+
+def _region_task_scope(task_id):
+    from models import AlgorithmTask, SnapTask
+
+    candidates = []
+    snap_task = SnapTask.query.get(int(task_id))
+    if snap_task is not None:
+        candidates.append(_task_scope(snap_task))
+    algorithm_task = AlgorithmTask.query.get(int(task_id))
+    if algorithm_task is not None:
+        candidates.append(_algorithm_task_scope(algorithm_task))
+    valid = [candidate for candidate in candidates if candidate[3] is None]
+    if not valid:
+        return None, None, None, 'snap_region_task_scope_missing'
+    owners = {(candidate[1], candidate[2]) for candidate in valid}
+    if len(owners) != 1:
+        return None, None, None, 'snap_region_task_scope_ambiguous'
+    return valid[0]
+
+
+def _space_for_device(device_id):
+    from app.services.snap_space_service import list_snap_space_authorization_scopes
+
+    scopes = list_snap_space_authorization_scopes(device_id)
+    if len(scopes) != 1:
+        return None
+    return get_snap_space(int(scopes[0]['space_id']))
+
+
+def _resolve_snap_scope():
+    endpoint = request.endpoint or ''
+    view_args = request.view_args or {}
+    data = _request_data()
+    requested_camera = _requested_camera_id(data)
+    space = None
+    camera_id = None
+    tenant_id = None
+    error = None
+    region_task_scope = False
+    algorithm_task_scope = endpoint in {
+        'snap.list_task_services',
+        'snap.create_task_service',
+        'snap.update_task_service',
+        'snap.delete_task_service',
+    }
+
+    service_id = view_args.get('service_id')
+    region_id = view_args.get('region_id')
+    task_id = view_args.get('task_id')
+    space_id = view_args.get('space_id')
+    route_device_id = str(view_args.get('device_id') or '').strip() or None
+
+    if service_id is not None and endpoint in {
+            'snap.update_task_service', 'snap.delete_task_service'}:
+        from models import AlgorithmModelService
+
+        service = AlgorithmModelService.query.get(int(service_id))
+        task_id = getattr(service, 'task_id', None) if service else None
+        if task_id is None:
+            error = 'snap_task_service_scope_missing'
+    elif service_id is not None and endpoint in {
+            'snap.update_region_service', 'snap.delete_region_service'}:
+        from models import RegionModelService
+
+        service = RegionModelService.query.get(int(service_id))
+        region_id = getattr(service, 'region_id', None) if service else None
+        if region_id is None:
+            error = 'snap_region_service_scope_missing'
+
+    if not error and region_id is not None:
+        region = DetectionRegion.query.get(int(region_id))
+        task_id = getattr(region, 'task_id', None) if region else None
+        region_task_scope = task_id is not None
+        if task_id is None:
+            error = 'snap_region_scope_missing'
+
+    if not error and task_id is None and endpoint == 'snap.create_region':
+        task_id = data.get('task_id')
+        region_task_scope = task_id is not None
+        if task_id is None:
+            error = 'snap_task_scope_missing'
+
+    if not error and task_id is not None:
+        if region_task_scope:
+            space, camera_id, tenant_id, error = _region_task_scope(task_id)
+        elif algorithm_task_scope:
+            from models import AlgorithmTask
+
+            task = AlgorithmTask.query.get(int(task_id))
+            space, camera_id, tenant_id, error = _algorithm_task_scope(task)
+        else:
+            from models import SnapTask
+
+            task = SnapTask.query.get(int(task_id))
+            space, camera_id, tenant_id, error = _task_scope(task)
+        requested_space_id = data.get('space_id')
+        if not error and requested_space_id is not None \
+                and int(requested_space_id) != int(getattr(space, 'id')):
+            error = 'snap_space_scope_mismatch'
+    elif not error and space_id is None and endpoint == 'snap.create_task':
+        space_id = data.get('space_id')
+        if space_id is None:
+            error = 'snap_space_scope_missing'
+
+    if not error and camera_id is None and space_id is not None:
+        space = get_snap_space(int(space_id))
+        camera_id, tenant_id, error = _space_scope(space)
+
+    if not error and camera_id is None and route_device_id:
+        space = _space_for_device(route_device_id)
+        camera_id, tenant_id, error = _space_scope(space)
+        if not error and route_device_id != camera_id:
+            error = 'snap_camera_scope_mismatch'
+
+    if not error and requested_camera and requested_camera != camera_id:
+        error = (
+            'snapshot_camera_scope_denied'
+            if endpoint == 'snap.list_space_images'
+            else 'snap_camera_scope_mismatch'
+        )
+
+    object_names = []
+    route_object = str(view_args.get('object_name') or '').strip()
+    if route_object:
+        object_names.append(route_object)
+    body_objects = data.get('object_names') or data.get('objectNames') or []
+    if isinstance(body_objects, (list, tuple)):
+        object_names.extend(str(value or '').strip() for value in body_objects)
+    if not error and object_names:
+        if space is None or tenant_id is None or not camera_id:
+            error = 'snap_object_scope_missing'
+        else:
+            from models import SnapImage
+
+            for object_name in (value for value in object_names if value):
+                image = SnapImage.query.filter_by(
+                    tenant_id=int(tenant_id),
+                    space_id=int(getattr(space, 'id')),
+                    device_id=camera_id,
+                    object_name=object_name,
+                ).first()
+                if image is None:
+                    error = 'snapshot_object_scope_denied'
+                    break
+
+    return space, camera_id, tenant_id, error
+
+
+@snap_bp.before_request
+def require_snap_authorization():
+    if request.endpoint in _MULTI_SCOPE_ENDPOINTS:
+        return None
+    space, camera_id, tenant_id, scope_error = _resolve_snap_scope()
+    action = 'snapshot' if request.method == 'GET' else 'record_manage'
+    decision = authorize_media_request(
+        request,
+        action=action,
+        camera_id=camera_id,
+        resource=request.path,
+        owner_tenant_id=tenant_id,
+        defer_audit=True,
+    )
+    audit_media_response(decision, resource=request.path)
+    if not decision.allowed:
+        return _authorization_denied_response(decision)
+    if scope_error or not camera_id or tenant_id is None:
+        reason = scope_error or 'snap_camera_scope_missing'
+        status_code = 404 if reason == 'snapshot_object_scope_denied' else 403
+        return _authorization_denied_response(_scope_mismatch_decision(
+            decision, reason, status_code=status_code, audit=False))
+    g.snap_space = space
+    g.snap_decision = decision
+    return None
+
+
+def _authorize_scopes(scopes, action):
+    if not scopes:
+        decision = authorize_media_request(
+            request,
+            action=action,
+            camera_id=None,
+            resource=request.path,
+        )
+        if not decision.allowed:
+            return decision, None, []
+        return _scope_mismatch_decision(
+            decision, 'snap_authorization_scope_empty'), None, []
+
+    trusted_tenant_id = None
+    allowed_camera_ids = []
+    for scope in scopes:
+        camera_id = str((scope or {}).get('camera_id') or '').strip()
+        tenant_id = str((scope or {}).get('tenant_id') or '').strip()
+        if not camera_id or not tenant_id.isdigit() or int(tenant_id) <= 0:
+            continue
+        decision = authorize_media_request(
+            request,
+            action=action,
+            camera_id=camera_id,
+            resource=request.path,
+            owner_tenant_id=int(tenant_id),
+        )
+        if not decision.allowed:
+            if decision.status_code != 403:
+                return decision, None, []
+            continue
+        if trusted_tenant_id is None:
+            trusted_tenant_id = int(decision.tenant_id)
+        elif int(decision.tenant_id) != trusted_tenant_id:
+            return _scope_mismatch_decision(
+                decision, 'snap_tenant_scope_ambiguous'), None, []
+        allowed_camera_ids.append(camera_id)
+
+    if not allowed_camera_ids:
+        decision = MediaAuthorizationDecision(
+            False, None, None, None, action,
+            'snap_authorization_scope_empty', 403,
+        )
+        append_media_access_audit(decision, resource=request.path)
+        return decision, None, []
+    return None, trusted_tenant_id, list(dict.fromkeys(allowed_camera_ids))
+
+
+def _authorize_list(action):
+    from app.services.snap_space_service import list_snap_space_authorization_scopes
+
+    camera_hint = _requested_camera_id()
+    return _authorize_scopes(
+        list_snap_space_authorization_scopes(camera_hint), action)
+
+
+def _authorize_group_policy(group_type, group_key):
+    from app.services.snap_space_service import list_snap_group_authorization_scopes
+
+    scopes = list_snap_group_authorization_scopes(group_type, group_key)
+    denied, tenant_id, camera_ids = _authorize_scopes(scopes, 'record_manage')
+    if denied is not None:
+        return denied, None, []
+    if len(camera_ids) != len(scopes):
+        decision = MediaAuthorizationDecision(
+            False, None, str(tenant_id), None, 'record_manage',
+            'snap_group_camera_scope_denied', 403,
+        )
+        append_media_access_audit(decision, resource=request.path)
+        return decision, None, []
+    return None, tenant_id, camera_ids
+
+
+def _authorize_snap_space(space_id: int):
+    space = getattr(g, 'snap_space', None)
+    decision = getattr(g, 'snap_decision', None)
+    if space is not None and int(getattr(space, 'id')) == int(space_id):
+        return space, decision, None
+    space = get_snap_space(space_id)
+    camera_id = str(getattr(space, 'device_id', None) or '').strip()
+    if not camera_id:
+        return space, None, (
+            jsonify({
+                'code': 403,
+                'msg': 'snapshot camera scope is missing',
+                'reason': 'snapshot_camera_scope_missing',
+            }),
+            403,
+        )
+    decision = authorize_media_request(
+        request,
+        action='snapshot' if request.method == 'GET' else 'record_manage',
+        camera_id=camera_id,
+        resource=request.path,
+        owner_tenant_id=getattr(space, 'tenant_id', None),
+    )
+    if decision.allowed:
+        return space, decision, None
+    payload, status = authorization_error(decision)
+    return space, decision, (jsonify(payload), status)
 
 
 # ====================== 抓拍空间管理接口 ======================
@@ -39,13 +419,24 @@ logger = logging.getLogger(__name__)
 def list_spaces():
     """查询抓拍空间列表"""
     try:
+        denied, tenant_id, camera_ids = _authorize_list('snapshot')
+        if denied is not None:
+            return _authorization_denied_response(denied)
         page_no = int(request.args.get('pageNo', 1))
         page_size = int(request.args.get('pageSize', 10))
         search = request.args.get('search', '').strip() or None
         parent_key = request.args.get('parentKey', 'root').strip() or 'root'
         scope = request.args.get('scope', '').strip() or None
 
-        result = list_snap_spaces(page_no, page_size, search, parent_key, scope)
+        result = list_snap_spaces(
+            page_no,
+            page_size,
+            search,
+            parent_key,
+            scope,
+            tenant_id=tenant_id,
+            camera_ids=camera_ids,
+        )
         return jsonify({
             'code': 0,
             'msg': 'success',
@@ -84,7 +475,9 @@ def get_space(space_id):
 def get_space_by_device(device_id):
     """根据设备ID获取抓拍空间"""
     try:
-        space = get_snap_space_by_device_id(device_id)
+        decision = g.snap_decision
+        space = get_snap_space_by_device_id(
+            device_id, tenant_id=decision.tenant_id)
         if not space:
             return jsonify({
                 'code': 400,
@@ -153,10 +546,22 @@ def update_group_policy():
         if save_time is None:
             return jsonify({'code': 400, 'msg': 'save_time 不能为空'}), 400
 
+        denied, tenant_id, camera_ids = _authorize_group_policy(
+            group_type, group_key)
+        if denied is not None:
+            return _authorization_denied_response(denied)
+
         from app.services.space_group_save_time_service import update_group_save_time
         from app.services.space_save_time_service import SPACE_KIND_SNAP
 
-        policy, updated = update_group_save_time(group_type, group_key, SPACE_KIND_SNAP, save_time)
+        policy, updated = update_group_save_time(
+            group_type,
+            group_key,
+            SPACE_KIND_SNAP,
+            save_time,
+            tenant_id=tenant_id,
+            camera_ids=camera_ids,
+        )
         return jsonify({
             'code': 0,
             'msg': f'分组存储策略已更新，已同步 {updated} 个非自定义设备空间',
@@ -198,7 +603,13 @@ def delete_space(space_id):
 def sync_spaces_minio():
     """同步所有抓拍空间到Minio，创建不存在的目录"""
     try:
-        result = sync_spaces_to_minio()
+        denied, tenant_id, camera_ids = _authorize_list('record_manage')
+        if denied is not None:
+            return _authorization_denied_response(denied)
+        result = sync_spaces_to_minio(
+            tenant_id=tenant_id,
+            camera_ids=camera_ids,
+        )
         return jsonify({
             'code': 0,
             'msg': '同步完成',
@@ -216,6 +627,9 @@ def sync_spaces_minio():
 def list_tasks():
     """查询抓拍任务列表"""
     try:
+        denied, tenant_id, camera_ids = _authorize_list('snapshot')
+        if denied is not None:
+            return _authorization_denied_response(denied)
         page_no = int(request.args.get('pageNo', 1))
         page_size = int(request.args.get('pageSize', 10))
         space_id = request.args.get('space_id')
@@ -226,7 +640,16 @@ def list_tasks():
         space_id_int = int(space_id) if space_id else None
         status_int = int(status) if status else None
         
-        result = list_snap_tasks(page_no, page_size, space_id_int, device_id, search, status_int)
+        result = list_snap_tasks(
+            page_no,
+            page_size,
+            space_id_int,
+            device_id,
+            search,
+            status_int,
+            tenant_id=tenant_id,
+            camera_ids=camera_ids,
+        )
         return jsonify({
             'code': 0,
             'msg': 'success',
@@ -904,7 +1327,17 @@ def cleanup_device_storage(device_id):
 def list_space_images(space_id):
     """获取抓拍空间图片列表"""
     try:
-        device_id = request.args.get('device_id', '').strip() or None
+        space, _decision, denied = _authorize_snap_space(space_id)
+        if denied:
+            return denied
+        device_id = str(getattr(space, 'device_id', None) or '').strip()
+        requested_device_id = request.args.get('device_id', '').strip()
+        if requested_device_id and requested_device_id != device_id:
+            return jsonify({
+                'code': 403,
+                'msg': 'snapshot camera scope denied',
+                'reason': 'snapshot_camera_scope_denied',
+            }), 403
         page_no = int(request.args.get('pageNo', 1))
         page_size = int(request.args.get('pageSize', 20))
         search = request.args.get('search', '').strip() or None
@@ -929,7 +1362,11 @@ def list_space_images(space_id):
         start_dt = _parse_dt(start_time)
         end_dt = _parse_dt(end_time)
 
-        result = list_snap_images(space_id, device_id, page_no, page_size, search, start_dt, end_dt, source)
+        result = list_snap_images(
+            space_id, device_id, page_no, page_size, search,
+            start_dt, end_dt, source,
+            tenant_id=getattr(space, 'tenant_id', None),
+        )
         return jsonify({
             'code': 0,
             'msg': 'success',
@@ -948,7 +1385,28 @@ def get_space_image(space_id, object_name):
     """获取抓拍图片内容"""
     try:
         from flask import Response
-        content, content_type, filename = get_snap_image(space_id, object_name)
+        from models import SnapImage
+        space, _decision, denied = _authorize_snap_space(space_id)
+        if denied:
+            return denied
+        device_id = str(getattr(space, 'device_id', None) or '').strip()
+        image = SnapImage.query.filter_by(
+            tenant_id=int(getattr(space, 'tenant_id')),
+            space_id=space_id,
+            device_id=device_id,
+            object_name=object_name,
+        ).first()
+        if image is None:
+            return jsonify({
+                'code': 404,
+                'msg': 'snapshot object is not owned by the authorized camera',
+                'reason': 'snapshot_object_scope_denied',
+            }), 404
+        content, content_type, filename = get_snap_image(
+            space_id,
+            object_name,
+            tenant_id=getattr(space, 'tenant_id', None),
+        )
         return Response(
             content,
             mimetype=content_type,
@@ -965,6 +1423,9 @@ def get_space_image(space_id, object_name):
 def delete_space_images(space_id):
     """批量删除抓拍图片"""
     try:
+        space, _decision, denied = _authorize_snap_space(space_id)
+        if denied:
+            return denied
         data = request.get_json()
         if not data:
             return jsonify({'code': 400, 'msg': '请求数据不能为空'}), 400
@@ -973,7 +1434,11 @@ def delete_space_images(space_id):
         if not object_names or not isinstance(object_names, list):
             return jsonify({'code': 400, 'msg': 'object_names必须是非空数组'}), 400
         
-        result = delete_snap_images(space_id, object_names)
+        result = delete_snap_images(
+            space_id,
+            object_names,
+            tenant_id=getattr(space, 'tenant_id', None),
+        )
         return jsonify({
             'code': 0,
             'msg': '删除完成',
@@ -990,6 +1455,9 @@ def delete_space_images(space_id):
 def sync_images_metadata(space_id):
     """从 MinIO 同步抓拍元数据到数据库（历史数据回填）"""
     try:
+        _space, _decision, denied = _authorize_snap_space(space_id)
+        if denied:
+            return denied
         result = sync_snap_images_metadata(space_id)
         return jsonify({
             'code': 0,
@@ -1007,6 +1475,9 @@ def sync_images_metadata(space_id):
 def cleanup_space_images(space_id):
     """清理过期的抓拍图片"""
     try:
+        _space, _decision, denied = _authorize_snap_space(space_id)
+        if denied:
+            return denied
         data = request.get_json() or {}
         if 'save_time_hours' not in data:
             return jsonify({'code': 400, 'msg': '需要提供 save_time_hours 参数'}), 400
@@ -1026,4 +1497,3 @@ def cleanup_space_images(space_id):
     except Exception as e:
         logger.error(f'清理过期图片失败: {str(e)}', exc_info=True)
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
-

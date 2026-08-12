@@ -12,9 +12,8 @@ import javax.validation.constraints.Size;
 /**
  * OAuth2UserUpdateReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - OAuth2 更新用户基本信息 Request VO")
 @Data
@@ -22,7 +21,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class OAuth2UserUpdateReqVO {
 
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     @Size(max = 30, message = "用户昵称长度不能超过 30 个字符")
     private String nickname;
 

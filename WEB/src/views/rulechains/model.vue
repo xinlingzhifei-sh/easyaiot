@@ -158,7 +158,7 @@
                 return;
               }
               if (isNodeRedDemoFlow({ id: flowsId.value, label: (params as any)?.label })) {
-                createMessage.warning('EasyAIoT 演示规则链为只读，禁止修改');
+                createMessage.warning('yFeiEye 演示规则链为只读，禁止修改');
                 return;
               }
               await updateflows(flowsId.value, params);

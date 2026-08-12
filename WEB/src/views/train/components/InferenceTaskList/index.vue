@@ -6,7 +6,7 @@
     >
       <template #toolbar>
         <Space>
-          <Button type="primary" @click="openExecuteModal">
+          <Button type="primary" @click="() => openExecuteModal(true)">
             <template #icon>
               <PlayCircleOutlined/>
             </template>
@@ -59,7 +59,7 @@
                 tooltip: '删除',
                 popConfirm: {
                   title: '确认删除此记录？',
-                  onConfirm: () => handleDelete(record)
+                  confirm: () => handleDelete(record)
                 }
               }
             ]"
@@ -77,7 +77,7 @@
 <script lang="ts" setup>
 import {reactive} from 'vue';
 import {PlayCircleOutlined} from '@ant-design/icons-vue';
-import {BasicTable, TableAction, useTable} from '@/components/Table';
+import {BasicTable, TableAction, useTable, type FormProps} from '@/components/Table';
 import {useModal} from '@/components/Modal';
 import {useMessage} from '@/hooks/web/useMessage';
 import {getInferenceColumns, getInferenceFormConfig} from "./Data";
@@ -87,8 +87,6 @@ import InferenceResultViewer from "../InferenceResultViewer/index.vue";
 import {deleteInferenceRecord, getInferenceTasks, runInference} from "@/api/device/model";
 import { Button } from '@/components/Button'
 import { Space } from 'ant-design-vue'
-
-const params = {};
 
 // 状态管理
 const state = reactive({
@@ -112,7 +110,7 @@ const [registerTable, {reload}] = useTable({
   api: getInferenceTasks,
   columns: getInferenceColumns(),
   useSearchForm: true,
-  formConfig: getInferenceFormConfig(),
+  formConfig: getInferenceFormConfig() as Partial<FormProps>,
   pagination: {pageSize: 10},
   rowKey: 'id',
   showTableSetting: true,
@@ -224,6 +222,7 @@ const formatDateTime = (dateString: string): string => {
     second: '2-digit'
   });
 };
+void formatDateTime;
 </script>
 
 <style lang="less" scoped>

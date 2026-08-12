@@ -89,6 +89,7 @@ import { useDrawer } from '@/components/Drawer';
 import { deleteModel, getModelPage } from "@/api/device/model";
 import ModelCardList from "../ModelCardList/index.vue";
 import { Button } from '@/components/Button'
+import { buildModelDownloadUrl } from './downloadUrl';
 const { createMessage } = useMessage();
 
 const [registerAddModel, { openDrawer: openAddModal }] = useDrawer();
@@ -176,7 +177,7 @@ const handleDelete = async (record) => {
     await deleteModel(record.id);
     createMessage.success('删除成功');
     handleSuccess();
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     createMessage.error('删除失败');
   }
@@ -187,26 +188,8 @@ const handleDownload = async (record) => {
   try {
     const token = localStorage.getItem('jwt_token');
     
-    // 优先使用后台返回的 model_path 或 onnx_model_path（MinIO 路径）
     const modelPath = record.model_path || record.onnx_model_path;
-    
-    let downloadUrl;
-    if (modelPath) {
-      // 如果 model_path 是完整的 MinIO 路径（以 /api/v1/buckets 开头），直接使用
-      // nginx 会自动代理到 MinIO
-      if (modelPath.startsWith('/api/v1/buckets')) {
-        downloadUrl = modelPath;
-      } else if (modelPath.startsWith('http://') || modelPath.startsWith('https://')) {
-        // 如果是完整的 HTTP URL，直接使用
-        downloadUrl = modelPath;
-      } else {
-        // 如果是相对路径，可能需要添加前缀（根据实际情况调整）
-        downloadUrl = modelPath;
-      }
-    } else {
-      // 如果没有 model_path，使用后端下载接口作为备选方案
-      downloadUrl = `/api/model/${record.id}/download`;
-    }
+    const downloadUrl = buildModelDownloadUrl(record);
 
     // 使用 fetch 下载文件（支持认证头）
     const response = await fetch(downloadUrl, {
@@ -270,7 +253,7 @@ const handleDownload = async (record) => {
     window.URL.revokeObjectURL(url);
     
     createMessage.success('模型下载成功');
-  } catch (error) {
+  } catch (error: any) {
     console.error('下载模型失败:', error);
     createMessage.error('下载模型失败: ' + (error.message || '未知错误'));
   }

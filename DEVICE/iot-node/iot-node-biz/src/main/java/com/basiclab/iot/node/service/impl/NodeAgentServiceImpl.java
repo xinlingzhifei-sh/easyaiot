@@ -9,6 +9,7 @@ import com.basiclab.iot.node.domain.vo.NodeAgentHeartbeatReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentRegisterReqVO;
 import com.basiclab.iot.node.enums.NodeRoleEnum;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.EdgeNodeService;
 import com.basiclab.iot.node.service.NodeAgentService;
 import com.basiclab.iot.node.service.NodeClusterMetricsBroadcaster;
@@ -125,7 +126,7 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (StrUtil.isBlank(agentToken) || !agentToken.equals(node.getAgentToken())) {
+        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
             throw exception(AGENT_TOKEN_INVALID);
         }
         return node;

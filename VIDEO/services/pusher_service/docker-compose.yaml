@@ -24,7 +24,7 @@ services:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Shanghai
       - PORT=8003
-      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:iot45722414822@localhost:5432/iot-video}
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
       - SERVICE_ID=${SERVICE_ID:-1}
       - TASK_ID=${TASK_ID:-}
       - PUSHER_ID=${PUSHER_ID:-}
@@ -46,4 +46,3 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-

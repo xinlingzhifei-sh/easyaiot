@@ -21,7 +21,7 @@ async def main() -> None:
     server = Server()
     await server.init()
     server.set_endpoint(args.endpoint)
-    server.set_server_name("EasyAIoT OPC UA Demo")
+    server.set_server_name("yFeiEye OPC UA Demo")
 
     uri = "http://easyaiot.local/opcua/demo"
     idx = await server.register_namespace(uri)

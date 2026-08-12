@@ -9,9 +9,8 @@ import java.util.Map;
 /**
  * NotifyMessageRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 站内信 Response VO")
 @Data
@@ -32,7 +31,7 @@ public class NotifyMessageRespVO {
     @Schema(description = "模板编码", example = "test_01")
     private String templateCode;
 
-    @Schema(description = "模版发送人名称", example = "BasicLab")
+    @Schema(description = "模版发送人名称", example = "yFeiEye")
     private String templateNickname;
 
     @Schema(description = "模版内容", example = "测试内容")

@@ -19,7 +19,7 @@ import { Button } from '@/components/Button'
   import { ref } from 'vue';
   import PhysicalModal from './PhysicalModal.vue';
 
-  const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(() => {});
+  const [register] = useDrawerInner(() => {});
 
   const activeKey = ref('PhysicalModal');
   const tabPaneList = [

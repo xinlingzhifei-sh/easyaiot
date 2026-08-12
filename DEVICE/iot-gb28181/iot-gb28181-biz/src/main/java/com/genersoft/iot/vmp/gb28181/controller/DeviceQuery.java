@@ -40,6 +40,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -74,6 +76,8 @@ public class DeviceQuery {
 
 	@Autowired
 	private SipConfig sipConfig;
+
+	private final Map<String, String> deviceAccessInfoCache = new ConcurrentHashMap<>();
 
 	@Operation(summary = "查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -448,7 +452,8 @@ public class DeviceQuery {
 	@GetMapping("/device-access-info/generate")
 	@Operation(summary = "生成国标设备接入信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "count", description = "生成组数，1～100，默认10", required = false)
-	public WVPResult<String> generateDeviceAccessInfo(@RequestParam(required = false) Integer count) {
+	public WVPResult<String> generateDeviceAccessInfo(@RequestParam(required = false) Integer count,
+													  @RequestParam(required = false) Boolean force) {
 		int cnt = (count == null || count < 1) ? 10 : Math.min(count, 100);
 		String sipServerId = sipConfig.getId() != null ? sipConfig.getId() : "44010200492000000001";
 		String sipDomain = sipConfig.getDomain() != null ? sipConfig.getDomain() : "4401020049";
@@ -462,6 +467,16 @@ public class DeviceQuery {
 		String transport = "UDP";
 		String protocolVersion = "GB/T28181-2022";
 		String localSipPort = "5060";
+		String sharedPassword = (sipConfig.isRegisterPasswordAuth() && !ObjectUtils.isEmpty(sipConfig.getPassword()))
+				? sipConfig.getPassword()
+				: null;
+		String cacheKey = cnt + "|" + sipServerId + "|" + sipDomain + "|" + sipPort + "|" + sipAddr
+				+ "|" + transport + "|" + protocolVersion + "|" + localSipPort
+				+ "|" + sipConfig.isRegisterPasswordAuth() + "|" + (sharedPassword != null ? sharedPassword : "");
+		String cached = deviceAccessInfoCache.get(cacheKey);
+		if (!Boolean.TRUE.equals(force) && cached != null) {
+			return WVPResult.success(cached);
+		}
 
 		// 设备国标 ID 前缀：取 domain 前 10 位，不足补 0，用于生成 20 位国标 ID
 		String domainPrefix = (sipDomain != null && sipDomain.length() >= 10)
@@ -477,8 +492,8 @@ public class DeviceQuery {
 			// 每次随机生成 10 位数字后缀，保证 20 位国标 ID 且每次请求都随机
 			String suffix = randomDigits(rng, 10);
 			String deviceId = domainPrefix + suffix;
-			// 多数摄像头国标 SIP 认证密码最长 16 位，超过设备侧无法录入
-			String password = randomAlphanumeric(rng, 16);
+			// 配置了统一认证密码时必须原样使用；随机兜底限制为多数摄像头可录入的 16 位。
+			String password = sharedPassword != null ? sharedPassword : randomAlphanumeric(rng, 16);
 
 			out.append("========== 设备组 #").append(i).append(" ==========\n");
 			out.append("传输协议：").append(transport).append("\n");
@@ -494,7 +509,13 @@ public class DeviceQuery {
 			out.append("\n");
 		}
 		out.append("========== 生成完成，共 ").append(cnt).append(" 组 ==========");
-		return WVPResult.success(out.toString());
+		String accessInfo = out.toString();
+		deviceAccessInfoCache.put(cacheKey, accessInfo);
+		return WVPResult.success(accessInfo);
+	}
+
+	public WVPResult<String> generateDeviceAccessInfo(Integer count) {
+		return generateDeviceAccessInfo(count, false);
 	}
 
 	/** 生成指定长度的随机数字串（0-9） */

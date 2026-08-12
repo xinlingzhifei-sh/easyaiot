@@ -13,7 +13,7 @@ export type DeviceKind = 'camera' | 'nvr' | 'gb28181';
 export type DeviceMajorCategory = 'ip_network' | 'gb28181_protocol';
 
 /** 创建方式（第二步） */
-export type CreateMethod = 'onvif' | 'segment_scan' | 'manual' | 'gb_access';
+export type CreateMethod = 'onvif' | 'segment_scan' | 'manual' | 'rtmp_push' | 'gb_access';
 
 /**
  * 厂商/品牌
@@ -136,6 +136,12 @@ export const CREATE_METHOD_OPTIONS: CreateMethodOption[] = [
     deviceKinds: ['camera', 'nvr'],
   },
   {
+    value: 'rtmp_push',
+    label: 'RTMP 公网推流',
+    description: '生成设备专属签名推流地址，适合公网主动推流设备',
+    deviceKinds: ['camera'],
+  },
+  {
     value: 'gb_access',
     label: '生成接入配置',
     description: '生成 SIP 参数，复制到设备侧完成注册',
@@ -181,6 +187,7 @@ export const CREATE_METHOD_ICONS: Record<CreateMethod, string> = {
   onvif: 'ant-design:radar-chart-outlined',
   segment_scan: 'ant-design:scan-outlined',
   manual: 'ant-design:edit-outlined',
+  rtmp_push: 'ant-design:cloud-upload-outlined',
   gb_access: 'ant-design:key-outlined',
 };
 
@@ -517,10 +524,10 @@ export const CAMERA_BRAND_PROTOCOLS: Record<CameraBrand, CameraBrandProtocol> = 
     rtspSubPath: '/xiaomi/{ch}/sub',
     channelStart: 0,
     rtspPathIdentifiers: ['/xiaomi/'],
-    privateProtocols: ['米家私有协议', 'EasyAIoT RTC 桥接', 'Go2RTC 桥接'],
+    privateProtocols: ['米家私有协议', 'yFeiEye RTC 桥接', 'Go2RTC 桥接'],
     webInterfaceFeatures: [],
     defaultUsername: '',
-    remarks: '米家摄像头原生不支持 RTSP，可通过 EasyAIoT RTC 模块（go2rtc 桥接）取流',
+    remarks: '米家摄像头原生不支持 RTSP，可通过 yFeiEye RTC 模块（go2rtc 桥接）取流',
   },
   tiandy: {
     brand: 'tiandy',

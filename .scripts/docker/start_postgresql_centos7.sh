@@ -26,7 +26,7 @@
 #
 # 默认连接信息（与 docker-compose.yml 一致）：
 #   主机: 127.0.0.1  端口: 5432
-#   用户: postgres    密码: iot45722414822
+#   用户: postgres    密码通过 POSTGRES_PASSWORD 安全注入
 #   数据库: postgres
 # ============================================
 
@@ -47,7 +47,7 @@ SERVICE_INIT="PostgresSQL-init"
 SERVICE_PG="PostgresSQL"
 CONTAINER_NAME="postgres-server"
 INIT_CONTAINER="postgres-init"
-NETWORK_NAME="easyaiot-network"
+NETWORK_NAME="yfeieye-network"
 PG_PORT=5432
 PG_IMAGE="postgres:18"
 DOCKER_MIRROR="https://docker.m.daocloud.io/"
@@ -739,7 +739,7 @@ show_connection_info() {
     echo "  容器名:   ${CONTAINER_NAME}"
     echo "  地址:     127.0.0.1:${PG_PORT}"
     echo "  用户:     postgres"
-    echo "  密码:     iot45722414822"
+    echo "  密码:     <由 POSTGRES_PASSWORD 安全注入，不输出>"
     echo "  数据库:   postgres"
     echo ""
     print_info "常用命令:"

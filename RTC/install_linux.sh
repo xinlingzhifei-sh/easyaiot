@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT RTC 模块安装脚本
+# yFeiEye RTC 模块安装脚本
 #
 # 用法:
 #   bash RTC/install_linux.sh install   # 安装并启动（统一部署入口）

@@ -3,9 +3,8 @@
 调试脚本：检查推流转发任务状态
 用于诊断为什么系统显示"没有需要启动的推流转发任务"
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys

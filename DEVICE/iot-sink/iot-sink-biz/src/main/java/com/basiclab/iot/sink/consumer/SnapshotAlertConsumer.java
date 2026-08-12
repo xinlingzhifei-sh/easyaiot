@@ -26,9 +26,8 @@ import java.util.concurrent.TimeUnit;
  * 抓拍算法任务告警Kafka消费者（iot-sink服务）
  * 处理流程：1. 存储告警到数据库（类型为抓拍算法任务） 2. 上传图片到MinIO抓拍空间 3. 如果开启了通知，发送到抓拍算法任务通知主题供iot-message消费
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Component
@@ -228,7 +227,7 @@ public class SnapshotAlertConsumer {
                 return;
             }
 
-            log.debug("开始处理抓拍算法任务告警: deviceId={}, deviceName={}, taskId={}, taskName={}", 
+            log.debug("开始处理抓拍算法任务告警: deviceId={}, deviceName={}, taskId={}, taskName={}",
                     message.getDeviceId(), message.getDeviceName(), message.getTaskId(), message.getTaskName());
 
             // 检查告警时间
@@ -239,7 +238,7 @@ public class SnapshotAlertConsumer {
             
             // 去重检查：同一设备、同一时间只处理第一条
             if (isAlreadyProcessed(message.getDeviceId(), alertTime)) {
-                log.debug("⏭️  抓拍算法任务告警已处理过（同一时间），跳过: deviceId={}, alertTime={}, taskId={}", 
+                log.debug("⏭️  抓拍算法任务告警已处理过（同一时间），跳过: deviceId={}, alertTime={}, taskId={}",
                         message.getDeviceId(), alertTime, message.getTaskId());
                 // 确认消息已处理（即使跳过，也要确认，避免重复投递）
                 if (acknowledgment != null) {
@@ -272,7 +271,7 @@ public class SnapshotAlertConsumer {
                     message.setAlertId(alertId);
                     // 确认标记为已处理（虽然已经在isAlreadyProcessed中标记，但这里确认一下）
                     markAsProcessed(message.getDeviceId(), alertTime);
-                    log.debug("✅ 抓拍算法任务告警处理成功: alertId={}, deviceId={}, alertTime={}", 
+                    log.debug("✅ 抓拍算法任务告警处理成功: alertId={}, deviceId={}, alertTime={}",
                             alertId, message.getDeviceId(), alertTime);
                 } else {
                     log.warn("⚠️  抓拍算法任务告警处理失败，未返回alertId: deviceId={}, alertTime={}", 

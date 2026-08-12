@@ -30,25 +30,36 @@ NC='\033[0m' # No Color
 # 脚本目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+EASYAIOT_ROOT="${EASYAIOT_ROOT:-$YFEIEYE_ROOT}"
+VIDEO_COMPOSE_ENV_FILE="${YFEIEYE_VIDEO_COMPOSE_ENV_FILE:-${SCRIPT_DIR}/.env.docker}"
 # shellcheck source=../.scripts/docker/init-build-cache-dirs.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 # shellcheck source=../.scripts/docker/gpu_compose_helpers.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/gpu_compose_helpers.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/gpu_compose_helpers.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/deploy_profile.sh"
 
 # 带 GPU/CPU / RUNTIME / source-free override 的 compose 调用
 video_compose() {
-    local -a files=(-f docker-compose.yaml)
-    if [ -f .docker-compose.gpu.override.yaml ]; then
-        files+=(-f .docker-compose.gpu.override.yaml)
+    if [ ! -f "$VIDEO_COMPOSE_ENV_FILE" ]; then
+        print_error "Compose 环境文件不存在: $VIDEO_COMPOSE_ENV_FILE"
+        return 1
+    fi
+    local -a files=(-f "${SCRIPT_DIR}/docker-compose.yaml")
+    if [ -f "${SCRIPT_DIR}/docker-compose.desktop.yaml" ] \
+        && { [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; }; then
+        files+=(-f "${SCRIPT_DIR}/docker-compose.desktop.yaml")
+    fi
+    if [ -f "${SCRIPT_DIR}/.docker-compose.gpu.override.yaml" ]; then
+        files+=(-f "${SCRIPT_DIR}/.docker-compose.gpu.override.yaml")
     fi
     if [ -f .docker-compose.runtime.override.yaml ]; then
         files+=(-f .docker-compose.runtime.override.yaml)
     fi
     append_source_free_compose_file files
-    $COMPOSE_CMD "${files[@]}" "$@"
+    YFEIEYE_VIDEO_COMPOSE_ENV_FILE="$VIDEO_COMPOSE_ENV_FILE" \
+        $COMPOSE_CMD --env-file "$VIDEO_COMPOSE_ENV_FILE" "${files[@]}" "$@"
 }
 
 # 打印带颜色的消息
@@ -90,10 +101,10 @@ cleanup_renamed_containers() {
 }
 
 prepare_cached_resources() {
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
     local wheels
-    wheels="$(pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" video)"
-    local cache_script="${EASYAIOT_ROOT}/.scripts/docker/cache_python_resources.sh"
+    wheels="$(pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" video)"
+    local cache_script="${YFEIEYE_ROOT}/.scripts/docker/cache_python_resources.sh"
 
     if find "$wheels" -maxdepth 1 -type f \( -name "*.whl" -o -name "*.tar.gz" -o -name "*.zip" \) 2>/dev/null | grep -q .; then
         print_success "检测到 [video] pip-wheels: $wheels"
@@ -113,7 +124,7 @@ build_with_cache() {
     local build_status=0
     local platform_opts=""
 
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
     enable_docker_buildkit
     if [ -n "${DOCKER_PLATFORM:-}" ]; then
         platform_opts="--platform $DOCKER_PLATFORM"
@@ -125,8 +136,8 @@ build_with_cache() {
     print_info "docker build（.build-cache/video pip-cache/pip-wheels）..."
     set +e
     docker build \
-        --build-context "pip-cache=$(pip_cache_build_context_dir_for "$EASYAIOT_ROOT" video)" \
-        --build-context "pip-wheels=$(pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" video)" \
+        --build-context "pip-cache=$(pip_cache_build_context_dir_for "$YFEIEYE_ROOT" video)" \
+        --build-context "pip-wheels=$(pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" video)" \
         --target runtime \
         -t video-service:latest \
         $platform_opts \
@@ -200,28 +211,28 @@ check_docker_compose() {
 
 # 检查并创建 Docker 网络（注意：使用host网络模式后，此函数不再需要，但保留以兼容其他服务）
 check_network() {
-    print_info "检查 Docker 网络 easyaiot-network..."
-    print_info "注意：VIDEO服务使用host网络模式，不需要加入easyaiot-network网络"
+    print_info "检查 Docker 网络 yfeieye-network..."
+    print_info "注意：VIDEO服务使用host网络模式，不需要加入yfeieye-network网络"
     print_info "但中间件服务仍需要此网络，检查网络是否存在..."
     
     # 检查网络是否已存在（使用网络名称）
-    if docker network ls --format "{{.Name}}" 2>/dev/null | grep -q "^easyaiot-network$"; then
-        print_info "网络 easyaiot-network 已存在"
+    if docker network ls --format "{{.Name}}" 2>/dev/null | grep -q "^yfeieye-network$"; then
+        print_info "网络 yfeieye-network 已存在"
         return 0
     fi
     
     # 网络不存在，尝试创建
-    print_info "网络 easyaiot-network 不存在，正在创建..."
-    local create_output=$(docker network create easyaiot-network 2>&1)
+    print_info "网络 yfeieye-network 不存在，正在创建..."
+    local create_output=$(docker network create yfeieye-network 2>&1)
     local create_exit_code=$?
     
     if [ $create_exit_code -eq 0 ]; then
-        print_success "网络 easyaiot-network 已创建"
+        print_success "网络 yfeieye-network 已创建"
         return 0
     else
         # 检查错误原因
         if echo "$create_output" | grep -qi "already exists"; then
-            print_info "网络 easyaiot-network 已存在（可能在检查后创建）"
+            print_info "网络 yfeieye-network 已存在（可能在检查后创建）"
             return 0
         elif echo "$create_output" | grep -qi "permission denied"; then
             print_error "没有权限创建 Docker 网络"
@@ -238,7 +249,7 @@ check_network() {
             print_warning "网络名称冲突，但网络已存在，继续使用现有网络"
             return 0
         else
-            print_error "无法创建网络 easyaiot-network"
+            print_error "无法创建网络 yfeieye-network"
             print_error "错误信息: $create_output"
             print_info "诊断建议："
             print_info "  1. 检查 Docker 服务是否正常运行: sudo systemctl status docker"
@@ -310,7 +321,7 @@ clean_compose_cache() {
     # 1. 停止并清理容器和网络连接
     print_info "执行 docker-compose down 清理容器和网络连接..."
     # 使用 eval 来正确处理包含空格的 COMPOSE_CMD
-    if eval "$COMPOSE_CMD down" 2>/dev/null; then
+    if video_compose down 2>/dev/null; then
         print_success "容器和网络连接已清理"
     else
         print_info "docker-compose down 执行完成（可能没有运行的容器）"
@@ -319,7 +330,7 @@ clean_compose_cache() {
     
     # 2. 强制重新读取配置（这会清除 docker-compose 的配置缓存）
     print_info "强制重新读取配置以清除缓存..."
-    if eval "$COMPOSE_CMD config" > /dev/null 2>&1; then
+    if video_compose config > /dev/null 2>&1; then
         print_success "配置已重新验证"
     else
         print_warning "配置验证失败，但继续执行"
@@ -327,7 +338,7 @@ clean_compose_cache() {
     
     # 3. 清理可能的网络残留连接
     print_info "检查并清理网络残留连接..."
-    local network_name="easyaiot-network"
+    local network_name="yfeieye-network"
     if docker network inspect "$network_name" &> /dev/null; then
         # 获取连接到该网络的所有容器
         local containers=$(docker network inspect "$network_name" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
@@ -364,21 +375,26 @@ create_env_file() {
             cp env.example .env.docker
             print_success ".env.docker 文件已从 env.example 创建"
             
-            # 自动配置中间件连接信息（使用localhost，因为使用host网络模式）
-            print_info "自动配置中间件连接信息（使用host网络模式，通过localhost访问中间件）..."
-            
-            # 临时文件写回，兼容 macOS BSD sed
-            _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:5432/iot-video20"
-            _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
-            _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
-            _set_env_docker_kv .env.docker MINIO_SECRET_KEY "basiclab@iot975248395"
-            _set_env_docker_kv .env.docker REDIS_HOST "localhost"
-            _set_env_docker_kv .env.docker KAFKA_BOOTSTRAP_SERVERS "localhost:9092"
-            _set_env_docker_kv .env.docker TDENGINE_HOST "localhost"
-            _set_env_docker_kv .env.docker NACOS_PASSWORD "basiclab@iot78475418754"
-            
-            print_success "中间件连接信息已自动配置（使用host网络模式）"
-            print_info "注意：使用host网络模式后，容器可以直接访问宿主机局域网，支持ONVIF摄像头发现"
+            # 临时文件写回，兼容 macOS BSD sed；凭据沿用 env.example，不在脚本中覆盖。
+            if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+                print_info "桌面端部署：使用容器网络中间件地址"
+                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-video20"
+                _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+            else
+                print_info "自动配置中间件连接信息（使用host网络模式，通过localhost访问中间件）..."
+                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-video20"
+                _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
+                _set_env_docker_kv .env.docker REDIS_HOST "localhost"
+                _set_env_docker_kv .env.docker KAFKA_BOOTSTRAP_SERVERS "localhost:9094"
+                _set_env_docker_kv .env.docker TDENGINE_HOST "localhost"
+            fi
+            if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+                print_success "中间件连接信息已自动配置（使用容器网络模式）"
+            else
+                print_success "中间件连接信息已自动配置（使用host网络模式）"
+                print_info "注意：使用host网络模式后，容器可以直接访问宿主机局域网，支持ONVIF摄像头发现"
+            fi
             print_info "如需修改其他配置，请编辑 .env.docker 文件"
         else
             print_error "env.example 文件不存在，无法创建 .env.docker 文件"
@@ -393,37 +409,37 @@ create_env_file() {
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
         else
             print_info "检查并更新中间件连接信息（使用host网络模式）..."
-            
+
             # 检查并更新数据库连接（如果还是旧的服务名，改为localhost）
             if grep -q "DATABASE_URL=.*PostgresSQL" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:5432/iot-video20"
-                print_info "已更新数据库连接为 localhost:5432（host网络模式）"
+                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-video20"
+                print_info "已更新数据库连接为 localhost:15432（host网络模式）"
             fi
-            
+
             # 检查并更新Nacos配置（如果还是IP地址或旧的服务名，改为localhost）
             if grep -q "NACOS_SERVER=.*14\.18\.122\.2" .env.docker || grep -q "NACOS_SERVER=.*Nacos" .env.docker || grep -q "NACOS_SERVER=.*nacos-server" .env.docker; then
                 _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
                 print_info "已更新Nacos连接为 localhost:8848（host网络模式）"
             fi
-            
+
             # 检查并更新MinIO配置（如果还是旧的服务名，改为localhost）
             if grep -q "MINIO_ENDPOINT=.*MinIO" .env.docker || grep -q "MINIO_ENDPOINT=.*minio-server" .env.docker; then
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
                 print_info "已更新MinIO连接为 localhost:9000（host网络模式）"
             fi
-            
+
             # 检查并更新Redis配置（如果还是旧的服务名，改为localhost）
             if grep -q "REDIS_HOST=.*Redis" .env.docker || grep -q "REDIS_HOST=.*redis-server" .env.docker; then
                 _set_env_docker_kv .env.docker REDIS_HOST "localhost"
                 print_info "已更新Redis连接为 localhost（host网络模式）"
             fi
-            
+
             # 检查并更新Kafka配置（如果还是旧的服务名，改为localhost）
-            if grep -q "KAFKA_BOOTSTRAP_SERVERS=.*Kafka" .env.docker || grep -q "KAFKA_BOOTSTRAP_SERVERS=.*kafka-server" .env.docker; then
-                _set_env_docker_kv .env.docker KAFKA_BOOTSTRAP_SERVERS "localhost:9092"
-                print_info "已更新Kafka连接为 localhost:9092（host网络模式）"
+            if grep -q "KAFKA_BOOTSTRAP_SERVERS=.*Kafka" .env.docker || grep -q "KAFKA_BOOTSTRAP_SERVERS=.*kafka-server" .env.docker || grep -q "KAFKA_BOOTSTRAP_SERVERS=.*localhost:9092" .env.docker; then
+                _set_env_docker_kv .env.docker KAFKA_BOOTSTRAP_SERVERS "localhost:9094"
+                print_info "已更新Kafka连接为 localhost:9094（host网络模式）"
             fi
-            
+
             # 检查并更新TDengine配置（如果还是旧的服务名，改为localhost）
             if grep -q "TDENGINE_HOST=.*TDengine" .env.docker || grep -q "TDENGINE_HOST=.*tdengine-server" .env.docker; then
                 _set_env_docker_kv .env.docker TDENGINE_HOST "localhost"
@@ -433,7 +449,7 @@ create_env_file() {
     fi
 
     ensure_deploy_profile
-    apply_python_service_deploy_env "${EASYAIOT_ROOT}"
+    apply_python_service_deploy_env "${YFEIEYE_ROOT}"
     if is_mini_deploy_profile; then
         print_info "mini 形态：已配置 Gateway 部署（48080）+ MQTT→iot-sink 统一事件面"
     else
@@ -466,7 +482,7 @@ install_service() {
 
         if [ "$_do_local_build" -eq 0 ]; then
             print_info "正在拉取预构建镜像..."
-            if bash "${EASYAIOT_ROOT}/.scripts/docker/runtime_image.sh" pull; then
+            if bash "${YFEIEYE_ROOT}/.scripts/docker/runtime_image.sh" pull; then
                 print_success "预构建镜像拉取成功"
                 export EASYAIOT_SKIP_BUILD=1
             else
@@ -483,7 +499,7 @@ install_service() {
     create_directories
     download_face_rec_model
     create_env_file
-    ensure_cpp_runtime || true
+    ensure_cpp_runtime
     check_gpu
     configure_compose_gpu "docker-compose.yaml" ".env.docker"
 
@@ -627,7 +643,7 @@ build_image() {
 
 # 清理服务
 clean_service() {
-    if [ "${EASYAIOT_AUTO_YES:-}" != "1" ]; then
+    if [ "${YFEIEYE_AUTO_YES:-}" != "1" ]; then
         print_warning "这将删除容器、镜像和数据卷，确定要继续吗？"
         local response
         while true; do
@@ -663,13 +679,13 @@ clean_service() {
 #      本次 git pull 改动了依赖或构建输入（requirements*.txt、Dockerfile、docker-entrypoint.sh）。
 #   3. 需要构建时：旧容器在 git pull + build 全程持续运行，构建完成后才 up -d 触发重建，
 #      并复用 BuildKit 层缓存 + 离线 pip 缓存，停机最小化。
-#   注：VIDEO 用 host 网络模式，从不加入 easyaiot-network，更新流程无需 clean_compose_cache。
+#   注：VIDEO 用 host 网络模式，从不加入 yfeieye-network，更新流程无需 clean_compose_cache。
 update_service() {
     print_info "更新服务..."
     check_docker
     check_docker_compose
     check_network
-    ensure_cpp_runtime || true
+    ensure_cpp_runtime
 
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
@@ -720,12 +736,12 @@ update_service() {
         # 构建完成后才重建容器：compose 检测到镜像变化「先停旧、再起新」，停机仅数秒
         print_info "应用新镜像（仅重建变更服务，最小化停机）..."
         cleanup_renamed_containers
-        video_compose up -d --remove-orphans --no-deps video-service
+        video_compose up -d --force-recreate --remove-orphans --no-deps video-service
     else
         print_success "依赖未变，跳过镜像构建（业务代码经卷挂载，重启进程即可生效）"
         # 确保容器存在并应用任何 compose 配置变更（首次启用源码挂载时会在此处重建一次）
         cleanup_renamed_containers
-        video_compose up -d --remove-orphans --no-deps video-service
+        video_compose up -d --force-recreate --remove-orphans --no-deps video-service
 
         # 是否需要重启进程以加载新源码：有新提交，或本地有未提交改动（git diff 脏）。
         # git diff --quiet HEAD 仅在出错或有已跟踪改动时返回非 0，用于捕获“改了代码没 commit”的场景；
@@ -739,7 +755,7 @@ update_service() {
 
         if [ "$code_changed" = "1" ]; then
             print_info "重启容器进程以加载最新源码（秒级）..."
-            video_compose restart video-service
+            video_compose up -d --force-recreate --remove-orphans --no-deps video-service
         else
             print_info "代码无变更，无需重启"
         fi
@@ -819,4 +835,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

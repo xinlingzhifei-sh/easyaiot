@@ -18,6 +18,9 @@ import java.util.List;
  *
  * 使用 SmartInitializingSingleton 延迟注册，避免与 IotMessageBus 循环依赖，
  * 并确保在所有单例 Bean 创建完成后再挂载 Kafka 消费。
+ *
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Component

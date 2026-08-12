@@ -12,9 +12,8 @@ import java.util.List;
  *
  * 数据可见 resources/area.csv 文件
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Data
 @AllArgsConstructor

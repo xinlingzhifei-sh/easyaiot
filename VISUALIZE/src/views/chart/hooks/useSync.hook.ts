@@ -237,7 +237,7 @@ export const useSync = () => {
         return
       }
       if (project.projectName) {
-        document.title = `${project.projectName} - EasyAIoT`
+        document.title = `${project.projectName} - yFeiEye`
       }
       if (project.content) {
         const content =

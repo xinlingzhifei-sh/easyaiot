@@ -6,9 +6,8 @@ import lombok.experimental.Accessors;
 /**
  * 短信发送 Response DTO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Data
 @Accessors(chain = true)

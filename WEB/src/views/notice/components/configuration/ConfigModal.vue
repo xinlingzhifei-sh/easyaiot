@@ -36,7 +36,7 @@
 <script lang="ts" setup>
 import {ref} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
-import {BasicForm, useForm} from '@/components/Form';
+import {BasicForm, useForm, type FormSchema} from '@/components/Form';
 import {useMessage} from '@/hooks/web/useMessage';
 import {
   aliyunSchemas,
@@ -58,7 +58,7 @@ import {FormItemRest} from 'ant-design-vue';
 const emits = defineEmits(['success']);
 const {createMessage} = useMessage();
 const opertionType = ref('add');
-const describeRef = ref(null);
+const describeRef = ref<InstanceType<typeof Describe> | null>(null);
 
 const CONFIG_DESCRIBE_MAP: Record<number, string> = {
   1: 'sms',
@@ -70,7 +70,10 @@ const CONFIG_DESCRIBE_MAP: Record<number, string> = {
   7: 'webhook',
 };
 
-const formData = ref({
+const asFormSchemaFactory = (factory: (opt?: any) => unknown[]) =>
+  (opt: any) => factory(opt) as FormSchema[];
+
+const formData = ref<{ configuration: { weixinApply: any[]; dindinApply: any[] } }>({
   configuration: {
     weixinApply: [],
     dindinApply: [],
@@ -104,7 +107,7 @@ const [
     // setProps,
   },
 ] = useForm({
-  schemas: formSchemas(handleNoticeType),
+  schemas: formSchemas(handleNoticeType) as FormSchema[],
   labelWidth: '170px',
   layout: 'vertical',
   baseColProps: {span: 24},
@@ -129,21 +132,21 @@ function editConfigModal(record) {
   });
 }
 
-function handleNoticeType(type) {
+function handleNoticeType(type: number) {
   changeNoticeType(type);
   describeRef.value?.setNoticeType(CONFIG_DESCRIBE_MAP[type] || 'email');
   reset();
 }
 
-function changeNoticeType(type) {
-  const config = {
-    1: aliyunSchemas,
-    2: tenxunyunSchemas,
-    3: emailSchemas,
-    4: weixinSchemas,
-    5: httpSchemas,
-    6: dindinSchemas,
-    7: feishuSchemas,
+function changeNoticeType(type: number) {
+  const config: Record<number, (opt: any) => FormSchema[]> = {
+    1: asFormSchemaFactory(aliyunSchemas),
+    2: asFormSchemaFactory(tenxunyunSchemas),
+    3: asFormSchemaFactory(emailSchemas),
+    4: asFormSchemaFactory(weixinSchemas),
+    5: asFormSchemaFactory(httpSchemas),
+    6: asFormSchemaFactory(dindinSchemas),
+    7: asFormSchemaFactory(feishuSchemas),
   };
   const fields = Object.keys(config)
     .map((c) => {

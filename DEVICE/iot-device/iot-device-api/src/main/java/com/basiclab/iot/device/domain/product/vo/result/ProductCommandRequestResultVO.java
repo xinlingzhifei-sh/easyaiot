@@ -15,9 +15,8 @@ import java.util.Map;
  * 产品模型设备下发服务命令属性表
  * </p>
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date 2023-03-14 19:39:59
  */
 @Data

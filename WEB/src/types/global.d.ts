@@ -26,6 +26,10 @@ declare global {
     }
     lastBuildTime: string
   }
+  interface Window {
+    $KeyboardActive?: { [T: string]: boolean }
+    onKeySpacePressHold?: Function
+  }
   // declare interface Window {
   //   // Global vue app instance
   //   __APP__: App<Element>;
@@ -95,7 +99,7 @@ declare global {
     VITE_GLOB_VISUALIZE_URL?: string
     /** FUXA 组态编辑器基址 */
     VITE_GLOB_FUXA_URL?: string
-    /** EasyAIoT PANEL 运维控制台（留空则使用当前访问域名 + 9200 端口） */
+    /** yFeiEye PANEL 运维控制台（留空则使用当前访问域名 + 9200 端口） */
     VITE_PANEL_URL?: string
   }
 

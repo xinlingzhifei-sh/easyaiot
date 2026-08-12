@@ -167,6 +167,7 @@ const getVideoUrl = (videoUrl: string): string => {
   // 其他情况直接返回
   return videoUrl
 }
+void getVideoUrl;
 
 // 防重复提示函数：3秒内相同错误只提示一次
 function showVideoErrorOnce(message: string) {
@@ -345,7 +346,7 @@ const handleVideoClick = (index: number) => {
 }
 
 // 处理视频右键点击
-const handleVideoRightClick = (index: number, event: MouseEvent) => {
+const handleVideoRightClick = (index: number, _event: MouseEvent) => {
   // 移除该位置的视频流
   if (internalVideoList.value[index]) {
     internalVideoList.value[index] = {
@@ -374,7 +375,6 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     // 解析RTMP地址：rtmp://server:port/path
     const url = new URL(rtmpUrl)
     const server = url.hostname
-    const port = url.port || '1935'
     let path = url.pathname.substring(1) // 去掉开头的 /
     
     // 如果路径为空，使用默认路径
@@ -463,9 +463,10 @@ const playDeviceStream = (device: any) => {
   }
   
   if (targetIndex !== null) {
+    const screenIndex = targetIndex;
     // 更新视频URL
-    internalVideoList.value[targetIndex] = {
-      id: `video-${device.id || device.device?.id || 'unknown'}-${targetIndex}`,
+    internalVideoList.value[screenIndex] = {
+      id: `video-${device.id || device.device?.id || 'unknown'}-${screenIndex}`,
       url: streamUrl,
       name: device.name || device.device?.name || device.id || device.device?.id || '未知设备',
       deviceId: device.id || device.device?.id
@@ -473,15 +474,15 @@ const playDeviceStream = (device: any) => {
     
     // 等待DOM更新后播放
     setTimeout(() => {
-      if (videoRefs.value[targetIndex]) {
-        const jessibucaInstance = videoRefs.value[targetIndex]
+      if (videoRefs.value[screenIndex]) {
+        const jessibucaInstance = videoRefs.value[screenIndex]
         if (jessibucaInstance && jessibucaInstance.play) {
           jessibucaInstance.play()
         }
       }
     }, 100)
     
-    createMessage.success(`已在屏幕${targetIndex + 1}播放`)
+    createMessage.success(`已在屏幕${screenIndex + 1}播放`)
   } else {
     // 没有空屏幕，提示用户
     createMessage.warning('当前没有空屏幕，请右键点击占用屏幕移除后再试')

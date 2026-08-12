@@ -65,7 +65,10 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
-const datasetId = computed(() => route.params['id']);
+const datasetId = computed<string | number>(() => {
+  const id = route.params['id'];
+  return Array.isArray(id) ? id[0] || '' : id;
+});
 const tagPanelRef = ref<InstanceType<typeof DatasetTagPanel> | null>(null);
 
 const visible = ref(false);

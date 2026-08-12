@@ -12,9 +12,8 @@ import java.util.List;
 /**
  * 学生课程 Mapper
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Mapper
 public interface Demo03CourseMapper extends BaseMapperX<Demo03CourseDO> {

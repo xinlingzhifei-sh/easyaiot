@@ -23,13 +23,13 @@ const state = reactive<{
  */
 function showModal(jsonData: IFormConfig) {
   formatRules(jsonData.schemas)
-  state.jsonData = jsonData
+  state.jsonData = jsonData as any
   state.open = true
 }
 
 // 计算json数据
 const editorJson = computed(() => {
-  return JSON.stringify(removeAttrs(state.jsonData), null, '\t')
+  return JSON.stringify(removeAttrs(state.jsonData as any), null, '\t')
 })
 
 // 关闭弹框

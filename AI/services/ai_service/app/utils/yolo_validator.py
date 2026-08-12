@@ -2,9 +2,8 @@
 YOLO模型版本验证工具
 使用ultralytics库判断YOLO模型是版本8还是版本11
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 from typing import Optional, Tuple
@@ -14,10 +13,10 @@ try:
 except ImportError:
     YOLO = None
 
-try:
-    import torch
-except ImportError:
-    torch = None
+_UNTRUSTED_PT_REJECTION_MSG = (
+    "Web 进程禁止加载 .pt/.pth 模型，因为该格式可能触发 Python pickle 反序列化。"
+    "请在无网络、低权限、资源受限的隔离环境转换为 ONNX 后再导入。"
+)
 
 
 def validate_yolo_model(model_path: str) -> Tuple[Optional[str], str]:
@@ -37,38 +36,12 @@ def validate_yolo_model(model_path: str) -> Tuple[Optional[str], str]:
     """
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"模型文件不存在: {model_path}")
+
+    if os.path.splitext(model_path)[1].lower() in {'.pt', '.pth'}:
+        raise ValueError(_UNTRUSTED_PT_REJECTION_MSG)
     
     if YOLO is None:
         raise ImportError("未安装ultralytics库，请先安装: pip install ultralytics")
-    
-    # 方法0: 先尝试直接检查torch模型文件的元数据（最快的方法）
-    if torch is not None:
-        try:
-            checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
-            if isinstance(checkpoint, dict):
-                # 检查模型元数据中的版本信息
-                metadata_str = str(checkpoint).lower()
-                if 'yolo26' in metadata_str or 'yolo 26' in metadata_str:
-                    return 'yolov26', "torch模型元数据"
-                elif 'yolo11' in metadata_str or 'yolo 11' in metadata_str:
-                    return 'yolov11', "torch模型元数据"
-                elif 'yolo8' in metadata_str or 'yolo 8' in metadata_str or 'yolov8' in metadata_str:
-                    return 'yolov8', "torch模型元数据"
-                
-                # 检查模型架构路径
-                if 'model' in checkpoint:
-                    model_data = checkpoint['model']
-                    if isinstance(model_data, dict):
-                        model_str = str(model_data).lower()
-                        if 'yolo26' in model_str:
-                            return 'yolov26', "torch模型元数据"
-                        elif 'yolo11' in model_str:
-                            return 'yolov11', "torch模型元数据"
-                        elif 'yolo8' in model_str or 'yolov8' in model_str:
-                            return 'yolov8', "torch模型元数据"
-        except Exception:
-            # 如果torch加载失败，继续使用ultralytics方法
-            pass
     
     try:
         # 加载模型
@@ -138,16 +111,7 @@ def validate_yolo_model(model_path: str) -> Tuple[Optional[str], str]:
         except Exception:
             pass
         
-        # 方法6: 检查模型文件路径（作为备用）
-        model_path_lower = model_path.lower()
-        if 'yolo26' in model_path_lower:
-            return 'yolov26', "ultralytics库（文件名）"
-        elif 'yolo11' in model_path_lower:
-            return 'yolov11', "ultralytics库（文件名）"
-        elif 'yolo8' in model_path_lower or 'yolov8' in model_path_lower:
-            return 'yolov8', "ultralytics库（文件名）"
-        
-        # 方法7: 如果模型能成功加载且没有报错，尝试通过模型的实际结构判断
+        # 方法6: 如果模型能成功加载且没有报错，尝试通过模型的实际结构判断
         try:
             # 尝试获取模型的任务类型
             task = getattr(model, 'task', None)
@@ -174,13 +138,7 @@ def validate_yolo_model(model_path: str) -> Tuple[Optional[str], str]:
         except Exception:
             pass
         
-        # 如果模型能成功加载，且所有检查方法都无法明确识别版本，默认认为是YOLOv8
-        # 这是一个合理的假设，因为：
-        # 1. YOLOv8是更常见的版本
-        # 2. 如果模型能通过ultralytics库加载，说明它是兼容的
-        # 3. YOLOv11是较新的版本，如果存在会有更明显的标识
-        # 4. 从日志可以看到模型成功加载并打印了摘要，说明模型是有效的
-        return 'yolov8', "ultralytics库（默认推断：模型成功加载）"
+        return None, "ultralytics库（模型成功加载但版本无法确定）"
             
     except Exception as e:
         error_str = str(e).lower()
@@ -213,4 +171,3 @@ def validate_yolo_model(model_path: str) -> Tuple[Optional[str], str]:
         
         # 其他错误，抛出原始异常信息
         raise Exception(f"无法通过ultralytics库判断版本: {e}")
-

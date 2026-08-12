@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# EasyAIoT 桌面端（macOS / Windows）镜像部署 — 共用逻辑
+# yFeiEye 桌面端（macOS / Windows）镜像部署 — 共用逻辑
 # 由 install_mac.sh / install_windows.sh source 后调用 desktop_main "$@"
 #
 # 约定：
@@ -21,7 +21,7 @@ NC='\033[0m'
 : "${PROJECT_ROOT:?PROJECT_ROOT must be set by caller}"
 : "${EASYAIOT_DESKTOP_OS:?EASYAIOT_DESKTOP_OS must be set by caller}"
 
-EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 桌面端镜像部署}"
+EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 桌面端镜像部署}"
 export EASYAIOT_DESKTOP_IMAGE_ONLY=1
 export EASYAIOT_SKIP_BUILD=1
 export EASYAIOT_SKIP_IMAGE_PROMPT="${EASYAIOT_SKIP_IMAGE_PROMPT:-0}"

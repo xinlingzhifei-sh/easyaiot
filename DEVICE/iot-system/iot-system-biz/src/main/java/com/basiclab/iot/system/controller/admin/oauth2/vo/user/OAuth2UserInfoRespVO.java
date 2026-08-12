@@ -16,10 +16,10 @@ public class OAuth2UserInfoRespVO {
     @Schema(description = "用户编号", example = "1")
     private Long id;
 
-    @Schema(description = "用户账号", example = "BasicLab")
+    @Schema(description = "用户账号", example = "yFeiEye")
     private String username;
 
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     private String nickname;
 
     @Schema(description = "用户邮箱", example = "Yudao@iocoder.cn")
@@ -36,9 +36,8 @@ public class OAuth2UserInfoRespVO {
     /**
  * OAuth2UserInfoRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 private Dept dept;

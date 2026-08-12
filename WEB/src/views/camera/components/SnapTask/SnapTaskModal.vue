@@ -17,8 +17,8 @@
           :device-id="formValues.device_id"
           :task-id="taskId"
           :initial-regions="initialRegions"
-          :initial-image-id="initialImageId"
-          :initial-image-path="initialImagePath"
+          :initial-image-id="initialImageId ?? undefined"
+          :initial-image-path="initialImagePath ?? undefined"
           @save="handleRegionsSave"
           @image-captured="handleImageCaptured"
         />
@@ -111,7 +111,7 @@ const loadPushers = async () => {
   }
 };
 
-const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getFieldsValue }] = useForm({
+const [registerForm, { setFieldsValue, validate, resetFields, getFieldsValue }] = useForm({
   labelWidth: 120,
   baseColProps: { span: 24 },
   schemas: [
@@ -341,7 +341,7 @@ const loadRegions = async (taskId: number) => {
   }
 };
 
-const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) => {
+const [register, { setDrawerProps }] = useDrawerInner(async (data) => {
   resetFields();
   setDrawerProps({ confirmLoading: false });
   modalData.value = data;
@@ -444,7 +444,7 @@ const handleSubmit = async () => {
     setDrawerProps({ confirmLoading: true });
     
     if (modalData.value.type === 'edit' && modalData.value.record) {
-      const response = await updateSnapTask(modalData.value.record.id, values);
+      const response = await updateSnapTask(modalData.value.record.id, values as any);
       if (response.code === 0) {
         createMessage.success('更新成功');
         // 更新taskId（虽然不会变，但确保一致性）
@@ -456,7 +456,7 @@ const handleSubmit = async () => {
         return;
       }
     } else {
-      const response = await createSnapTask(values);
+      const response = await createSnapTask(values as any);
       if (response.code === 0 && response.data) {
         taskId.value = response.data.id;
         createMessage.success('创建成功');
@@ -574,4 +574,3 @@ const handleImageCaptured = (imageId: number, imagePath: string) => {
   initialImagePath.value = imagePath;
 };
 </script>
-

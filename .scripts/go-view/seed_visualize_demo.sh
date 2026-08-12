@@ -9,7 +9,7 @@ SEED_SQL="${ROOT_DIR}/.scripts/go-view/patches/visualize_demo_seed.sql"
 TYPE_PATCH_SQL="${ROOT_DIR}/.scripts/go-view/patches/visualize_project_type.sql"
 DB_NAME="iot-visualize20"
 PG_USER="${POSTGRES_USER:-postgres}"
-PG_PASSWORD="${POSTGRES_PASSWORD:-iot45722414822}"
+PG_PASSWORD="${POSTGRES_PASSWORD:-}"
 PG_HOST="${POSTGRES_HOST:-localhost}"
 PG_PORT="${POSTGRES_PORT:-5432}"
 CONTAINER="${POSTGRES_CONTAINER:-postgres-server}"
@@ -29,6 +29,10 @@ run_sql_docker() {
 
 run_sql_psql() {
   local sql_file="$1"
+  if [[ -z "${PG_PASSWORD}" ]]; then
+    echo "[ERROR] 使用宿主机 psql 时必须通过 POSTGRES_PASSWORD 提供数据库密码"
+    exit 1
+  fi
   PGPASSWORD="${PG_PASSWORD}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${DB_NAME}" -f "${sql_file}"
 }
 

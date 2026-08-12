@@ -69,7 +69,7 @@ const [registerTable, {reload}] = useTable({
   },
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
   },
@@ -96,7 +96,7 @@ function onSelectAll(selected, _, changeRows) {
 
 function changeMsgType(msgType) {
   resetPreviewUser();
-  reload({msgType});
+  reload({ msgType } as any);
 }
 
 function resetPreviewUser() {

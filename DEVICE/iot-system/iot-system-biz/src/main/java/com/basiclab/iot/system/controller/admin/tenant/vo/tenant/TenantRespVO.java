@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 /**
  * TenantRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 租户 Response VO")
 @Data
@@ -26,11 +25,11 @@ public class TenantRespVO {
     @ExcelProperty("租户编号")
     private Long id;
 
-    @Schema(description = "租户名", example = "BasicLab")
+    @Schema(description = "租户名", example = "yFeiEye")
     @ExcelProperty("租户名")
     private String name;
 
-    @Schema(description = "联系人", example = "BasicLab")
+    @Schema(description = "联系人", example = "yFeiEye")
     @ExcelProperty("联系人")
     private String contactName;
 

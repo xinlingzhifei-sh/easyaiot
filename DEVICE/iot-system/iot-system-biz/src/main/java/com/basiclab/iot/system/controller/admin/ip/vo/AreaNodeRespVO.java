@@ -8,9 +8,8 @@ import java.util.List;
 /**
  * AreaNodeRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 地区节点 Response VO")
 @Data

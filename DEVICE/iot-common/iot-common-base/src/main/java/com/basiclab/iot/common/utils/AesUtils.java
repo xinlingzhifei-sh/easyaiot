@@ -9,9 +9,8 @@ import java.security.SecureRandom;
 
 /**
  * @Description: AES加密
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/9/8$ 14:49$
  * @UpdateDate: 2024/9/8$ 14:49$
  */

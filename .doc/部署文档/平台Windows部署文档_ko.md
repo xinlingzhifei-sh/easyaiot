@@ -1,4 +1,4 @@
-# EasyAIoT 플랫폼 Windows 로컬 배포 가이드
+# yFeiEye 플랫폼 Windows 로컬 배포 가이드
 
 > 문서 버전: 2.1  
 > 업데이트 날짜: 2026-08-01  
@@ -139,7 +139,7 @@ bash .scripts/docker/install_windows.sh install
 
 ### 1.1 프로젝트 소개
 
-EasyAIoT는 IoT + AI 비디오 분석 플랫폼으로, 카메라 연결, 비디오 스트림 전송, AI 알고리즘 분석 등의 기능을 지원합니다.
+yFeiEye는 IoT + AI 비디오 분석 플랫폼으로, 카메라 연결, 비디오 스트림 전송, AI 알고리즘 분석 등의 기능을 지원합니다.
 
 ### 1.2 시스템 아키텍처
 
@@ -224,8 +224,8 @@ npm -v
 
 가상 환경 생성:
 ```powershell
-conda create -n easyaiot python=3.10
-conda activate easyaiot
+conda create -n yfeieye python=3.10
+conda activate yfeieye
 ```
 
 #### 2.2.4 FFmpeg
@@ -252,7 +252,7 @@ SRS 스트리밍 서버 실행에 사용됩니다. Docker는 SRS 스트리밍 �
 
 이 문서는 프로젝트 경로를 다음과 같이 가정합니다:
 ```
-F:\EASYLOT\easyaiot-V4.0.0\
+F:\EASYLOT\yfeieye-V4.0.0\
 ```
 
 미들웨어 설치 경로:
@@ -274,7 +274,7 @@ F:\EASYLOT\TDengine\  ####自行下载
 - 버전: 16.x
 - 포트: 5432
 - 사용자 이름: postgres
-- 비밀번호: `iot45722414822`
+- 비밀번호: `<POSTGRES_PASSWORD>`
 
 #### 시작 명령
 ```powershell
@@ -287,14 +287,14 @@ net start postgresql-x64-16
 
 #### 데이터베이스 생성
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-system\";"
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-video20\";"
 ```
 
 #### 연결 확인
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
 ```
 
@@ -304,7 +304,7 @@ $env:PGPASSWORD='iot45722414822'
 #### 설치 정보
 - 버전: 7.x
 - 포트: 6379
-- 비밀번호: `basiclab@iot975248395`
+- 비밀번호: `<REDIS_OR_MINIO_PASSWORD>`
 
 #### 시작 명령
 ```powershell
@@ -315,7 +315,7 @@ cd F:\EASYLOT\Redis
 #### 연결 확인
 ```powershell
 cd F:\EASYLOT\Redis
-.\redis-cli.exe -a "basiclab@iot975248395" ping
+.\redis-cli.exe -a "<REDIS_OR_MINIO_PASSWORD>" ping
 # PONG을 반환해야 합니다
 ```
 
@@ -326,7 +326,7 @@ cd F:\EASYLOT\Redis
 - 버전: 2.x
 - 포트: 8848
 - 사용자 이름: nacos
-- 비밀번호: `basiclab@iot78475418754`
+- 비밀번호: `<NACOS_PASSWORD>`
 - 네임스페이스: local
 
 #### 시작 명령
@@ -353,7 +353,7 @@ http://localhost:8848/nacos
 - API 포트: 9000
 - 콘솔 포트: 9001
 - 사용자 이름: minioadmin
-- 비밀번호: `basiclab@iot975248395`
+- 비밀번호: `<REDIS_OR_MINIO_PASSWORD>`
 
 #### 시작 명령
 ```powershell
@@ -456,7 +456,7 @@ docker run -d --name srs-server `
   -p 8080:8080 `
   -p 1985:1985 `
   -p 8000:8000/udp `
-  -v "F:\EASYLOT\easyaiot-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
+  -v "F:\EASYLOT\yfeieye-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
   ossrs/srs:5 ./objs/srs -c conf/docker.conf
 ```
 
@@ -504,20 +504,20 @@ DEVICE 디렉토리에는 여러 Spring Boot 마이크로서비스가 있으며 
 
 #### 4.2.1 게이트웨이 서비스 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-gateway
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-gateway
 mvn spring-boot:run
 # 또는 IDE를 사용하여 시작
 ```
 
 #### 4.2.2 시스템 서비스 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-system\iot-system-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-system\iot-system-biz
 mvn spring-boot:run
 ```
 
 #### 4.2.3 인프라 서비스 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-infra\iot-infra-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-infra\iot-infra-biz
 mvn spring-boot:run
 ```
 
@@ -531,8 +531,8 @@ mvn spring-boot:run
 
 #### 4.3.1 종속성 설치
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
@@ -541,18 +541,18 @@ pip install -r requirements.txt
 `VIDEO/.env` 파일을 편집하고 다음 구성이 올바른지 확인:
 ```properties
 # 데이터베이스
-DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/iot-video20
 
 # Nacos
 NACOS_SERVER=localhost:8848
 NACOS_NAMESPACE=local
 NACOS_USERNAME=nacos
-NACOS_PASSWORD=basiclab@iot78475418754
+NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # MinIO
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=basiclab@iot975248395
+MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # FFmpeg 경로 (Windows는 전체 경로를 구성해야 함)
 FFMPEG_PATH=G:/ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe
@@ -563,8 +563,8 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 
 #### 4.3.3 서비스 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 ```
 
@@ -575,15 +575,15 @@ python run.py
 
 #### 4.4.1 종속성 설치
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
 #### 4.4.2 서비스 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 ```
 
@@ -594,7 +594,7 @@ python run.py
 
 #### 4.5.1 종속성 설치
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm install
 # 또는 pnpm 사용
 pnpm install
@@ -602,7 +602,7 @@ pnpm install
 
 #### 4.5.2 개발 서버 시작
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -700,7 +700,7 @@ http_stream = f"http://127.0.0.1:8080/live/{short_stream_name}.flv"
 
 #### 기존 데이터 수동 수정
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20" -c "UPDATE device SET rtmp_stream = 'rtmp://127.0.0.1:1935/live/cam_' || SUBSTRING(id, 1, 8), http_stream = 'http://127.0.0.1:8080/live/cam_' || SUBSTRING(id, 1, 8) || '.flv';"
 ```
 
@@ -800,7 +800,7 @@ VIDEO 서비스 시작 시 데이터베이스 연결 오류가 발생합니다.
 #### 진단 단계
 1. PostgreSQL 서비스가 시작되었는지 확인:
    ```powershell
-   $env:PGPASSWORD='iot45722414822'
+   $env:PGPASSWORD='<POSTGRES_PASSWORD>'
    & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
    ```
 
@@ -845,7 +845,7 @@ VIDEO 서비스 시작 시 데이터베이스 연결 오류가 발생합니다.
 
 ```powershell
 # 비밀번호 환경 변수 설정
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 
 # 데이터베이스 연결
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20"
@@ -907,17 +907,17 @@ Invoke-RestMethod -Uri "http://127.0.0.1:1985/api/v1/versions"
 
 ```powershell
 # VIDEO 서비스
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 
 # AI 서비스
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 
 # WEB 프론트엔드
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -950,10 +950,10 @@ npm run dev
 
 | 서비스 | 사용자 이름 | 비밀번호 |
 |--------|------------|----------|
-| PostgreSQL | postgres | iot45722414822 |
-| Redis | - | basiclab@iot975248395 |
-| Nacos | nacos | basiclab@iot78475418754 |
-| MinIO | minioadmin | basiclab@iot975248395 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> |
+| Redis | - | <REDIS_OR_MINIO_PASSWORD> |
+| Nacos | nacos | <NACOS_PASSWORD> |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | WEB 프론트엔드 | admin | admin123 |
 | 테스트 카메라 | admin | sr336699 |

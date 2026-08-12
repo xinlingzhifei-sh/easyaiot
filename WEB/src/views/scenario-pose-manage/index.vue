@@ -22,7 +22,7 @@
           <a-tag :color="record.is_enabled ? 'green' : 'default'">{{ record.is_enabled ? '启用' : '停用' }}</a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'action'">
-          <TableAction :actions="getActions(record)" />
+          <TableAction :actions="getActions(record as ScenarioPoseEntry)" />
         </template>
       </template>
     </BasicTable>
@@ -57,7 +57,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons-vue';
 import { Form, FormItem, Input, Modal, Select, SelectOption, Upload } from 'ant-design-vue';
 import type { UploadProps } from 'ant-design-vue';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { Button } from '@/components/Button';
 import {
@@ -176,7 +176,7 @@ async function submitImportTemplate() {
   }
 }
 
-function getActions(record: ScenarioPoseEntry) {
+function getActions(record: ScenarioPoseEntry): ActionItem[] {
   return [
     {
       label: '重提取',

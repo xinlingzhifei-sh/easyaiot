@@ -41,9 +41,9 @@ PREFER_MC=false
 FORCE_MC=false
 FORCE_PYTHON=false
 
-MINIO_ENDPOINT="127.0.0.1:9000"
-MINIO_ACCESS_KEY="minioadmin"
-MINIO_SECRET_KEY="basiclab@iot975248395"
+MINIO_ENDPOINT="${MINIO_ENDPOINT:-127.0.0.1:9000}"
+MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-}}"
+MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}"
 MINIO_MC_NETWORK="host"
 MC_IMAGE="minio/mc:latest"
 
@@ -122,6 +122,14 @@ parse_args() {
             *) shift ;;
         esac
     done
+}
+
+require_minio_credentials() {
+    if [ -z "$MINIO_ACCESS_KEY" ] || [ -z "$MINIO_SECRET_KEY" ]; then
+        print_error "必须通过 MINIO_ACCESS_KEY/MINIO_SECRET_KEY 或 MINIO_ROOT_USER/MINIO_ROOT_PASSWORD 提供 MinIO 凭据"
+        return 1
+    fi
+    export MINIO_ENDPOINT MINIO_ACCESS_KEY MINIO_SECRET_KEY
 }
 
 is_centos7() {
@@ -238,7 +246,7 @@ mc_docker_run() {
         "$MC_IMAGE" "$@"
 }
 
-# 使用 Docker 版 mc 创建桶、设置公开策略并上传（CentOS7 无需 pip install minio）
+# 使用 Docker 版 mc 创建私有桶并上传（CentOS7 无需 pip install minio）
 init_minio_with_mc() {
     local minio_base_dir="${SCRIPT_DIR}/../minio"
     ensure_mc_image || return 1
@@ -257,7 +265,7 @@ init_minio_with_mc() {
     local bucket
     for bucket in "${BUCKET_LIST[@]}"; do
         mc_docker_run "$mc_config_dir" mb --ignore-existing "easyaiot/${bucket}" || mc_rc=1
-        mc_docker_run "$mc_config_dir" anonymous set public "easyaiot/${bucket}" >/dev/null 2>&1 || true
+        mc_docker_run "$mc_config_dir" anonymous set none "easyaiot/${bucket}" >/dev/null 2>&1 || mc_rc=1
         print_info "存储桶已就绪: ${bucket}"
     done
 
@@ -353,10 +361,12 @@ import mimetypes
 
 def init_minio_buckets_and_upload():
     # MinIO 配置
-    minio_endpoint = "localhost:9000"
-    minio_access_key = "minioadmin"
-    minio_secret_key = "basiclab@iot975248395"
+    minio_endpoint = os.environ.get("MINIO_ENDPOINT", "127.0.0.1:9000")
+    minio_access_key = os.environ.get("MINIO_ACCESS_KEY") or os.environ.get("MINIO_ROOT_USER")
+    minio_secret_key = os.environ.get("MINIO_SECRET_KEY") or os.environ.get("MINIO_ROOT_PASSWORD")
     minio_secure = False
+    if not minio_access_key or not minio_secret_key:
+        raise RuntimeError("MinIO credentials are required")
     
     # 存储桶列表
     buckets = ["dataset", "datasets", "export-bucket", "inference-inputs", "inference-results", "models", "snap-space", "alert-images"]
@@ -383,36 +393,8 @@ def init_minio_buckets_and_upload():
             secure=minio_secure
         )
         
-        # 创建存储桶并统一设置公开读写策略
-        import json
+        # 创建存储桶并移除历史匿名策略，所有访问必须走受控 API。
         created_buckets = 0
-        public_policy = lambda bucket_name: {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"AWS": ["*"]},
-                    "Action": [
-                        "s3:GetBucketLocation",
-                        "s3:ListBucket",
-                        "s3:ListBucketMultipartUploads"
-                    ],
-                    "Resource": [f"arn:aws:s3:::{bucket_name}"]
-                },
-                {
-                    "Effect": "Allow",
-                    "Principal": {"AWS": ["*"]},
-                    "Action": [
-                        "s3:ListMultipartUploadParts",
-                        "s3:PutObject",
-                        "s3:GetObject",
-                        "s3:DeleteObject",
-                        "s3:AbortMultipartUpload"
-                    ],
-                    "Resource": [f"arn:aws:s3:::{bucket_name}/*"]
-                }
-            ]
-        }
         for bucket_name in buckets:
             try:
                 if client.bucket_exists(bucket_name):
@@ -421,8 +403,12 @@ def init_minio_buckets_and_upload():
                     client.make_bucket(bucket_name)
                     print(f"BUCKET_CREATED:{bucket_name}")
                     created_buckets += 1
-                client.set_bucket_policy(bucket_name, json.dumps(public_policy(bucket_name)))
-                print(f"BUCKET_POLICY_PUBLIC:{bucket_name}")
+                try:
+                    client.delete_bucket_policy(bucket_name)
+                except S3Error as policy_error:
+                    if policy_error.code not in ("NoSuchBucketPolicy", "NoSuchPolicy"):
+                        raise
+                print(f"BUCKET_POLICY_PRIVATE:{bucket_name}")
             except S3Error as e:
                 print(f"BUCKET_ERROR:{bucket_name}:{str(e)}")
                 sys.exit(1)
@@ -738,8 +724,7 @@ init_minio() {
         echo ""
         print_warning "重要提示：为了确保图像数据能够正常显示，请登录一次 MinIO 管理平台"
         print_info "  访问地址: http://localhost:9001"
-        print_info "  用户名: minioadmin"
-        print_info "  密码: basiclab@iot975248395"
+        print_info "  凭据: 使用运行环境中配置的 MinIO 管理凭据"
         echo ""
         print_info "登录后，系统会自动完成必要的初始化配置，图像数据才能正常显示"
         echo ""
@@ -773,6 +758,7 @@ init_minio() {
 # 主函数
 main() {
     parse_args "$@"
+    require_minio_credentials || return 1
     print_section "开始 MinIO 数据上传"
 
     if init_minio; then

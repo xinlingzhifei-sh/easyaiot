@@ -7,9 +7,8 @@ import lombok.Getter;
 /**
  * 非运行期异常基类，所有自定义非运行时异常继承该类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @version 1.0
  * @see RuntimeException
  */

@@ -172,12 +172,12 @@ check_compose_file() {
 # 检查并创建 Docker 网络
 check_network() {
     print_info "检查 Docker 网络..."
-    if docker network ls --format "{{.Name}}" | grep -q "^easyaiot-network$"; then
-        print_success "网络 easyaiot-network 已存在"
+    if docker network ls --format "{{.Name}}" | grep -q "^yfeieye-network$"; then
+        print_success "网络 yfeieye-network 已存在"
     else
-        print_warning "网络 easyaiot-network 不存在，正在创建..."
-        if docker network create easyaiot-network &> /dev/null; then
-            print_success "网络 easyaiot-network 创建成功"
+        print_warning "网络 yfeieye-network 不存在，正在创建..."
+        if docker network create yfeieye-network &> /dev/null; then
+            print_success "网络 yfeieye-network 创建成功"
         else
             print_error "网络创建失败"
             exit 1
@@ -337,8 +337,8 @@ main() {
     print_success "服务启动完成！"
     echo ""
     print_info "访问地址："
-    echo "  Nacos:     http://localhost:8848/nacos (用户名/密码: nacos/nacos)"
-    echo "  MinIO:     http://localhost:9001 (用户名/密码: minioadmin/basiclab@iot975248395)"
+        echo "  Nacos:     http://localhost:8848/nacos (credentials are configured securely at runtime)"
+        echo "  MinIO:     http://localhost:9001 (credentials are configured securely at runtime)"
     if middleware_service_enabled "NodeRED"; then
         echo "  NodeRED:   http://localhost:1880"
     fi
@@ -346,7 +346,7 @@ main() {
         echo "  FUXA:      http://localhost:1881 (编辑器 /editor，运行态 /home)"
     fi
     if middleware_service_enabled "EMQX" && [ "${EASYAIOT_ENABLE_EMQX:-0}" = "1" ]; then
-        echo "  EMQX:      http://localhost:18083 (用户名/密码: admin/basiclab@iot6874125784)"
+        echo "  EMQX:      http://localhost:18083 (credentials are configured securely at runtime)"
     fi
     echo "  SRS:       http://localhost:1985/api/v1/versions"
     echo ""
@@ -354,4 +354,3 @@ main() {
 
 # 执行主函数
 main "$@"
-

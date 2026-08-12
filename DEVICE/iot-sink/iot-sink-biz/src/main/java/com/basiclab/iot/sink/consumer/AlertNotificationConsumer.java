@@ -20,9 +20,8 @@ import java.util.Map;
  * 告警通知Kafka消费者（iot-sink服务）
  * 处理流程：1. 存储告警到数据库 2. 上传图片到MinIO 3. 如果开启了通知，发送到通知主题供iot-message消费
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Component
@@ -90,7 +89,7 @@ public class AlertNotificationConsumer {
                 return;
             }
 
-            log.debug("开始处理告警: deviceId={}, deviceName={}, taskId={}, taskName={}", 
+            log.debug("开始处理告警: deviceId={}, deviceName={}, taskId={}, taskName={}",
                     message.getDeviceId(), message.getDeviceName(), message.getTaskId(), message.getTaskName());
 
             // 记录通知配置信息

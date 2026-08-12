@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.OpenRTPServerResult;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
@@ -31,6 +32,9 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private MediaConfig mediaConfig;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -103,7 +107,7 @@ public class RtpServerServiceImpl implements IReceiveRtpServerService {
                     rtpServerParam.isSsrcCheck() ? Long.parseLong(ssrc) : 0, rtpServerParam.getPort(), rtpServerParam.isOnlyAuto(),
                     rtpServerParam.isDisableAudio(), rtpServerParam.isReUsePort(), rtpServerParam.getTcpMode());
         } else {
-            rtpServerPort = rtpServerParam.getMediaServerItem().getRtpProxyPort();
+            rtpServerPort = mediaConfig.resolveRtpPublicPort(rtpServerParam.getMediaServerItem());
         }
         if (rtpServerPort == 0) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "开启RTPServer失败", null);

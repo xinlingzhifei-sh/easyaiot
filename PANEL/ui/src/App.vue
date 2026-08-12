@@ -17,9 +17,9 @@
     <div class="layout">
       <aside class="sidebar">
         <div class="brand">
-          <img class="logo" src="/logo.png" alt="EasyAIoT" />
+          <img class="logo" src="/logo.png" alt="yFeiEye" />
           <div class="brand-meta">
-            <div class="brand-name">EasyAIoT PANEL</div>
+            <div class="brand-name">yFeiEye PANEL</div>
             <div class="brand-sub">容器运维控制台</div>
           </div>
         </div>
@@ -147,7 +147,7 @@ const webStatusLabel = computed(() => {
 })
 
 const webDialogTitle = computed(() =>
-  webStatus.value === 'stopped' ? '平台未在运行' : '尚未检测到 EasyAIoT 平台',
+  webStatus.value === 'stopped' ? '平台未在运行' : '尚未检测到 yFeiEye 平台',
 )
 const webDialogDesc = computed(
   () =>

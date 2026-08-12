@@ -14,9 +14,8 @@ import java.time.LocalDateTime;
 
 /**
  * 设备服务记录管理
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @ApiModel(value="设备服务记录")
 @Data

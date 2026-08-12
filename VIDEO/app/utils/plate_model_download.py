@@ -17,7 +17,7 @@ PLATE_REC_DOWNLOAD_URL = os.getenv(
 )
 MIN_DETECT_SIZE_BYTES = 10 * 1024 * 1024
 MIN_REC_SIZE_BYTES = 10 * 1024
-DOWNLOAD_USER_AGENT = 'EasyAIoT-VIDEO/1.0'
+DOWNLOAD_USER_AGENT = 'yFeiEye-VIDEO/1.0'
 
 _lock = threading.Lock()
 _state: Dict[str, Any] = {
@@ -44,22 +44,26 @@ def _model_ready() -> bool:
     return os.path.isfile(data_path)
 
 
+def _build_status_locked() -> Dict[str, Any]:
+    exists = _model_ready()
+    downloading = _state['status'] == 'downloading'
+    stage = 'done' if exists else (_state['stage'] if downloading or _state['status'] == 'error' else 'idle')
+    return {
+        'exists': exists,
+        'detect_model': os.path.basename(PLATE_DETECT_MODEL_PATH),
+        'rec_model': os.path.basename(PLATE_REC_MODEL_PATH),
+        'detect_path': PLATE_DETECT_MODEL_PATH,
+        'rec_path': PLATE_REC_MODEL_PATH,
+        'downloading': downloading,
+        'stage': stage,
+        'progress': int(_state['progress']) if downloading or exists else 0,
+        'error': _state['error'],
+    }
+
+
 def get_plate_model_status() -> Dict[str, Any]:
     with _lock:
-        exists = _model_ready()
-        downloading = _state['status'] == 'downloading'
-        stage = 'done' if exists else (_state['stage'] if downloading or _state['status'] == 'error' else 'idle')
-        return {
-            'exists': exists,
-            'detect_model': os.path.basename(PLATE_DETECT_MODEL_PATH),
-            'rec_model': os.path.basename(PLATE_REC_MODEL_PATH),
-            'detect_path': PLATE_DETECT_MODEL_PATH,
-            'rec_path': PLATE_REC_MODEL_PATH,
-            'downloading': downloading,
-            'stage': stage,
-            'progress': int(_state['progress']) if downloading or exists else 0,
-            'error': _state['error'],
-        }
+        return _build_status_locked()
 
 
 def _download_file(url: str, dest_path: str) -> None:
@@ -106,13 +110,16 @@ def start_plate_model_download() -> Dict[str, Any]:
             _state['status'] = 'done'
             _state['stage'] = 'done'
             _state['progress'] = 100
-            return {'started': False, 'message': '模型已存在', **get_plate_model_status()}
+            return {'started': False, 'message': '模型已存在', **_build_status_locked()}
 
         if _state['status'] == 'downloading':
-            return {'started': False, 'message': '模型正在下载中', **get_plate_model_status()}
+            return {'started': False, 'message': '模型正在下载中', **_build_status_locked()}
 
         _state['status'] = 'downloading'
-        status = get_plate_model_status()
+        _state['stage'] = 'downloading'
+        _state['progress'] = 0
+        _state['error'] = None
+        status = _build_status_locked()
 
     thread = threading.Thread(target=_do_download, name='plate-model-download', daemon=True)
     thread.start()

@@ -5,17 +5,17 @@
 当运行 `docker-compose up -d` 时，如果遇到以下错误：
 
 ```
-Error response from daemon: error while creating mount source path '/opt/easyaiot/.scripts/docker/db_data/data': mkdir /opt/easyaiot: read-only file system
+Error response from daemon: error while creating mount source path '/opt/yfeieye/.scripts/docker/db_data/data': mkdir /opt/yfeieye: read-only file system
 ```
 
-这表示 `/opt/easyaiot` 所在的文件系统是只读的，Docker 无法创建挂载目录。
+这表示 `/opt/yfeieye` 所在的文件系统是只读的，Docker 无法创建挂载目录。
 
 ## 快速修复方法
 
 ### 方法 1: 使用自动修复脚本（推荐）
 
 ```bash
-cd /opt/easyaiot/.scripts/docker
+cd /opt/yfeieye/.scripts/docker
 sudo ./fix_readonly_filesystem.sh
 ```
 
@@ -31,16 +31,16 @@ sudo ./fix_readonly_filesystem.sh
 
 ```bash
 # 检查挂载点
-df -h /opt/easyaiot
+df -h /opt/yfeieye
 
 # 检查挂载选项
-mount | grep $(df /opt/easyaiot | tail -1 | awk '{print $1}')
+mount | grep $(df /opt/yfeieye | tail -1 | awk '{print $1}')
 ```
 
 #### 步骤 2: 检查磁盘空间
 
 ```bash
-df -h /opt/easyaiot
+df -h /opt/yfeieye
 ```
 
 如果磁盘空间已满（使用率 100%），文件系统会自动变为只读。需要清理磁盘空间。
@@ -49,8 +49,8 @@ df -h /opt/easyaiot
 
 ```bash
 # 获取文件系统设备
-DEVICE=$(df /opt/easyaiot | tail -1 | awk '{print $1}')
-MOUNT_POINT=$(df /opt/easyaiot | tail -1 | awk '{print $6}')
+DEVICE=$(df /opt/yfeieye | tail -1 | awk '{print $1}')
+MOUNT_POINT=$(df /opt/yfeieye | tail -1 | awk '{print $6}')
 
 # 重新挂载为可写
 sudo mount -o remount,rw $MOUNT_POINT
@@ -59,7 +59,7 @@ sudo mount -o remount,rw $MOUNT_POINT
 #### 步骤 4: 创建必要的目录
 
 ```bash
-cd /opt/easyaiot/.scripts/docker
+cd /opt/yfeieye/.scripts/docker
 
 # 创建所有数据目录
 sudo mkdir -p \
@@ -80,7 +80,7 @@ sudo chmod -R 777 db_data taos_data redis_data mq_data minio_data srs_data noder
 
 ```bash
 # 测试文件系统是否可写
-touch /opt/easyaiot/.scripts/docker/.test_write && rm /opt/easyaiot/.scripts/docker/.test_write && echo "文件系统可写" || echo "文件系统仍然只读"
+touch /opt/yfeieye/.scripts/docker/.test_write && rm /opt/yfeieye/.scripts/docker/.test_write && echo "文件系统可写" || echo "文件系统仍然只读"
 ```
 
 ### 方法 3: 检查文件系统错误
@@ -89,7 +89,7 @@ touch /opt/easyaiot/.scripts/docker/.test_write && rm /opt/easyaiot/.scripts/doc
 
 ```bash
 # 检查文件系统（只读模式，不会修改）
-DEVICE=$(df /opt/easyaiot | tail -1 | awk '{print $1}')
+DEVICE=$(df /opt/yfeieye | tail -1 | awk '{print $1}')
 sudo fsck -n $DEVICE
 ```
 

@@ -170,7 +170,7 @@ verify_data_directory() {
     # 检查是否已初始化
     if [ -z "$(ls -A "$data_dir" 2>/dev/null)" ]; then
         print_warning "数据目录为空，PostgreSQL 将在首次启动时初始化"
-        print_info "初始化将使用 docker-compose.yml 中配置的密码: iot45722414822"
+        print_info "初始化将使用安全注入的 POSTGRES_PASSWORD"
     else
         # 检查关键文件
         if [ -f "$data_dir/PG_VERSION" ] || [ -f "$data_dir/postgresql.conf" ]; then
@@ -237,7 +237,7 @@ start_postgresql() {
 test_connection() {
     print_section "测试数据库连接"
     
-    print_info "测试使用密码 'iot45722414822' 连接数据库..."
+    print_info "测试容器内 PostgreSQL 连接..."
     
     if docker exec postgres-server psql -U postgres -d postgres -c "SELECT version();" > /dev/null 2>&1; then
         print_success "数据库连接成功！"
@@ -248,7 +248,7 @@ test_connection() {
         print_warning "请检查："
         print_warning "  1. 容器日志: docker logs postgres-server"
         print_warning "  2. 数据目录权限是否正确"
-        print_warning "  3. 如果数据目录是新初始化的，密码应该是: iot45722414822"
+        print_warning "  3. 检查 POSTGRES_PASSWORD 是否已安全注入"
         return 1
     fi
 }
@@ -286,9 +286,8 @@ main() {
     print_info "如果仍有问题，请检查："
     print_info "  1. 容器日志: docker logs postgres-server"
     print_info "  2. 数据目录: $SCRIPT_DIR/db_data/data"
-    print_info "  3. 确保应用程序使用的密码是: iot45722414822"
+    print_info "  3. 确保应用程序使用同一个安全注入的 POSTGRES_PASSWORD"
 }
 
 # 运行主函数
 main "$@"
-

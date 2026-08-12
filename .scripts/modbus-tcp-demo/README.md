@@ -1,6 +1,6 @@
 # Modbus TCP Demo
 
-验证 EasyAIoT `MODBUS_TCP` 上行采集与下行写入。
+验证 yFeiEye `MODBUS_TCP` 上行采集与下行写入。
 
 ## 前置
 

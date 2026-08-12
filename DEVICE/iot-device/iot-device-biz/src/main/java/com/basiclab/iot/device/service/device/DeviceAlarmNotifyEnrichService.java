@@ -7,6 +7,7 @@ import com.basiclab.iot.message.RemoteMessageNotifyQueryService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,6 +46,8 @@ public class DeviceAlarmNotifyEnrichService {
     private RemoteMessageNotifyQueryService remoteMessageNotifyQueryService;
     @Resource
     private ObjectMapper objectMapper;
+    @Value("${IOT_MESSAGE_INTERNAL_TOKEN:}")
+    private String messageInternalToken;
 
     public static class EnrichResult {
         private final String channelsJson;
@@ -196,7 +199,8 @@ public class DeviceAlarmNotifyEnrichService {
     private void collectUsersFromGroup(String userGroupId, Integer msgType,
                                        Map<String, Map<String, Object>> allUsers) {
         try {
-            TableDataInfo table = remoteMessageNotifyQueryService.queryUserGroup(userGroupId);
+            TableDataInfo table = remoteMessageNotifyQueryService.queryUserGroup(
+                    messageInternalToken, userGroupId);
             List<?> rows = table == null ? null : table.getData();
             if (rows == null || rows.isEmpty()) {
                 return;
@@ -228,7 +232,8 @@ public class DeviceAlarmNotifyEnrichService {
                 if (StrUtil.isBlank(id)) {
                     continue;
                 }
-                TableDataInfo userTable = remoteMessageNotifyQueryService.queryPreviewUser(id.trim(), msgType);
+                TableDataInfo userTable = remoteMessageNotifyQueryService.queryPreviewUser(
+                        messageInternalToken, id.trim(), msgType);
                 List<?> userRows = userTable == null ? null : userTable.getData();
                 if (userRows == null || userRows.isEmpty()) {
                     continue;
@@ -306,7 +311,8 @@ public class DeviceAlarmNotifyEnrichService {
             return null;
         }
         try {
-            AjaxResult result = remoteMessageNotifyQueryService.getTemplate(templateId, msgType);
+            AjaxResult result = remoteMessageNotifyQueryService.getTemplate(
+                    messageInternalToken, templateId, msgType);
             if (result == null) {
                 return null;
             }

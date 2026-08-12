@@ -23,9 +23,8 @@ import static com.basiclab.iot.sink.enums.ErrorCodeConstants.DEVICE_AUTH_FAIL;
 /**
  * IotHttpAuthHandler
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 public class IotHttpAuthHandler extends IotHttpAbstractHandler {

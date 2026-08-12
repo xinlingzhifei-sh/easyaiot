@@ -1,4 +1,4 @@
-# EasyAIoT PANEL — 多阶段构建：独立前端 + Python Agent
+# yFeiEye PANEL — 多阶段构建：独立前端 + Python Agent
 # bash PANEL/install.sh build && bash PANEL/install.sh start
 
 ARG NODE_IMAGE=node:20-bookworm-slim

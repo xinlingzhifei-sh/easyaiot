@@ -1,3 +1,23 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+# WEB 日志目录（与 WEB/.gitignore 中 logs/*、!logs/.gitkeep 一致）
+/WEB/logs/*
+!/WEB/logs/.gitkeep
+# WEB docker build 输出日志（与 WEB/.gitignore 中 docker-build-logs/*、!.gitkeep 一致）
+/WEB/docker-build-logs/*
+!/WEB/docker-build-logs/.gitkeep
+# WEB 预构建前端缓存（runtime_image.sh 提取，体积大，勿提交）
+/WEB/dist-prebuilt-full/
+/WEB/dist-prebuilt-mini/
+/WEB/dist-prebuilt-standard/
+.idea
 
 # 表结构同步产物（明文整库备份与差异 SQL，绝不可入库）
 # 媒体节点离线 Docker 镜像包（体积大，勿提交）
@@ -126,6 +146,117 @@ RUNTIME/.test-*/
 # .scripts/nexus3 数据目录
 .scripts/nexus3/nexus_data/
 !.scripts/postgresql/00-init-databases.sh
+
+# Docker 构建依赖宿主机缓存（项目根 .build-cache，由 install_linux*.sh 创建）
+.build-cache/**
+!.build-cache/README.md
+
+# CMake 构建目录
+TASK/build-linux/
+TASK/build/
+TASK/cmake-build-debug/
+
+# VIDEO 人脸模型（大文件由 install 脚本或 WEB 人脸库页下载，不随仓库分发）
+VIDEO/face_rec.onnx
+VIDEO/face_matching_insightface_buffalo_l/
+VIDEO/face_capture_head_yolov8.onnx
+
+# AI 模型权重（大文件由 ModelScope 或安装脚本下载，不随仓库分发）
+AI/models/
+
+# APP 构建产物、依赖与 pnpm 缓存
+APP/node_modules/
+APP/dist/
+APP/.pnpm-store/
+APP/logs/
+APP/tmp/
+APP/.playwright-cli/
+APP/private.key
+APP/private.*.key
+APP/.hbuilderx
+APP/.stylelintcache
+APP/.eslintcache
+APP/docs/.vitepress/dist
+APP/docs/.vitepress/cache
+APP/src/types/*
+!APP/src/types/auto-import.d.ts
+
+# SITE 构建产物、依赖与 pnpm 缓存（与 SITE/.gitignore 一致）
+SITE/node_modules/
+SITE/dist/
+SITE/dist-prebuilt/
+SITE/.pnpm-store/
+SITE/logs/
+
+# IDE / 包管理器缓存 / 测试缓存（仅本机，不随仓库分发）
+.vscode/
+.pnpm-store/
+**/.pytest_cache/
+
+# CodeGraph 本机索引数据（仅保留忽略规则文件）
+.codegraph/
+
+# Claude Code 个人配置与本地钩子（仅本机，不随仓库分发）
+.claude/settings.local.json
+.claude/changed-files-hook.sh
+
+# Local git worktrees
+.worktrees/
+
+# 表结构同步产物（明文整库备份与差异 SQL，绝不可入库）
+.scripts/postgresql/schema-sync/backups/
+.scripts/postgresql/schema-sync/schema_diffs/
+
+venv
+.venv/
+*.pyc
+DEVICE/iot-gb28181/iot-gb28181-biz/snap
+VIDEO/data/models
+/VIDEO/data/face_db/
+VIDEO/ffmpeg-master-*.tar.xz
+
+.scripts/docker/.deploy_profile
+.scripts/docker/.web_deploy_profile_built
+.scripts/docker/.runtime_images_pulled
+
+# install 脚本按架构自动生成的 Docker 构建配置（DOCKER_PLATFORM / BASE_IMAGE）
+**/.env.arch
+
+# Runtime credentials and local environment overlays
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+!**/env.example
+/NODE/agent.env
+
+# Public frontend mode files are intentionally versioned
+!/APP/.env
+!/APP/env/.env.development
+!/APP/env/.env.production
+!/APP/env/.env.test
+!/WEB/.env
+!/WEB/.env.development
+!/WEB/.env.front
+!/WEB/.env.production
+!/WEB/.env.static
+!/WEB/.env.test
+!/VISUALIZE/.env
+
+# Generated release bundles, local outputs, and backups
+/deploy-packages/
+/output/
+/tmp/
+/.artifacts/
+/.codex-smoke/
+/.playwright-cli/
+/.superpowers/
+/codex-smoke-screenshots-*/
+*.bak
+
+# Local camera integration credentials (legacy TASK compatibility)
+/TASK/config/test*.ini
+
 .scripts/postgresql/schema-sync/backups/
 .scripts/postgresql/schema-sync/schema_diffs/
 .scripts/zlmediakit/conf/config.ini

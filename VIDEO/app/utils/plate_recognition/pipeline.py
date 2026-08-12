@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -124,8 +125,10 @@ class PlatePipeline:
         tilt_threshold: float = 3.0,
     ):
         if providers is None:
-            available = ort.get_available_providers()
-            providers = [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in available]
+            use_gpu = os.getenv("USE_GPU", "False").strip().lower() in {"1", "true", "yes", "on"}
+            providers = ["CPUExecutionProvider"]
+            if use_gpu and "CUDAExecutionProvider" in ort.get_available_providers():
+                providers.insert(0, "CUDAExecutionProvider")
 
         self.detect_sess = ort.InferenceSession(str(detect_model), providers=providers)
         self.rec_sess = ort.InferenceSession(str(rec_model), providers=providers)

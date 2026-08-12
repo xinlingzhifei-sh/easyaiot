@@ -55,7 +55,7 @@
     <div class="setup-drawer-content">
       <div class="setup-hero">
         <div class="setup-hero__copy">
-          <div class="setup-hero__eyebrow">EasyAIoT 无限联邦边缘集群模式</div>
+          <div class="setup-hero__eyebrow">yFeiEye 无限联邦边缘集群模式</div>
           <div class="setup-hero__title">一行命令，把普通开发板直接智能化</div>
           <div class="setup-hero__desc">
             内存占用约 512MB，Ceph 边缘 0 硬盘占用；可随点位铺开算力部署。写入控制面地址并启动后，节点自动登记、订阅任务，告警与事件汇聚上云。
@@ -653,7 +653,7 @@ const setSrsCmd = computed(() => {
 /** 控制面 + SRS + Join Token 自动拼接，供现场一键复制 */
 const configBundleCmd = computed(() => {
   const lines = [
-    '# EasyAIoT EDGE 现场配置（控制面 + 选定的 SRS）',
+    '# yFeiEye EDGE 现场配置（控制面 + 选定的 SRS）',
     setNodeCmd.value,
   ];
   if (setSrsCmd.value) {

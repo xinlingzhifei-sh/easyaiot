@@ -93,6 +93,7 @@
     "ssoInfoDesc": "get your personal details and get started!",
     "ssoSignInFormTitle": "sso login",
     "tenantName": "TenantName",
+    "tenantPlaceholder": "Please input tenant",
     "userName": "Username"
   }
 }

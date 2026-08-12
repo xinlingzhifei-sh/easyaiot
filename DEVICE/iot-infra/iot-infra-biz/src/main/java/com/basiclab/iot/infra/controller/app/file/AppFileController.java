@@ -20,9 +20,8 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * AppFileController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "用户 App - 文件存储")
 @RestController

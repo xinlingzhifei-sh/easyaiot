@@ -117,7 +117,7 @@
 
 <script lang="ts" setup>
 import {onMounted, reactive, ref, watch} from 'vue';
-import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
+import {List, Popconfirm, Spin} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
@@ -136,7 +136,6 @@ import {
   batchStartDeployService,
   batchStopDeployService,
   batchRestartDeployService,
-  getDeployServiceReplicas
 } from '@/api/device/model';
 import {getFormConfig} from '../DeployService/Data';
 import { formatModelVersionDisplay } from '../../utils/modelVersionUtils';
@@ -218,13 +217,13 @@ function handleFieldValueChange(field: string, value: any) {
   emit('field-value-change', field, value);
 }
 
-async function fetch(p = {}) {
+async function fetch(p: Record<string, any> = {}) {
   const {api, params} = props;
   if (api && isFunction(api)) {
     state.loading = true;
     try {
       // 转换参数格式：page -> pageNo, pageSize -> pageSize
-      const requestParams = {
+      const requestParams: Record<string, any> = {
         ...params,
         pageNo: page.value,
         pageSize: pageSize.value,
@@ -303,6 +302,8 @@ function formatDateTime(dateString: string) {
     return dateString;
   }
 }
+
+void formatDateTime;
 
 function getStatusText(status: string, runningCount?: number) {
   const textMap: Record<string, string> = {
@@ -414,6 +415,8 @@ function copyTestCommand(item: any) {
 }
 
 // 批量启动服务
+void copyTestCommand;
+
 const handleStart = async (record: any) => {
   if (record.status === 'running') return;
   try {

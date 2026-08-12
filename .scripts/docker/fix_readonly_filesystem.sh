@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 只读文件系统修复脚本
+# yFeiEye 只读文件系统修复脚本
 # ============================================
 # 用于修复 Docker Compose 挂载路径的文件系统只读问题
 # ============================================
@@ -275,7 +275,7 @@ check_filesystem_errors() {
 
 # 主修复流程
 main_fix() {
-    print_section "EasyAIoT 只读文件系统修复工具"
+    print_section "yFeiEye 只读文件系统修复工具"
     
     echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')"
     echo ""

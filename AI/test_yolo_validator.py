@@ -1,11 +1,14 @@
 """yolo_validator 单元测试。"""
+import tempfile
 import unittest
-import unittest.mock
+from pathlib import Path
+from unittest.mock import patch
 
 from app.utils.yolo_validator import (
     _inspect_checkpoint,
     _is_yolov5_style_checkpoint,
     _load_torch_checkpoint,
+    validate_yolo_model,
 )
 
 
@@ -20,12 +23,29 @@ class TestYoloValidatorHelpers(unittest.TestCase):
         self.assertIsNone(version)
         self.assertEqual(reject, 'yolov5')
 
-    def test_load_torch_checkpoint_detects_models_yolo(self):
-        with unittest.mock.patch('app.utils.yolo_validator.torch') as mock_torch:
-            mock_torch.load.side_effect = ModuleNotFoundError("No module named 'models.yolo'")
-            with self.assertRaises(Exception) as ctx:
-                _load_torch_checkpoint('/fake/path.pt')
-            self.assertIn('YOLOv5', str(ctx.exception))
+    def test_web_validator_never_deserializes_torch_checkpoint(self):
+        with self.assertRaises(ValueError) as ctx:
+            _load_torch_checkpoint('/fake/path.pt')
+        self.assertIn('禁止加载', str(ctx.exception))
+
+    def test_filename_alone_cannot_determine_model_version(self):
+        class NeutralModel:
+            model = object()
+            overrides = {}
+            task = None
+
+            @staticmethod
+            def info():
+                return 'model loaded without version metadata'
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            model_path = Path(temp_dir) / 'yolo11-unverified.onnx'
+            model_path.write_bytes(b'placeholder')
+            with patch('app.utils.yolo_validator.YOLO', return_value=NeutralModel()):
+                version, method = validate_yolo_model(str(model_path))
+
+        self.assertIsNone(version)
+        self.assertIn('版本无法确定', method)
 
 
 if __name__ == '__main__':

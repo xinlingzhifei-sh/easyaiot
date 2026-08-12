@@ -116,7 +116,7 @@ echo -e "${BLUE}  诊断完成${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 echo "如果所有检查都通过，可以尝试构建:"
-echo "  cd /projects/easyaiot/DEVICE"
+echo "  cd /projects/yfeieye/DEVICE"
 echo "  docker compose build iot-system"
 echo ""
 

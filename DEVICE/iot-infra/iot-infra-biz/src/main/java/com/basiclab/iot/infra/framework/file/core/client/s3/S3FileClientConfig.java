@@ -12,9 +12,8 @@ import javax.validation.constraints.NotNull;
 /**
  * S3 文件客户端的配置类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Data
 public class S3FileClientConfig implements FileClientConfig {

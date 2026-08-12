@@ -12,15 +12,14 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * OperateLogPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 操作日志分页列表 Request VO")
 @Data
 public class OperateLogPageReqVO extends PageParam {
 
-    @Schema(description = "用户编号", example = "BasicLab")
+    @Schema(description = "用户编号", example = "yFeiEye")
     private Long userId;
 
     @Schema(description = "操作模块业务编号", example = "1")

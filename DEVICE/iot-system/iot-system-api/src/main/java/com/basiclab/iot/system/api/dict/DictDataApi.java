@@ -16,7 +16,7 @@ import java.util.List;
 
 import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertList;
 
-@FeignClient(name = ApiConstants.NAME) // TODO BasicLab：fallbackFactory =
+@FeignClient(name = ApiConstants.NAME) // TODO yFeiEye：fallbackFactory =
 @Tag(name = "RPC 服务 - 字典数据")
 public interface DictDataApi {
 
@@ -57,9 +57,8 @@ public interface DictDataApi {
     /**
  * DictDataApi
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 default List<String> getDictDataLabelList(String dictType) {

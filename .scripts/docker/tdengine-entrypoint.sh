@@ -34,8 +34,12 @@ if [ -f "/var/lib/taos/dnode/dnode.json" ]; then
   sed -i 's/"fqdn":\s*"[^"]*"/"fqdn": "localhost"/g' /var/lib/taos/dnode/dnode.json 2>/dev/null || true
 fi
 
-# 清理可能存在的锁文件
-rm -f /var/lib/taos/taosd.lock 2>/dev/null || true
+# 归档可能存在的陈旧锁文件，保留在持久化数据目录中便于恢复和排查
+if [ -f "/var/lib/taos/taosd.lock" ]; then
+  mkdir -p /var/lib/taos/.stale-locks
+  mv /var/lib/taos/taosd.lock \
+    "/var/lib/taos/.stale-locks/taosd.lock.$(date +%Y%m%d%H%M%S)"
+fi
 
 # 启动 taosd（后台运行）
 echo "启动 taosd 服务..."
@@ -111,4 +115,3 @@ else
   # 只等待 taosd
   wait $TAOSD_PID
 fi
-

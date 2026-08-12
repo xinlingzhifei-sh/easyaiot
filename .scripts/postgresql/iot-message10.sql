@@ -984,7 +984,7 @@ COPY public.message_config (configuration, create_time, creator_id, id, msg_type
 {"txyunAppId":"1111","txyunAppKey":"1","txyunSign":"1"}	1689905782221	25ea1da0-ed50-11ed-b15c-5face31d80ce	92042652-fec4-4e3d-aeff-0e2378233d87	2	1	0
 {"isHttpUseProxy":true,"host":"12.12.13","port":"80","userName":"a","password":"a"}	1689906394550	25ea1da0-ed50-11ed-b15c-5face31d80ce	00a66566-3a4a-4894-a9ab-18f6eb1d1497	5	1	0
 {"aliyunAccessKeyId":"LTAI5tAzfKSJigmEYGRNBGU8","aliyunAccessKeySecret":"JbUZ4fHNmYDniY9OFfF8qBUiEbPbCQ","aliyunSign":"短信通知"}	1689905755523	25ea1da0-ed50-11ed-b15c-5face31d80ce	5e52b025-2ebd-4a5c-ae31-3752327cb526	1	1	0
-{"feishuWebhook":"https://www.feishu.cn/flow/api/trigger-webhook/71e645fe33a058cb414d1e4e46bfce4d"}	1765352183596	25ea1da0-ed50-11ed-b15c-5face31d80ce	f2174096-0159-4211-939a-d28f43ab000f	7	0	0
+{"feishuWebhook":"https://www.feishu.cn/flow/api/trigger-webhook/CHANGE_ME"}	1765352183596	25ea1da0-ed50-11ed-b15c-5face31d80ce	f2174096-0159-4211-939a-d28f43ab000f	7	0	0
 {"mailHost":"smtp.qq.com","mailPort":465,"mailFrom":"xxxxx@qq.com","mailUser":"xxxxx@qq.com","mailPassword":"gorttpgwqdiabdfc","starttlsEnable":false,"sslEnable":true}	1689749908832	25ea1da0-ed50-11ed-b15c-5face31d80ce	83440192-e39b-4674-98a7-c4f2e70fea8e	3	1	0
 \.
 
@@ -1095,7 +1095,7 @@ COPY public.t_msg_sms (id, msg_type, msg_name, template_id, content, create_time
 --
 
 COPY public.t_msg_wx_cp (id, msg_type, msg_name, cp_msg_type, agent_id, content, title, img_url, describe, url, btn_txt, create_time, modified_time, preview_user, user_group_id, tenant_id, deleted, radio_type, web_hook, record_type, ref_template_id) FROM stdin;
-5032998a-2d4e-4101-96a9-da941466172e	4	消息告警测试	文本消息	\N	消息测试：${device_name}	\N	\N	\N	\N	\N	2026-06-29 10:23:47.489	\N	\N	\N	0	0	群机器人消息	https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f63fff36-d2d1-4956-b45b-0e8321f7e0b2	0	\N
+5032998a-2d4e-4101-96a9-da941466172e	4	消息告警测试	文本消息	\N	消息测试：${device_name}	\N	\N	\N	\N	\N	2026-06-29 10:23:47.489	\N	\N	\N	0	0	群机器人消息	https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=CHANGE_ME	0	\N
 \.
 
 
@@ -1121,7 +1121,7 @@ b1ff9e5a-7a0c-42d0-a27b-645291eb03e3	3	xxxxx@163.com	2023-07-26 14:37:51.775	1	0
 --
 
 COPY public.t_preview_user_group (id, msg_type, user_group_name, preview_user_id, create_time, tenant_id, deleted) FROM stdin;
-43785cb5-c36a-429c-824b-fc32ee7a3df5	3	EasyAIoT测试分组	b1ff9e5a-7a0c-42d0-a27b-645291eb03e3	2025-12-10 14:22:45.3	0	0
+43785cb5-c36a-429c-824b-fc32ee7a3df5	3	yFeiEye测试分组	b1ff9e5a-7a0c-42d0-a27b-645291eb03e3	2025-12-10 14:22:45.3	0	0
 \.
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT COMPILE — 将 PANEL 等模块打包为各平台可执行文件 / 安装包
+# yFeiEye COMPILE — 将 PANEL 等模块打包为各平台可执行文件 / 安装包
 #
 # 用法:
 #   bash COMPILE/build.sh                 # 默认：ubuntu 单文件

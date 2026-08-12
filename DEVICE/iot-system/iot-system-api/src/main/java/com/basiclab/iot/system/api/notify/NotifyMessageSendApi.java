@@ -17,11 +17,10 @@ import javax.validation.Valid;
 /**
  * NotifyMessageSendApi
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
-name = ApiConstants.NAME) // TODO BasicLab：fallbackFactory =
+name = ApiConstants.NAME) // TODO yFeiEye：fallbackFactory =
 @Tag(name = "RPC 服务 - 站内信发送")
 public interface NotifyMessageSendApi {
 

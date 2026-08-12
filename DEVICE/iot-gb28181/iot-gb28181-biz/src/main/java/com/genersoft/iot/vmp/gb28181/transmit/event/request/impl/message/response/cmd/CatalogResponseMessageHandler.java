@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -62,6 +63,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private SipConfig sipConfig;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -79,7 +83,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     @Scheduled(fixedDelay = 50)
-    @Transactional
     public void executeTaskQueue(){
         if (taskQueue.isEmpty()) {
             return;
@@ -95,6 +98,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         if (handlerCatchDataList.isEmpty()) {
             return;
         }
+        transactionTemplate.executeWithoutResult(status -> processTaskQueue(handlerCatchDataList));
+    }
+
+    private void processTaskQueue(List<HandlerCatchData> handlerCatchDataList) {
         for (HandlerCatchData take : handlerCatchDataList) {
             if (take == null) {
                 continue;

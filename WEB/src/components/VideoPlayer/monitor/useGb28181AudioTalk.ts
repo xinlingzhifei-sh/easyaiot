@@ -2,8 +2,11 @@ import { ref, onUnmounted } from 'vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { startGbAudioBroadcast, stopGbAudioBroadcast } from '@/api/device/gb28181';
 import { rewriteStreamHostToPageHost } from '@/views/camera/utils/devicePlay';
+import { resolveGbAudioBroadcastStreamInfo } from './gb28181AudioTalkResponse';
 
 export type AudioTalkStatus = 'idle' | 'connecting' | 'active' | 'error';
+
+const GB28181_TALK_CONNECTION_TIMEOUT_MS = 12 * 1000;
 
 declare global {
   interface Window {
@@ -38,6 +41,14 @@ export function useGb28181AudioTalk(
   let pushClient: any = null;
   let levelTimer: ReturnType<typeof setInterval> | null = null;
   let analyserCtx: AudioContext | null = null;
+  let connectionTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function clearConnectionTimer() {
+    if (connectionTimer) {
+      clearTimeout(connectionTimer);
+      connectionTimer = null;
+    }
+  }
 
   function stopLevelCheck() {
     if (levelTimer) {
@@ -71,6 +82,7 @@ export function useGb28181AudioTalk(
     const deviceId = sipDeviceId();
     const chId = channelId();
     if (!deviceId || !chId) return;
+    if (status.value === 'connecting' || status.value === 'active') return;
 
     if (!window.ZLMRTCClient) {
       createMessage.error('ZLM WebRTC 客户端未加载');
@@ -78,30 +90,10 @@ export function useGb28181AudioTalk(
     }
 
     status.value = 'connecting';
-    infoText.value = '请求麦克风权限...';
-
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: echoCancellation.value,
-          noiseSuppression: noiseSuppression.value,
-          autoGainControl: true,
-          channelCount: 1,
-        },
-        video: false,
-      });
-    } catch {
-      status.value = 'error';
-      infoText.value = '无法获取麦克风权限';
-      createMessage.error(infoText.value);
-      return;
-    }
-
     infoText.value = '启动国标语音广播...';
     try {
       const res: any = await startGbAudioBroadcast(deviceId, chId, true);
-      const body = res?.data ?? res;
-      const streamInfo = body?.streamInfo ?? body?.data?.streamInfo;
+      const streamInfo = resolveGbAudioBroadcastStreamInfo(res);
       const pushUrl = pickWebRtcPushUrl(streamInfo);
       if (!pushUrl) throw new Error('未获取到 WebRTC 推流地址');
 
@@ -117,32 +109,56 @@ export function useGb28181AudioTalk(
       });
 
       const ZLM = window.ZLMRTCClient;
-      pushClient.on(ZLM.Events.WEBRTC_ON_LOCAL_STREAM, () => {
-        const track = localStream?.getAudioTracks()[0];
-        if (track) pushClient.replaceTrack(track);
+      pushClient.on(ZLM.Events.WEBRTC_ON_LOCAL_STREAM, (stream: MediaStream) => {
+        localStream = stream;
+        const track = stream.getAudioTracks()[0];
+        track?.applyConstraints({
+          echoCancellation: echoCancellation.value,
+          noiseSuppression: noiseSuppression.value,
+          autoGainControl: true,
+          channelCount: 1,
+        }).catch(() => {});
       });
 
       pushClient.on(ZLM.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE, (state: string) => {
         if (state === 'connected') {
+          clearConnectionTimer();
           status.value = 'active';
           infoText.value = '国标语音对讲已连接';
-          startLevelCheck(localStream!);
+          if (localStream) startLevelCheck(localStream);
         } else if (state === 'failed' || state === 'disconnected') {
-          status.value = 'error';
-          infoText.value = 'WebRTC 推流连接失败';
+          void failConnection('WebRTC 推流连接失败');
         }
       });
 
-      await pushClient.start(pushUrl);
+      pushClient.on(ZLM.Events.CAPTURE_STREAM_FAILED, () => {
+        void failConnection('无法获取麦克风权限');
+      });
+      pushClient.on(ZLM.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, () => {
+        void failConnection('WebRTC 协商失败');
+      });
+      pushClient.on(ZLM.Events.WEBRTC_ICE_CANDIDATE_ERROR, () => {
+        void failConnection('WebRTC 网络连接失败');
+      });
+
+      connectionTimer = setTimeout(() => {
+        void failConnection('语音对讲连接超时，请检查摄像机对讲能力和网络');
+      }, GB28181_TALK_CONNECTION_TIMEOUT_MS);
     } catch (e: any) {
-      await stopInternal(false);
-      status.value = 'error';
-      infoText.value = e?.message || '启动国标对讲失败';
-      createMessage.error(infoText.value);
+      await failConnection(e?.message || '启动国标对讲失败', false);
     }
   }
 
-  async function stopInternal(callApi = true) {
+  async function failConnection(message: string, callApi = true) {
+    if (status.value !== 'connecting' && status.value !== 'active') return;
+    status.value = 'error';
+    infoText.value = message;
+    await stopInternal(callApi, false);
+    createMessage.error(message);
+  }
+
+  async function stopInternal(callApi = true, resetState = true) {
+    clearConnectionTimer();
     stopLevelCheck();
     if (pushClient) {
       try {
@@ -166,8 +182,10 @@ export function useGb28181AudioTalk(
         }
       }
     }
-    status.value = 'idle';
-    infoText.value = '对讲已结束';
+    if (resetState) {
+      status.value = 'idle';
+      infoText.value = '对讲已结束';
+    }
   }
 
   async function stop() {

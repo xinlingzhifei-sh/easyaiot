@@ -8,9 +8,8 @@
 - 原生多路复用（STREAM_FORWARD_FFMPEG_MUX=true）：单进程多路，仅适合单路或调试
 - 经典模式（STREAM_FORWARD_FFMPEG_NATIVE=false）：OpenCV 拉流 + stdin 推流
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -681,7 +680,7 @@ def load_task_config():
                     + (f", DEVICE_IDS={device_filter_raw}" if allowed_device_ids else "")
                 )
                 return False
-            
+
             task_config = type('TaskConfig', (), {
                 'task_id': task.id,
                 'task_name': task.task_name,
@@ -2580,7 +2579,7 @@ def main():
         for device_id, push_running in list(device_push_running.items()):
             if push_running:
                 push_running.set()
-        
+
         # 等待所有工作线程结束
         for thread in buffer_threads:
             thread.join(timeout=10)
@@ -2623,7 +2622,7 @@ def main():
                                     pass
                 except Exception as e:
                     logger.warning(f"停止设备 {device_id} FFmpeg进程时出错: {str(e)}")
-        
+
         # 停止所有VideoCapture
         for device_id, cap in list(device_caps.items()):
             if cap is not None:

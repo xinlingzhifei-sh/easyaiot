@@ -1,5 +1,5 @@
 import description from './src/Description.vue'
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 
 export * from './src/typing'
 export { useDescription } from './src/useDescription'

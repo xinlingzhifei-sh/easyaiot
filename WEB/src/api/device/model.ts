@@ -1,4 +1,5 @@
 import {defHttp} from '@/utils/http/axios';
+import { buildModelDownloadUrl } from './modelDownloadUrl';
 
 enum Api {
   Model = '/model',
@@ -7,28 +8,38 @@ enum Api {
   DeployService = '/model/deploy_service',
 }
 
-const commonApi = (method: 'get' | 'post' | 'delete' | 'put', url, params = {}, headers = {}, isTransformResponse = true) => {
-  // 设置认证头
-  const authHeader = {'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token')};
+type ModelRequestOptions = {
+  errorMessageMode?: 'none' | 'message' | 'modal';
+};
 
+const commonApi = (
+  method: 'get' | 'post' | 'delete' | 'put',
+  url,
+  params = {},
+  headers = {},
+  isTransformResponse = true,
+  requestOptions: ModelRequestOptions = {},
+) => {
   return defHttp[method](
     {
       url,
       headers: {
-        ...authHeader,
         ...headers,
       },
       ...params,
     },
     {
       isTransformResponse: isTransformResponse,
+      ...(requestOptions.errorMessageMode
+        ? { errorMessageMode: requestOptions.errorMessageMode }
+        : {}),
     },
   );
 };
 
 // ================= 模型管理接口 =================
-export const getModelPage = (params) => {
-  return commonApi('get', `${Api.Model}/list`, {params});
+export const getModelPage = (params, options: ModelRequestOptions = {}) => {
+  return commonApi('get', `${Api.Model}/list`, {params}, {}, true, options);
 };
 
 export const createModel = (params) => {
@@ -242,19 +253,8 @@ export const uploadInputFile = (formData: FormData) => {
 };
 
 // 下载模型文件
-export const downloadModel = (modelId, modelPath) => {
-  // 如果 modelPath 是完整的 URL，直接使用
-  if (modelPath && (modelPath.startsWith('http://') || modelPath.startsWith('https://'))) {
-    return modelPath;
-  }
-  // 如果是相对路径，构建完整的下载 URL
-  if (modelPath && modelPath.startsWith('/')) {
-    // 获取基础 URL
-    const baseUrl = window.location.origin;
-    return `${baseUrl}${modelPath}`;
-  }
-  // 如果没有路径，使用模型 ID 下载接口
-  return `${Api.Model}/${modelId}/download`;
+export const downloadModel = (modelId, _modelPath?, apiBase?) => {
+  return buildModelDownloadUrl(modelId, apiBase);
 };
 
 // ================= 模型部署服务接口 =================

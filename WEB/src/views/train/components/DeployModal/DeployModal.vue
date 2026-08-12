@@ -95,11 +95,11 @@ const deployTargetOptions = [
 ];
 
 const formState = reactive({
-  model_id: null as number | null,
+  model_id: undefined as number | undefined,
   start_port: 9999 as number,
   deploy_target: 'local' as string,
   prefer_gpu: true,
-  target_node_id: null as number | null,
+  target_node_id: undefined as number | undefined,
 });
 
 
@@ -111,11 +111,11 @@ const deploying = computed(() => state.deploying);
 
 // 验证表单是否有效
 const isFormValid = computed(() => {
-  const base = formState.model_id !== null
+  const base = formState.model_id !== undefined
     && formState.start_port >= 8000
     && formState.start_port <= 65535;
   if (formState.deploy_target === 'node') {
-    return base && formState.target_node_id !== null;
+    return base && formState.target_node_id !== undefined;
   }
   return base;
 });
@@ -157,11 +157,11 @@ onMounted(() => {
 });
 
 const [register, { closeModal, setModalProps }] = useModalInner(async () => {
-  formState.model_id = null;
+  formState.model_id = undefined;
   formState.start_port = 9999;
   formState.deploy_target = 'local';
   formState.prefer_gpu = true;
-  formState.target_node_id = null;
+  formState.target_node_id = undefined;
   state.deploying = false;
   setModalProps({ confirmLoading: false });
   await Promise.all([loadModelOptions(), loadNodeOptions()]);
@@ -169,7 +169,7 @@ const [register, { closeModal, setModalProps }] = useModalInner(async () => {
 
 function handleDeployTargetChange() {
   if (formState.deploy_target !== 'node') {
-    formState.target_node_id = null;
+    formState.target_node_id = undefined;
   }
 }
 
@@ -277,4 +277,3 @@ const handleSubmit = async () => {
   }
 }
 </style>
-

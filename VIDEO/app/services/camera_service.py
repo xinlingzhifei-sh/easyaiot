@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import concurrent.futures
 import logging
@@ -38,6 +37,44 @@ DEFAULT_DIRECTORY_NAME = '默认分组'
 _LOCATION_FIELD_KEYS = frozenset({
     'longitude', 'latitude', 'altitude', 'address', 'location_source', 'heading',
 })
+
+
+def get_device_access_summary(device_id: str) -> dict:
+    from app.services.device_access_state_service import get_device_access_summary as _get_device_access_summary
+
+    return _get_device_access_summary(device_id)
+
+
+def _access_protocol_for_source(source: str | None) -> str | None:
+    source_lower = (source or '').strip().lower()
+    if source_lower.startswith('gb28181://'):
+        return 'gb28181'
+    if source_lower.startswith('rtsp://'):
+        return 'rtsp'
+    if source_lower.startswith('rtmp://'):
+        return 'rtmp'
+    if source_lower.startswith(('http://', 'https://', 'ws://', 'wss://')):
+        return 'http_flv'
+    return None
+
+
+def _record_registered_access_state_for_camera(camera: Device) -> None:
+    protocol = _access_protocol_for_source(getattr(camera, 'source', None))
+    if not protocol:
+        return
+    try:
+        from app.services.device_access_state_service import record_device_access_event
+
+        record_device_access_event(
+            device_id=camera.id,
+            protocol=protocol,
+            state="registered",
+            reason_code=f"{protocol}_device_registered",
+            reason_message=f"{protocol.upper()} device registered",
+            source_event="device.register",
+        )
+    except Exception as e:
+        logger.warning('device access registered state write failed device_id=%s: %s', getattr(camera, 'id', ''), e)
 
 
 def _parse_optional_float(value):
@@ -571,16 +608,37 @@ def _to_dict(camera: Device) -> dict:
         online_status = True
     else:
         online_status = is_device_available_for_stream(camera)
+    try:
+        access_state = get_device_access_summary(camera.id)
+    except Exception as e:
+        logger.debug('device access state summary unavailable device_id=%s: %s', camera.id, e)
+        access_state = {
+            'state': 'pending_config',
+            'reason_code': 'access_state_unavailable',
+            'reason_message': 'Device access state is not available',
+            'play_ready': False,
+            'ai_ready': False,
+            'last_transition_time': None,
+            'protocols': [],
+        }
     
     source = (camera.source or '').strip()
+    http_stream = camera.http_stream
+    ai_http_stream = camera.ai_http_stream
+    if source.lower().startswith('gb28181://'):
+        try:
+            from app.services.stream_url_sync_service import build_gb28181_zlm_http_flv_url
+            http_stream = build_gb28181_zlm_http_flv_url(camera.id) or http_stream
+        except Exception as e:
+            logger.debug('Failed to build GB28181 public stream URL device_id=%s: %s', camera.id, e)
     payload = {
         'id': camera.id,
         'name': camera.name,
         'source': camera.source,
         'rtmp_stream': camera.rtmp_stream,
-        'http_stream': camera.http_stream,
+        'http_stream': http_stream,
         'ai_rtmp_stream': camera.ai_rtmp_stream,
-        'ai_http_stream': camera.ai_http_stream,
+        'ai_http_stream': ai_http_stream,
         'enable_forward': camera.enable_forward,
         'stream': camera.stream,
         'ip': camera.ip,
@@ -598,6 +656,7 @@ def _to_dict(camera: Device) -> dict:
         'rtsp_direct': camera.rtsp_direct,
         'channel_online': camera.channel_online,
         'connection_status': camera.connection_status,
+        'access_state': access_state,
         'online': online_status,
         **_location_fields_for_device(camera),
         **nvr_fields_for_device(camera),
@@ -797,6 +856,13 @@ def _default_stream_urls(device_id: str) -> tuple[str, str, str, str]:
 def gb28181_device_stream_urls(device_id: str) -> tuple[str, str, str, str]:
     """国标虚拟设备：播放走 WVP 点播，仅生成算法任务用的 AI 推流地址。"""
     try:
+        from app.services.stream_url_sync_service import build_gb28181_zlm_http_flv_url
+        gb28181_http_stream = build_gb28181_zlm_http_flv_url(device_id)
+    except Exception as e:
+        logger.warning('Failed to build GB28181 ZLM playback URL device_id=%s: %s', device_id, e)
+        gb28181_http_stream = None
+
+    try:
         from app.utils.media_client import (
             allocate_device_media,
             is_media_pool_enabled,
@@ -810,12 +876,12 @@ def gb28181_device_stream_urls(device_id: str) -> tuple[str, str, str, str]:
                 need_zlm=True,
             )
             _, _, ai_rtmp_stream, ai_http_stream = stream_urls_from_binding(binding)
-            return '', '', ai_rtmp_stream, ai_http_stream
+            return '', gb28181_http_stream or '', ai_rtmp_stream, ai_http_stream
     except Exception as e:
         logger.warning('国标设备媒体节点池分配失败 device_id=%s，回退本机地址: %s', device_id, e)
 
     _, _, ai_rtmp_stream, ai_http_stream = _legacy_local_stream_urls(device_id)
-    return '', '', ai_rtmp_stream, ai_http_stream
+    return '', gb28181_http_stream or '', ai_rtmp_stream, ai_http_stream
 
 
 def resolve_device_ai_rtmp_stream(device) -> str | None:
@@ -1114,9 +1180,9 @@ def register_camera_by_onvif(ip: str, port: int, password: str, username: str | 
     
     # 如果ONVIF获取的信息中manufacturer或model为空，使用专业的默认值
     if not manufacturer:
-        manufacturer = 'EasyAIoT'
+        manufacturer = 'yFeiEye'
     if not model:
-        model = 'Camera-EasyAIoT'
+        model = 'Camera-yFeiEye'
     
     # 生成RTMP和HTTP播放地址，以及AI流地址
     source = camera_info.get('source', '')
@@ -1154,6 +1220,7 @@ def register_camera_by_onvif(ip: str, port: int, password: str, username: str | 
     db.session.add(camera)
     try:
         db.session.commit()
+        _record_registered_access_state_for_camera(camera)
         _monitor.update(camera.id, camera.ip)
         logger.info(f'设备 {device_id} 通过ONVIF注册成功，IP: {camera.ip}, 用户名: {used_username}')
         
@@ -1257,9 +1324,9 @@ def register_camera(register_info: dict) -> str:
         
         # 如果manufacturer或model为空，使用默认值
         if not manufacturer or not manufacturer.strip():
-            manufacturer = 'EasyAIoT'
+            manufacturer = 'yFeiEye'
         if not model or not model.strip():
-            model = 'Camera-EasyAIoT'
+            model = 'Camera-yFeiEye'
         
         # 生成RTMP和HTTP播放地址，以及AI流地址
         if source.strip().lower().startswith('gb28181://'):
@@ -1362,6 +1429,7 @@ def register_camera(register_info: dict) -> str:
                 except Exception as loc_err:
                     logger.warning(f'设备 {id} 位置信息写入失败: {loc_err}')
             db.session.commit()
+            _record_registered_access_state_for_camera(camera)
             if ip and not is_nvr_channel:
                 # 自定义摄像头默认在线；NVR 通道不启动 IPC 在线探测
                 is_custom = is_custom or is_rtmp
@@ -1590,9 +1658,9 @@ def update_camera(id: str, update_info: dict):
                 v = v.strip()
                 if not v:
                     if k == 'manufacturer':
-                        v = 'EasyAIoT'
+                        v = 'yFeiEye'
                     else:
-                        v = 'Camera-EasyAIoT'
+                        v = 'Camera-yFeiEye'
             # 对于port字段，确保转换为整数类型
             elif k == 'port':
                 try:
@@ -1627,7 +1695,7 @@ def update_camera(id: str, update_info: dict):
             if hasattr(camera, k):
                 setattr(camera, k, v)
         if not camera.manufacturer or not camera.manufacturer.strip():
-            camera.manufacturer = 'EasyAIoT'
+            camera.manufacturer = 'yFeiEye'
         if not camera.model or not camera.model.strip():
             camera.model = 'NVR-Channel'
         try:
@@ -1720,9 +1788,9 @@ def update_camera(id: str, update_info: dict):
     
     # 确保manufacturer和model不为空（更新后最终验证，如果为空则使用默认值）
     if not camera.manufacturer or not camera.manufacturer.strip():
-        camera.manufacturer = 'EasyAIoT'
+        camera.manufacturer = 'yFeiEye'
     if not camera.model or not camera.model.strip():
-        camera.model = 'Camera-EasyAIoT'
+        camera.model = 'Camera-yFeiEye'
     
     # 强制更新监控状态为在线（编辑后确保设备显示为在线）
     # 判断是否是自定义摄像头或RTMP设备

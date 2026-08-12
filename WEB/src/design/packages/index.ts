@@ -6,6 +6,15 @@ import { InformationList } from '@/design/packages/components/Informations/index
 // import { IconList } from '@/packages/components/Icons/index'
 import { PackagesCategoryEnum, PackagesType, ConfigType, FetchComFlagType } from '@/design/packages/index.d'
 
+export type {
+  ConfigType,
+  CreateComponentGroupType,
+  CreateComponentType,
+  EchartsDataType,
+  PackagesType,
+  PickCreateComponentType,
+} from '@/design/packages/index.d'
+
 const configModules: Record<string, { default: string }> = import.meta.glob('./components/**/config.vue', {
   eager: true
 })
@@ -17,6 +26,8 @@ const imagesModules: Record<string, { default: string }> = import.meta.glob('../
 })
 
 // * 所有图表
+const emptyPackageList: ConfigType[] = []
+
 export let packagesList: PackagesType = {
   // [PackagesCategoryEnum.CHARTS]: ChartList,
   [PackagesCategoryEnum.INFORMATIONS]: InformationList,
@@ -24,6 +35,10 @@ export let packagesList: PackagesType = {
   // [PackagesCategoryEnum.DECORATES]: DecorateList,
   // [PackagesCategoryEnum.PHOTOS]: PhotoList,
   // [PackagesCategoryEnum.ICONS]: IconList
+  [PackagesCategoryEnum.TABLES]: emptyPackageList,
+  [PackagesCategoryEnum.DECORATES]: emptyPackageList,
+  [PackagesCategoryEnum.PHOTOS]: emptyPackageList,
+  [PackagesCategoryEnum.ICONS]: emptyPackageList,
 }
 
 // 组件缓存, 可以大幅度提升组件加载速度

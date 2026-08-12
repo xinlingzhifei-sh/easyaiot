@@ -66,7 +66,7 @@
         </template>
         <template v-if="column.dataIndex === 'action'">
           <TableAction
-            :actions="[
+            :actions="([
               {
                 icon: 'mdi:play-outline',
                 tooltip: { title: '启动', placement: 'top' },
@@ -94,7 +94,7 @@
                 onClick: () => handleViewLogs(record),
                 style: 'color: #1890ff; padding: 0 8px; font-size: 16px;'
               }
-            ]"
+            ] as any)"
             :action-style="{
               display: 'flex',
               flexWrap: 'nowrap',
@@ -117,8 +117,7 @@
 <script lang="ts" setup>
 import {nextTick, ref} from 'vue';
 import {BasicDrawer, useDrawerInner} from '@/components/Drawer';
-import type {DrawerProps} from '@/components/Drawer/src/typing';
-import {BasicTable, TableAction, useTable} from '@/components/Table';
+import {BasicTable, TableAction, useTable, type BasicColumn} from '@/components/Table';
 import {Tag, Alert} from 'ant-design-vue';
 import {useMessage} from '@/hooks/web/useMessage';
 import {useGlobSetting} from '@/hooks/setting';
@@ -147,7 +146,7 @@ const getClusterEndpointUrl = (modelId: number) => {
   return `/model/cluster/${modelId}/inference/run`;
 };
 
-const [registerDrawer, {setDrawerProps, closeDrawer}] = useDrawerInner((data) => {
+const [registerDrawer] = useDrawerInner((data) => {
   // 保存服务名称和模型ID
   if (data && data.serviceName) {
     serviceNameRef.value = data.serviceName;
@@ -180,11 +179,10 @@ const [registerDrawer, {setDrawerProps, closeDrawer}] = useDrawerInner((data) =>
 
 const [registerLogsModal, {
   openModal: openServiceLogsModal,
-  closeModal: closeServiceLogsModal
 }] = useModal();
 
 // 表格列定义
-const columns = [
+const columns: BasicColumn[] = [
   {
     title: 'ID',
     dataIndex: 'id',
@@ -234,7 +232,7 @@ const columns = [
   },
 ];
 
-const [registerTable, {reload, setTableData}] = useTable({
+const [registerTable, {reload}] = useTable({
   title: '',
   columns: columns,
   useSearchForm: false,
@@ -617,4 +615,3 @@ const emit = defineEmits(['refresh']);
   }
 }
 </style>
-

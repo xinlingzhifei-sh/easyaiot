@@ -72,7 +72,7 @@
 <script lang="ts" setup name="PushTemplate">
   import { onMounted } from 'vue';
   import { Button } from '@/components/Button';
-  import { BasicTable, useTable, TableAction } from '/@/components/Table';
+  import { BasicTable, useTable, TableAction, type BasicColumn, type FormProps } from '/@/components/Table';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { useModal } from '/@/components/Modal';
   import { useDrawer } from '@/components/Drawer';
@@ -144,22 +144,22 @@
     },
   });
 
-  function getFormConfig() {
+  function getFormConfig(): Partial<FormProps> {
     return {
       labelWidth: 70,
       baseColProps: { span: 6 },
       schemas: [
-        ...props.searchField,
+        ...(props.searchField as any[]),
         {
           field: `msgName`,
           label: `消息名称`,
           component: 'Input',
         },
       ],
-    };
+    } as Partial<FormProps>;
   }
 
-  function getColumns() {
+  function getColumns(): BasicColumn[] {
     return [
       {
         title: '消息类型',
@@ -189,14 +189,14 @@
         dataIndex: 'userGroupName',
         ifShow: () => !['http', 'feishu'].includes(props.pushType),
       },
-      ...props.columns,
+      ...(props.columns as BasicColumn[]),
       {
         width: 280,
         title: '操作',
         dataIndex: 'action',
         fixed: 'right',
       },
-    ];
+    ] as BasicColumn[];
   }
 
   const handleDelete = async ({ id }) => {
@@ -337,7 +337,7 @@
       // 判断是否有 body 和 bodyType，决定使用哪种推送方式
       const hasBody = body && bodyType;
       
-      let sendResult = null;
+      let sendResult: any = null;
 
       // 如果有 body 和 bodyType，优先使用 Body 方式
       if (hasBody) {
@@ -414,7 +414,7 @@
         const errorMsg = sendResult?.info || sendResult?.message || (isTest ? '测试发送失败' : '推送失败');
         createMessage.error(errorMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('推送失败:', error);
       const errorMsg = 
         error?.response?.data?.info || 

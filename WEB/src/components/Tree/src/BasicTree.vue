@@ -132,7 +132,7 @@ export default defineComponent({
           Object.assign(contextMenuOptions, result)
       }
       else {
-        contextMenuOptions.items = menuList
+        contextMenuOptions.items = menuList || []
       }
       if (!contextMenuOptions.items?.length)
         return
@@ -264,15 +264,15 @@ export default defineComponent({
     })
 
     watchEffect(() => {
-      state.expandedKeys = props.expandedKeys
+      state.expandedKeys = props.expandedKeys || []
     })
 
     watchEffect(() => {
-      state.selectedKeys = props.selectedKeys
+      state.selectedKeys = props.selectedKeys || []
     })
 
     watchEffect(() => {
-      state.checkedKeys = props.checkedKeys
+      state.checkedKeys = props.checkedKeys || []
     })
 
     watch(
@@ -412,7 +412,7 @@ export default defineComponent({
               search={search}
               toolbar={toolbar}
               showStrictlyButton={showStrictlyButton}
-              helpMessage={helpMessage}
+              helpMessage={helpMessage || undefined}
               onStrictlyChange={onStrictlyChange}
               onSearch={handleSearch}
               searchText={searchState.searchText}

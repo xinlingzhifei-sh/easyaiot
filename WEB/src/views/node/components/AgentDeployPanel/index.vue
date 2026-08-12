@@ -19,7 +19,6 @@ import {
   type PortCheckResult as PortCheckData,
 } from '@/api/device/node';
 import {
-  AGENT_INSTALL_DIR,
   buildAgentDeployScript,
   buildAgentEnvContent,
   isLocalControlPlaneUrl,
@@ -80,7 +79,7 @@ const deployBtnLabel = computed(() =>
 const deployHint = computed(() => {
   if (autoDisabledReason.value) return autoDisabledReason.value;
   if (agentExists.value) return SETUP_COPY.redeployAgentHint;
-  return `通过 SSH 连接 ${props.node?.host}，自动同步并部署至 ${AGENT_INSTALL_DIR}`;
+  return `通过 SSH 连接 ${props.node?.host}，自动同步并部署至 yFeiEye 默认 Agent 目录`;
 });
 
 const agentParams = computed(() => ({
@@ -467,7 +466,7 @@ watch(
             </Space>
             <div v-if="!canCheckDeploy" class="form-hint">{{ autoDisabledReason || '请先保存节点并配置 SSH' }}</div>
             <div v-else class="form-hint">
-              通过 SSH 在目标机执行停止/删除操作；停止仅终止服务，删除会移除 systemd 单元及 {{ AGENT_INSTALL_DIR }} 安装目录
+              通过 SSH 在目标机执行停止/删除操作；停止仅终止服务，删除会移除 systemd 单元及 yFeiEye 默认 Agent 目录
             </div>
           </FormItem>
         </template>

@@ -10,9 +10,8 @@ import java.util.Set;
 /**
  * PermissionAssignUserRoleReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 赋予用户角色 Request VO")
 @Data

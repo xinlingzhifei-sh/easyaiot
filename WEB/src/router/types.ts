@@ -4,7 +4,7 @@ import type { RoleEnum } from '@/enums/roleEnum'
 
 export type Component<T = any> = ReturnType<typeof defineComponent> | (() => Promise<typeof import('*.vue')>) | (() => Promise<T>)
 
-export interface AppRouteRecordRaw extends Omit<RouteRecordRaw, 'meta'> {
+export type AppRouteRecordRaw = Omit<RouteRecordRaw, 'meta' | 'children'> & {
   keepAlive?: boolean
   visible?: boolean
   icon?: string

@@ -77,6 +77,8 @@ const formatTimestamp = (timestamp) => {
   if (!timestamp) return '';
   return new Date(timestamp).toLocaleString();
 };
+void filteredLogs;
+void formatTimestamp;
 
 // 加载日志数据
 const loadLogs = async () => {

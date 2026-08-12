@@ -3,7 +3,6 @@ import { useChartEditStore } from '@/store/modules/chartEditStore/chartEditStore
 import { CreateComponentType, CreateComponentGroupType } from '@/design/packages'
 import { renderIcon } from '@/utils'
 import { icon } from '@/design/component'
-import { MenuOptionsItemType } from './useContextMenu.hook.d'
 import { MenuEnum } from '@/enums/editPageEnum'
 import cloneDeep from 'lodash/cloneDeep'
 
@@ -27,12 +26,20 @@ const { UpToTopIcon, DownToBottomIcon, PaintBrushIcon, Carbon3DSoftwareIcon, Car
 
 const chartEditStore = useChartEditStore()
 
+type MenuOptionsItemType = {
+  label?: string
+  key: MenuEnum | string
+  icon?: ReturnType<typeof renderIcon>
+  type?: 'divider'
+  fnHandle?: (...args: any[]) => any
+}
+
 /**
  * 分割线
  * @param {number} n > 2
  * @returns
  */
-export const divider = (n: number = 3) => {
+export const divider = (n: number = 3): MenuOptionsItemType => {
   return {
     type: 'divider',
     key: `d${n}`

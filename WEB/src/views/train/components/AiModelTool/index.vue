@@ -89,7 +89,7 @@
                 </div>
                 <div class="config-options">
                   <ApiSelect
-                    v-model:value="state.selectedDeployServiceId"
+                    v-model:value="selectedDeployServiceId"
                     allow-clear
                     placeholder="请选择模型服务"
                     class="class-select"
@@ -108,7 +108,7 @@
                 </div>
                 <div class="config-options">
                   <ApiSelect
-                    v-model:value="state.selectedLLMId"
+                    v-model:value="selectedLLMId"
                     allow-clear
                     placeholder="请选择大模型"
                     class="class-select"
@@ -510,7 +510,6 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted, onUnmounted, nextTick, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import { getModelPage, runInference, runClusterInference, uploadInputFile, getInferenceTaskDetail, getInferenceTasks, getDeployServicePage, getModelClasses, parseModelClassPayload, stopRtspInference, posePredict, posePredictVideo, poseVideoProgress, poseOutputVideo, poseRtspStart, poseRtspStop } from "@/api/device/model";
 import { getLLMList, visionInference, activateLLM, type LLMModel } from "@/api/device/llm";
 import { getDeviceList, startStreamForwarding, getStreamStatus, type DeviceInfo } from '@/api/device/camera';
@@ -522,7 +521,7 @@ import Jessibuca from '@/components/Player/module/jessibuca.vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { ApiSelect } from '@/components/Form';
 import { BasicHelp } from '@/components/Basic';
-import { InputNumber, Tooltip } from 'ant-design-vue';
+import { InputNumber } from 'ant-design-vue';
 import {
   SettingOutlined,
   AppstoreOutlined,
@@ -539,8 +538,7 @@ import {
   SearchOutlined,
   ReloadOutlined,
   SyncOutlined,
-  HistoryOutlined,
-  QuestionCircleOutlined
+  HistoryOutlined
 } from '@ant-design/icons-vue';
 import { formatModelVersionDisplay } from '../../utils/modelVersionUtils';
 
@@ -718,10 +716,6 @@ const videoInput = ref<HTMLInputElement | null>(null);
 const inputVideoRef = ref<HTMLVideoElement | null>(null);
 const resultVideoRef = ref<HTMLVideoElement | null>(null);
 
-const selectedSource = computed(() => {
-  return sourceOptions.find(option => option.value === state.activeSource);
-});
-
 const isCustomModelSelected = computed(() => {
   const modelId = state.selectedModelId;
   if (isPoseMode.value) {
@@ -752,6 +746,20 @@ const classNameOptions = computed(() =>
   state.availableClassNames.map((name) => ({ label: name, value: name })),
 );
 
+const selectedDeployServiceId = computed<number | undefined>({
+  get: () => state.selectedDeployServiceId ?? undefined,
+  set: (value) => {
+    state.selectedDeployServiceId = value ?? null;
+  },
+});
+
+const selectedLLMId = computed<number | undefined>({
+  get: () => state.selectedLLMId ?? undefined,
+  set: (value) => {
+    state.selectedLLMId = value ?? null;
+  },
+});
+
 const deployServiceOptions = computed(() =>
   state.deployServices.map((service) => ({
     label: `${service.model_name}服务（${formatVersion(service.model_version)}）`,
@@ -766,10 +774,12 @@ const formatLLMTypeLabel = (modelType?: string) => {
 };
 
 const llmOptions = computed(() =>
-  state.llms.map((llm) => ({
-    label: `${llm.name} (${formatLLMTypeLabel(llm.model_type)})`,
-    value: llm.id,
-  })),
+  state.llms
+    .filter((llm): llm is LLMModel & { id: number } => typeof llm.id === 'number')
+    .map((llm) => ({
+      label: `${llm.name} (${formatLLMTypeLabel(llm.model_type)})`,
+      value: llm.id,
+    })),
 );
 
 const getCameraRtspUrl = (device: DeviceInfo): string | null => {
@@ -815,9 +825,6 @@ const selectedCamera = computed(() =>
 const selectedCameraRtsp = computed(() =>
   selectedCamera.value ? getCameraRtspUrl(selectedCamera.value) : null,
 );
-
-const maskRtspUrl = (url: string): string =>
-  url.replace(/\/\/([^:@/]+):([^@/]+)@/, '//$1:***@');
 
 const getCameraOnlineLabel = (device: DeviceInfo): string => {
   if (device.connection_status === 'online' || device.channel_online === true) {
@@ -899,6 +906,7 @@ watch(
 const setActiveSource = (source: string) => {
   state.activeSource = source;
 };
+void setActiveSource;
 
 // 格式化大模型推理结果，将markdown格式转换为HTML
 const formatLLMResult = (text: string | null): string => {
@@ -1686,10 +1694,12 @@ const toggleLeftPanel = () => {
 const triggerImageUpload = () => {
   imageInput.value?.click();
 };
+void triggerImageUpload;
 
 const triggerVideoUpload = () => {
   videoInput.value?.click();
 };
+void triggerVideoUpload;
 
 const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -2224,7 +2234,7 @@ const handleInputVideoLoaded = (event: Event) => {
 };
 
 // 处理原始视频开始加载
-const handleInputVideoLoadStart = (event: Event) => {
+const handleInputVideoLoadStart = (_event: Event) => {
   console.log('原始视频开始加载');
   state.videoLoadError = null;
   state.videoErrorDetails = null;
@@ -2240,18 +2250,18 @@ const handleInputVideoCanPlay = (event: Event) => {
 };
 
 // 处理原始视频可以完整播放
-const handleInputVideoCanPlayThrough = (event: Event) => {
+const handleInputVideoCanPlayThrough = (_event: Event) => {
   console.log('原始视频可以完整播放');
 };
 
 // 处理原始视频加载停滞
-const handleInputVideoStalled = (event: Event) => {
+const handleInputVideoStalled = (_event: Event) => {
   console.warn('原始视频加载停滞');
   createMessage.warning('视频加载缓慢，请检查网络连接或文件大小');
 };
 
 // 处理原始视频加载暂停
-const handleInputVideoSuspend = (event: Event) => {
+const handleInputVideoSuspend = (_event: Event) => {
   console.warn('原始视频加载暂停');
 };
 
@@ -2635,12 +2645,13 @@ onMounted(() => {
   }
   
   // 如果父组件传递了初始大模型ID，设置选中
-  if (props.initialLLMId) {
+  const initialLLMId = props.initialLLMId;
+  if (initialLLMId) {
     // 等待大模型列表加载完成后再设置
     loadLLMs().then(() => {
-      const llm = state.llms.find(l => l.id === props.initialLLMId);
+      const llm = state.llms.find(l => l.id === initialLLMId);
       if (llm) {
-        state.selectedLLMId = props.initialLLMId;
+        state.selectedLLMId = initialLLMId;
       }
     });
   }

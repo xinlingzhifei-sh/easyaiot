@@ -15,9 +15,8 @@ import java.util.List;
 /**
  * NotifyTemplateApi
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @FeignClient(name = ApiConstants.NAME)
 @Tag(name = "RPC 服务 - 通知模板")

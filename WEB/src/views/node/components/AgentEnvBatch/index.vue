@@ -218,6 +218,7 @@ function handleResetToken() {
   const node = singleNodeDetail.value;
   if (!node?.id || isPlatformNode(node)) return;
   createConfirm({
+    iconType: 'warning',
     title: `重置${NODE_TERM.agentToken}`,
     content: `重置后需在目标服务器更新 agent.env 中的 AGENT_TOKEN，并重启${NODE_TERM.agent}`,
     onOk: async () => {

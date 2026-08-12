@@ -100,9 +100,9 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onUnmounted, ref, watch} from 'vue';
+import {computed, nextTick, onUnmounted, ref, watch, type CSSProperties} from 'vue';
 import {SwapOutlined} from '@ant-design/icons-vue';
-import {BasicTable, TableAction, useTable} from '@/components/Table';
+import {BasicTable, TableAction, useTable, type ActionItem} from '@/components/Table';
 import {useMessage} from '@/hooks/web/useMessage';
 import {useDrawer} from '@/components/Drawer';
 import {useModal} from '@/components/Modal';
@@ -135,6 +135,16 @@ const {createMessage} = useMessage();
 
 const POLL_INTERVAL_MS = 10_000;
 const ACTION_REFRESH_DELAY_MS = 2_000;
+const actionStyle = (color: string): CSSProperties => ({
+  color,
+  padding: '0 8px',
+  fontSize: '16px',
+});
+
+type ApiLikeError = {
+  response?: { data?: { msg?: string } };
+  message?: string;
+};
 
 const viewMode = ref<'table' | 'card'>('card');
 const params = {};
@@ -331,18 +341,18 @@ const getTrainTaskListApi = async (queryParams: Record<string, unknown>) => {
 };
 
 const getTableActions = (record: Record<string, unknown>) => {
-  const actions = [
+  const actions: ActionItem[] = [
     {
       icon: 'mdi:file-document-outline',
       tooltip: {title: '查看日志', placement: 'top'},
       onClick: () => handleOpenTrainLogsModal(record),
-      style: 'color: #1890ff; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#1890ff'),
     },
     {
       icon: 'mdi:image-outline',
       tooltip: {title: '查看训练结果', placement: 'top'},
       onClick: () => handleViewTrainResults(record),
-      style: 'color: #1890ff; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#1890ff'),
     },
   ];
 
@@ -355,7 +365,7 @@ const getTableActions = (record: Record<string, unknown>) => {
         title: '确定停止此训练任务? 停止后可从断点继续训练。',
         confirm: () => handleStopTrain(record),
       },
-      style: 'color: #faad14; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#faad14'),
     });
   }
 
@@ -364,7 +374,7 @@ const getTableActions = (record: Record<string, unknown>) => {
       icon: 'mdi:play-circle-outline',
       tooltip: {title: '继续训练', placement: 'top'},
       onClick: () => handleResume(record),
-      style: 'color: #52c41a; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#52c41a'),
     });
   }
 
@@ -373,7 +383,7 @@ const getTableActions = (record: Record<string, unknown>) => {
       icon: 'mdi:restart',
       tooltip: {title: '重新训练', placement: 'top'},
       onClick: () => handleRetrain(record),
-      style: 'color: #1890ff; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#1890ff'),
     });
   }
 
@@ -382,7 +392,7 @@ const getTableActions = (record: Record<string, unknown>) => {
       icon: 'ant-design:download-outlined',
       tooltip: {title: '下载训练权重', placement: 'top'},
       onClick: () => handleDownloadWeights(record),
-      style: 'color: #1890ff; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#1890ff'),
     });
   }
 
@@ -395,7 +405,7 @@ const getTableActions = (record: Record<string, unknown>) => {
         placement: 'top',
       },
       onClick: () => handlePublishTrainModel(record),
-      style: 'color: #722ed1; padding: 0 8px; font-size: 16px;',
+      style: actionStyle('#722ed1'),
     });
   }
 
@@ -407,7 +417,7 @@ const getTableActions = (record: Record<string, unknown>) => {
       title: '确定删除此训练任务?',
       confirm: () => handleDelete(record),
     },
-    style: 'color: #ff4d4f; padding: 0 8px; font-size: 16px;',
+    style: actionStyle('#ff4d4f'),
   });
 
   return actions;
@@ -429,11 +439,12 @@ const handleStartTrain = async (config) => {
       );
     }
   } catch (error) {
+    const apiError = error as ApiLikeError;
     const isResume = !!config.resume;
     const isRetrain = !!config.taskId && !isResume;
     const errorMsg =
-      error?.response?.data?.msg
-      || error?.message
+      apiError?.response?.data?.msg
+      || apiError?.message
       || (isResume ? '继续训练失败' : isRetrain ? '重新训练失败' : '启动训练失败');
     createMessage.error(errorMsg);
   }
@@ -448,7 +459,7 @@ const handleStopTrain = async (record) => {
     } else {
       createMessage.error(response?.msg || '暂停训练失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     const errorMsg = error?.response?.data?.msg || error?.message || '暂停训练失败';
     createMessage.error(errorMsg);
   }
@@ -536,7 +547,7 @@ const handleDelete = async (record) => {
     } else {
       createMessage.error(response?.msg || '删除失败');
     }
-  } catch (error) {
+  } catch (error: any) {
     const errorMsg = error?.response?.data?.msg || error?.message || '删除失败，请稍后重试';
     createMessage.error(errorMsg);
   }

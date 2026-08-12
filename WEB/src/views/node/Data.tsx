@@ -11,10 +11,12 @@ import {
   NODE_TERM,
   CEPH_POOL_OPTIONS,
   STORAGE_TAG_DEFAULTS,
+  STORAGE_TAG_DISPLAY_DEFAULTS,
   MQTT_TAG_DEFAULTS,
   readStorageTagsFromTags,
   readMqttPortsFromTags,
   readCephMountFromTags,
+  formatStorageDisplayValue,
   formatGpuSummary,
 } from './utils/constants';
 import {
@@ -458,10 +460,10 @@ export const formSchema: FormSchema[] = [
     label: 'CephFS 名称',
     field: 'cephfsName',
     component: 'Input',
-    defaultValue: STORAGE_TAG_DEFAULTS.cephfsName,
+    defaultValue: STORAGE_TAG_DISPLAY_DEFAULTS.cephfsName,
     colProps: { span: 12 },
     ifShow: ({ values }) => values.nodeRole === 'storage',
-    componentProps: { placeholder: 'easyaiot' },
+    componentProps: { placeholder: STORAGE_TAG_DISPLAY_DEFAULTS.cephfsName },
     helpMessage: '客户端挂载使用的 CephFS 文件系统名',
   },
   {
@@ -478,11 +480,11 @@ export const formSchema: FormSchema[] = [
     label: 'CephFS 挂载根路径',
     field: 'mediaMountPath',
     component: 'Input',
-    defaultValue: STORAGE_TAG_DEFAULTS.mediaMountPath,
+    defaultValue: STORAGE_TAG_DISPLAY_DEFAULTS.mediaMountPath,
     colProps: { span: 12 },
     ifShow: ({ values }) => values.nodeRole === 'storage',
-    componentProps: { placeholder: '/mnt/easyaiot-media' },
-    helpMessage: 'CephFS 客户端挂载 easyaiot 媒体存储的根路径',
+    componentProps: { placeholder: STORAGE_TAG_DISPLAY_DEFAULTS.mediaMountPath },
+    helpMessage: 'CephFS 客户端挂载 yFeiEye 媒体存储的根路径',
   },
 ];
 
@@ -724,7 +726,7 @@ export const storageDetailSchema: DescItem[] = [
   {
     field: 'tags.ceph_pool',
     label: 'Ceph 存储池',
-    render: (_val, data) => readStorageTagsFromTags(data?.tags).cephPool,
+    render: (_val, data) => formatStorageDisplayValue(readStorageTagsFromTags(data?.tags).cephPool),
   },
   {
     field: 'tags.ceph_osd_path',
@@ -734,7 +736,7 @@ export const storageDetailSchema: DescItem[] = [
   {
     field: 'tags.cephfs_name',
     label: 'CephFS 名称',
-    render: (_val, data) => readStorageTagsFromTags(data?.tags).cephfsName,
+    render: (_val, data) => formatStorageDisplayValue(readStorageTagsFromTags(data?.tags).cephfsName),
   },
   {
     field: 'tags.ceph_mon_host',
@@ -745,7 +747,7 @@ export const storageDetailSchema: DescItem[] = [
     field: 'tags.media_mount_path',
     label: 'CephFS 挂载根路径',
     span: 2,
-    render: (_val, data) => readStorageTagsFromTags(data?.tags).mediaMountPath,
+    render: (_val, data) => formatStorageDisplayValue(readStorageTagsFromTags(data?.tags).mediaMountPath),
   },
 ];
 

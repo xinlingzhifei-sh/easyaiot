@@ -79,6 +79,9 @@
                   <div class="btn" @click="handleViewVideo(item)" v-if="item.device_id && item.time && !isSnapTask(item)">
                     <Icon icon="icon-park-outline:video" :size="15" color="#3B82F6" />
                   </div>
+                  <div class="btn" @click="handleCreateReviewClue(item)">
+                    <Icon icon="ant-design:audit-outlined" :size="15" color="#3B82F6" />
+                  </div>
                 </div>
               </div>
               <div class="alert-img">
@@ -93,7 +96,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { List, Spin } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
@@ -121,7 +124,7 @@ const { createMessage } = useMessage();
 const router = useRouter();
 
 // 暴露内部方法
-const emit = defineEmits(['getMethod', 'viewImage', 'viewVideo']);
+const emit = defineEmits(['getMethod', 'viewImage', 'viewVideo', 'createReviewClue']);
 
 // 数据
 const data = ref([]);
@@ -504,6 +507,10 @@ async function handleViewVideo(record: object) {
   emit('viewVideo', record);
 }
 
+function handleCreateReviewClue(record: object) {
+  emit('createReviewClue', record);
+}
+
 async function handleCopy(record: object) {
   const text = JSON.stringify(record, null, 2);
   if (navigator.clipboard) {
@@ -693,7 +700,7 @@ function thumbUrl(imageUrl: string | null | undefined): string {
         left: 16px;
         bottom: 16px;
         margin-top: 20px;
-        width: 130px;
+        width: 150px;
         height: 28px;
         border-radius: 45px;
         justify-content: space-around;
@@ -811,4 +818,3 @@ function thumbUrl(imageUrl: string | null | undefined): string {
   }
 }
 </style>
-

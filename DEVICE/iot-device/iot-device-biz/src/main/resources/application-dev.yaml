@@ -44,15 +44,15 @@ spring:
         master:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://14.18.122.2:5432/iot-device10?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
 
   # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优
   redis:
     host: 14.18.122.2 # 地址
     port: 6379 # 端口
     database: 0 # 数据库索引
-    password: basiclab@iot975248395 # 密码，建议生产环境开启
+    password: ${REDIS_PASSWORD} # 密码，建议生产环境开启
     timeout: 10000 # 超时时间
     lettuce:
       pool:
@@ -157,7 +157,7 @@ media:
   #hook-ip: 192.168.31.65
 #  hook-ip: 127.0.0.1
   # [必选选] zlm服务器的hook.admin_params=secret
-  secret: lkzMxX9eIAOOUnT49wxvbZrGUvXZ5hP9
+  secret: ${ZLM_SECRET}
 #  secret: AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
@@ -191,15 +191,15 @@ sip:
   # [可选]
   id: 41010500002000000001
   # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-  password: bajiuwulian1006
+  password: ${GB28181_SIP_PASSWORD}
   # 是否存储alarm信息
   alarm: true
 
 # Minio配置
 minio:
   endpoint: http://14.18.122.2:9000
-  user: minio_root
-  password: minio_123456
+  user: ${MINIO_ACCESS_KEY}
+  password: ${MINIO_SECRET_KEY}
 
 # 计算任务配置
 python:

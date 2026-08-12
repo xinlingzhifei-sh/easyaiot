@@ -10,7 +10,7 @@ OUT_DIR="${COMPILE_OUT:-${COMPILE_ROOT}/dist/macos}"
 VENV_DIR="${COMPILE_ROOT}/.venv-build-macos"
 MAKE_APP=0
 MAKE_DMG=0
-APP_NAME="EasyAIoT Panel"
+APP_NAME="yFeiEye Panel"
 PANEL_LOGO="${COMPILE_PANEL_LOGO:-${COMPILE_ROOT}/assets/panel-logo.png}"
 CIRCLE_ICON_PNG=""
 MAKE_CIRCLE_ICON_PY="${COMPILE_ROOT}/lib/make_circle_icon.py"
@@ -34,7 +34,7 @@ for arg in "$@"; do
     -h|--help)
       echo "用法: $0 [--app] [--dmg]"
       echo "产物: easyaiot-panel + runtime/（含 install_mac.sh）+ panel.env + run.command"
-      echo "  --app  生成 EasyAIoT Panel.app（圆形白底图标，与 Linux 一致）"
+      echo "  --app  生成 yFeiEye Panel.app（圆形白底图标，与 Linux 一致）"
       echo "  --dmg  生成 .app + .dmg（文件名含架构：-arm64=Apple Silicon，-amd64=Intel）"
       exit 0
       ;;
@@ -156,10 +156,10 @@ panel_ready() {
 # 启动 PANEL 前尝试拉起 Docker Desktop（后台，不阻塞等待引擎；未安装则跳过）
 if ! pgrep -f '/Docker\.app/' >/dev/null 2>&1; then
   if [ -d "/Applications/Docker.app" ] || [ -d "${HOME}/Applications/Docker.app" ]; then
-    echo "[EasyAIoT] 正在启动 Docker Desktop..."
+    echo "[yFeiEye] 正在启动 Docker Desktop..."
     open -a Docker >/dev/null 2>&1 || true
   else
-    echo "[EasyAIoT] 未找到 Docker Desktop，部署前请先安装: https://www.docker.com/products/docker-desktop"
+    echo "[yFeiEye] 未找到 Docker Desktop，部署前请先安装: https://www.docker.com/products/docker-desktop"
   fi
 fi
 
@@ -178,20 +178,20 @@ for _ in $(seq 1 60); do
     exit $?
   fi
   if ! kill -0 "$PANEL_PID" 2>/dev/null; then
-    echo "[EasyAIoT] PANEL 启动失败，请查看终端输出" >&2
+    echo "[yFeiEye] PANEL 启动失败，请查看终端输出" >&2
     wait "$PANEL_PID" || true
     exit 1
   fi
   sleep 0.4
 done
-echo "[EasyAIoT] 等待 PANEL 就绪超时，仍尝试打开 ${URL}" >&2
+echo "[yFeiEye] 等待 PANEL 就绪超时，仍尝试打开 ${URL}" >&2
 open "$URL" >/dev/null 2>&1 || true
 wait "$PANEL_PID"
 EOF
 chmod +x "${OUT_DIR}/run.command"
 
 cat > "${OUT_DIR}/README.txt" <<EOF
-EasyAIoT PANEL ${VERSION} (macOS ${ARCH} / ${ARCH_LABEL})
+yFeiEye PANEL ${VERSION} (macOS ${ARCH} / ${ARCH_LABEL})
 
 1. 安装 Docker Desktop（首次）；双击 run.command / .app 时会自动尝试启动它
 2. 建议: brew install bash（bash 4+）
@@ -303,10 +303,10 @@ panel_ready() {
 # 启动 PANEL 前尝试拉起 Docker Desktop（后台，不阻塞等待引擎；未安装则跳过）
 if ! pgrep -f '/Docker\.app/' >/dev/null 2>&1; then
   if [ -d "/Applications/Docker.app" ] || [ -d "${HOME}/Applications/Docker.app" ]; then
-    echo "[EasyAIoT] 正在启动 Docker Desktop..."
+    echo "[yFeiEye] 正在启动 Docker Desktop..."
     open -a Docker >/dev/null 2>&1 || true
   else
-    echo "[EasyAIoT] 未找到 Docker Desktop，部署前请先安装: https://www.docker.com/products/docker-desktop"
+    echo "[yFeiEye] 未找到 Docker Desktop，部署前请先安装: https://www.docker.com/products/docker-desktop"
   fi
 fi
 
@@ -325,13 +325,13 @@ for _ in $(seq 1 60); do
     exit $?
   fi
   if ! kill -0 "$PANEL_PID" 2>/dev/null; then
-    echo "[EasyAIoT] PANEL 启动失败，日志: ${LOG_FILE}" >&2
+    echo "[yFeiEye] PANEL 启动失败，日志: ${LOG_FILE}" >&2
     wait "$PANEL_PID" || true
     exit 1
   fi
   sleep 0.4
 done
-echo "[EasyAIoT] 等待 PANEL 就绪超时，仍尝试打开 ${URL}（日志: ${LOG_FILE}）" >&2
+echo "[yFeiEye] 等待 PANEL 就绪超时，仍尝试打开 ${URL}（日志: ${LOG_FILE}）" >&2
 open "$URL" >/dev/null 2>&1 || true
 wait "$PANEL_PID"
 EOF

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alert Review Workbench E2E</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <pre id="alert-review-e2e-result" data-status="pending">pending</pre>
+    <script>
+      window.addEventListener('error', event => {
+        const result = document.querySelector('#alert-review-e2e-result')
+        result.dataset.status = 'failed'
+        result.textContent = JSON.stringify({ message: event.message, filename: event.filename, lineno: event.lineno })
+      })
+      window.addEventListener('unhandledrejection', event => {
+        const result = document.querySelector('#alert-review-e2e-result')
+        result.dataset.status = 'failed'
+        result.textContent = JSON.stringify({ message: String(event.reason?.stack || event.reason) })
+      })
+    </script>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

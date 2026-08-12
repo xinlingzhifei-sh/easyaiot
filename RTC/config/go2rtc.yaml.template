@@ -1,4 +1,4 @@
-# EasyAIoT RTC — go2rtc 配置模板
+# yFeiEye RTC — go2rtc 配置模板
 # 由 docker-entrypoint.sh 渲染到 /config/go2rtc.yaml
 
 api:

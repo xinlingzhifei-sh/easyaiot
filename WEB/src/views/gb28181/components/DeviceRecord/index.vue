@@ -18,7 +18,7 @@
             <Button type="primary" style="left: 41px;width: 138px;"
                     :onclick="queryDeviceRecords.bind(null)">刷新列表
             </Button>
-            <ul class="infinite-list record-list" v-for="(item, index) of state.recordList">
+            <ul class="infinite-list record-list" v-for="item of state.recordList">
               <li class="infinite-list-item record-list-item">
                 <span class="el-tag el-tag--light" :onclick="handleRecordPlay.bind(null, item)">
                   <Icon icon="bx:video-recording"/>
@@ -43,22 +43,20 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {onBeforeUnmount, onMounted, reactive} from 'vue'
+import {onMounted, reactive} from 'vue'
 import { DatePicker } from 'ant-design-vue';
-import {useMessage} from "@/hooks/web/useMessage";
 import {getDeviceRecordList, playBack} from "@/api/device/gb28181";
 import {useRoute} from "vue-router";
 import moment from 'moment'
 import {Icon} from "@/components/Icon";
 import Jessibuca from "@/components/Player/module/jessibuca.vue";
 import { Button } from '@/components/Button'
-const {createMessage} = useMessage()
 const route = useRoute()
 
 const state = reactive({
   playUrl: '',
   dateValue: moment(new Date()).format('YYYY-MM-DD'),
-  recordList: [],
+  recordList: [] as Record<string, string>[],
 });
 
 const dateChange = (e: any) => {
@@ -67,7 +65,9 @@ const dateChange = (e: any) => {
 };
 
 const queryDeviceRecords = () => {
-  getDeviceRecordList(route.params.deviceId, route.params.channelId, state.dateValue + " 00:00:00", state.dateValue + " 23:59:59").then((res) => {
+  const deviceId = String(route.params.deviceId || '');
+  const channelId = String(route.params.channelId || '');
+  getDeviceRecordList(deviceId, channelId, state.dateValue + " 00:00:00", state.dateValue + " 23:59:59").then((res) => {
     // WVP 返回 { code, msg, data: RecordInfo }，RecordInfo 含 recordList
     const body = res?.data ?? res;
     state.recordList = body?.data?.recordList ?? body?.recordList ?? [];
@@ -79,7 +79,9 @@ function initDeviceRecordList() {
 }
 
 function handleRecordPlay(params) {
-  playBack(route.params.deviceId, route.params.channelId, params['startTime'], params['endTime']).then((res) => {
+  const deviceId = String(route.params.deviceId || '');
+  const channelId = String(route.params.channelId || '');
+  playBack(deviceId, channelId, params['startTime'], params['endTime']).then((res) => {
     const body = res?.data ?? res;
     const stream = body?.data ?? body;
     state.playUrl = stream?.ws_flv || stream?.https_flv || stream?.rtmp || '';

@@ -4,8 +4,8 @@
     <Alert type="warning" show-icon class="mb-4" :message="WORKLOAD_BUNDLE_COPY.offlineHint" />
 
     <div class="path-hints mb-4">
-      <div><span class="label">远程根目录：</span><code>{{ bundle.remoteRoot }}</code></div>
-      <div><span class="label">Python 启动器：</span><code>{{ bundle.pythonLauncher }}</code></div>
+      <div><span class="label">远程根目录：</span><code>yFeiEye 默认远程目录</code></div>
+      <div><span class="label">Python 启动器：</span><code>yFeiEye 默认启动器</code></div>
       <div><span class="label">脚本标记：</span><code>{{ bundle.scriptMarker }}</code></div>
     </div>
 

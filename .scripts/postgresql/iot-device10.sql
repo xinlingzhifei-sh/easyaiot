@@ -5856,9 +5856,9 @@ COPY public.ota_packages (id, app_id, package_name, package_type, product_identi
 
 COPY public.product (id, app_id, template_identification, product_name, product_identification, product_type, manufacturer_id, manufacturer_name, model, data_format, device_type, protocol_type, status, remark, create_by, create_time, update_by, update_time, auth_mode, user_name, password, connector, sign_key, encrypt_method, encrypt_key, encrypt_vector, tenant_id, public_key, private_key) FROM stdin;
 22	智能家居	3ff77a5289144dacbb6d32bee107f90f	智能网关	9820630576939008	COMMON	12321	华科南航科技有限公司	32423	JSON	32423	GB28181	0	23432	admin	2024-07-04 17:35:50.852	admin	2026-07-19 17:35:50.852	32423	32432	32423	432432	32423	0	32432	23432	1	\N	\N
-910001	demo	\N	Modbus TCP 演示产品	IND_MODBUS_TCP_DEMO	COMMON	demo	EasyAIoT	modbus-tcp	BINARY	COMMON	MODBUS_TCP	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
-910002	demo	\N	Modbus RTU 演示产品	IND_MODBUS_RTU_DEMO	COMMON	demo	EasyAIoT	modbus-rtu	BINARY	COMMON	MODBUS_RTU	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
-910003	demo	\N	OPC UA 演示产品	IND_OPCUA_DEMO	COMMON	demo	EasyAIoT	opcua	BINARY	COMMON	OPCUA	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
+910001	demo	\N	Modbus TCP 演示产品	IND_MODBUS_TCP_DEMO	COMMON	demo	yFeiEye	modbus-tcp	BINARY	COMMON	MODBUS_TCP	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
+910002	demo	\N	Modbus RTU 演示产品	IND_MODBUS_RTU_DEMO	COMMON	demo	yFeiEye	modbus-rtu	BINARY	COMMON	MODBUS_RTU	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
+910003	demo	\N	OPC UA 演示产品	IND_OPCUA_DEMO	COMMON	demo	yFeiEye	opcua	BINARY	COMMON	OPCUA	0	industrial demo	admin	2026-07-18 13:29:08.165384	admin	2026-07-18 14:54:09.154464	\N	\N	\N	\N	\N	0	\N	\N	1	\N	\N
 \.
 
 

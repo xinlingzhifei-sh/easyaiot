@@ -3,9 +3,8 @@
 推流转发服务畅通性测试脚本
 使用 MP4 文件作为 RTSP 输入流来测试 stream_forward_service 的畅通性
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -25,7 +24,8 @@ video_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, video_root)
 
 # 加载环境变量
-load_dotenv()
+if __name__ == '__main__':
+    load_dotenv()
 
 # 配置日志
 logging.basicConfig(

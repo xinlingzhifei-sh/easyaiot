@@ -12,9 +12,8 @@ import java.time.LocalDateTime;
 /**
  * Demo01ContactRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 示例联系人 Response VO")
 @Data

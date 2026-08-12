@@ -85,7 +85,7 @@ const {createMessage} = useMessage();
 
 const headers = reactive({
   Authorization: `Bearer ${getAccessToken()}`,
-  'tenant-id': getTenantId(),
+  'tenant-id': String(getTenantId() || ''),
 });
 const {uploadUrl} = useGlobSetting();
 
@@ -168,7 +168,7 @@ const rulesRef = reactive({
 const useForm = Form.useForm;
 const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
-function handleDatasetTypeCLickChange(value) {
+function handleDatasetTypeCLickChange(_value) {
   //console.log('handleCLickChange', value)
 }
 

@@ -101,7 +101,7 @@ defineExpose({ showModal })
       导入格式如下:
     </p>
     <div class="v-json-box">
-      <CodeEditor ref="myEditor" v-model:value="json" :mode="MODE.JSON" />
+      <CodeEditor ref="myEditor" v-model:value="state.json" :mode="MODE.JSON" />
     </div>
 
     <template #footer>

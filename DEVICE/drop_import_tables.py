@@ -442,7 +442,9 @@ def main():
         db_host = os.environ.get('DB_HOST', 'localhost')
         db_port = os.environ.get('DB_PORT', '5432')
         db_user = os.environ.get('DB_USER', 'postgres')
-        db_password = os.environ.get('DB_PASSWORD', 'iot45722414822')
+        db_password = os.environ.get('DB_PASSWORD')
+        if not db_password:
+            raise RuntimeError('DATABASE_URL 或 DB_PASSWORD 必须配置')
         
         database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/postgres"
         print(f"⚠️  DATABASE_URL环境变量未设置，使用单独的环境变量构建连接")
@@ -537,4 +539,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -153,7 +153,7 @@ export function getFormConfig(): Partial<FormProps> {
           return <Tag
             color={text == 'COMMON' ? 'blue' : text == 'GATEWAY' ? 'purple' : 'cyan'}>{text == 'COMMON' ? '普通产品' : text == 'GATEWAY' ? '网关产品' : '子设备'}</Tag>;
         },
-      },
+      } as any,
       {
         field: `productIdentification`,
         label: `所属产品`,

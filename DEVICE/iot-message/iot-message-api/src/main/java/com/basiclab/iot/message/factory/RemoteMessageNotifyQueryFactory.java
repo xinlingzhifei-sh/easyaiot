@@ -21,19 +21,19 @@ public class RemoteMessageNotifyQueryFactory implements FallbackFactory<RemoteMe
         log.error("消息中心模板/用户查询调用失败: {}", cause.getMessage());
         return new RemoteMessageNotifyQueryService() {
             @Override
-            public AjaxResult getTemplate(String id, Integer msgType) {
+            public AjaxResult getTemplate(String internalToken, String id, Integer msgType) {
                 return AjaxResult.error("消息中心不可用");
             }
 
             @Override
-            public TableDataInfo queryUserGroup(String id) {
+            public TableDataInfo queryUserGroup(String internalToken, String id) {
                 TableDataInfo table = new TableDataInfo();
                 table.setData(Collections.emptyList());
                 return table;
             }
 
             @Override
-            public TableDataInfo queryPreviewUser(String id, Integer msgType) {
+            public TableDataInfo queryPreviewUser(String internalToken, String id, Integer msgType) {
                 TableDataInfo table = new TableDataInfo();
                 table.setData(Collections.emptyList());
                 return table;

@@ -1,5 +1,5 @@
 import basicDrawer from './src/BasicDrawer.vue'
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 
 export const BasicDrawer = withInstall(basicDrawer)
 export * from './src/typing'

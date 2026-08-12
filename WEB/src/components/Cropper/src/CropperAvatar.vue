@@ -64,13 +64,13 @@ defineExpose({ openModal: openModal.bind(null, true), closeModal })
 
 <template>
   <div :class="getClass" :style="getStyle">
-    <div :class="`${prefixCls}-image-wrapper`" :style="getImageWrapperStyle" @click="openModal">
+    <div :class="`${prefixCls}-image-wrapper`" :style="getImageWrapperStyle" @click="openModal()">
       <div :class="`${prefixCls}-image-mask`" :style="getImageWrapperStyle">
         <Icon icon="ant-design:cloud-upload-outlined" :size="getIconWidth" :style="getImageWrapperStyle" color="#d6d6d6" />
       </div>
       <Avatar v-if="sourceValue" :size="{ xs: 24, sm: 32, md: 40, lg: 64, xl: 80, xxl: 100 }" :src="sourceValue" alt="avatar" />
     </div>
-    <a-button v-if="showBtn" class="mx-auto my-2.5" v-bind="btnProps" @click="openModal">
+    <a-button v-if="showBtn" class="mx-auto my-2.5" v-bind="btnProps" @click="openModal()">
       {{ btnText ? btnText : t('component.cropper.selectImage') }}
     </a-button>
 

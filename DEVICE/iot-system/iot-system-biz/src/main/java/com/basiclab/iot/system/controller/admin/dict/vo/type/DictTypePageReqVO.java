@@ -14,16 +14,15 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * DictTypePageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 字典类型分页列表 Request VO")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DictTypePageReqVO extends PageParam {
 
-    @Schema(description = "字典类型名称，模糊匹配", example = "BasicLab")
+    @Schema(description = "字典类型名称，模糊匹配", example = "yFeiEye")
     private String name;
 
     @Schema(description = "字典类型，模糊匹配", example = "sys_common_sex")

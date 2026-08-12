@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 /**
  * OperateLogRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 操作日志 Response VO")
 @Data
@@ -34,7 +33,7 @@ public class OperateLogRespVO implements VO {
     @Schema(description = "用户编号", example = "1024")
     @Trans(type = TransType.SIMPLE, target = AdminUserDO.class, fields = "nickname", ref = "userName")
     private Long userId;
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     @ExcelProperty("操作人")
     private String userName;
 
@@ -50,7 +49,7 @@ public class OperateLogRespVO implements VO {
     @ExcelProperty("操作模块业务编号")
     private Long bizId;
 
-    @Schema(description = "操作明细", example = "修改编号为 1 的用户信息，将性别从男改成女，将姓名从BasicLab改成源码。")
+    @Schema(description = "操作明细", example = "修改编号为 1 的用户信息，将性别从男改成女，将姓名从yFeiEye改成源码。")
     private String action;
 
     @Schema(description = "拓展字段", example = "{'orderId': 1}")

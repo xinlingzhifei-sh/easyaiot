@@ -115,7 +115,7 @@ const props = defineProps({
   api: propTypes.func,
 });
 //暴露内部方法
-const emit = defineEmits(['getMethod', 'edit', 'refresh']);
+const emit = defineEmits(['getMethod', 'edit', 'refresh', 'verif', 'delete', 'view', 'issue', 'revoke']);
 
 const data = ref([]);
 const state = reactive({
@@ -203,10 +203,12 @@ function pageSizeChange(_current, size: number) {
 async function handleVerif(record: object) {
   emit('verif', record);
 }
+void handleVerif;
 
 async function handleDelete(record: object) {
   emit('delete', record);
 }
+void handleDelete;
 
 async function handleView(record: object) {
   emit('view', record);
@@ -219,10 +221,12 @@ async function handleEdit(record: object) {
 async function handleIssue(record: object) {
   emit('issue', record);
 }
+void handleIssue;
 
 async function handleRevoke(record: object) {
   emit('revoke', record);
 }
+void handleRevoke;
 
 async function handleCopy(record: object) {
   await navigator.clipboard.writeText(JSON.stringify(record));

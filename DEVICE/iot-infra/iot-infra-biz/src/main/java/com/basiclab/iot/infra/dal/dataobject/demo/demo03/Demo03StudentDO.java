@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 /**
  * 学生 DO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @TableName("Yudao_demo03_student")
 @KeySequence("Yudao_demo03_student_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。

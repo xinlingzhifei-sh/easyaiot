@@ -226,11 +226,11 @@ End Function
 EOF
 
 cat > "${OUT_DIR}/README.txt" <<EOF
-EasyAIoT PANEL ${VERSION} (Windows)
+yFeiEye PANEL ${VERSION} (Windows)
 
 1. 安装 Docker Desktop（首次）；启动时会自动尝试拉起它
 2. 安装 Git for Windows（提供 bash，PANEL 一键部署需要）
-3. 双击桌面「EasyAIoT Panel」（无黑窗后台运行），或运行 run.vbs / easyaiot-panel.exe
+3. 双击桌面「yFeiEye Panel」（无黑窗后台运行），或运行 run.vbs / easyaiot-panel.exe
 4. 浏览器打开 http://127.0.0.1:9200/
 5. 在「应用部署」中执行 install（仅拉取预构建镜像，不本地编译）
 

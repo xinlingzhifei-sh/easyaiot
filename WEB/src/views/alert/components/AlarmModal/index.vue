@@ -45,11 +45,8 @@
 import {computed, reactive} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, FormItem, Input, Spin,} from 'ant-design-vue';
-import {useMessage} from '@/hooks/web/useMessage';
 
 defineOptions({name: 'AlarmModal'})
-
-const {createMessage} = useMessage();
 
 const state = reactive({
   isEdit: false,
@@ -59,16 +56,16 @@ const state = reactive({
 });
 
 const modelRef = reactive({
-  id: null,
-  object: null,
-  event: null,
-  region: null,
-  information: null,
-  time: null,
-  device_id: null,
-  device_name: null,
-  image_url: null,
-  record_path: null,
+  id: undefined as number | undefined,
+  object: '',
+  event: '',
+  region: '',
+  information: '',
+  time: '',
+  device_id: '',
+  device_name: '',
+  image_url: '',
+  record_path: '',
 });
 
 const getTitle = computed(() => (state.isEdit ? '编辑告警事件' : state.isView ? '查看告警事件' : '新增告警事件'));
@@ -88,12 +85,8 @@ const rulesRef = reactive({
   deviceVersion: [{required: true, message: '请输入告警事件号', trigger: ['change']}],
 });
 
-function handleCLickChange(value) {
-  //console.log('handleCLickChange', value)
-}
-
 const useForm = Form.useForm;
-const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
+const {resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
 async function modelEdit(record) {
   try {

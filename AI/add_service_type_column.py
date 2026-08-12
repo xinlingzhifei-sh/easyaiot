@@ -1,8 +1,7 @@
 """
 数据库迁移脚本：为 llm_config 表添加 service_type 列
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys

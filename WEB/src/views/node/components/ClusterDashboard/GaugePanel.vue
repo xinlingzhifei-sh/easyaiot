@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { EChartsOption } from 'echarts';
 import type { Ref } from 'vue';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useECharts } from '@/hooks/web/useECharts';
@@ -16,7 +17,7 @@ const { setOptions, resize, getInstance } = useECharts(chartRef as Ref<HTMLDivEl
 let resizeObserver: ResizeObserver | null = null;
 let hasRendered = false;
 
-function buildGaugeOptions(val: number) {
+function buildGaugeOptions(val: number): EChartsOption {
   const color = getProgressColor(Math.min(val, 100));
   const gaugeMax = Math.max(100, Math.ceil(val / 50) * 50);
   return {
@@ -67,7 +68,7 @@ function buildGaugeOptions(val: number) {
   };
 }
 
-function buildGaugePatch(val: number) {
+function buildGaugePatch(val: number): EChartsOption {
   const color = getProgressColor(Math.min(val, 100));
   const gaugeMax = Math.max(100, Math.ceil(val / 50) * 50);
   return {

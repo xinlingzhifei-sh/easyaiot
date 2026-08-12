@@ -1,5 +1,5 @@
 """
-@author 翱翔的雄库鲁
+@author reese
 讯飞语音识别API配置
 """
 

@@ -94,7 +94,7 @@ defineExpose({ loadLanes });
             >
               {{ NODE_TERM.addCentralNode }}
             </Button>
-            <Button :loading="loading" preIcon="ant-design:redo-outlined" @click="loadLanes">
+            <Button :loading="loading" preIcon="ant-design:redo-outlined" @click="() => loadLanes()">
               刷新
             </Button>
           </div>

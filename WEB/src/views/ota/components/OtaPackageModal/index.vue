@@ -223,11 +223,11 @@ const rulesRef = reactive({
 const useForm = Form.useForm;
 const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
-function handleTypeCLickChange(value) {
+function handleTypeCLickChange(_value) {
   //console.log('handleCLickChange', value)
 }
 
-function handleKeyVersionFlagCLickChange(value) {
+function handleKeyVersionFlagCLickChange(_value) {
   //console.log('handleCLickChange', value)
 }
 

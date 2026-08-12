@@ -36,7 +36,7 @@
     modelRef.deviceId = data.deviceId;
   });
   const modelRef = reactive({
-    customId: null,
+    customId: undefined as string | number | undefined,
     deviceId: [],
   });
   const rulesRef = reactive({

@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.basiclab.iot.common.enums.RpcConstants.RPC_API_PREFIX;
 import static com.basiclab.iot.common.exception.GlobalErrorStatus.FORBIDDEN;
 
 /**
@@ -22,9 +23,8 @@ import static com.basiclab.iot.common.exception.GlobalErrorStatus.FORBIDDEN;
  *
  * 补充：Spring Security 通过 {@link ExceptionTranslationFilter#handleAccessDeniedException(HttpServletRequest, HttpServletResponse, FilterChain, AccessDeniedException)} 方法，调用当前类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @SuppressWarnings("JavadocReference")
@@ -37,6 +37,10 @@ public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
         log.warn("[commence][访问 URL({}) 时，用户({}) 权限不够]", request.getRequestURI(),
                 SecurityFrameworkUtils.getLoginUserId(), e);
         // 返回 403
+        String requestUri = request.getRequestURI();
+        if (RPC_API_PREFIX.equals(requestUri) || requestUri.startsWith(RPC_API_PREFIX + "/")) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        }
         ServletUtils.writeJSON(response, CommonResult.error(FORBIDDEN));
     }
 

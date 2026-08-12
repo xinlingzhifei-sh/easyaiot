@@ -1,4 +1,4 @@
-# EasyAIoT Platform macOS Deployment Guide
+# yFeiEye Platform macOS Deployment Guide
 
 > Document version: 1.1  
 > Updated: 2026-08-01  

@@ -1,6 +1,7 @@
 package com.basiclab.iot.gateway.util;
 
 import cn.hutool.core.map.MapUtil;
+import com.basiclab.iot.common.enums.RpcConstants;
 import com.basiclab.iot.common.utils.json.JsonUtils;
 import com.basiclab.iot.gateway.filter.security.LoginUser;
 import lombok.SneakyThrows;
@@ -17,9 +18,8 @@ import java.nio.charset.StandardCharsets;
  *
  * copy from iot-spring-boot-starter-security 的 SecurityFrameworkUtils 类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 public class SecurityFrameworkUtils {
@@ -28,7 +28,7 @@ public class SecurityFrameworkUtils {
 
     private static final String AUTHORIZATION_BEARER = "Bearer";
 
-    private static final String LOGIN_USER_HEADER = "login-user";
+    public static final String LOGIN_USER_HEADER = "login-user";
 
     private static final String LOGIN_USER_ID_ATTR = "login-user-id";
     private static final String LOGIN_USER_TYPE_ATTR = "login-user-type";
@@ -65,19 +65,17 @@ public class SecurityFrameworkUtils {
     }
 
     /**
-     * 移除请求头的用户
+     * 移除调用方可伪造的内部身份请求头
      *
      * @param exchange 请求
      * @return 请求
      */
-    public static ServerWebExchange removeLoginUser(ServerWebExchange exchange) {
-        // 如果不包含，直接返回
-        if (!exchange.getRequest().getHeaders().containsKey(LOGIN_USER_HEADER)) {
-            return exchange;
-        }
-        // 如果包含，则移除。参考 RemoveRequestHeaderGatewayFilterFactory 实现
+    public static ServerWebExchange removeUntrustedIdentityHeaders(ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest().mutate()
-                .headers(httpHeaders -> httpHeaders.remove(LOGIN_USER_HEADER)).build();
+                .headers(httpHeaders -> {
+                    httpHeaders.remove(LOGIN_USER_HEADER);
+                    httpHeaders.remove(RpcConstants.RPC_INTERNAL_TOKEN_HEADER);
+                }).build();
         return exchange.mutate().request(request).build();
     }
 

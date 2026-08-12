@@ -1,6 +1,6 @@
 # OPC UA Demo
 
-验证 EasyAIoT `OPCUA` 上行采集与下行写入。
+验证 yFeiEye `OPCUA` 上行采集与下行写入。
 
 ## 前置
 

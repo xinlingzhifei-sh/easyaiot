@@ -14,11 +14,10 @@ import javax.validation.Valid;
 /**
  * ApiAccessLogApi
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
-@FeignClient(name = ApiConstants.NAME) // TODO BasicLab：fallbackFacto
+@FeignClient(name = ApiConstants.NAME) // TODO yFeiEye：fallbackFacto
 @Tag(name = "RPC 服务 - API 访问日志")
 public interface ApiAccessLogApi {
 

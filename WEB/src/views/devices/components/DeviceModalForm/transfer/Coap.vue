@@ -84,6 +84,9 @@ const powerList = reactive([
   {label: '非连续接收(DRX)', value: PowerMode.DRX},
   {label: '连续接收(eDRX)', value: PowerMode.E_DRX},
 ]);
+void payloadList;
+void coapList;
+void powerList;
 
 const modelRef = reactive({
   type: props.type,

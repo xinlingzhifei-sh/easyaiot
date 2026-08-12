@@ -1,5 +1,5 @@
 /**
- * EasyAIoT：演示规则链页签只读 — 禁用 Deploy，并提示不可改删
+ * yFeiEye：演示规则链页签只读 — 禁用 Deploy，并提示不可改删
  * 由 settings.js editorTheme.page.scripts 注入
  */
 (function () {
@@ -21,7 +21,7 @@
       btn.classList.add('disabled');
       btn.style.pointerEvents = 'none';
       btn.style.opacity = '0.45';
-      btn.title = 'EasyAIoT 演示规则链只读，禁止部署修改';
+      btn.title = 'yFeiEye 演示规则链只读，禁止部署修改';
     } else {
       btn.classList.remove('disabled');
       btn.style.pointerEvents = '';

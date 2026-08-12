@@ -10,6 +10,16 @@ const { GO_CHART_LAYOUT_STORE } = StorageEnum
 
 const storageChartLayout: Partial<ChartLayoutType> = getLocalStorage(GO_CHART_LAYOUT_STORE)
 
+export const ChartLayoutStoreEnum = {
+  LAYERS: 'layers' as keyof ChartLayoutType,
+  CHARTS: 'charts' as keyof ChartLayoutType,
+  DETAILS: 'details' as keyof ChartLayoutType,
+  Chart_TYPE: 'chartType' as keyof ChartLayoutType,
+  LAYER_TYPE: 'layerType' as keyof ChartLayoutType,
+  PERCENTAGE: 'percentage' as keyof ChartLayoutType,
+  RE_POSITION_CANVAS: 'rePositionCanvas' as keyof ChartLayoutType,
+} as const
+
 // 编辑区域布局和静态设置
 export const useChartLayoutStore = defineStore({
   id: 'useChartLayoutStore',

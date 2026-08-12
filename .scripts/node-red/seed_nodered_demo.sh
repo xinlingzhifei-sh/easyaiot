@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 将 EasyAIoT 高质量 Node-RED 演示规则链导入运行中的 Node-RED
+# 将 yFeiEye 高质量 Node-RED 演示规则链导入运行中的 Node-RED
 # 用法：bash .scripts/node-red/seed_nodered_demo.sh
 #
 # 依赖：Node-RED 已启动（默认 http://127.0.0.1:1880）
@@ -36,7 +36,7 @@ if ! curl -sf -o /dev/null "${NODERED_URL}/"; then
   exit 1
 fi
 
-# 同步 settings（标题 EasyAIoT + 演示只读中间件）；compose 已挂载时仍可覆盖本地 data 副本
+# 同步 settings（标题 yFeiEye + 演示只读中间件）；compose 已挂载时仍可覆盖本地 data 副本
 if [[ -f "${SETTINGS_FILE}" && -d "${DATA_DIR}" ]]; then
   cp -f "${SETTINGS_FILE}" "${DATA_DIR}/settings.js"
   cp -f "${FLOWS_FILE}" "${DATA_DIR}/easyaiot_flows_demo.json"
@@ -111,6 +111,6 @@ fi
 echo "[OK] Node-RED 演示规则链已导入"
 echo "     链路：设备遥测采集链路 / 告警分级推送链路 / 工控协议桥接链路 / 视觉质检联动链路"
 echo "     固定 ID：${DEMO_IDS[*]}"
-echo "     编辑器：${NODERED_URL}/ （标题 EasyAIoT；演示链路只读）"
+echo "     编辑器：${NODERED_URL}/ （标题 yFeiEye；演示链路只读）"
 echo "     若刚更新 settings.js，请重启容器使标题/中间件生效："
 echo "       docker restart nodered-server"

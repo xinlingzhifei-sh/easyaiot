@@ -244,7 +244,6 @@ Kafka不可用，跳过告警通知发送: alert_id=xxx
 
 ## 作者
 
-翱翔的雄库鲁
-- Email: andywebjava@163.com
-- WeChat: EasyAIoT2025
+reese
+- Email: reese
 

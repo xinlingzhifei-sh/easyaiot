@@ -75,7 +75,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-_ALERT_CANDIDATE="${ALERT_IMAGES_DIR:-${PROJECT_ROOT}/VIDEO/alert_images}"
+_ALERT_CANDIDATE="${ALERT_IMAGES_DIR:-${EASYAIOT_MEDIA_ROOT}/alert_images}"
 mkdir -p "${_ALERT_CANDIDATE}" 2>/dev/null || true
 if [ -d "${_ALERT_CANDIDATE}" ]; then
     ALERT_HOST_DIR="$(cd "${_ALERT_CANDIDATE}" && pwd)"
@@ -177,7 +177,8 @@ check_shared_mount() {
         fi
     fi
 
-    rm -f "$probe_host" 2>/dev/null || true
+    mkdir -p "${EASYAIOT_MEDIA_ROOT}/.verify-trash" 2>/dev/null || true
+    mv "$probe_host" "${EASYAIOT_MEDIA_ROOT}/.verify-trash/" 2>/dev/null || true
     return 0
 }
 
@@ -214,6 +215,7 @@ run_python_e2e() {
         return 1
     fi
     export ALERT_IMAGES_DIR="${ALERT_HOST_DIR}"
+    export ALERT_IMAGES_CONTAINER_DIR="${ALERT_IMAGES_CONTAINER_DIR:-/mnt/easyaiot-media/alert_images}"
     export MQTT_BROKER_URLS="${MQTT_BROKER_URLS:-127.0.0.1:1883}"
     export VIDEO_BASE_URL="${VIDEO_BASE_URL:-http://127.0.0.1:6000}"
     export DOCKER_PG_CONTAINER="${DOCKER_PG_CONTAINER:-postgres-server}"
@@ -231,7 +233,7 @@ run_python_e2e() {
 }
 
 main() {
-    print_section "EasyAIoT 告警事件面验收"
+print_section "yFeiEye 告警事件面验收"
     print_info "项目根: ${PROJECT_ROOT}"
 
     check_shared_mount || true

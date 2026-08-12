@@ -50,8 +50,8 @@
     </modules>
 
     <name>${project.artifactId}</name>
-    <description>EasyAIoT</description>
-    <url>https://github.com/soaring-xiongkulu/easyaiot</url>
+    <description>yFeiEye</description>
+    <url>https://github.com/reese/yfeieye</url>
 
     <dependencyManagement>
         <dependencies>

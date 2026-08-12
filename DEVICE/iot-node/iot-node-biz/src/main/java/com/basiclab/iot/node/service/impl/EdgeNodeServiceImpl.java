@@ -18,6 +18,7 @@ import com.basiclab.iot.node.domain.vo.EdgeRuntimeConfigReqVO;
 import com.basiclab.iot.node.domain.vo.EdgeRuntimeConfigRespVO;
 import com.basiclab.iot.node.enums.NodeRoleEnum;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.EdgeNodeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,8 +66,8 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
     @Value("${easyaiot.edge.join-token:}")
     private String joinToken;
 
-    /** 私网实验室可 true：无需 join-token，仅配 NODE 地址即可纳管 */
-    @Value("${easyaiot.edge.allow-open-enroll:true}")
+    /** 仅限显式启用的隔离实验环境；默认拒绝无令牌纳管 */
+    @Value("${easyaiot.edge.allow-open-enroll:false}")
     private boolean allowOpenEnroll;
 
     @Value("${easyaiot.edge.mqtt-algo-tenant:default}")
@@ -297,7 +298,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
 
     private void validateJoinToken(String requestToken) {
         if (StrUtil.isNotBlank(joinToken)) {
-            if (!joinToken.equals(StrUtil.blankToDefault(requestToken, ""))) {
+            if (!NodeTokenVerifier.matches(joinToken, requestToken)) {
                 throw exception(EDGE_JOIN_TOKEN_INVALID);
             }
             return;
@@ -451,7 +452,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (StrUtil.isBlank(agentToken) || !agentToken.equals(node.getAgentToken())) {
+        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
             throw exception(AGENT_TOKEN_INVALID);
         }
         return node;

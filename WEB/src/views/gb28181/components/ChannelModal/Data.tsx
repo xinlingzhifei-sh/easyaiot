@@ -1,5 +1,4 @@
 import {BasicColumn, FormProps} from "@/components/Table";
-import moment from "moment";
 
 export function getBasicColumns(): BasicColumn[] {
   return [

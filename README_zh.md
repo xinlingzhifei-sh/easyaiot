@@ -1,14 +1,14 @@
-# EasyAIoT（云边端一体化智能算法应用平台）
+# yFeiEye（云边端一体化智能算法应用平台）
 
-[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/stargazers)
-[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/members)
+[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/reese/easyaiot/stargazers)
+[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/reese/easyaiot/members)
 
 <p style="font-size: 16px; line-height: 1.8; color: #555; font-weight: 400; margin: 20px 0;">
 我希望全世界都能使用这个系统，实现AI的真正0门槛，人人都能体验到AI带来的好处，而并不只是掌握在少数人手里。
 </p>
 
 <div align="center">
-    <img src=".image/logo.png" width="30%" height="30%" alt="EasyAIoT">
+    <img src=".image/logo.png" width="30%" height="30%" alt="yFeiEye">
 </div>
 
 <h4 align="center" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; font-weight: bold;">
@@ -27,18 +27,18 @@
 
 ## 🌐 官方网站
 
-EasyAIoT 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
+yFeiEye 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
 提供产品介绍、特性说明、三档硬件选型、安装包下载与文档入口，便于快速了解平台价值并开始落地。
 
 ## 📖 项目介绍
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>EasyAIoT</strong>（Easy AI Internet of Things）是一款<strong>云边端一体化的智能算法应用平台</strong>，专注于将人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
+<strong>yFeiEye</strong>是一款<strong>云边端一体化的智能算法应用平台</strong>，专注于将人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-许多智能物联网项目落地时面临同一困境：视频系统、设备平台、算法服务各自为政，集成成本高、运维割裂、扩容困难。<strong>EasyAIoT 用一套平台化解这一矛盾</strong>——同一套软件既可部署在 4 GB 边缘盒子上实现单点智能，也可搭载于 AI 一体摄像头完成楼面级覆盖，还能装进企业级全栈一体机，一箱配齐 IoT 纳管、海量视频接入与 AI 分析研判，不必维护多套版本、不必反复对接异构系统。
+许多智能物联网项目落地时面临同一困境：视频系统、设备平台、算法服务各自为政，集成成本高、运维割裂、扩容困难。<strong>yFeiEye 用一套平台化解这一矛盾</strong>——同一套软件既可部署在 4 GB 边缘盒子上实现单点智能，也可搭载于 AI 一体摄像头完成楼面级覆盖，还能装进企业级全栈一体机，一箱配齐 IoT 纳管、海量视频接入与 AI 分析研判，不必维护多套版本、不必反复对接异构系统。
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -46,11 +46,11 @@ EasyAIoT 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
-<strong>一句话概括：</strong>EasyAIoT = AI + IoT，让万物互联的同时实现万物智视、万物智控。
+<strong>一句话概括：</strong>yFeiEye = AI + IoT，让万物互联的同时实现万物智视、万物智控。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-📄 如需更完整的图文介绍，请参阅 <a href=".doc/项目介绍/EasyAIoT项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">EasyAIoT项目介绍 V2.0（PPT）</a>，以及 <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">AI视频监控分析平台（PDF）</a>。
+📄 如需更完整的图文介绍，请参阅 <a href=".doc/项目介绍/yFeiEye项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">yFeiEye项目介绍 V2.0（PPT）</a>，以及 <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">AI视频监控分析平台（PDF）</a>。
 </p>
 
 ## 🌟 关于项目的一些思考
@@ -58,7 +58,7 @@ EasyAIoT 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 ### 📍 项目定位
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT的深度融合。平台通过算法任务管理、实时流分析、模型服务集群推理等核心能力，实现从设备接入到数据采集、AI分析、智能决策的全链路闭环，真正实现万物互联、万物智控。
+yFeiEye是一个云边端一体化的智能物联网平台，专注于AI与IoT的深度融合。平台通过算法任务管理、实时流分析、模型服务集群推理等核心能力，实现从设备接入到数据采集、AI分析、智能决策的全链路闭环，真正实现万物互联、万物智控。
 </p>
 
 ### 🎛️ PANEL：一体机到场当天可装可验，值守不必等开发远程
@@ -86,7 +86,7 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
 ### 📡 RTC：消费级摄像头 P2P 桥接，让「没有 RTSP」的设备也能进平台
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-家庭、门店与轻量安防场景里，大量已在用的设备来自 <strong>Tapo、涂鸦、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 等品牌——它们普遍走厂商私有 P2P 协议，<strong>原生不提供标准 RTSP</strong>，传统视频监控平台往往只能劝用户另搭 Micam、Home Assistant 等中间件，接入链路长、运维割裂、AI 研判接不进来。EasyAIoT 新增独立 <strong>RTC 模块</strong>，基于开源项目 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a>，<strong>一次打通上述九大品牌的取流与对讲能力</strong>，把 P2P 桥接与平台编排收成一体——消费级设备也能像国标/ONVIF 摄像头一样，<strong>注册、预览、推流转发、挂 AI 任务、告警联动</strong>全链路打通。
+家庭、门店与轻量安防场景里，大量已在用的设备来自 <strong>Tapo、涂鸦、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 等品牌——它们普遍走厂商私有 P2P 协议，<strong>原生不提供标准 RTSP</strong>，传统视频监控平台往往只能劝用户另搭 Micam、Home Assistant 等中间件，接入链路长、运维割裂、AI 研判接不进来。yFeiEye 新增独立 <strong>RTC 模块</strong>，基于开源项目 <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a>，<strong>一次打通上述九大品牌的取流与对讲能力</strong>，把 P2P 桥接与平台编排收成一体——消费级设备也能像国标/ONVIF 摄像头一样，<strong>注册、预览、推流转发、挂 AI 任务、告警联动</strong>全链路打通。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
@@ -171,7 +171,7 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
 ### 🎯 三档硬件，一套平台
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-很多智能物联网项目走到落地时都会卡住：<strong>功能做全了，小机器装不下；为了装得下，又得砍能力、拆版本、维护多套部署包。</strong> EasyAIoT 用同一套平台化解这一矛盾——<strong>边缘盒子点上智能、AI 一体摄像头上墙即分析、AIoT 智能全栈一体机一箱配齐全链路</strong>，三类最常见的现场硬件各选一档即可，同一套软件贯穿从单点试点到楼面覆盖再到全栈交付，不必拆版本。
+很多智能物联网项目走到落地时都会卡住：<strong>功能做全了，小机器装不下；为了装得下，又得砍能力、拆版本、维护多套部署包。</strong> yFeiEye 用同一套平台化解这一矛盾——<strong>边缘盒子点上智能、AI 一体摄像头上墙即分析、AIoT 智能全栈一体机一箱配齐全链路</strong>，三类最常见的现场硬件各选一档即可，同一套软件贯穿从单点试点到楼面覆盖再到全栈交付，不必拆版本。
 </p>
 
 | 选型 | 典型硬件（举例） | 推荐内存 | 你能做到什么 | 实测验证 |
@@ -188,10 +188,19 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
 |:---:|:---:|:---:|
 | ![边缘盒子 mini](.image/deploy-profile-mini.png) | ![AI 一体摄像头 standard](.image/deploy-profile-standard.png) | ![全栈一体机 full](.image/deploy-profile-full.png) |
 
+<div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
+  <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 yFeiEye 无限联邦边缘集群模式</p>
+  <p style="font-size: 14px; line-height: 1.8; color: #333; margin: 0;">
+    把智能从机房搬到现场：普通开发板与边缘盒子也可就近完成感知研判，告警、证据与态势自动汇聚到中心，无需为每处网点再堆一套重装备。
+    业务扩张时按点增配即可，中心统一编排、边缘自主值守，真正实现「算力随业务铺开、智能贴着场景生长」。
+  </p>
+</div>
+
 #### 🧠 AI能力
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>平台名称与 Logo 全触点自定义</strong>：同一套 EasyAIoT 部署到现场后，用户看到的应是「自己的平台」，而不是通用产品名。监控大屏内置可视化「平台标识设置」，管理员在界面中即可完成品牌替换——管理后台可改平台名称与 Logo（同步侧边栏、浏览器标题）；监控大屏可独立设置指挥标题；登录页可自定义名称、Logo、表单标题及浅色/深色背景图，三处视觉统一、即时生效，并支持保存与一键重置。
+  <li><strong>CentOS / RHEL ARM 一键部署</strong>：面向 aarch64 边缘服务器与国产 ARM 算力主机，新增 <code>install_linux_centos_arm.sh</code> 专用入口——自动检测 CentOS/RHEL 系发行版与 ARM 架构，安装/升级 Docker CE、配置国内镜像源并放行 firewalld 常用端口，再转交 <code>install_linux_arm.sh</code> 完成 ARM 业务镜像部署。与 x86 侧 <code>install_linux_centos.sh</code> 命令与交互菜单一致，让「CentOS + ARM」现场不必再手工拼通用 ARM 脚本与 EL 系环境准备，装机路径更短、更稳</li>
+  <li><strong>平台名称与 Logo 全触点自定义</strong>：同一套 yFeiEye 部署到现场后，用户看到的应是「自己的平台」，而不是通用产品名。监控大屏内置可视化「平台标识设置」，管理员在界面中即可完成品牌替换——管理后台可改平台名称与 Logo（同步侧边栏、浏览器标题）；监控大屏可独立设置指挥标题；登录页可自定义名称、Logo、表单标题及浅色/深色背景图，三处视觉统一、即时生效，并支持保存与一键重置。
     <ul style="margin: 5px 0; padding-left: 20px;">
       <li><strong>对系统集成商与方案商</strong>：省去前端改肤、二次开发与发版成本；PoC 演示与正式交付可快速切换为客户品牌，同一套代码支撑多客户项目，缩短回款周期、提高方案复用率</li>
       <li><strong>对政府、园区、医院等行业终端用户</strong>：登录页、指挥大屏与日常管理后台均呈现本单位名称与标识，领导视察与对内推广更有归属感与公信力，符合机关、事业单位及大型企业的信息化品牌展示要求</li>
@@ -254,7 +263,7 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
 #### 🌐 IoT能力
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-许多项目把 IoT 做成「设备台账 + 报文中转」，结果是：能连上，却管不住；能上报，却推不动；能告警，却看不清现场；有数了，却展不成屏、对不上工艺。EasyAIoT 把 IoT 定位为<strong>感知—理解—决策—执行</strong>闭环里的执行神经：传感器与执行器提供「数」，摄像头与 AI 提供「图」，可视化大屏与工艺组态把「数」变成可指挥的态势，规则与影子把两者拧成可运营的业务动作——让平台不只「看得见」，更能「展得成屏、看得懂工艺、管得住、控得准、扩得开」。
+许多项目把 IoT 做成「设备台账 + 报文中转」，结果是：能连上，却管不住；能上报，却推不动；能告警，却看不清现场；有数了，却展不成屏、对不上工艺。yFeiEye 把 IoT 定位为<strong>感知—理解—决策—执行</strong>闭环里的执行神经：传感器与执行器提供「数」，摄像头与 AI 提供「图」，可视化大屏与工艺组态把「数」变成可指挥的态势，规则与影子把两者拧成可运营的业务动作——让平台不只「看得见」，更能「展得成屏、看得懂工艺、管得住、控得准、扩得开」。
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
@@ -295,7 +304,7 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
   <li><strong>离线指令排队</strong>：弱网或短暂离线时指令直接丢，回来还得重做一遍。设备暂时离线时，指令先写入期望影子，上线后按协议自动拉取或接收——弱网抖动不丢控制意图，回来即补齐，少做一遍重复操作</li>
   <li><strong>子设备网关代理控制</strong>：边缘大量终端若都要求直连平台，接入复杂度与证书管理成本会指数上升。子设备控制经所属网关代理下发——边缘终端不必直连平台也能被统一遥控，降低终端接入复杂度，让网关真正成为可运营的汇聚面</li>
   <li><strong>关联摄像头</strong>：传感器告警若看不到现场，值守只能「听数猜事」。物联设备可绑定设备目录中的摄像头，测点与画面点位挂上对应关系——异常一出就知道该翻哪路视频，把「报个数」升级为「找得到画面」</li>
-  <li><strong>分屏监控与 AI 联动</strong>：这是 EasyAIoT 相对纯 IoT 平台的关键差异——纯物联「看得见数却看不见场」，纯视频「看得见场却控不住设备」。功能调用页可切 1/4/9 分屏预览关联摄像头，并可顺手拉起 AI 分析——改参数、下指令的同时盯着现场，「数」与「图」在同一屏里核实与处置，少切系统、少漏判，真正体现 AI + IoT 融合价值</li>
+  <li><strong>分屏监控与 AI 联动</strong>：这是 yFeiEye 相对纯 IoT 平台的关键差异——纯物联「看得见数却看不见场」，纯视频「看得见场却控不住设备」。功能调用页可切 1/4/9 分屏预览关联摄像头，并可顺手拉起 AI 分析——改参数、下指令的同时盯着现场，「数」与「图」在同一屏里核实与处置，少切系统、少漏判，真正体现 AI + IoT 融合价值</li>
   <li><strong>事件日志</strong>：告警弹窗一闪而过，事后复盘只能靠记忆与扯皮。设备上报的信息/警告/错误事件集中汇聚，可按类型、名称、时间筛选——复盘翻的是原始事件流，回答「现场发生过什么」有据可依，不只靠瞬时弹窗</li>
   <li><strong>指令日志</strong>：联调排障最怕双方各执一词：指令到底下没下到、设备认没认。属性设置与服务调用的处理中/成功/失败全程留痕——联调与排障告别口头对账，指令链路可核对、可追责</li>
   <li><strong>设备日志</strong>：定位固件与业务异常若还要登设备翻本地文件，排障效率必然被现场网络与权限卡住。设备侧多级别日志汇到云端，关键字与时间可检索——云端即可定位异常，不必再登设备翻本地日志</li>
@@ -311,7 +320,7 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
   <li><strong>消息推送</strong>：再准的检测、再完整的设备事件，若堵在系统里等人翻，价值等于零。按渠道创建推送任务，可先测试再正式启动——告警与业务事件直接落到责任人日常办公入口，不堵在系统里</li>
   <li><strong>推送历史</strong>：通知是否发出、是否触达若无记录，审计与优化只能靠猜。各渠道推送记录可回看——发出没有、触达没有有据可查，审计与触达策略优化都有底</li>
   <li><strong>通知用户与分组</strong>：关键告警全员刷屏会造成告警疲劳，该到的人收不到又会漏报。维护通知用户与分组，按角色、班次精准触达——该到的人收得到，全员刷屏的告警疲劳也少了，让「感知—研判—通知—处置」真正闭环到人</li>
-  <li><strong>TRANSFORM 多向业务流转</strong>：平台侧告警、设备事件与业务结果若只能停在 EasyAIoT 内部，对接 MES / ERP / CRM / WMS 等系统仍要按项目定制接口，交付周期与返工成本都会被放大。TRANSFORM 把「转给谁、按什么规则转、字段怎么对上、投没投到」收成可配置能力：数据目的、转发规则与映射模板一次配好即可复用，投递过程可监控、可回看——多方系统对接从「每家写一次定制接口」变成「按约定配通、按轨迹验收」，让平台数据真正进入客户既有业务闭环</li>
+  <li><strong>TRANSFORM 多向业务流转</strong>：平台侧告警、设备事件与业务结果若只能停在 yFeiEye 内部，对接 MES / ERP / CRM / WMS 等系统仍要按项目定制接口，交付周期与返工成本都会被放大。TRANSFORM 把「转给谁、按什么规则转、字段怎么对上、投没投到」收成可配置能力：数据目的、转发规则与映射模板一次配好即可复用，投递过程可监控、可回看——多方系统对接从「每家写一次定制接口」变成「按约定配通、按轨迹验收」，让平台数据真正进入客户既有业务闭环</li>
 </ul>
 
 #### 📱 移动端APP
@@ -355,18 +364,18 @@ EasyAIoT是一个云边端一体化的智能物联网平台，专注于AI与IoT�
 ### 💡 技术理念
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-我们认为没有任何一个编程语言能够擅长所有事情，但通过五种编程语言的深度融合，EasyAIoT将发挥各自优势，构建强大的技术生态。
+我们认为没有任何一个编程语言能够擅长所有事情，但通过五种编程语言的深度融合，yFeiEye将发挥各自优势，构建强大的技术生态。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java擅长构建稳定可靠的平台架构，却不适合网络编程与AI开发；Python擅长网络编程与AI算法，却在高路数、低时延的帧级执行上容易碰到 GIL 与进程开销瓶颈；C++擅长高性能任务执行，却不宜承担平台架构与算法编排——因此平台把<strong>拉流解码、推理、带框推流与多路原画转发</strong>下沉到 <strong>RUNTIME</strong>，WEB/VIDEO 继续做编排与业务面。Go擅长高并发网络编程与协议实现，却不宜承担平台管控与AI算法；TypeScript擅长复杂前端交互与类型安全的工程化界面，却不宜承担后端高性能计算与AI推理。EasyAIoT采用五合一语言混编架构，让各语言各司其职，构建一个实现颇具挑战、使用却极其便捷的AIoT平台。
+Java擅长构建稳定可靠的平台架构，却不适合网络编程与AI开发；Python擅长网络编程与AI算法，却在高性能执行上存在瓶颈；C++擅长高性能任务执行，却不宜承担平台架构与AI编程；Go擅长高并发网络编程与协议实现，却不宜承担平台管控与AI算法；TypeScript擅长复杂前端交互与类型安全的工程化界面，却不宜承担后端高性能计算与AI推理。yFeiEye采用五合一语言混编架构，让各语言各司其职，构建一个实现颇具挑战、使用却极其便捷的AIoT平台。
 </p>
 
-![EasyAIoT平台架构.jpg](.image/iframe2.jpg)
+![yFeiEye平台架构](.image/iframe2-yfeieye.png)
 
 ### 🔄 模块数据流转
 
-<img src=".image/iframe3.jpg" alt="EasyAIoT平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe3.jpg" alt="yFeiEye平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🤖 零样本标注技术
 
@@ -374,12 +383,12 @@ Java擅长构建稳定可靠的平台架构，却不适合网络编程与AI开�
 创新性地依托大模型构建零样本标注技术体系（理想状态下完全去除人工标注环节，实现标注流程的自动化），该技术通过大模型生成初始数据并借助提示词技术完成自动标注，再经人机协同校验确保数据质量（可选），进而训练出初始小模型。该小模型通过持续迭代、自我优化，实现标注效率与模型精度的协同进化，最终推动系统性能不断攀升。
 </p>
 
-<img src=".image/iframe4.jpg" alt="EasyAIoT平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe4.jpg" alt="yFeiEye平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🏗️ 项目架构特点
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-EasyAIoT其实不是一个项目，而是多个可独立部署的子项目（含 WEB、DEVICE、VIDEO、RTC、AI 等）。
+yFeiEye其实不是一个项目，而是多个可独立部署的子项目（含 WEB、DEVICE、VIDEO、RTC、AI 等）。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -398,7 +407,7 @@ EasyAIoT其实不是一个项目，而是多个可独立部署的子项目（含
 ### 🌍 本土化支持
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT积极响应本土化战略，全面支持本土化硬件和操作系统，为用户提供安全可控的AIoT解决方案。已覆盖 <strong>麒麟(Kylin) / 欧拉(openEuler)</strong> 等国产操作系统的部署与 PANEL 安装包交付。
+yFeiEye积极响应本土化战略，全面支持本土化硬件和操作系统，为用户提供安全可控的AIoT解决方案。已覆盖 <strong>麒麟(Kylin) / 欧拉(openEuler)</strong> 等国产操作系统的部署与 PANEL 安装包交付。
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -442,7 +451,7 @@ EasyAIoT积极响应本土化战略，全面支持本土化硬件和操作系统
 ## 🧩 项目结构
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT 由 WEB、APP、DEVICE、NODE、VIDEO、RTC、AI、RUNTIME、VISUALIZE、TRANSFORM、PANEL、SITE 等核心模块组成，并配套 COMPILE 多平台打包交付能力：
+yFeiEye 由 WEB、APP、DEVICE、NODE、VIDEO、RTC、AI、RUNTIME、EDGE、VISUALIZE、TRANSFORM、PANEL、SITE 等核心模块组成，并配套 COMPILE 多平台打包交付能力：
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -632,7 +641,7 @@ EasyAIoT 由 WEB、APP、DEVICE、NODE、VIDEO、RTC、AI、RUNTIME、VISUALIZE�
 ## 🖥️ 跨平台部署优势
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT支持在Linux、Mac、Windows三大主流操作系统上部署，为不同环境下的用户提供灵活便捷的部署方案；配套 <strong>COMPILE</strong> 可按目标系统产出安装包与可执行文件，配合 <strong>PANEL</strong> 完成到场装机与日常值守：
+yFeiEye支持 Linux、Mac、Windows 部署；COMPILE 可按目标系统产出安装包与可执行文件，PANEL 则用于现场装机与日常值守：
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -671,17 +680,17 @@ EasyAIoT支持在Linux、Mac、Windows三大主流操作系统上部署，为不
 
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>统一体验</strong>：无论选择哪种操作系统，EasyAIoT都提供一致的安装脚本和部署文档，确保跨平台部署体验的一致性。
+<strong>统一体验</strong>：无论选择哪种操作系统，yFeiEye都提供一致的安装脚本和部署文档，确保跨平台部署体验的一致性。
 </p>
 
-## ☁️ EasyAIoT = AI + IoT = 云边端一体化解决方案
+## ☁️ yFeiEye = AI + IoT = 云边端一体化解决方案
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 支持上千种垂直场景，支持AI模型定制化和AI算法定制化开发，深度融合。
 </p>
 
 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
-<h3 style="color: #2c3e50; margin-top: 0;">赋能万物智视：EasyAIoT</h3>
+<h3 style="color: #2c3e50; margin-top: 0;">赋能万物智视：yFeiEye</h3>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
 构筑了物联网设备（尤其是海量摄像头）的高效接入与管控网络。我们深度融合流媒体实时传输技术与前沿人工智能（AI），打造一体化服务核心。这套方案不仅打通了异构设备的互联互通，更将高清视频流与强大的AI解析引擎深度集成，赋予监控系统"智能之眼"——精准实现人脸识别、异常行为分析、风险人员布控及周界入侵检测。
 </p>
@@ -689,15 +698,15 @@ EasyAIoT支持在Linux、Mac、Windows三大主流操作系统上部署，为不
 平台支持实时、抓拍与巡检等类型的算法任务：三类任务均可默认走 <strong>RUNTIME 高速执行层</strong>（<code>executor=cpp</code>）——以原生二进制完成长连接拉流、解码、YOLO 推理与结果回传，实时任务<strong>默认推带框 AI 检测流</strong>；抓拍按 Cron 采帧识别；巡检多路轮巡覆盖；推流转发亦可走同一高性能路径把多路原画省资源上墙。相对 Python 兼容后端，高性能路径更吃得住高路数与低时延。告警与心跳统一回 VIDEO。通过算法任务管理实现灵活的抽帧与排序策略，结合模型服务集群推理，确保毫秒级响应与高可用。同时提供全防 / 半防两种布防策略，按时段精准监控与告警。
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-在物联网设备管理方面，EasyAIoT提供完整的设备生命周期管理能力，支持多种物联网与工业协议（MQTT、TCP、HTTP、Modbus-TCP、Modbus-RTU、OPC UA），实现设备的快速接入、安全认证、实时监控和智能控制。通过规则引擎实现设备数据的智能流转与处理，结合AI能力对设备数据进行深度分析，实现从设备接入、数据采集、智能分析到决策执行的全流程自动化，真正实现万物互联、万物智控。
+在物联网设备管理方面，yFeiEye提供完整的设备生命周期管理能力，支持多种物联网与工业协议（MQTT、TCP、HTTP、Modbus-TCP、Modbus-RTU、OPC UA），实现设备的快速接入、安全认证、实时监控和智能控制。通过规则引擎实现设备数据的智能流转与处理，结合AI能力对设备数据进行深度分析，实现从设备接入、数据采集、智能分析到决策执行的全流程自动化，真正实现万物互联、万物智控。
 </p>
 </div>
 
-<img src=".image/iframe1.jpg" alt="EasyAIoT平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src=".image/iframe1.jpg" alt="yFeiEye平台架构" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 
 ## ⚠️ 免责声明
 
-EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该项目时，应遵循法律法规，不得进行非法活动。如果EasyAIoT发现用户有违法行为，将会配合相关机关进行调查并向政府部门举报。用户因非法行为造成的任何法律责任均由用户自行承担，如因用户使用造成第三方损害的，用户应当依法予以赔偿。使用EasyAIoT所有相关资源均由用户自行承担风险.
+yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该项目时，应遵循法律法规，不得进行非法活动。如果yFeiEye发现用户有违法行为，将会配合相关机关进行调查并向政府部门举报。用户因非法行为造成的任何法律责任均由用户自行承担，如因用户使用造成第三方损害的，用户应当依法予以赔偿。使用yFeiEye所有相关资源均由用户自行承担风险.
 
 ## 📚 部署文档
 
@@ -706,16 +715,10 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 - [Windows 镜像部署](.doc/部署文档/平台Windows部署文档_zh.md) — `install_windows.ps1` 推荐入口（第 0 章）
 - [部署最佳实践](.doc/部署文档/部署最佳实践.md) — 规格选型、环境要求、一键部署（含 CentOS **7～9** / **CentOS ARM** / **麒麟(Kylin) / 欧拉(openEuler)**）、预构建镜像、运维排障与生产环境建议
 
-## 🎮 演示环境
-
-- 演示地址：http://36.111.47.113:8888/
-- 账号：admin
-- 密码：admin123
-
 ## ⚙️ 项目地址
 
-- Gitee: https://gitee.com/soaring-xiongkulu/easyaiot
-- Github: https://github.com/soaring-xiongkulu/easyaiot
+- Gitee: [yFeiEye](https://gitee.com/reese/easyaiot)
+- Github: [yFeiEye](https://github.com/xinlingzhifei/easyaiot)
 
 ## 📸 截图
 
@@ -852,12 +855,8 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 ## 💬 技术交流群
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-关注公众号后，使用微信扫描下方二维码加入 EasyAIoT 技术交流群。
+关注公众号后，使用微信扫描下方二维码加入 yFeiEye 技术交流群。
 </p>
-
-<div>
-  <img src=".image/交流群3群.jpg" alt="EasyAIoT技术交流3群" width="30%">
-</div>
 
 ## 💬 微信号联系
 
@@ -885,7 +884,7 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 ## 🤝 贡献指南
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-我们欢迎所有形式的贡献！无论您是代码开发者、文档编写者，还是问题反馈者，您的贡献都将帮助 EasyAIoT 变得更好。以下是几种主要的贡献方式：
+我们欢迎所有形式的贡献！无论您是代码开发者、文档编写者，还是问题反馈者，您的贡献都将帮助 yFeiEye 变得更好。以下是几种主要的贡献方式：
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -926,7 +925,7 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 ## 🌟 重大贡献者
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-以下是对EasyAIoT项目做出重大贡献的杰出贡献者，他们的贡献对项目的发展起到了关键推动作用，我们表示最诚挚的感谢！
+以下是对yFeiEye项目做出重大贡献的杰出贡献者，他们的贡献对项目的发展起到了关键推动作用，我们表示最诚挚的感谢！
 </p>
 
 <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -939,82 +938,78 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 <tbody>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>℡夏别</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动EasyAIoT项目贡献Windows部署文档，为Windows平台用户提供了完整的部署指南，大大降低了Windows环境下的部署难度，让更多用户能够便捷地使用EasyAIoT平台。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动yFeiEye项目贡献Windows部署文档，为Windows平台用户提供了完整的部署指南，大大降低了Windows环境下的部署难度，让更多用户能够便捷地使用yFeiEye平台。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>YiYaYiYaho</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动EasyAIoT项目贡献Mac容器一键部署脚本，为Mac平台用户提供了自动化部署解决方案，显著简化了Mac环境下的部署流程，提升了开发者和用户的部署体验。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动yFeiEye项目贡献Mac容器一键部署脚本，为Mac平台用户提供了自动化部署解决方案，显著简化了Mac环境下的部署流程，提升了开发者和用户的部署体验。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>山寒</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动EasyAIoT项目贡献Linux容器部署脚本，为Linux平台用户提供了容器化部署方案，实现了快速、可靠的容器部署，为生产环境的稳定运行提供了重要保障。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动yFeiEye项目贡献Linux容器部署脚本，为Linux平台用户提供了容器化部署方案，实现了快速、可靠的容器部署，为生产环境的稳定运行提供了重要保障。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>玖零。</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动EasyAIoT项目贡献Linux容器部署脚本，进一步完善了Linux平台的容器化部署方案，为不同Linux发行版用户提供了更多选择，推动了项目的跨平台部署能力。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动yFeiEye项目贡献Linux容器部署脚本，进一步完善了Linux平台的容器化部署方案，为不同Linux发行版用户提供了更多选择，推动了项目的跨平台部署能力。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>爱吃小柚子</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在「训得动、训得稳、训得省心」方向的发展，系统性打通多卡训练、断点续训与节点侧部署能力，让现场算力真正用得上、训练任务真正控得住：支持自动识别并使用服务器全部 GPU，用户可在训练页按需选择单卡或多卡，不再受限于只能看到一张卡；兼容多种常见数据集格式与目录结构，支持大容量本地数据集上传，训练失败后仍可保留原始数据快速重试，显著降低数据准备与反复折腾的成本；完善训练进度可见、任务可停可续，避免中断后成果丢失、点击停止却仍在后台空转等痛点，使本地与远程训练调度在失败时也能及时回退、给出清晰反馈；同步优化前端训练任务的 GPU 选择、继续训练与停止状态展示，并修复模型发布误判失败、自定义预览图被覆盖、按名称/版本查不到模型以及数据集同步易超时、易冲突等问题，让「训练—发布—使用」闭环更顺畅可靠。此前亦主导国标 GB28181 与 AI 业务流程的端到端联调验证及画面清晰度专项评估，为国标接入可靠性与视频观感优化提供了重要依据。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在「训得动、训得稳、训得省心」方向的发展，系统性打通多卡训练、断点续训与节点侧部署能力，让现场算力真正用得上、训练任务真正控得住：支持自动识别并使用服务器全部 GPU，用户可在训练页按需选择单卡或多卡，不再受限于只能看到一张卡；兼容多种常见数据集格式与目录结构，支持大容量本地数据集上传，训练失败后仍可保留原始数据快速重试，显著降低数据准备与反复折腾的成本；完善训练进度可见、任务可停可续，避免中断后成果丢失、点击停止却仍在后台空转等痛点，使本地与远程训练调度在失败时也能及时回退、给出清晰反馈；同步优化前端训练任务的 GPU 选择、继续训练与停止状态展示，并修复模型发布误判失败、自定义预览图被覆盖、按名称/版本查不到模型以及数据集同步易超时、易冲突等问题，让「训练—发布—使用」闭环更顺畅可靠。此前亦主导国标 GB28181 与 AI 业务流程的端到端联调验证及画面清晰度专项评估，为国标接入可靠性与视频观感优化提供了重要依据。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Dark</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动EasyAIoT项目在国标视频监控方向的发展，贡献 GB28181 能力的端到端打通，实现视频播放与云台控制，使国标设备接入具备可用的实况预览与远程操控能力。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动yFeiEye项目在国标视频监控方向的发展，贡献 GB28181 能力的端到端打通，实现视频播放与云台控制，使国标设备接入具备可用的实况预览与远程操控能力。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>machh</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT-Edge 项目的发展，完成摄像头接入与 AI 能力的端到端跑通，并实现功能串联，使边缘侧「接入—智能分析」链路可用、可闭环。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye-Edge 项目的发展，完成摄像头接入与 AI 能力的端到端跑通，并实现功能串联，使边缘侧「接入—智能分析」链路可用、可闭环。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>遗忘的星空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在设备直连接入方向的发展，贡献多品牌 IP 摄像头资产盘点与网段扫描能力，支持海康 IPC、NVR 等设备的批量发现与识别；完善直连设备在同网段、跨网段场景下的批量搜索与一键注册流程，基于设备原生协议实现接入，可绕过海康 SDK、摆脱对海康平台的强依赖，为开放、可控的摄像头规模化接入奠定了基础。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在设备直连接入方向的发展，贡献多品牌 IP 摄像头资产盘点与网段扫描能力，支持海康 IPC、NVR 等设备的批量发现与识别；完善直连设备在同网段、跨网段场景下的批量搜索与一键注册流程，基于设备原生协议实现接入，可绕过海康 SDK、摆脱对海康平台的强依赖，为开放、可控的摄像头规模化接入奠定了基础。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>阿龙</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在地图可视化与空间研判方向的发展，独立贡献天地图空间可视化能力的完整代码实现，涵盖国家天地图底图接入、摄像头与告警设备布点、地图分布视图、地点搜索与坐标批量导入、告警事件自动上图、以人/以车寻迹及移动设备轨迹回放等核心链路，使平台「天地图空间可视化与以图研判」能力从方案设计真正走向可落地、可使用的生产形态。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在地图可视化与空间研判方向的发展，独立贡献天地图空间可视化能力的完整代码实现，涵盖国家天地图底图接入、摄像头与告警设备布点、地图分布视图、地点搜索与坐标批量导入、告警事件自动上图、以人/以车寻迹及移动设备轨迹回放等核心链路，使平台「天地图空间可视化与以图研判」能力从方案设计真正走向可落地、可使用的生产形态。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>雨落流殇</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在超大规模流媒体承载方向的发展，贡献异构流媒体服务器集群的部署与调度思路，提出多节点池协同、流媒体与业务层解耦及节点注册调度等可扩展方案，为平台支撑万级路摄像头并发接入、稳定分发与弹性扩容奠定了重要的架构基础。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在超大规模流媒体承载方向的发展，贡献 SRS 与 ZLMediaKit 异构流媒体服务器集群的部署架构与调度思路，提出多节点池协同、流媒体控制面与业务层解耦、存储与上传流水线及节点注册调度等可扩展方案，为平台支撑万级路摄像头并发接入、稳定分发与弹性扩容奠定了重要的架构基础。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>常康</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在智能交通与车辆管控方向的发展，独立贡献车牌识别算法与完整代码实现，涵盖车牌定位检测、号码与颜色识别、双层牌拼接与倾斜透视校正、车牌库管理与多库顺序匹配、算法任务一键联动及异步比对等核心链路，全面支持蓝/黄/绿/白牌及新能源车牌等主流类型，使平台「车牌识别与车牌库管理能力」从能力规划真正走向可落地、可闭环的生产应用。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在智能交通与车辆管控方向的发展，独立贡献车牌识别算法与完整代码实现，涵盖基于 ONNX 的车牌定位检测、号码与颜色识别、双层牌拼接与倾斜透视校正、车牌库管理与多库顺序匹配、算法任务一键联动及 Kafka 异步比对等核心链路，全面支持蓝/黄/绿/白牌及新能源车牌等主流类型，使平台「车牌识别与车牌库管理能力」从能力规划真正走向可落地、可闭环的生产应用。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Li</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在青年开发者社群与协作生态方向的发展，以卓越的组织领导力与感召力，带领全校同学深度参与项目共建，汇聚青春才智、凝聚团队合力，为 EasyAIoT 注入了源源不断、绵延不绝的发展动能；在项目传播推广、实践落地与后续人才梯队培育等方面，亦作出了举足轻重、不可替代的重要贡献。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在青年开发者社群与协作生态方向的发展，以卓越的组织领导力与感召力，带领全校同学深度参与项目共建，汇聚青春才智、凝聚团队合力，为 yFeiEye 注入了源源不断、绵延不绝的发展动能；在项目传播推广、实践落地与后续人才梯队培育等方面，亦作出了举足轻重、不可替代的重要贡献。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>陈家林</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在物联网设备互通、工业协议接入与空天视频融合方向的发展，打通设备指令与状态数据的上下行闭环，使平台真正实现「下得去、看得见、控得住」；系统性贡献 Modbus-TCP、Modbus-RTU、OPC UA 工业协议接入能力，完成以太网侧与串口侧工控设备及 OPC UA 节点的统一采集、测点读写与物模型映射，使电表、传感器、PLC、控制器等海量工业设备数据可被平台统一汇聚、监测与联动，补齐「看得见现场、也听得到设备」的关键拼图；同时贡献大疆司空机场与无人机画面接入能力，把空中巡检视角纳入统一视频与告警体系，显著拓展平台在工控数采、产线智控、广域巡查、应急勘察与天地一体协同感知中的落地价值。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在物联网设备互通与空天视频融合方向的发展，打通设备指令与状态数据的上下行闭环，使平台真正实现「下得去、看得见、控得住」；同时贡献大疆司空机场与无人机画面接入能力，把空中巡检视角纳入统一视频与告警体系，显著拓展平台在广域巡查、应急勘察与天地一体协同感知中的落地价值。</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>NULL</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在工业现场设备接入方向的发展，打通 Modbus 协议上行采集能力，使电表、传感器、控制器等海量工业设备数据可被平台统一汇聚、监测与联动，补齐「看得见现场、也听得到设备」的关键拼图，为工控数采、产线智控与安防联动场景提供坚实底座。</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>空空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在摄像头直连「从能发现走向能落地」方向的发展，补齐直连接入在认证、通道同步、配置变更与多品牌出流等关键短板，使平台在真实 NVR / 多厂商现场具备可交付的可用性：打通设备登录认证，让直连设备真正「登得进、管得住」；完善 NVR 同步通道后的取流模型，让批量同步出来的流可播、可用，显著提升 NVR 规模化接入效率；保障接入参数可持续维护；同步建设国内常用监控品牌出流规则库，并开放自定义品牌规则，使异厂商、异型号设备可一键出流，不必依赖人工试地址，把直连能力从「扫得到设备」推进到「登得进、同步准、改得了、多品牌都能出流」的生产可用形态，为后续云台与变焦等操控能力完善奠定坚实基础。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在摄像头直连「从能发现走向能落地」方向的发展，补齐直连接入在认证、通道同步、配置变更与多品牌出流等关键短板，使平台在真实 NVR / 多厂商现场具备可交付的可用性：打通设备登录凭证链路，让账号密码认证稳定可用，直连设备真正「登得进、管得住」；重塑 NVR 同步通道后的取流模型——此前同步结果把 RTSP 主机写成各通道摄像头自身 IP，与「经 NVR 集中取流」的现场拓扑严重不符，导致同步看似成功、实况却拉不起；修复后统一以 NVR 主机 IP 生成通道 RTSP 地址，让批量同步出来的流可播、可用，显著提升 NVR 规模化接入效率；修复设备编辑保存失败并报错的问题，保障接入参数可持续维护而非「一次写入后无法再改」；同步建设国内常用监控品牌 RTSP URL 规则库，并开放自定义品牌规则，使异厂商、异型号设备可按规则一键拼流出流，不必依赖人工试地址、也不必为每个新品牌改平台代码，把直连能力从「扫得到设备」推进到「登得进、同步准、改得了、多品牌都能出流」的生产可用形态，为后续云台与变焦等操控能力完善奠定坚实基础。</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在「物联网数据可展成屏」方向的发展，前瞻提出可视化 Board（拖拽看板）模块的产品构想：传统大屏往往每张屏、每个组件都要独立手写查询，交付慢、改一次动全身、业务人员几乎无法自助做屏。Board 方案把图表、指标与布局交给拖拽画布配置，并把组件直接挂接平台 IoT 物模型测点——实时值与历史值从设备侧一键取用；让园区态势、产线 KPI、设备运维等大屏从「开发写查询才能出屏」升级为「选测点、拖组件即可成屏」，显著缩短可视化交付周期，把 IoT「后台有数」真正变成「前台有屏」的可运营能力。此前亦贡献传感器浮点数据预测、运行状态属性上下阈值配置、阈值告警与规则联动，以及中心设备关联子设备运行状态一屏展示，打通「预测—定界—告警—规则—一屏掌控」设备运行闭环，使平台设备侧具备「看得见数、管得住界、告得出警、看得清全局」的能力。</td>
-</tr>
-<tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>大老刘</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在对外宣介与方案表达方向的发展，贡献《AI视频监控分析平台》图文介绍材料，系统梳理平台在 AI 视频监控分析场景下的能力全貌与落地价值，让更多用户、集成商与合作伙伴能快速理解平台定位与核心亮点，显著提升项目对外传播与商务沟通效率。</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>刘兆中ᯤ⁵ᴳ</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 EasyAIoT 项目在 macOS 一键部署方向的发展，率先贡献部分 Mac 一键部署脚本，把镜像拉取、容器编排与环境前置检查等主干路径基本打通，使后续完善只需补齐「最后一公里」；其探索与实践为团队厘清了 Mac 侧部署链路的关键节点与风险点，显著缩短了后续工程化收尾的路径，是 macOS 部署能力从零到可用过程中不可或缺的奠基性贡献。</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">为推动 yFeiEye 项目在「物联网数据可展成屏」方向的发展，前瞻提出基于开源 GoView 落地可视化 Board（拖拽看板）模块的产品构想：传统大屏往往每张屏、每个组件都要独立手写 SQL，交付慢、改一次动全身、业务人员几乎无法自助做屏。Board 方案把图表、指标与布局交给拖拽画布配置，并把组件变量直接挂接平台 IoT 物模型测点——实时值与历史值从设备侧一键取用，不必再为每张看板单独拼查询；让园区态势、产线 KPI、设备运维等大屏从「开发写 SQL 才能出屏」升级为「选测点、拖组件即可成屏」，显著缩短可视化交付周期，把 IoT「后台有数」真正变成「前台有屏」的可运营能力。此前亦贡献传感器浮点数据预测、运行状态属性上下阈值配置、阈值告警与规则联动，以及中心设备关联子设备运行状态一屏展示，打通「预测—定界—告警—规则—一屏掌控」设备运行闭环，使平台设备侧具备「看得见数、管得住界、告得出警、看得清全局」的能力。</td>
 </tr>
 </tbody>
 </table>
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>特别致谢</strong>：以上贡献者在跨平台部署文档与脚本、macOS 一键部署脚本奠基与链路探索、国标视频能力与 AI 联调验证、多卡训练与断点续训、多品牌摄像头直连发现与批量接入、天地图空间可视化、异构流媒体集群部署与调度、车牌识别算法与完整代码、EasyAIoT-Edge 边缘侧端到端串联、校园开发者社群组织与青年协作生态构建、物联网设备上下行闭环与大疆司空空中视角接入、Modbus-TCP / Modbus-RTU / OPC UA 工业协议接入、摄像头直连从发现到登录/同步/配置/多品牌出流的闭环、拖拽看板（Board）构想与 IoT 测点实时/历史值直取集成、传感器浮点数据预测与阈值告警规则及中心设备关联子设备运行状态一屏展示、AI 视频监控分析平台图文介绍材料等不同方面推动了 EasyAIoT 的发展，他们的专业精神与无私奉献值得我们学习与尊敬。再次向这些杰出的贡献者表示最诚挚的感谢！🙏
+<strong>特别致谢</strong>：以上贡献者在跨平台部署文档与脚本、国标视频能力落地与 AI 联调验证、多卡训练可用性与断点续训能力落地、多品牌摄像头直连发现与批量接入、天地图空间可视化完整落地、异构流媒体集群部署与调度架构、车牌识别算法与完整代码落地、yFeiEye-Edge 边缘侧端到端串联、校园开发者社群组织与青年协作生态构建、物联网设备上下行闭环与大疆司空空中视角接入、Modbus-TCP / Modbus-RTU / OPC UA 工业协议接入、摄像头直连从发现到登录/同步/配置/多品牌出流的落地闭环、基于 GoView 的拖拽看板（Board）构想与 IoT 测点实时/历史值直取集成、传感器浮点数据预测与阈值告警规则及中心设备关联子设备运行状态一屏展示等不同方面推动了 yFeiEye 的发展，他们的专业精神与无私奉献值得我们学习与尊敬。再次向这些杰出的贡献者表示最诚挚的感谢！🙏
 </p>
 
 ## 💝 开源守望者
 
-开源项目的持续推进，从来不只依赖代码与文档。在 EasyAIoT 算力资源最吃紧、项目几近难以为继的那些日子里，正是以下各位以真金白银的支持，为项目注入了最关键的续航——你们或许未曾提交一行代码，但每一份信任与托举，都让这个项目得以跨过最难的槛、继续向前迭代。只要有人在用、有人在撑，开源生态便值得走得更远；EasyAIoT 今日所能抵达的高度，离不开这些在关键时刻雪中送炭的同行者。我们向每一位给予援手的朋友致以最诚挚的敬意与感谢！以下排名不分先后：
+开源项目的持续推进，从来不只依赖代码与文档。在 yFeiEye 算力资源最吃紧、项目几近难以为继的那些日子里，正是以下各位以真金白银的支持，为项目注入了最关键的续航——你们或许未曾提交一行代码，但每一份信任与托举，都让这个项目得以跨过最难的槛、继续向前迭代。只要有人在用、有人在撑，开源生态便值得走得更远；yFeiEye 今日所能抵达的高度，离不开这些在关键时刻雪中送炭的同行者。我们向每一位给予援手的朋友致以最诚挚的敬意与感谢！以下排名不分先后：
 
 <table>
   <tbody>
@@ -1207,7 +1202,7 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 
 ## 🏆 最佳实践者
 
-他们是将 EasyAIoT 从「可用」推向「好用、用好」的先行者——以下各位已完成 EasyAIoT 项目部署或业务场景落地，其探索与成果为社区树立了可复制、可参考的标杆，我们向这些卓越践行者致以崇高敬意与衷心祝贺！以下排名不分先后：
+他们是将 yFeiEye 从「可用」推向「好用、用好」的先行者——以下各位已完成 yFeiEye 项目部署或业务场景落地，其探索与成果为社区树立了可复制、可参考的标杆，我们向这些卓越践行者致以崇高敬意与衷心祝贺！以下排名不分先后：
 
 <table>
   <tbody>
@@ -1421,15 +1416,14 @@ EasyAIoT是一个开源学习项目，与商业行为无关。用户在使用该
 ## 💡 期望
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-欢迎提出更好的意见，帮助完善 easyaiot
+欢迎提出更好的意见，帮助完善 yFeiEye
 </p>
 
 ## 📄 版权
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-翱翔的雄库鲁/easyaiot 采用 <a href="https://gitee.com/soaring-xiongkulu/easyaiot/blob/main/LICENSE" style="color: #3498db; text-decoration: none; font-weight: 600;">MIT LICENSE</a> 开源协议。我们致力于推动 AI 技术的普及与发展，让更多人能够自由使用和受益于这项技术。
+yFeiEye 采用 <a href="https://github.com/xinlingzhifei/easyaiot/blob/main/LICENSE" style="color: #3498db; text-decoration: none; font-weight: 600;">MIT LICENSE</a> 开源协议。我们致力于推动 AI 技术的普及与发展，让更多人能够自由使用和受益于这项技术。
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>使用许可</strong>：个人与企业可 100% 免费使用，无需保留作者、Copyright 信息。我们相信技术的价值在于被广泛使用和持续创新，而非被版权束缚。希望您能够自由地使用、修改、分发本项目，让 AI 技术真正惠及每一个人。
-</p>
+<strong>使用许可</strong>：个人与企业可 100% 免费使用，无需保留作者、Copyright 信息。我们相信技术的价值在于被广泛使用和持续创新，而非被版权束缚。希望您能够自由地使用、修改、分发本项目，让 AI 技术真正惠及每一�

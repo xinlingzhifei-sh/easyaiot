@@ -1,5 +1,5 @@
 import type { ComputeNodeVO } from '@/api/device/node';
-import { NODE_INSIGHT, NODE_METRIC, NODE_TERM, parseGpuInfo, type GpuInfoItem } from './constants';
+import { NODE_INSIGHT, NODE_METRIC, parseGpuInfo, type GpuInfoItem } from './constants';
 
 const MB_BYTES = 1024 * 1024;
 

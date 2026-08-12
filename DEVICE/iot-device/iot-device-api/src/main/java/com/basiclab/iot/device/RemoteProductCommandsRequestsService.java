@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * RemoteProductCommandsRequestsService
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @FeignClient(contextId = "remoteProductCommandsService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteProductCommandsRequestsFallbackFactory.class)
 public interface RemoteProductCommandsRequestsService {

@@ -7,6 +7,8 @@ import shutil
 import subprocess
 from typing import Any, Dict, List
 
+from env_security import sanitize_environment_overrides, validate_node_identifier
+
 logger = logging.getLogger('easyaiot-node-agent.mqtt')
 
 MQTT_CLUSTER_ROOT = os.environ.get('MQTT_CLUSTER_ROOT', '/opt/easyaiot/mqtt-cluster')
@@ -15,6 +17,23 @@ COMPOSE_FILE = os.path.join(MQTT_CLUSTER_ROOT, 'docker-compose.mqtt-node.yml')
 STACK_PROFILES = {
     'emqx': {'service': 'emqx'},
     'mqtt_gateway': {'service': 'emqx'},
+}
+ALLOWED_MQTT_ENV_KEYS = {
+    'MQTT_CLUSTER_ROOT',
+    'MQTT_NODE_NAME',
+    'MQTT_NODE_HOST',
+    'MQTT_AUTH_HOST',
+    'MQTT_AUTH_PORT',
+    'MQTT_AUTH_PATH',
+    'MQTT_TCP_PORT',
+    'MQTT_SSL_PORT',
+    'MQTT_WS_PORT',
+    'MQTT_WSS_PORT',
+    'EMQX_DASHBOARD_PORT',
+    'EMQX_NODE_COOKIE',
+    'EMQX_CLUSTER_SEEDS',
+    'EMQX_DASHBOARD_USER',
+    'EMQX_DASHBOARD_PASSWORD',
 }
 
 
@@ -40,10 +59,19 @@ class MqttStackManager:
         if stack_type not in STACK_PROFILES:
             raise ValueError(f'不支持的 MQTT 栈类型: {stack_type}')
 
-        node_id = str(spec.get('nodeId') or os.environ.get('NODE_ID', 'mqtt-node'))
+        node_id = validate_node_identifier(
+            spec.get('nodeId') or os.environ.get('NODE_ID', 'mqtt-node')
+        )
+        overrides = sanitize_environment_overrides(
+            spec.get('env'),
+            ALLOWED_MQTT_ENV_KEYS,
+        )
+        requested_root = overrides.pop('MQTT_CLUSTER_ROOT', MQTT_CLUSTER_ROOT)
+        if os.path.realpath(requested_root) != os.path.realpath(MQTT_CLUSTER_ROOT):
+            raise ValueError('不允许覆盖 MQTT_CLUSTER_ROOT')
         env = os.environ.copy()
-        env.update({k: str(v) for k, v in (spec.get('env') or {}).items() if v is not None})
-        env.setdefault('MQTT_CLUSTER_ROOT', MQTT_CLUSTER_ROOT)
+        env.update(overrides)
+        env['MQTT_CLUSTER_ROOT'] = MQTT_CLUSTER_ROOT
         env.setdefault('MQTT_NODE_NAME', f'node-{node_id}')
         env['MQTT_NODE_ID'] = f"{env.get('MQTT_NODE_NAME')}-emqx"
 

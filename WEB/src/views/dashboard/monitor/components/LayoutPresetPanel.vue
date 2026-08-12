@@ -157,6 +157,8 @@ function emitSaveToNewSlot() {
   createMessage.warning('15 个方案已满，请点击某个方案的「覆盖」按钮保存')
 }
 
+void emitSaveToNewSlot
+
 function handleCardClick(item: (typeof presetItems.value)[number]) {
   if (item.preset) {
     emit('apply', item.id)

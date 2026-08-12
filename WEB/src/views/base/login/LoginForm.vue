@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, unref } from 'vue'
+import { computed, onMounted, reactive, ref, unref } from 'vue'
 
 import { Checkbox, Col, Form, Input, Row } from 'ant-design-vue'
 import LoginFormTitle from './LoginFormTitle.vue'
@@ -19,7 +19,7 @@ import * as authUtil from '@/utils/auth'
 import { Verify } from '@/components/Verifition'
 import { getTenantByWebsite, getTenantIdByName } from '@/api/base/login'
 import { Button } from '@/components/Button'
-import { onMounted } from 'vue'
+import { extractLoginErrorMessage, resolveLoginTenantId, runLoginSubmitFlow } from './loginSubmit'
 const FormItem = Form.Item
 const InputPassword = Input.Password
 
@@ -48,7 +48,7 @@ const captchaType = ref('blockPuzzle') // blockPuzzle 滑块 clickWord 点击文
 const formData = reactive({
   tenantName: 'Admin-IoT',
   username: 'admin',
-  password: 'admin123',
+  password: '',
   captchaVerification: '',
 })
 
@@ -60,34 +60,29 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 
 // 获取验证码
 async function getCode() {
-  // 情况一，未开启：则直接登录
-  if (captchaEnable === 'false') {
-    await handleLogin({})
-  }
-  else {
-    // 情况二，已开启：则展示验证码；只有完成验证码的情况，才进行登录
-    // 弹出验证码
-    verify.value.show()
-  }
+  await runLoginSubmitFlow({
+    captchaEnable,
+    validateForm: validForm,
+    login: () => handleLogin({}),
+    showCaptcha: () => verify.value.show(),
+  })
 }
 
 // 根据域名，获得租户信息 && 获取租户ID
 async function getTenantId() {
-  if (tenantEnable === 'true') {
-    const website = location.host
-    const tenant = await getTenantByWebsite(website)
-    if (tenant.id != null) {
-      formData.tenantName = tenant.name
-      authUtil.setTenantId(tenant.id)
-    }
-    else {
-      const res = await getTenantIdByName(formData.tenantName)
-      authUtil.setTenantId(res.id)
-    }
-  }
+  const tenantId = await resolveLoginTenantId({
+    tenantEnable,
+    tenantName: formData.tenantName,
+    website: location.host,
+    getTenantByWebsite,
+    getTenantIdByName,
+    setTenantId: authUtil.setTenantId,
+  })
+  if (tenantId)
+    formData.tenantName = formData.tenantName || 'Admin-IoT'
 }
 
-async function handleLogin(params) {
+async function handleLogin(params: { captchaVerification?: string } = {}) {
   await getTenantId()
   const data = await validForm()
   if (!data)
@@ -97,12 +92,12 @@ async function handleLogin(params) {
     const userInfo = await userStore.login({
       password: data.password,
       username: data.username,
-      captchaVerification: params.captchaVerification,
+      captchaVerification: params.captchaVerification || '',
       rememberMe: rememberMe.value,
       mode: 'none', // 不要默认的错误提示
     })
     if (userInfo) {
-      console.log(JSON.stringify(userInfo));
+      console.log(JSON.stringify(userInfo))
       await permissionStore.changePermissionCode(userInfo.permissions)
       notification.success({
         message: t('sys.login.loginSuccessTitle'),
@@ -115,7 +110,7 @@ async function handleLogin(params) {
     console.error(error)
     createErrorModal({
       title: t('sys.api.errorTip'),
-      content: (error as unknown as Error).message || t('sys.api.networkExceptionMsg'),
+      content: extractLoginErrorMessage(error, t('sys.api.networkExceptionMsg')),
       getContainer: () => document.body.querySelector(`.${prefixCls}`) || document.body,
     })
   }
@@ -129,7 +124,7 @@ async function handleLogin(params) {
   <LoginFormTitle v-show="getShow" class="enter-x" />
   <Form
     v-show="getShow" ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules"
-    @keypress.enter="handleLogin"
+    @keypress.enter="getCode"
   >
     <FormItem name="tenantName" class="enter-x">
       <Input

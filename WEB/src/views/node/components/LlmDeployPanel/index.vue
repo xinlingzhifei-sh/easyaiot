@@ -90,7 +90,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { Alert, Form, FormItem, InputNumber, Select } from 'ant-design-vue';
 import { Button } from '@/components/Button';
 import { useMessage } from '@/hooks/web/useMessage';
-import { getNodePage } from '@/api/device/node';
+import { getNodePage, type ComputeNodeVO } from '@/api/device/node';
 import {
   checkLlmDeployVram,
   deployLlmModel,
@@ -190,10 +190,13 @@ async function loadCatalog() {
 
 async function loadNodes() {
   const res = await getNodePage({ pageNo: 1, pageSize: 200, status: 'online' });
-  const list = res?.list || [];
+  const list = res?.data?.list || [];
   nodeOptions.value = list
-    .filter((n: { nodeRole?: string }) => ['gpu', 'hybrid'].includes(n.nodeRole || ''))
-    .map((n: { id: number; name?: string; host?: string; gpuInfo?: string }) => {
+    .filter(
+      (n): n is ComputeNodeVO & { id: number } =>
+        typeof n.id === 'number' && ['gpu', 'hybrid'].includes(n.nodeRole || ''),
+    )
+    .map((n) => {
       const gpus = parseGpuInfo(n.gpuInfo);
       const freeGb = gpus.reduce(
         (sum, g) => sum + Math.max(0, (g.mem_total_mb || 0) - (g.mem_used_mb || 0)),
@@ -257,7 +260,7 @@ async function handleDeploy() {
   deployResult.value = {
     success: false,
     message: '正在下发部署…',
-    steps: [{ title: '调度 GPU 节点', status: 'process' }],
+    steps: [{ name: '调度 GPU 节点', status: 'process' }],
   };
   try {
     const res = await deployLlmModel({
@@ -272,8 +275,8 @@ async function handleDeploy() {
       success: true,
       message: res?.msg || '部署已下发，vLLM 启动中',
       steps: [
-        { title: '调度 GPU 节点', status: 'finish' },
-        { title: '启动 vLLM 服务', status: 'process', description: `实例 ID: ${res?.data?.id}` },
+        { name: '调度 GPU 节点', status: 'finish' },
+        { name: '启动 vLLM 服务', status: 'process', output: `实例 ID: ${res?.data?.id}` },
       ],
     };
     createMessage.success(res?.msg || '部署已下发');
@@ -283,7 +286,7 @@ async function handleDeploy() {
     deployResult.value = {
       success: false,
       message: msg,
-      steps: [{ title: '部署失败', status: 'error', description: msg }],
+      steps: [{ name: '部署失败', status: 'error', output: msg }],
     };
   } finally {
     deploying.value = false;

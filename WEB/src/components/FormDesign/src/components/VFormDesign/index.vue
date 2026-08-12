@@ -309,10 +309,10 @@ provide<IFormDesignMethods>('formDesignMethods', {
       breakpoint="lg"
     >
       <PropsPanel ref="propsPanel" :active-key="formConfig.activeKey">
-        <template v-for="item of formConfig.schemas" #[`${item.component}Props`]="data">
+        <template v-for="item of formConfig.schemas" #[`${item.component}Props`]>
           <slot
             :name="`${item.component}Props`"
-            v-bind="{ formItem: data, props: data.componentProps }"
+            v-bind="{ formItem: item, props: item.componentProps || {} }"
           />
         </template>
       </PropsPanel>

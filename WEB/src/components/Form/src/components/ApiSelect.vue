@@ -10,7 +10,7 @@ import { useRuleFormItem } from '@/hooks/component/useFormItem'
 import { useI18n } from '@/hooks/web/useI18n'
 import { propTypes } from '@/utils/propTypes'
 
-interface OptionsItem { label: string; value: string; disabled?: boolean }
+interface OptionsItem { label: string; value: string | number; disabled?: boolean }
 
 defineOptions({ name: 'ApiSelect', inheritAttrs: false })
 
@@ -18,7 +18,7 @@ const props = defineProps({
   value: { type: [Array, Object, String, Number] as PropType<SelectValue> },
   numberToString: propTypes.bool,
   api: {
-    type: Function as PropType<(arg?: any) => Promise<OptionsItem[]>>,
+    type: Function as PropType<(arg?: any) => Promise<OptionsItem[] | Record<string, any>>>,
     default: null,
   },
   // api params

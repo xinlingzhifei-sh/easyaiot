@@ -116,7 +116,7 @@ const quality = ref(80);
 const processing = ref(false);
 const processedFrames = ref(0);
 const totalFrames = ref(0);
-const zipBlob = ref(null);
+const zipBlob = ref<Blob | null>(null);
 const zipSize = ref(0);
 const videoDuration = ref(0);
 const isShowProgress = ref(false);
@@ -197,7 +197,7 @@ const [registerTable, {reload}] = useTable({
   },
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -250,7 +250,7 @@ const handleDelete = async (record) => {
     await deleteDatasetVideo(record['id']);
     createMessage.success('删除成功');
     handleSuccess();
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
     createMessage.success('删除失败');
     console.log('handleDelete', error);
@@ -262,7 +262,7 @@ async function handleDeleteAll() {
   try {
     await Promise.all([deleteDatasetVideo(checkedKeys.value)]);
     createMessage.success('批量删除成功');
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
     //console.log(error);
     createMessage.error('批量删除失败');
@@ -303,7 +303,7 @@ const loadMinioVideo = (minioUrl) => {
     document.body.removeChild(video);
   };
 
-  video.onerror = (e) => {
+  video.onerror = (e: any) => {
     console.info('视频加载失败，请检查URL和访问权限', 'error', 'fas fa-exclamation-triangle');
     console.info(`错误详情: ${e.target.error.message}`, 'error', 'fas fa-bug');
     document.body.removeChild(video);
@@ -361,8 +361,14 @@ const processFrames = async (minioUrl) => {
       processedFrames.value++;
 
       // 转换为Blob
-      const blob = await new Promise(resolve => {
-        canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality.value / 100);
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+            return;
+          }
+          reject(new Error('Canvas toBlob failed'));
+        }, 'image/jpeg', quality.value / 100);
       });
 
       // 添加到ZIP
@@ -385,7 +391,7 @@ const processFrames = async (minioUrl) => {
 
     // 自动下载
     setTimeout(downloadZip, 500);
-  } catch (error) {
+  } catch (error: any) {
     console.info(`处理出错: ${error.message}`, 'error', 'fas fa-exclamation-circle');
   } finally {
     processing.value = false;
@@ -433,18 +439,11 @@ const downloadZip = () => {
     // 保存文件
     saveAs(zipBlob.value, fileName);
     console.info(`正在下载: ${fileName}`, 'success', 'fas fa-download');
-  } catch (error) {
+  } catch (error: any) {
     console.info(`下载失败: ${error.message}`, 'error', 'fas fa-exclamation-circle');
   }
 };
 
-const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-};
 </script>
 
 <style lang="less" scoped>

@@ -11,9 +11,8 @@ import java.time.LocalDateTime;
 /**
  * OperateLogRespDTO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(name = "RPC 服务 - 系统操作日志 Response DTO")
 @Data
@@ -28,7 +27,7 @@ public class OperateLogRespDTO implements VO {
     @Trans(type = TransType.RPC, targetClassName = "com.basiclab.iot.system.dal.dataobject.user.AdminUserDO",
             fields = "nickname", ref = "userName")
     private Long userId;
-    @Schema(description = "用户名称", example = "BasicLab")
+    @Schema(description = "用户名称", example = "yFeiEye")
     private String userName;
     @Schema(description = "用户类型，参见 UserTypeEnum 枚举", example = "2")
     private Integer userType;
@@ -39,7 +38,7 @@ public class OperateLogRespDTO implements VO {
     @Schema(description = "操作模块业务编号", example = "188")
     private Long bizId;
     @Schema(description = "操作内容",
-            example = "修改编号为 1 的用户信息，将性别从男改成女，将姓名从BasicLab改成源码")
+            example = "修改编号为 1 的用户信息，将性别从男改成女，将姓名从yFeiEye改成源码")
     private String action;
     @Schema(description = "拓展字段", example = "{\"orderId\": \"1\"}")
     private String extra;

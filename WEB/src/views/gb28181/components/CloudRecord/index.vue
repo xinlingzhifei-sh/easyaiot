@@ -18,7 +18,7 @@
             <Button type="primary" style="left: 28px;width: 138px;"
                     :onclick="queryDeviceRecords.bind(null)">刷新列表
             </Button>
-            <ul class="infinite-list record-list" v-for="(item, index) of state.recordList">
+            <ul class="infinite-list record-list" v-for="item of state.recordList">
               <li class="infinite-list-item record-list-item">
                 <span class="el-tag el-tag--light" :onclick="handleRecordPlay.bind(null, item)">
                   <Icon icon="bx:video-recording"/>

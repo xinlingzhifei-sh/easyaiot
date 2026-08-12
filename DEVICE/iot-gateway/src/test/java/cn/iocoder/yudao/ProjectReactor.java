@@ -20,9 +20,8 @@ import static java.io.File.separator;
  * <p>
  * 通过修改 groupIdNew、artifactIdNew、projectBaseDirNew 三个变量
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 public class ProjectReactor {
@@ -30,7 +29,7 @@ public class ProjectReactor {
     private static final String GROUP_ID = "cn.iocoder.cloud";
     private static final String ARTIFACT_ID = "Yudao";
     private static final String PACKAGE_NAME = "cn.iocoder.Yudao";
-    private static final String TITLE = "BasicLab管理系统";
+    private static final String TITLE = "yFeiEye管理系统";
 
     /**
      * 白名单文件，不进行重写，避免出问题

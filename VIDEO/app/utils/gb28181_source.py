@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlparse, urlunparse
 
 import requests
 
@@ -10,6 +10,7 @@ from app.utils.ip_utils import resolve_ipv4_for_stream_urls
 _logger = logging.getLogger(__name__)
 
 _GB28181_API_PORT = 48088
+_RPC_INTERNAL_TOKEN_HEADER = 'X-Iot-Rpc-Token'
 
 
 GB28181_SOURCE_PREFIX = 'gb28181://'
@@ -29,6 +30,34 @@ def parse_gb28181_source(source: Optional[str]) -> Optional[Tuple[str, str]]:
     if not device_id or not channel_id:
         return None
     return device_id, channel_id
+
+
+def prefer_h264_http_flv_for_opencv(url: Optional[str]) -> Optional[str]:
+    """保留媒体服务返回的真实编码信息。
+
+    ``videoCodec`` 只是 ZLMediaKit 写入播放 URL 的元数据，改写查询参数不会
+    触发转码，反而会把真实 H265 流伪装成 H264，导致后续解码判断失真。
+    """
+    return url
+
+
+def prefer_hevc_http_ts_for_ffmpeg(url: Optional[str]) -> Optional[str]:
+    if not url:
+        return url
+    parsed = urlparse(url)
+    if parsed.scheme.lower() not in ('http', 'https'):
+        return url
+    if not parsed.path.lower().endswith('.flv'):
+        return url
+
+    has_hevc = False
+    for key, value in parse_qsl(parsed.query, keep_blank_values=True):
+        if key.lower() == 'videocodec' and value.lower() in ('h265', 'hevc'):
+            has_hevc = True
+            break
+    if not has_hevc:
+        return url
+    return urlunparse(parsed._replace(path=f'{parsed.path[:-4]}.ts'))
 
 
 def _gb28181_http_timeout(default: int = 60) -> int:
@@ -106,6 +135,31 @@ def _build_play_url(base_url: str, device_id: str, channel_id: str) -> str:
     return f'{base}/play/start/{device_id}/{channel_id}'
 
 
+def _play_request_candidates(
+    device_id: str,
+    channel_id: str,
+) -> Iterable[Tuple[str, Dict[str, str]]]:
+    """内部任务优先使用稳定的服务身份，保留用户 JWT 作为兼容回退。"""
+    rpc_token = (os.getenv('IOT_RPC_INTERNAL_TOKEN') or '').strip()
+    if rpc_token:
+        rpc_base = (
+            os.getenv('GB28181_RPC_SERVICE_URL')
+            or f'http://127.0.0.1:{_GB28181_API_PORT}/rpc-api/gb28181'
+        ).strip().rstrip('/')
+        if rpc_base:
+            yield (
+                _build_play_url(rpc_base, device_id, channel_id),
+                {_RPC_INTERNAL_TOKEN_HEADER: rpc_token},
+            )
+
+    legacy_headers: Dict[str, str] = {}
+    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
+    if jwt_token:
+        legacy_headers['X-Authorization'] = f'Bearer {jwt_token}'
+    for base_url in _candidate_bases():
+        yield _build_play_url(base_url, device_id, channel_id), legacy_headers
+
+
 def _body_suggests_hevc_rtmp(body: dict) -> bool:
     """播放接口返回的 RTMP 地址若标明 HEVC/H.265，OpenCV 内置 FFmpeg 拉 RTMP(FLV) 常失败 (codec_id=0)。"""
     if not isinstance(body, dict):
@@ -124,14 +178,10 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
     """
     按协议顺序返回候选播放地址，并附带策略元数据（用于日志与排障）。
 
-    默认 (GB28181_PLAY_PROTOCOL=rtmp_first) 将 RTMP 置于 RTSP 之前：
-    ZLMediaKit 在「RTMP 协议无读者」时会触发 on_stream_none_reader；WVP/iot-gb28181
-    在 streamOnDemand=true 时会对国标 rtp 流返回 close。若仅使用 RTSP 拉流，则
-    RTMP 侧始终无读者，约 streamNoneReaderDelayMS（常配 20s）后整路流被释放，
-    实时算法仍用 OpenCV/FFmpeg 拉流会表现为灰屏/断流。以 RTMP 作为输入时，拉流端
-    会占用 RTMP 读者，可保持流存活。
+    默认优先 fMP4。生产 H.265 国标流已验证 fMP4 可由 OpenCV/FFmpeg 稳定解码，
+    而 HTTP-TS、RTSP 与 RTMP 可能因参数集缺失、超时或 FLV/HEVC 兼容性而失败。
 
-    若环境仅通 RTSP 或拉 RTMP 失败，可设 GB28181_PLAY_PROTOCOL=rtsp_first 恢复旧顺序。
+    若特定环境仅通其它协议，可显式设置 ts_first、flv_first、rtsp_first 或 rtmp_first。
 
     GB28181_HEVC_RTSP_FIRST（默认 1）：当播放接口返回的 RTMP 地址含 HEVC/H.265 线索时，
     在仍为 rtmp_first 策略的前提下自动改为「先 RTSP」——用于规避 OpenCV VideoCapture 对
@@ -143,13 +193,19 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
         body.get('https_flv'),
         body.get('ws_flv'),
     ]
-    other = [
+    ts_block = [
+        body.get('ts'),
+        body.get('https_ts'),
+    ]
+    fmp4_block = [
         body.get('fmp4'),
+    ]
+    other = [
         body.get('hls'),
         body.get('rtc'),
         body.get('rtcs'),
     ]
-    mode = (os.getenv('GB28181_PLAY_PROTOCOL') or 'rtmp_first').strip().lower()
+    mode = (os.getenv('GB28181_PLAY_PROTOCOL') or 'fmp4_first').strip().lower()
     hevc_rtsp_first = (os.getenv('GB28181_HEVC_RTSP_FIRST', '1').strip().lower() not in (
         '0', 'false', 'no', 'off',
     ))
@@ -162,6 +218,47 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
         'branch': 'rtmp_first',
     }
 
+    if mode in ('fmp4_first', 'http_fmp4_first', 'fmp4'):
+        meta['branch'] = 'fmp4_first'
+        candidates = [
+            *fmp4_block,
+            *ts_block,
+            *flv_block,
+            *other,
+            body.get('rtmp'),
+            body.get('rtmps'),
+            body.get('rtsp'),
+            body.get('rtsps'),
+        ]
+        return candidates, meta
+
+    if mode in ('ts_first', 'http_ts_first', 'ts'):
+        meta['branch'] = 'ts_first'
+        candidates = [
+            *ts_block,
+            *flv_block,
+            *fmp4_block,
+            *other,
+            body.get('rtmp'),
+            body.get('rtmps'),
+            body.get('rtsp'),
+            body.get('rtsps'),
+        ]
+        return candidates, meta
+
+    if mode in ('flv_first', 'http_flv_first', 'http_first', 'flv'):
+        meta['branch'] = 'flv_first'
+        candidates = [
+            *flv_block,
+            *fmp4_block,
+            *other,
+            body.get('rtmp'),
+            body.get('rtmps'),
+            body.get('rtsp'),
+            body.get('rtsps'),
+        ]
+        return candidates, meta
+
     if mode in ('rtsp_first', 'rtsp', 'legacy'):
         meta['branch'] = 'rtsp_first'
         candidates = [
@@ -170,6 +267,7 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
             body.get('rtmp'),
             body.get('rtmps'),
             *flv_block,
+            *fmp4_block,
             *other,
         ]
         return candidates, meta
@@ -182,6 +280,7 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
             body.get('rtmp'),
             body.get('rtmps'),
             *flv_block,
+            *fmp4_block,
             *other,
         ]
         return candidates, meta
@@ -193,6 +292,7 @@ def _gb28181_play_candidates(body: dict) -> Tuple[List[Optional[str]], Dict[str,
         body.get('rtsp'),
         body.get('rtsps'),
         *flv_block,
+        *fmp4_block,
         *other,
     ]
     return candidates, meta
@@ -206,6 +306,9 @@ def _format_gb28181_choice_log(chosen_url: str, meta: Dict[str, Any]) -> str:
         'rtsp_first': '接口顺序优先RTSP',
         'rtmp_first': '接口顺序优先RTMP(占读者保活)',
         'hevc_rtsp_first': 'HEVC+RTMP线索则优先RTSP(OpenCV兼容)',
+        'flv_first': '接口顺序优先HTTP-FLV(OpenCV兼容)',
+        'ts_first': '接口顺序优先HTTP-TS(OpenCV兼容)',
+        'fmp4_first': '接口顺序优先HTTP-fMP4(OpenCV兼容)',
     }.get(branch, branch)
     hevc_on = '开启' if meta.get('hevc_rtsp_first_env_on') else '关闭'
     hint = '是' if meta.get('hevc_hint') else '否'
@@ -218,6 +321,26 @@ def _format_gb28181_choice_log(chosen_url: str, meta: Dict[str, Any]) -> str:
         f'选用={scheme or "?"} | {branch_tip} | PLAY_PROTOCOL={meta.get("play_protocol")} | '
         f'HEVC线索={hint} | HEVC_RTSP_FIRST={hevc_on}{zlm_tip}'
     )
+
+
+def _localize_flv_pull_url(url: str) -> str:
+    mode = (os.getenv('GB28181_PLAY_PROTOCOL') or 'fmp4_first').strip().lower()
+    if mode not in (
+        'fmp4_first', 'http_fmp4_first', 'fmp4',
+        'flv_first', 'http_flv_first', 'http_first', 'flv',
+        'ts_first', 'http_ts_first', 'ts',
+    ):
+        return url
+
+    parsed = urlparse(url)
+    if parsed.scheme.lower() != 'http':
+        return url
+
+    port = parsed.port or 80
+    if port != 6080:
+        return url
+
+    return urlunparse(parsed._replace(netloc='127.0.0.1:6080'))
 
 
 def _unwrap_wvp_play_body(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
@@ -246,6 +369,8 @@ def _extract_stream_url_and_meta(payload: dict) -> Tuple[Optional[str], Dict[str
         return None, {'wvp_error': err} if err else {}
     candidates, meta = _gb28181_play_candidates(body)
     chosen = next((url for url in candidates if isinstance(url, str) and url.strip()), None)
+    if chosen:
+        chosen = _localize_flv_pull_url(chosen)
     if err:
         meta['wvp_error'] = err
     return chosen, meta
@@ -261,6 +386,7 @@ def _all_play_urls_from_body(body: dict) -> List[str]:
     if not isinstance(body, dict):
         return []
     keys = (
+        'ts', 'https_ts',
         'rtmp', 'rtmps', 'rtsp', 'rtsps',
         'flv', 'https_flv', 'ws_flv',
         'fmp4', 'hls', 'rtc', 'rtcs',
@@ -290,15 +416,10 @@ def _fetch_gb28181_play_body(
         return None, None, ['invalid gb28181 source']
 
     device_id, channel_id = parsed
-    headers = {}
-    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
-    if jwt_token:
-        headers['X-Authorization'] = f'Bearer {jwt_token}'
-
     http_timeout = timeout if timeout is not None else _gb28181_http_timeout()
     errors: List[str] = []
-    for base_url in _candidate_bases():
-        play_url = _build_play_url(base_url, device_id, channel_id)
+    for play_url, headers in _play_request_candidates(device_id, channel_id):
+        base_url = play_url
         try:
             response = requests.get(play_url, headers=headers, timeout=http_timeout)
             response.raise_for_status()
@@ -342,24 +463,34 @@ def resolve_gb28181_alternate_pull_url(
     current_scheme = urlparse(current).scheme.lower()
     candidates = _all_play_urls_from_body(body)
 
+    mode = (os.getenv('GB28181_PLAY_PROTOCOL') or 'fmp4_first').strip().lower()
+    if prefer_schemes == ('rtsp', 'rtsps') and mode in (
+        'fmp4_first', 'http_fmp4_first', 'fmp4',
+        'flv_first', 'http_flv_first', 'http_first', 'flv',
+        'ts_first', 'http_ts_first', 'ts',
+    ):
+        prefer_schemes = ('http', 'https', 'ws', 'wss', 'rtsp', 'rtsps', 'rtmp', 'rtmps')
+
     for scheme in prefer_schemes:
         for url in candidates:
             if urlparse(url).scheme.lower() == scheme and url != current:
                 log_fn = logger.warning if logger else _logger.warning
+                fallback_url = _localize_flv_pull_url(url)
                 log_fn(
                     f'GB28181 OpenCV 拉流降级: {device_id}/{channel_id} '
-                    f'{current_scheme} -> {scheme} | {current} -> {url}'
+                    f'{current_scheme} -> {scheme} | {current} -> {fallback_url}'
                 )
-                return url
+                return fallback_url
 
     for url in candidates:
         if url != current and urlparse(url).scheme.lower() != current_scheme:
             log_fn = logger.warning if logger else _logger.warning
+            fallback_url = _localize_flv_pull_url(url)
             log_fn(
                 f'GB28181 OpenCV 拉流降级(其它协议): {device_id}/{channel_id} '
-                f'{current} -> {url}'
+                f'{current} -> {fallback_url}'
             )
-            return url
+            return fallback_url
 
     if logger and errors:
         logger.debug(
@@ -379,15 +510,10 @@ def resolve_gb28181_source(
         return source
 
     device_id, channel_id = parsed
-    headers = {}
-    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
-    if jwt_token:
-        headers['X-Authorization'] = f'Bearer {jwt_token}'
-
     http_timeout = timeout if timeout is not None else _gb28181_http_timeout()
     errors = []
-    for base_url in _candidate_bases():
-        play_url = _build_play_url(base_url, device_id, channel_id)
+    for play_url, headers in _play_request_candidates(device_id, channel_id):
+        base_url = play_url
         try:
             response = requests.get(play_url, headers=headers, timeout=http_timeout)
             response.raise_for_status()

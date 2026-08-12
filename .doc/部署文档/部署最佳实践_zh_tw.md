@@ -1,4 +1,4 @@
-# EasyAIoT 部署最佳實踐
+# yFeiEye 部署最佳實踐
 
 > 本文件與專案腳本即時對齊，涵蓋生產環境部署與運維細節。  
 > 快速上手請參閱 [平台部署文件_zh_tw.md](./平台部署文档_zh_tw.md)。
@@ -532,10 +532,10 @@ SQL 位於 `.scripts/tdengine/tdengine_super_tables.sql`，full 規格自動初�
 | 中介軟體 | 使用者名稱 | 密碼 | 主控台 |
 |--------|--------|------|--------|
 | Nacos | nacos | nacos | :8848/nacos |
-| PostgreSQL | postgres | iot45722414822 | — |
-| Redis | — | basiclab@iot975248395 | — |
-| MinIO | minioadmin | basiclab@iot975248395 | :9001 |
-| EMQX | admin | basiclab@iot6874125784 | :18083 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> | — |
+| Redis | — | <REDIS_OR_MINIO_PASSWORD> | — |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> | :9001 |
+| EMQX | admin | <EMQX_DASHBOARD_PASSWORD> | :18083 |
 | Milvus | — | — | :9091 |
 
 > **生產環境務必修改所有預設密碼。**

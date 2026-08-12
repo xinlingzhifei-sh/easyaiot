@@ -64,6 +64,18 @@
                   <span>{{ getDjiDeviceKind(item.device) === 'dock' ? '大疆机场' : '大疆无人机' }}</span>
                 </div>
                 <div class="title o2">{{ formatCameraDeviceLabel(item.device) }}</div>
+                <div class="access-state-row" :title="accessStateReason(item.device)">
+                  <Tag :color="accessStateColor(item.device.access_state?.state)">
+                    {{ renderCardAccessState(item.device) }}
+                  </Tag>
+                  <Tag :color="item.device.access_state?.play_ready ? 'green' : 'default'">
+                    {{ item.device.access_state?.play_ready ? '播放就绪' : '未就绪' }}
+                  </Tag>
+                  <Tag v-if="item.device.access_state?.ai_ready" color="cyan">AI就绪</Tag>
+                  <span v-if="accessStateReason(item.device)" class="access-state-reason">
+                    {{ accessStateReason(item.device) }}
+                  </span>
+                </div>
                 <div class="props">
                   <div class="flex" style="justify-content: space-between">
                     <div class="prop">
@@ -193,7 +205,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import { List, Popconfirm, Spin } from 'ant-design-vue';
+import { List, Popconfirm, Spin, Tag } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
 import { propTypes } from '@/utils/propTypes';
 import { Icon } from '@/components/Icon';
@@ -214,13 +226,9 @@ import {
 import { hasPlayableStream } from '@/views/camera/utils/devicePlay';
 import { canSetDeviceLocation } from '@/views/camera/utils/deviceLocation';
 import { queryAllVideoList } from '@/api/device/gb28181';
-import {
-  fetchNvrListBrief,
-  type NvrCardItem,
-} from '@/views/camera/utils/nvrDeviceGroup';
-import {
-  buildMergedCardRows,
-} from '@/views/camera/utils/gb28181DeviceGroup';
+import { buildMergedCardRows } from '@/views/camera/utils/gb28181DeviceGroup';
+import { fetchNvrListBrief } from '@/views/camera/utils/nvrDeviceGroup';
+import type { NvrCardItem } from '@/views/camera/utils/nvrDeviceGroup';
 import Gb28181DeviceCard, {
   type Gb28181CardItem,
 } from '@/views/camera/components/Gb28181DeviceCard/index.vue';
@@ -265,6 +273,39 @@ const deviceStreamStatuses = ref<Record<string, string>>({});
 const page = ref(1);
 const pageSize = ref(8);
 const total = ref(0);
+
+const accessStateLabel: Record<string, string> = {
+  pending_config: '待配置',
+  registering: '注册中',
+  registered: '已注册',
+  stream_online: '流在线',
+  play_ready: '可播放',
+  ai_ready: 'AI就绪',
+  error: '异常',
+};
+
+const accessStateColorMap: Record<string, string> = {
+  pending_config: 'default',
+  registering: 'processing',
+  registered: 'blue',
+  stream_online: 'cyan',
+  play_ready: 'green',
+  ai_ready: 'success',
+  error: 'red',
+};
+
+function renderCardAccessState(device: DeviceInfo) {
+  const state = device.access_state?.state || 'pending_config';
+  return accessStateLabel[state] || state;
+}
+
+function accessStateColor(state?: string | null) {
+  return accessStateColorMap[state || 'pending_config'] || 'default';
+}
+
+function accessStateReason(device: DeviceInfo) {
+  return device.access_state?.reason_message || device.access_state?.reason_code || '';
+}
 
 const pageRows = computed(() => {
   const start = (page.value - 1) * pageSize.value;
@@ -354,7 +395,7 @@ function filterRows(rows: CardRow[], p: Record<string, any>): CardRow[] {
     const online = p.online === true || p.online === 'true';
     list = list.filter((row) => {
       if (row.type === 'gb_sip') return row.gbItem.onLine === online;
-      return row.device.online === online;
+      return (row as any).device?.online === online;
     });
   }
   return list;
@@ -400,7 +441,7 @@ async function fetch(p: Record<string, any> = {}) {
   try {
     state.loading = true;
     const search = p.deviceName;
-    const [devRes, gbRes, nvrs] = await Promise.all([
+    const [devResult, gbResult, nvrResult] = await Promise.allSettled([
       getDeviceList({
         ...params,
         pageNo: 1,
@@ -419,6 +460,9 @@ async function fetch(p: Record<string, any> = {}) {
       }),
       fetchNvrListBrief(),
     ]);
+    const devRes = devResult.status === 'fulfilled' ? devResult.value : undefined;
+    const gbRes = gbResult.status === 'fulfilled' ? gbResult.value : undefined;
+    const nvrs = nvrResult.status === 'fulfilled' ? nvrResult.value : [];
     let devices: DeviceInfo[] = [];
     if (devRes?.data) {
       devices = devRes.data;
@@ -663,6 +707,27 @@ defineExpose({
         line-height: 20px;
         height: 40px;
         padding-right: 90px;
+      }
+
+      .access-state-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        min-height: 24px;
+        margin-top: 6px;
+        padding-right: 8px;
+
+        .access-state-reason {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          color: rgba(0, 0, 0, 0.45);
+          font-size: 12px;
+          line-height: 20px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .props {

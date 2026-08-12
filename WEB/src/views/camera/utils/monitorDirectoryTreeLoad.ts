@@ -7,7 +7,6 @@ import {
   type NvrInfo,
 } from '@/api/device/camera';
 import { queryAllVideoList } from '@/api/device/gb28181';
-import type { TreeItem } from '@/components/Tree';
 import { buildGbSipNameMap, buildGbSipNameMapFromDirectoryTree } from './monitorGbDisplay';
 import {
   buildMonitorDirectoryTreeNodes,
@@ -16,9 +15,9 @@ import {
 import { fetchNvrListBrief } from './nvrDeviceGroup';
 import {
   isGb28181ChannelRecord,
-  resolveWvpSipDeviceId,
   wvpDeviceToTableRow,
 } from './gb28181DeviceGroup';
+import { filterValidWvpDevices, resolveWvpSipDeviceId } from './gb28181DeviceId';
 import { parseGb28181Source } from './deviceLabel';
 import {
   getCachedMonitorDirectoryTreeBundle,
@@ -186,7 +185,7 @@ export function monitorTreeDeviceToDeviceInfo(d: MonitorTreeDeviceNode): DeviceI
     rtmp_stream: d.rtmp_stream,
     ai_http_stream: d.ai_http_stream,
     ai_rtmp_stream: d.ai_rtmp_stream,
-  } as DeviceInfo;
+  } as unknown as DeviceInfo;
 }
 
 /** 目录下设备列表（含默认分组下 WVP 未入库的国标 SIP 行） */
@@ -204,7 +203,7 @@ export function buildDirectoryDevicesForTable(
     const parsed = parseGb28181Source(d.source);
     if (parsed?.deviceId) seenSip.add(parsed.deviceId);
   }
-  for (const wvp of wvpDevices) {
+  for (const wvp of filterValidWvpDevices(wvpDevices)) {
     const sipId = resolveWvpSipDeviceId(wvp);
     if (!sipId || seenSip.has(sipId)) continue;
     seenSip.add(sipId);

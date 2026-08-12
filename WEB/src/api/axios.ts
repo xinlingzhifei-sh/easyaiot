@@ -13,7 +13,7 @@ axiosInstance.interceptors.request.use(
     return config
   },
   (error: AxiosError) => {
-    Promise.reject(error)
+    return Promise.reject(error)
   }
 )
 
@@ -22,13 +22,13 @@ axiosInstance.interceptors.response.use(
   (res: AxiosResponse) => {
     const { code } = res.data as { code: number }
     if (code === undefined || code === null) return Promise.resolve(res.data)
-    if (code === ResultEnum.DATA_SUCCESS) return Promise.resolve(res.data)
+    if (code === ResultEnum.SUCCESS) return Promise.resolve(res.data)
     // 重定向
     if (ErrorPageNameMap.get(code)) redirectErrorPage(code)
     return Promise.resolve(res.data)
   },
-  (err: AxiosResponse) => {
-    Promise.reject(err)
+  (err: AxiosError) => {
+    return Promise.reject(err)
   }
 )
 

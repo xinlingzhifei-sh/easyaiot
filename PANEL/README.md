@@ -1,4 +1,4 @@
-# EasyAIoT PANEL
+# yFeiEye PANEL
 
 独立于 WEB 的平台运维控制台（参考 1Panel）：管理本机 Docker 容器，界面化执行
 统一安装脚本，并提供部署拓扑。

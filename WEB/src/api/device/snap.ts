@@ -612,6 +612,23 @@ export const getSnapImageList = (space_id: number, params: {
   return commonApi('get', `${SNAP_PREFIX}/space/${space_id}/images`, payload);
 };
 
+/** Load a protected snapshot with the authenticated HTTP client. */
+export const loadSnapImageObjectUrl = async (url: string): Promise<string> => {
+  const response = await defHttp.get<Blob>(
+    {
+      url,
+      responseType: 'blob',
+      headers: {
+        'X-Authorization': `Bearer ${localStorage.getItem('jwt_token') || ''}`,
+      },
+    },
+    { isTransformResponse: false },
+  ) as any;
+  const value = response?.data ?? response;
+  const blob = value instanceof Blob ? value : new Blob([value], { type: 'image/jpeg' });
+  return window.URL.createObjectURL(blob);
+};
+
 /**
  * 批量删除抓拍图片
  */
@@ -626,4 +643,3 @@ export const deleteSnapImages = (space_id: number, object_names: string[]) => {
 export const cleanupSnapImages = (space_id: number, save_time_hours: number) => {
   return commonApi('post', `${SNAP_PREFIX}/space/${space_id}/images/cleanup`, { save_time_hours });
 };
-

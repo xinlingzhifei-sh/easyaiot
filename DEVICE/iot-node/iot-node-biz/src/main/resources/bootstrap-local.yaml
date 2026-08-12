@@ -5,12 +5,12 @@ spring:
       discovery:
         metadata:
           version: 1.0.0
-        username: nacos
-        password: basiclab@iot78475418754
+        username: ${NACOS_USERNAME}
+        password: ${NACOS_PASSWORD}
       config:
         server-addr: localhost:8848
         group: DEFAULT_GROUP
         name: ${spring.application.name}
         file-extension: yaml
-        username: nacos
-        password: basiclab@iot78475418754
+        username: ${NACOS_USERNAME}
+        password: ${NACOS_PASSWORD}

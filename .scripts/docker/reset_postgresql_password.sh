@@ -22,7 +22,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 目标密码（从docker-compose.yml中读取）
-TARGET_PASSWORD="iot45722414822"
+TARGET_PASSWORD="${POSTGRES_PASSWORD:-}"
+if [ -z "$TARGET_PASSWORD" ] || [ "$TARGET_PASSWORD" = "CHANGE_ME" ]; then
+    echo "ERROR: POSTGRES_PASSWORD is required and must not be CHANGE_ME" >&2
+    exit 1
+fi
 
 # 打印带颜色的消息
 print_info() {
@@ -86,7 +90,7 @@ wait_for_postgresql() {
 reset_password() {
     print_section "重置 PostgreSQL 密码"
     
-    print_info "正在重置 postgres 用户密码为: $TARGET_PASSWORD"
+    print_info "正在重置 postgres 用户密码（凭据值不输出）"
     
     # 尝试通过容器内部重置密码（不需要密码）
     if docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD '$TARGET_PASSWORD';" > /dev/null 2>&1; then
@@ -157,7 +161,7 @@ reload_config() {
 main() {
     print_section "PostgreSQL 密码重置脚本"
     
-    print_info "目标密码: $TARGET_PASSWORD"
+    print_info "目标密码已通过安全渠道注入（凭据值不输出）"
     echo ""
     
     check_docker
@@ -179,4 +183,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

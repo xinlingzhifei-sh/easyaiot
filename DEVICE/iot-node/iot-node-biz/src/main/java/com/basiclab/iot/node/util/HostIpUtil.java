@@ -20,9 +20,9 @@ public final class HostIpUtil {
         if (cachedHostIp != null) {
             return cachedHostIp;
         }
-        String envHost = System.getenv("EASYAIOT_PLATFORM_HOST");
-        if (envHost != null && !envHost.isBlank() && isUsableIpv4(envHost.trim())) {
-            cachedHostIp = envHost.trim();
+        String envHost = configuredPlatformHost();
+        if (envHost != null) {
+            cachedHostIp = envHost;
             return cachedHostIp;
         }
         String ip = detectViaUdp();
@@ -34,6 +34,18 @@ public final class HostIpUtil {
             return ip;
         }
         return "127.0.0.1";
+    }
+
+    public static boolean hasConfiguredPlatformHost() {
+        return configuredPlatformHost() != null;
+    }
+
+    private static String configuredPlatformHost() {
+        String envHost = System.getenv("EASYAIOT_PLATFORM_HOST");
+        if (envHost != null && !envHost.isBlank() && isUsableIpv4(envHost.trim())) {
+            return envHost.trim();
+        }
+        return null;
     }
 
     private static String detectViaUdp() {

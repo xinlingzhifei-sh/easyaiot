@@ -25,8 +25,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim-bookworm
 
-LABEL maintainer="EasyAIoT"
-LABEL description="EasyAIoT RTC — go2rtc secondary development module"
+LABEL maintainer="yFeiEye"
+LABEL description="yFeiEye RTC — go2rtc secondary development module"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini ffmpeg curl gettext-base \

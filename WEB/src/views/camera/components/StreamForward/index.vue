@@ -154,7 +154,7 @@ import {
 } from '@ant-design/icons-vue';
 import { List, Popconfirm, Spin } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { Icon } from '@/components/Icon';
 import { useDrawer } from '@/components/Drawer';
@@ -186,7 +186,7 @@ const viewMode = ref<'table' | 'card'>('card');
 const taskList = ref<StreamForwardTask[]>([]);
 const loading = ref(false);
 const [registerModal, { openDrawer }] = useDrawer();
-const [registerLogsModal, { openModal: openLogsModal }] = useModal();
+const [registerLogsModal] = useModal();
 const [registerServiceDrawer, { openDrawer: openServiceDrawer }] = useDrawer();
 
 // 分页相关
@@ -207,7 +207,7 @@ const [registerTable, { reload }] = useTable({
   title: '推流任务列表',
   api: listStreamForwardTasks,
   beforeFetch: (params) => {
-    let is_enabled = undefined;
+    let is_enabled: 0 | 1 | undefined = undefined;
     if (params.is_enabled !== '' && params.is_enabled !== undefined) {
       is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
     }
@@ -231,41 +231,42 @@ const [registerTable, { reload }] = useTable({
 });
 
 // 获取表格操作按钮
-const getTableActions = (record: StreamForwardTask) => {
-  const actions = [
+const getTableActions = (record: Record<string, any>): ActionItem[] => {
+  const task = record as StreamForwardTask;
+  const actions: ActionItem[] = [
     {
       icon: 'ant-design:eye-filled',
       tooltip: '查看',
-      onClick: () => handleView(record),
+      onClick: () => handleView(task),
     },
     {
       icon: 'ant-design:edit-filled',
       tooltip: '编辑',
-      onClick: () => handleEdit(record),
+      onClick: () => handleEdit(task),
     },
     {
       icon: 'ant-design:heart-outlined',
       tooltip: '心跳信息',
-      onClick: () => handleViewServiceInfo(record),
+      onClick: () => handleViewServiceInfo(task),
     },
   ];
 
-  if (record.is_enabled) {
+  if (task.is_enabled) {
     actions.push({
       icon: 'ant-design:pause-circle-outlined',
       tooltip: '停止',
-      onClick: () => handleStop(record),
+      onClick: () => handleStop(task),
     });
     actions.push({
       icon: 'ant-design:reload-outlined',
       tooltip: '重启',
-      onClick: () => handleRestart(record),
+      onClick: () => handleRestart(task),
     });
   } else {
     actions.push({
       icon: 'ant-design:play-circle-outlined',
       tooltip: '启动',
-      onClick: () => handleStart(record),
+      onClick: () => handleStart(task),
     });
   }
 
@@ -274,7 +275,7 @@ const getTableActions = (record: StreamForwardTask) => {
     tooltip: '删除',
     popConfirm: {
       title: '确定删除此任务？',
-      confirm: () => handleDelete(record),
+      confirm: () => handleDelete(task),
     },
   });
 
@@ -747,4 +748,3 @@ onMounted(() => {
   }
 }
 </style>
-

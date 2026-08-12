@@ -1,12 +1,12 @@
-; EasyAIoT PANEL Windows Installer (NSIS)
+; yFeiEye PANEL Windows Installer (NSIS)
 ; Installs binary + panel.env + run.bat/run.vbs + bundled runtime (install_windows image deploy)
 Unicode true
-!define APP_NAME "EasyAIoT Panel"
+!define APP_NAME "yFeiEye Panel"
 !define APP_EXE "easyaiot-panel.exe"
 !define APP_VERSION "__VERSION__"
 
 OutFile "__OUTFILE__"
-InstallDir "$PROGRAMFILES64\EasyAIoT Panel"
+InstallDir "$PROGRAMFILES64\yFeiEye Panel"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 Icon "__DISTDIR__\panel.ico"
@@ -31,28 +31,28 @@ Section "Install"
   SetOutPath "$INSTDIR\ui"
   File /r "__DISTDIR__\ui\*.*"
 
-  ; Bundled EasyAIoT runtime (.scripts + module compose / install scripts)
+  ; Bundled yFeiEye runtime (.scripts + module compose / install scripts)
   SetOutPath "$INSTDIR\runtime"
   File /r "__DISTDIR__\runtime\*.*"
 
   ; SetOutPath 会影响快捷方式工作目录；切回安装根，避免 WD=runtime
   SetOutPath "$INSTDIR"
-  CreateDirectory "$SMPROGRAMS\EasyAIoT Panel"
+  CreateDirectory "$SMPROGRAMS\yFeiEye Panel"
   ; 快捷方式指向 run.vbs：无黑窗；图标用 panel.ico
-  CreateShortCut "$SMPROGRAMS\EasyAIoT Panel\EasyAIoT Panel.lnk" "$INSTDIR\run.vbs" "" "$INSTDIR\panel.ico" 0
-  CreateShortCut "$DESKTOP\EasyAIoT Panel.lnk" "$INSTDIR\run.vbs" "" "$INSTDIR\panel.ico" 0
+  CreateShortCut "$SMPROGRAMS\yFeiEye Panel\yFeiEye Panel.lnk" "$INSTDIR\run.vbs" "" "$INSTDIR\panel.ico" 0
+  CreateShortCut "$DESKTOP\yFeiEye Panel.lnk" "$INSTDIR\run.vbs" "" "$INSTDIR\panel.ico" 0
 
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EasyAIoT Panel" "DisplayName" "${APP_NAME}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EasyAIoT Panel" "DisplayVersion" "${APP_VERSION}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EasyAIoT Panel" "DisplayIcon" "$INSTDIR\easyaiot-panel.exe"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EasyAIoT Panel" "UninstallString" "$INSTDIR\uninstall.exe"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\yFeiEye Panel" "DisplayName" "${APP_NAME}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\yFeiEye Panel" "DisplayVersion" "${APP_VERSION}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\yFeiEye Panel" "DisplayIcon" "$INSTDIR\easyaiot-panel.exe"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\yFeiEye Panel" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteUninstaller "$INSTDIR\uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
-  Delete "$SMPROGRAMS\EasyAIoT Panel\EasyAIoT Panel.lnk"
-  RMDir "$SMPROGRAMS\EasyAIoT Panel"
-  Delete "$DESKTOP\EasyAIoT Panel.lnk"
+  Delete "$SMPROGRAMS\yFeiEye Panel\yFeiEye Panel.lnk"
+  RMDir "$SMPROGRAMS\yFeiEye Panel"
+  Delete "$DESKTOP\yFeiEye Panel.lnk"
 
   Delete "$INSTDIR\easyaiot-panel.exe"
   Delete "$INSTDIR\panel.ico"
@@ -66,5 +66,5 @@ Section "Uninstall"
   RMDir /r "$INSTDIR\runtime"
   RMDir "$INSTDIR"
 
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\EasyAIoT Panel"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\yFeiEye Panel"
 SectionEnd

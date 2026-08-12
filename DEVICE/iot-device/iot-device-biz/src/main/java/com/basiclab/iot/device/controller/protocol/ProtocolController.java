@@ -18,9 +18,8 @@ import java.util.List;
 /**
  * 协议管理Controller
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date 2022-07-04
  */
 @RestController

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { EChartsOption } from 'echarts';
 import type { Ref } from 'vue';
 import { computed, ref, watch } from 'vue';
 import { useECharts } from '@/hooks/web/useECharts';
@@ -142,7 +143,7 @@ function buildTooltipFormatter(mode: 'cluster' | 'node') {
   };
 }
 
-function buildNodeChartOptions() {
+function buildNodeChartOptions(): EChartsOption {
   const seriesList = filteredNodeSeries.value;
   const timestamps = collectTrendTimestamps([], seriesList);
   const times = formatTrendTimestamps(timestamps);
@@ -203,7 +204,10 @@ function buildNodeChartOptions() {
   };
 }
 
-function buildClusterChartOptions(_points: ClusterTrendPoint[], nodeSeries: NodeTrendSeries[]) {
+function buildClusterChartOptions(
+  _points: ClusterTrendPoint[],
+  nodeSeries: NodeTrendSeries[],
+): EChartsOption {
   const timestamps = collectTrendTimestamps([], nodeSeries);
   const times = formatTrendTimestamps(timestamps);
   const nodeTrendSeries = buildClusterNodeTrendSeries(nodeSeries, timestamps);

@@ -33,39 +33,7 @@
         </template>
         <template v-if="column.dataIndex === 'action'">
           <TableAction
-            :actions="[
-              {
-                icon: 'mdi:play-outline',
-                tooltip: { title: '批量启动', placement: 'top' },
-                onClick: () => handleBatchStart(record),
-                disabled: record.status === 'running',
-                style: 'color: #52c41a; padding: 0 8px; font-size: 16px;'
-              },
-              {
-                icon: 'mdi:stop-outline',
-                tooltip: { title: '批量停止', placement: 'top' },
-                onClick: () => handleBatchStop(record),
-                disabled: record.status !== 'running',
-                style: 'color: #ff4d4f; padding: 0 8px; font-size: 16px;'
-              },
-              {
-                icon: 'mdi:restart',
-                tooltip: { title: '批量重启', placement: 'top' },
-                onClick: () => handleBatchRestart(record),
-                disabled: record.status !== 'running',
-                style: 'color: #1890ff; padding: 0 8px; font-size: 16px;'
-              },
-              {
-                icon: 'mdi:delete-outline',
-                tooltip: { title: '删除', placement: 'top' },
-                popConfirm: {
-                  placement: 'topRight',
-                  title: '确定删除此部署服务?',
-                  confirm: () => handleDelete(record)
-                },
-                style: 'color: #ff4d4f; padding: 0 8px; font-size: 16px;'
-              }
-            ]"
+            :actions="getTableActions(record)"
             :action-style="{
               display: 'flex',
               flexWrap: 'nowrap',
@@ -110,7 +78,7 @@
 
 <script lang="ts" setup>
 import {nextTick, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
-import {BasicTable, TableAction, useTable} from '@/components/Table';
+import {BasicTable, TableAction, useTable, type ActionItem} from '@/components/Table';
 import {useMessage} from '@/hooks/web/useMessage';
 const {createMessage} = useMessage();
 import {useModal} from '@/components/Modal';
@@ -119,13 +87,9 @@ import {
   deleteDeployService,
   getDeployServicePage,
   getModelPage,
-  restartDeployService,
-  startDeployService,
-  stopDeployService,
   batchStartDeployService,
   batchStopDeployService,
   batchRestartDeployService,
-  getDeployServiceReplicas
 } from '@/api/device/model';
 import DeployModal from '../DeployModal/DeployModal.vue';
 import DeployServiceCardList from '../DeployServiceCardList/index.vue';
@@ -172,7 +136,6 @@ function handleClickSwap() {
 const [registerDeployModal, {openModal: openDeployModal}] = useModal();
 const [registerLogsModal, {
   openModal: openServiceLogsModal,
-  closeModal: closeServiceLogsModal
 }] = useModal();
 const [registerReplicasDrawer, {openDrawer: openReplicasDrawer}] = useDrawer();
 
@@ -182,6 +145,38 @@ function handleDeploySuccess() {
     page: 0,
   });
   cardListReload();
+}
+
+function getTableActions(record: Recordable): ActionItem[] {
+  return [
+    {
+      icon: 'mdi:play-outline',
+      tooltip: { title: '批量启动', placement: 'top' },
+      onClick: () => handleBatchStart(record),
+      disabled: record.status === 'running',
+    },
+    {
+      icon: 'mdi:stop-outline',
+      tooltip: { title: '批量停止', placement: 'top' },
+      onClick: () => handleBatchStop(record),
+      disabled: record.status !== 'running',
+    },
+    {
+      icon: 'mdi:restart',
+      tooltip: { title: '批量重启', placement: 'top' },
+      onClick: () => handleBatchRestart(record),
+      disabled: record.status !== 'running',
+    },
+    {
+      icon: 'mdi:delete-outline',
+      tooltip: { title: '删除', placement: 'top' },
+      popConfirm: {
+        placement: 'topRight',
+        title: '确定删除此部署服务?',
+        confirm: () => handleDelete(record),
+      },
+    },
+  ];
 }
 
 // 批量启动服务
@@ -334,6 +329,7 @@ const handleViewLogs = (record) => {
     openServiceLogsModal(true, {record});
   });
 };
+void handleViewLogs;
 
 const handleLogsModalClose = () => {
   showLogsModal.value = false;
@@ -496,4 +492,3 @@ watch(() => modelOptions.value, (newOptions) => {
   }
 }
 </style>
-

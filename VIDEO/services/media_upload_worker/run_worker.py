@@ -20,9 +20,9 @@ logger = logging.getLogger('media-upload-worker')
 
 TOPIC = os.getenv('MEDIA_KAFKA_DVR_TOPIC', 'media.dvr.completed')
 GROUP = os.getenv('MEDIA_KAFKA_DVR_CONSUMER_GROUP', 'upload-worker-dvr')
-BOOTSTRAP = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+BOOTSTRAP = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
 if 'Kafka' in BOOTSTRAP or 'kafka-server' in BOOTSTRAP:
-    BOOTSTRAP = 'localhost:9092'
+    BOOTSTRAP = 'localhost:9094'
 
 
 def _create_app():

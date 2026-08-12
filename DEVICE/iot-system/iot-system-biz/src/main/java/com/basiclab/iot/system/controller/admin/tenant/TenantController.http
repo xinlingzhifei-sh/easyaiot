@@ -1,5 +1,5 @@
 ### 获取租户编号 /admin-api/system/get-id-by-name
-GET {{baseUrl}}/system/tenant/get-id-by-name?name=BasicLab源码
+GET {{baseUrl}}/system/tenant/get-id-by-name?name=yFeiEye
 
 ### 创建租户 /admin-api/system/tenant/create
 POST {{baseUrl}}/system/tenant/create
@@ -8,8 +8,8 @@ Authorization: Bearer {{token}}
 tenant-id: {{adminTenentId}}
 
 {
-  "name": "BasicLab",
-  "contactName": "BasicLab",
+  "name": "yFeiEye",
+  "contactName": "yFeiEye",
   "contactMobile": "15601691300",
   "status": 0,
   "domain": "https://www.iocoder.cn",

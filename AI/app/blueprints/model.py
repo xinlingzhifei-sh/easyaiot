@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import os
@@ -15,8 +14,11 @@ from flask import Blueprint, request, jsonify, send_file
 from flask import redirect, url_for, flash, render_template
 from sqlalchemy import or_
 from app.services.minio_service import ModelService
-from app.utils.yolo_validator import validate_yolo_model
 from app.utils.image_utils import download_default_model_image
+from app.utils.model_upload_security import (
+    require_safe_model_upload_extension,
+    require_web_safe_model_reference,
+)
 from app.utils.model_class_utils import (
     dump_class_names_json,
     extract_class_names_from_model,
@@ -40,8 +42,8 @@ def _normalize_model_version(version) -> str:
 
 
 def _serialize_model_class_fields(model: Model) -> dict:
-    class_names = parse_class_names_json(model.class_names)
-    selected_class_names = parse_class_names_json(model.selected_class_names)
+    class_names = parse_class_names_json(getattr(model, 'class_names', None))
+    selected_class_names = parse_class_names_json(getattr(model, 'selected_class_names', None))
     if not selected_class_names and class_names:
         selected_class_names = list(class_names)
     return {
@@ -229,7 +231,7 @@ def upload_custom_model():
     上传用户自定义YOLO模型（支持 yolov8、yolov11 和 yolov26）
     
     请求参数:
-    - file: 模型文件（.pt或.onnx格式，multipart/form-data）
+    - file: ONNX 模型文件（multipart/form-data）
     - name: 模型名称（可选，如果提供则保存到数据库）
     - description: 模型描述（可选）
     - version: 模型版本（可选，默认1.0.0）
@@ -243,9 +245,10 @@ def upload_custom_model():
         return jsonify({'code': 400, 'msg': '未选择文件'}), 400
 
     # 检查文件扩展名
-    ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in ['.pt', '.onnx']:
-        return jsonify({'code': 400, 'msg': '只支持.pt和.onnx格式的YOLO模型文件'}), 400
+    try:
+        ext = require_safe_model_upload_extension(file.filename)
+    except ValueError as exc:
+        return jsonify({'code': 400, 'msg': str(exc)}), 400
 
     # 获取可选参数
     name = request.form.get('name', '').strip()
@@ -268,90 +271,39 @@ def upload_custom_model():
         yolo_version = None
         detection_method = None
         
-        if ext == '.onnx':
-            # 验证ONNX模型
-            try:
-                from app.utils.onnx_validator import validate_onnx_model
-                yolo_version, detection_method = validate_onnx_model(temp_path)
-                if yolo_version is None:
-                    return jsonify({
-                        'code': 400,
-                        'msg': '无法确定ONNX模型版本，请确保上传的是有效的YOLO ONNX模型文件'
-                    }), 400
-                
-                if yolo_version not in ['yolov8', 'yolov11', 'yolov26']:
-                    return jsonify({
-                        'code': 400,
-                        'msg': f'不支持的YOLO版本: {yolo_version}，仅支持 yolov8、yolov11 和 yolov26'
-                    }), 400
-                
-                logger.info(f"ONNX模型版本验证成功: {yolo_version} (检测方法: {detection_method})")
-            except ImportError as e:
-                return jsonify({
-                    'code': 500,
-                    'msg': f'ONNX模型验证失败: {str(e)}'
-                }), 500
-            except Exception as e:
-                error_msg = str(e)
-                logger.error(f"ONNX模型验证失败: {error_msg}")
+        # ONNX 不使用 Python pickle；验证失败时不得回退到 .pt/torch.load。
+        try:
+            from app.utils.onnx_validator import validate_onnx_model
+            yolo_version, detection_method = validate_onnx_model(temp_path)
+            if yolo_version is None:
                 return jsonify({
                     'code': 400,
-                    'msg': f'ONNX模型验证失败: {error_msg}'
+                    'msg': '无法确定ONNX模型版本，请确保上传的是有效的YOLO ONNX模型文件'
                 }), 400
-        else:
-            # 验证YOLO模型版本（必须是 yolov8、yolov11 或 yolov26）
-            try:
-                yolo_version, detection_method = validate_yolo_model(
-                    temp_path,
-                    original_filename=file.filename,
-                )
-                if yolo_version is None:
-                    return jsonify({
-                        'code': 400,
-                        'msg': '无法确定模型版本，请确保上传的是有效的YOLO模型文件'
-                    }), 400
-                
-                if yolo_version not in ['yolov8', 'yolov11', 'yolov26']:
-                    return jsonify({
-                        'code': 400,
-                        'msg': f'不支持的YOLO版本: {yolo_version}，仅支持 yolov8、yolov11 和 yolov26'
-                    }), 400
-                
-                logger.info(f"模型版本验证成功: {yolo_version} (检测方法: {detection_method})")
-            except ImportError as e:
+
+            if yolo_version not in ['yolov8', 'yolov11', 'yolov26']:
                 return jsonify({
-                    'code': 500,
-                    'msg': f'模型验证失败: {str(e)}'
-                }), 500
-            except Exception as e:
-                error_msg = str(e)
-                logger.error(f"模型验证失败: {error_msg}")
-                
-                # 检查是否是YOLOv5或其他不兼容模型的明确错误
-                if (
-                    '检测到YOLOv5' in error_msg
-                    or 'models.yolo' in error_msg
-                    or '检测到YOLOv' in error_msg
-                ):
-                    # 直接返回明确的错误信息（已经包含了详细的说明）
-                    return jsonify({
-                        'code': 400,
-                        'msg': error_msg
-                    }), 400
-                else:
-                    # 其他错误，返回通用错误信息
-                    return jsonify({
-                        'code': 400,
-                        'msg': f'模型验证失败: {error_msg}'
-                    }), 400
+                    'code': 400,
+                    'msg': f'不支持的YOLO版本: {yolo_version}，仅支持 yolov8、yolov11 和 yolov26'
+                }), 400
+
+            logger.info(f"ONNX模型版本验证成功: {yolo_version} (检测方法: {detection_method})")
+        except ImportError as e:
+            return jsonify({
+                'code': 500,
+                'msg': f'ONNX模型验证失败: {str(e)}'
+            }), 500
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"ONNX模型验证失败: {error_msg}")
+            return jsonify({
+                'code': 400,
+                'msg': f'ONNX模型验证失败: {error_msg}'
+            }), 400
 
         # 上传到MinIO
         bucket_name = 'models'
-        # 根据文件类型选择不同的存储路径
-        if ext == '.onnx':
-            object_key = f"yolo/{yolo_version}/onnx/{unique_filename}"
-        else:
-            object_key = f"yolo/{yolo_version}/{unique_filename}"
+        object_key = f"yolo/{yolo_version}/onnx/{unique_filename}"
 
         upload_success, upload_error = ModelService.upload_to_minio(bucket_name, object_key, temp_path)
         if not upload_success:
@@ -383,7 +335,7 @@ def upload_custom_model():
                 'fileName': file.filename,
                 'yolo_version': yolo_version,
                 'detection_method': detection_method,
-                'model_format': 'onnx' if ext == '.onnx' else 'pt',
+                'model_format': 'onnx',
                 'class_names': class_names,
                 'classNames': class_names,
                 'selected_class_names': selected_class_names_list,
@@ -464,8 +416,8 @@ def upload_custom_model():
                 model = Model(
                     name=name,
                     description=description,
-                    model_path=download_url if ext != '.onnx' else None,  # PT模型保存到model_path
-                    onnx_model_path=download_url if ext == '.onnx' else None,  # ONNX模型保存到onnx_model_path
+                    model_path=None,
+                    onnx_model_path=download_url,
                     version=version,
                     image_url=image_url if image_url else None,
                     class_names=dump_class_names_json(class_names),
@@ -531,6 +483,11 @@ def create_model():
 
         if not name:
             return jsonify({'code': 400, 'msg': '模型名称不能为空'}), 400
+        if file_path:
+            try:
+                file_path = require_web_safe_model_reference(file_path)
+            except ValueError as model_error:
+                return jsonify({'code': 400, 'msg': str(model_error)}), 400
 
         # 检查模型名称+版本是否已存在
         existing_model = Model.query.filter(
@@ -548,15 +505,14 @@ def create_model():
         model = Model(
             name=name,
             description=description,
-            model_path=file_path,
+            model_path=None,
+            onnx_model_path=file_path or None,
             image_url=image_url,
             version=version,
             status=status
         )
         _apply_model_class_fields(model, data)
-        origin = (data.get('model_origin') or data.get('modelOrigin') or 'upload').strip() or 'upload'
-        origin_ref = data.get('origin_ref') or data.get('originRef')
-        _apply_model_provenance(model, origin, origin_ref)
+        _apply_model_provenance(model, 'upload')
         db.session.add(model)
         db.session.commit()
 
@@ -568,7 +524,7 @@ def create_model():
                 'name': model.name,
                 'version': model.version,
                 'status': getattr(model, 'status', 0) or 0,
-                'filePath': model.model_path,
+                'filePath': model.onnx_model_path,
                 'imageUrl': model.image_url,
                 **_serialize_model_class_fields(model),
             }
@@ -624,7 +580,17 @@ def update_model(model_id):
         if 'description' in data:
             model.description = data['description']
         if 'filePath' in data:
-            model.model_path = data['filePath']
+            raw_path = data['filePath']
+            if raw_path:
+                try:
+                    safe_path = require_web_safe_model_reference(raw_path)
+                except ValueError as model_error:
+                    return jsonify({'code': 400, 'msg': str(model_error)}), 400
+            else:
+                safe_path = None
+            model.model_path = None
+            model.onnx_model_path = safe_path
+            _apply_model_provenance(model, 'upload')
         if 'imageUrl' in data:
             model.image_url = data['imageUrl']
         if 'status' in data and data['status'] is not None:
@@ -647,7 +613,7 @@ def update_model(model_id):
                 'name': model.name,
                 'version': model.version,
                 'status': getattr(model, 'status', 0) or 0,
-                'filePath': model.model_path,
+                'filePath': model.onnx_model_path,
                 'imageUrl': model.image_url,
                 **_serialize_model_class_fields(model),
             }

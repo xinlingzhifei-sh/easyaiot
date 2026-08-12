@@ -9,9 +9,8 @@ import java.util.stream.Stream;
 
 /**
  * @Description: 连接状态
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/10/25$ 15:54$
  * @UpdateDate: 2024/10/25$ 15:54$
  */

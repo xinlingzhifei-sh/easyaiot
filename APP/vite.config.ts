@@ -46,7 +46,7 @@ function WotResolver(): ComponentResolver {
   }
 }
 
-/** EasyAIoT UI 组件解析器：本地 @/components/yudao-ui/* 的组件 */
+/** yFeiEye UI 组件解析器：本地 @/components/yudao-ui/* 的组件 */
 function YudaoUiResolver(): ComponentResolver {
   return {
     type: 'component',
@@ -111,8 +111,6 @@ export default defineConfig(({ command, mode }) => {
     VITE_COPY_NATIVE_RES_ENABLE,
   } = env
   const { WECHAT_DEVTOOLS_CLI_PATH } = localEnv
-  console.log('环境变量 env -> ', env)
-
   return defineConfig({
     envDir: './env', // 自定义env目录
     base: VITE_APP_PUBLIC_BASE,

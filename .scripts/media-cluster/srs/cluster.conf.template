@@ -64,8 +64,8 @@ vhost __defaultVhost__ {
 
     http_hooks {
         enabled             on;
-        on_publish          http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_publish;
-        on_unpublish        http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_unpublish;
-        on_dvr              http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/sink/media/hook/srs/on_dvr;
+        on_publish          http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_publish?hook_token=${YFEIEYE_SRS_HOOK_TOKEN};
+        on_unpublish        http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_unpublish?hook_token=${YFEIEYE_SRS_HOOK_TOKEN};
+        on_dvr              http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_dvr?hook_token=${YFEIEYE_SRS_HOOK_TOKEN};
     }
 }

@@ -1,4 +1,4 @@
-# EasyAIoT COMPILE - openEuler 24.x（国内 dnf 源；前端由宿主机构建）
+# yFeiEye COMPILE - openEuler 24.x（国内 dnf 源；前端由宿主机构建）
 ARG BASE_IMAGE=openeuler/openeuler:24.03
 
 FROM ${BASE_IMAGE} AS builder

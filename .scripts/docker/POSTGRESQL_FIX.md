@@ -147,7 +147,7 @@ PostgreSQL 官方镜像的行为：
 
 ```bash
 cd .scripts/docker
-docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'iot45722414822';"
+docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD '<POSTGRES_PASSWORD>';"
 ```
 
 ### 方法 2：使用重置脚本
@@ -163,7 +163,7 @@ cd .scripts/docker
 cd .scripts/docker
 docker-compose restart PostgresSQL
 # 等待容器启动后
-docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD 'iot45722414822';"
+docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres WITH PASSWORD '<POSTGRES_PASSWORD>';"
 ```
 
 ## 常见问题
@@ -173,7 +173,7 @@ docker exec postgres-server psql -U postgres -d postgres -c "ALTER USER postgres
 A: 检查以下几点：
 1. 确认容器正在运行：`docker ps | grep postgres-server`
 2. 查看容器日志：`docker logs postgres-server`
-3. 确认应用程序使用的密码是：`iot45722414822`
+3. 确认应用程序使用的密码是：`<POSTGRES_PASSWORD>`
 4. 检查数据目录权限：`ls -la db_data/data/`
 5. **重要**：如果从应用程序连接，确保使用容器网络名称 `PostgresSQL` 而不是 `localhost`：
    - 正确：`jdbc:postgresql://PostgresSQL:5432/database`
@@ -182,7 +182,7 @@ A: 检查以下几点：
 ### Q: 从外部（宿主机）连接失败怎么办？
 
 A: 如果从宿主机使用 `psql` 或应用程序连接失败：
-1. 确保使用正确的密码：`iot45722414822`
+1. 确保使用正确的密码：`<POSTGRES_PASSWORD>`
 2. 检查端口映射：`docker ps | grep 5432`
 3. 尝试使用容器内部连接测试：
    ```bash

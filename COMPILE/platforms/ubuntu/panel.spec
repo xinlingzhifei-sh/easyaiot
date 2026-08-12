@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec：EasyAIoT PANEL → Ubuntu 单文件可执行程序
+# PyInstaller spec：yFeiEye PANEL → Ubuntu 单文件可执行程序
 # 由 targets/ubuntu/Dockerfile 在容器内调用。
 
 import os

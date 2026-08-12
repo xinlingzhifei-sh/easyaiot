@@ -10,9 +10,8 @@ import org.springframework.stereotype.Component;
 /**
  * 子设备管理服务降级处理
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Component
 public class RemoteDeviceInfoFallbackFactory implements FallbackFactory<RemoteDeviceInfoService> {

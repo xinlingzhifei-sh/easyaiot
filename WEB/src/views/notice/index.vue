@@ -273,7 +273,7 @@ const [
   useSearchForm: true,
   showTableSetting: false,
   pagination: true,
-  formConfig: getFormConfig(),
+  formConfig: getFormConfig() as any,
   rowKey: 'id',
 });
 

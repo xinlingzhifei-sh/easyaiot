@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'vue'
 import type { ButtonProps } from 'ant-design-vue/es/button/buttonTypes'
 import type { TooltipProps } from 'ant-design-vue/es/tooltip/Tooltip'
 import type { RoleEnum } from '@/enums/roleEnum'
@@ -15,6 +16,7 @@ export interface ActionItem extends ButtonProps {
   // 业务控制是否显示
   ifShow?: boolean | ((action: ActionItem) => boolean)
   tooltip?: string | TooltipProps
+  style?: CSSProperties | string
 }
 
 export interface PopConfirm {

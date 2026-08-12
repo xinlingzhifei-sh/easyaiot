@@ -12,9 +12,8 @@ import javax.validation.constraints.NotNull;
 /**
  * SmsChannelSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 public class SmsChannelSaveReqVO {
@@ -22,7 +21,7 @@ public class SmsChannelSaveReqVO {
     @Schema(description = "编号", example = "1024")
     private Long id;
 
-    @Schema(description = "短信签名", example = "BasicLab源码")
+    @Schema(description = "短信签名", example = "yFeiEye")
     @NotNull(message = "短信签名不能为空")
     private String signature;
 
@@ -44,7 +43,7 @@ public class SmsChannelSaveReqVO {
     @Schema(description = "短信 API 的密钥", example = "yuanma")
     private String apiSecret;
 
-    @Schema(description = "短信发送回调 URL", example = "https://github.com/soaring-xiongkulu/easyaiot")
+    @Schema(description = "短信发送回调 URL", example = "https://github.com/reese/yfeieye")
     @URL(message = "回调 URL 格式不正确")
     private String callbackUrl;
 

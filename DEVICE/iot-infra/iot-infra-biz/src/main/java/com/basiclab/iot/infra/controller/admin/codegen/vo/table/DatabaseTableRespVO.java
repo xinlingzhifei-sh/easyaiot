@@ -12,15 +12,14 @@ public class DatabaseTableRespVO {
 /**
  * DatabaseTableRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 (description = "表名称", example = "yuanma")
     private String name;
 
-    @Schema(description = "表描述", example = "BasicLab源码")
+    @Schema(description = "表描述", example = "yFeiEye")
     private String comment;
 
 }

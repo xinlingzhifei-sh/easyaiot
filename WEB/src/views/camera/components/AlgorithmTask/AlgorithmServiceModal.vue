@@ -146,10 +146,9 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate();
     
-    // 将布尔值转换为整数：true -> 1, false -> 0
     const submitData = {
       ...formData.value,
-      is_enabled: formData.value.is_enabled === true || formData.value.is_enabled === 'true' ? 1 : 0,
+      is_enabled: !!formData.value.is_enabled,
     };
     
     if (props.serviceData) {
@@ -182,4 +181,3 @@ const handleCancel = () => {
   open.value = false;
 };
 </script>
-

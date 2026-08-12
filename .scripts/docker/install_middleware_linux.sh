@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 中间件部署脚本
+# yFeiEye 中间件部署脚本
 # ============================================
 # 使用方法：
 #   ./install_all.sh [命令]
@@ -32,10 +32,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
+MIDDLEWARE_ENV_FILE="${YFEIEYE_MIDDLEWARE_ENV_FILE:-${SCRIPT_DIR}/.env.docker}"
 
 # shellcheck source=deploy_profile.sh
 source "${SCRIPT_DIR}/deploy_profile.sh"
 COMPOSE_PROFILE_ARGS=()
+
+# GPUStack Worker（本机算力节点，与 compose 中的 gpustack-server 配合）
+GPUSTACK_WORKER_NAME="${GPUSTACK_WORKER_NAME:-gpustack-worker}"
+GPUSTACK_WORKER_IMAGE="${GPUSTACK_WORKER_IMAGE:-quay.io/gpustack/gpustack:v2.1.2}"
+GPUSTACK_CLUSTER_NAME="${GPUSTACK_CLUSTER_NAME:-yfeieye}"
+GPUSTACK_ADMIN_USER="${GPUSTACK_ADMIN_USER:-admin}"
+GPUSTACK_ADMIN_PASSWORD="${GPUSTACK_ADMIN_PASSWORD:-}"
+# GPUSTACK_TOKEN 由 API 动态获取；若已导出则优先使用环境变量中的值
+GPUSTACK_API_COOKIE_FILE="${SCRIPT_DIR}/logs/.gpustack_api_cookie"
+# 跳过 GPUStack（Server 容器、Worker、镜像拉取、数据目录递归 chmod）。
+# 导出 SKIP_GPUSTACK=true 可避免 gpustack_data 大目录的递归 777 卡顿、加速部署。
+SKIP_GPUSTACK="${SKIP_GPUSTACK:-false}"
 
 refresh_compose_profile_args() {
     apply_deploy_profile
@@ -66,7 +79,12 @@ init_kafka_topics_if_enabled() {
 }
 
 mw_compose() {
-    $COMPOSE_CMD -f "$COMPOSE_FILE" ${COMPOSE_PROFILE_ARGS[@]+"${COMPOSE_PROFILE_ARGS[@]}"} "$@"
+    if [ ! -f "$MIDDLEWARE_ENV_FILE" ]; then
+        print_error "中间件 Compose 环境文件不存在: $MIDDLEWARE_ENV_FILE"
+        print_info "请先复制 env.example 为 .env.docker 并填写必需凭据"
+        return 1
+    fi
+    $COMPOSE_CMD --env-file "$MIDDLEWARE_ENV_FILE" -f "$COMPOSE_FILE" ${COMPOSE_PROFILE_ARGS[@]+"${COMPOSE_PROFILE_ARGS[@]}"} "$@"
 }
 
 # 强制对所有已存在的存储目录做完整递归 chmod/chown（兜底用）。
@@ -83,7 +101,7 @@ LOG_FILE="${LOG_DIR}/install_middleware_${_LOG_TS}.log"
 
 # 初始化日志文件
 echo "=========================================" >> "$LOG_FILE"
-echo "EasyAIoT 中间件部署脚本日志" >> "$LOG_FILE"
+echo "yFeiEye 中间件部署脚本日志" >> "$LOG_FILE"
 echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
 echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
@@ -944,7 +962,7 @@ configure_apt_mirror() {
     fi
     
     # 检查用户是否已经选择过（通过标记文件）
-    local apt_mirror_marker="/etc/apt/.easyaiot_mirror_configured"
+    local apt_mirror_marker="/etc/apt/.yfeieye_mirror_configured"
     
     # 先检查当前系统是否已配置国内 apt 源（完整检查，包括 sources.list 和 sources.list.d）
     local current_sources_list="/etc/apt/sources.list"
@@ -1103,7 +1121,7 @@ Components: main restricted universe multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 EOF
                             cat > "$sources_list" << EOF
-# Ubuntu apt sources are configured in /etc/apt/sources.list.d/ubuntu.sources (EasyAIoT)
+# Ubuntu apt sources are configured in /etc/apt/sources.list.d/ubuntu.sources (yFeiEye)
 EOF
                             print_success "已配置 Ubuntu 清华大学镜像源（DEB822）"
                         else
@@ -1658,28 +1676,28 @@ check_docker_compose() {
 
 # 创建统一网络
 create_network() {
-    print_info "创建统一网络 easyaiot-network..."
+    print_info "创建统一网络 yfeieye-network..."
     
     # 检查网络是否已存在
-    if docker network ls | grep -q easyaiot-network; then
-        print_info "网络 easyaiot-network 已存在，跳过创建"
+    if docker network ls | grep -q yfeieye-network; then
+        print_info "网络 yfeieye-network 已存在，跳过创建"
         # 简化处理：如果网络已存在，直接使用，不进行任何测试（避免卡住）
         # 如果网络真的有问题，后续启动容器时会报错，届时再处理
         return 0
     fi
     
     # 创建网络（如果不存在或已删除）
-    print_info "正在创建网络 easyaiot-network..."
-    local create_output=$(docker network create easyaiot-network 2>&1)
+    print_info "正在创建网络 yfeieye-network..."
+    local create_output=$(docker network create yfeieye-network 2>&1)
     local create_exit_code=$?
     
     if [ $create_exit_code -eq 0 ]; then
-        print_success "网络 easyaiot-network 已创建"
+        print_success "网络 yfeieye-network 已创建"
         return 0
     else
         # 检查错误原因
         if echo "$create_output" | grep -qi "already exists"; then
-            print_info "网络 easyaiot-network 已存在（可能在检查后创建）"
+            print_info "网络 yfeieye-network 已存在（可能在检查后创建）"
             return 0
         elif echo "$create_output" | grep -qi "permission denied"; then
             print_error "没有权限创建 Docker 网络"
@@ -1688,7 +1706,7 @@ create_network() {
         elif echo "$create_output" | grep -qi "network with name.*already exists"; then
             print_warning "网络名称冲突，尝试使用不同的方法..."
             # 再次检查网络是否存在
-            if docker network ls | grep -q easyaiot-network; then
+            if docker network ls | grep -q yfeieye-network; then
                 print_info "网络已存在，继续使用现有网络"
                 return 0
             else
@@ -1696,7 +1714,7 @@ create_network() {
                 return 1
             fi
         else
-            print_error "无法创建网络 easyaiot-network"
+            print_error "无法创建网络 yfeieye-network"
             print_error "错误信息: $create_output"
             print_info "诊断建议："
             print_info "  1. 检查 Docker 服务是否正常运行: sudo systemctl status docker"
@@ -1871,7 +1889,7 @@ get_host_ip() {
 # 在宿主机 /etc/hosts 中将 Kafka 解析为本机回环（供宿主机进程使用 Kafka:9092）
 # Kafka 容器已映射 0.0.0.0:9092，127.0.0.1 最稳定；勿用 get_host_ip()（会误取 metric/VPN/tunnel 如 28.0.0.1）
 # 跨机部署可导出 KAFKA_HOSTS_IP=中间件内网IP 覆盖
-KAFKA_HOSTS_MARKER="# EasyAIoT Kafka (install_middleware_linux.sh)"
+KAFKA_HOSTS_MARKER="# yFeiEye Kafka (install_middleware_linux.sh)"
 configure_kafka_hosts() {
     local host_ip hosts_file="/etc/hosts"
     local entry_line
@@ -1951,7 +1969,9 @@ set_data_dir_perms() {
 
 # 创建并设置 NodeRED 数据目录权限
 create_nodered_directories() {
-    local nodered_data_dir="${SCRIPT_DIR}/nodered_data/data"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local nodered_data_dir="${middleware_data_root}/nodered_data/data"
     print_info "创建 NodeRED 数据目录并设置权限..."
     if set_data_dir_perms "1000:1000" "$nodered_data_dir"; then
         print_success "NodeRED 数据目录权限已设置 (UID 1000:1000, 777)"
@@ -1962,7 +1982,9 @@ create_nodered_directories() {
 
 # 创建并设置 FUXA 数据目录权限（工程 / 历史 / 日志 / 图片）
 create_fuxa_directories() {
-    local fuxa_root="${SCRIPT_DIR}/fuxa_data"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local fuxa_root="${middleware_data_root}/fuxa_data"
     local dirs=(
         "${fuxa_root}/appdata"
         "${fuxa_root}/db"
@@ -1984,8 +2006,10 @@ create_fuxa_directories() {
 
 # 创建并设置 PostgreSQL 数据目录权限
 create_postgresql_directories() {
-    local postgresql_data_dir="${SCRIPT_DIR}/db_data/data"
-    local postgresql_log_dir="${SCRIPT_DIR}/db_data/log"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local postgresql_data_dir="${middleware_data_root}/db_data/data"
+    local postgresql_log_dir="${middleware_data_root}/db_data/log"
     print_info "创建 PostgreSQL 数据目录并设置权限..."
     if set_data_dir_perms "999:999" "$postgresql_data_dir" "$postgresql_log_dir"; then
         print_success "PostgreSQL 数据目录权限已设置 (UID 999:999, 777)"
@@ -1996,8 +2020,10 @@ create_postgresql_directories() {
 
 # 创建并设置 Redis 数据目录权限
 create_redis_directories() {
-    local redis_data_dir="${SCRIPT_DIR}/redis_data/data"
-    local redis_log_dir="${SCRIPT_DIR}/redis_data/logs"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local redis_data_dir="${middleware_data_root}/redis_data/data"
+    local redis_log_dir="${middleware_data_root}/redis_data/logs"
     print_info "创建 Redis 数据目录并设置权限..."
     if set_data_dir_perms "999:999" "$redis_data_dir" "$redis_log_dir"; then
         print_success "Redis 数据目录权限已设置 (UID 999:999, 777)"
@@ -2008,7 +2034,9 @@ create_redis_directories() {
 
 # 创建并设置 Kafka 数据目录权限
 create_kafka_directories() {
-    local kafka_data_dir="${SCRIPT_DIR}/mq_data/data"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local kafka_data_dir="${middleware_data_root}/mq_data/data"
     
     print_info "创建 Kafka 数据目录并设置权限..."
     
@@ -2130,9 +2158,9 @@ create_all_storage_directories() {
         print_info "   sudo mount -o remount,rw $(df "$SCRIPT_DIR" 2>/dev/null | tail -1 | awk '{print $1}')"
         echo ""
         print_info "3. 或者将项目部署到可写的文件系统，例如："
-        print_info "   - /home/用户名/easyaiot"
-        print_info "   - /data/easyaiot"
-        print_info "   - /var/lib/easyaiot"
+        print_info "   - /home/用户名/yfeieye"
+        print_info "   - /data/yfeieye"
+        print_info "   - /var/lib/yfeieye"
         echo ""
         print_info "4. 检查磁盘空间是否已满："
         print_info "   df -h"
@@ -2141,32 +2169,35 @@ create_all_storage_directories() {
         exit 1
     fi
     
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || exit 1
+
     # 定义所有需要创建的存储目录及其权限设置
     # 格式: "目录路径:UID:GID:权限"
     local storage_dirs=(
-        "${SCRIPT_DIR}/standalone-logs:::"              # Nacos 日志（使用默认权限）
-        "${SCRIPT_DIR}/db_data/data:999:999:777"       # PostgreSQL 数据
-        "${SCRIPT_DIR}/db_data/log:999:999:777"        # PostgreSQL 日志
-        "${SCRIPT_DIR}/taos_data/data:::"              # TDengine 数据（使用默认权限）
-        "${SCRIPT_DIR}/taos_data/log:::"               # TDengine 日志（使用默认权限）
-        "${SCRIPT_DIR}/redis_data/data:999:999:777"   # Redis 数据
-        "${SCRIPT_DIR}/redis_data/logs:999:999:777"    # Redis 日志
-        "${SCRIPT_DIR}/mq_data/data:1000:1000:777"    # Kafka 数据（uid=1000, gid=1000）
-        "${SCRIPT_DIR}/minio_data/data:::"             # MinIO 数据（使用默认权限）
-        "${SCRIPT_DIR}/minio_data/config:::"           # MinIO 配置（使用默认权限）
-        "${SCRIPT_DIR}/milvus_data:::"                 # Milvus 数据（使用默认权限）
-        "${SCRIPT_DIR}/milvus_config:::"               # Milvus 嵌入式 etcd 配置
-        "${SCRIPT_DIR}/srs_data/conf:::"               # SRS 配置（使用默认权限）
-        "${SCRIPT_DIR}/srs_data/data:::"              # SRS 数据（使用默认权限）
-        "${SCRIPT_DIR}/srs_data/playbacks:::"          # SRS 回放（使用默认权限）
-        "${SCRIPT_DIR}/nodered_data/data:1000:1000:777" # NodeRED 数据
-        "${SCRIPT_DIR}/fuxa_data/appdata:1000:1000:777" # FUXA 工程数据
-        "${SCRIPT_DIR}/fuxa_data/db:1000:1000:777"      # FUXA 历史库
-        "${SCRIPT_DIR}/fuxa_data/logs:1000:1000:777"    # FUXA 日志
-        "${SCRIPT_DIR}/fuxa_data/images:1000:1000:777"  # FUXA 图片
-        "${SCRIPT_DIR}/../zlmediakit/www:::"         # ZLMediaKit Web 目录（使用默认权限）
-        "${SCRIPT_DIR}/../zlmediakit/log:::"         # ZLMediaKit 日志（使用默认权限）
-        "${SCRIPT_DIR}/../zlmediakit/conf:::"        # ZLMediaKit 配置（使用默认权限）
+        "${middleware_data_root}/nacos_data/data:::"             # Nacos 持久数据
+        "${middleware_data_root}/nacos_data/logs:::"             # Nacos 日志（使用默认权限）
+        "${middleware_data_root}/db_data/data:999:999:777"       # PostgreSQL 数据
+        "${middleware_data_root}/db_data/log:999:999:777"        # PostgreSQL 日志
+        "${middleware_data_root}/taos_data/data:::"              # TDengine 数据（使用默认权限）
+        "${middleware_data_root}/taos_data/log:::"               # TDengine 日志（使用默认权限）
+        "${middleware_data_root}/redis_data/data:999:999:777"   # Redis 数据
+        "${middleware_data_root}/redis_data/logs:999:999:777"    # Redis 日志
+        "${middleware_data_root}/mq_data/data:1000:1000:777"    # Kafka 数据（uid=1000, gid=1000）
+        "${middleware_data_root}/minio_data/data:::"             # MinIO 数据（使用默认权限）
+        "${middleware_data_root}/minio_data/config:::"           # MinIO 配置（使用默认权限）
+        "${middleware_data_root}/milvus_data:::"                 # Milvus 数据（使用默认权限）
+        "${SCRIPT_DIR}/milvus_config:::"                         # Milvus 嵌入式 etcd 配置
+        "${middleware_data_root}/srs_data/conf:::"               # SRS 配置（跨 release 持久化）
+        "${middleware_data_root}/nodered_data/data:1000:1000:777" # NodeRED 数据
+        "${middleware_data_root}/fuxa_data/appdata:1000:1000:777" # FUXA 工程数据
+        "${middleware_data_root}/fuxa_data/db:1000:1000:777"      # FUXA 历史库
+        "${middleware_data_root}/fuxa_data/logs:1000:1000:777"    # FUXA 日志
+        "${middleware_data_root}/fuxa_data/images:1000:1000:777"  # FUXA 图片
+        "${middleware_data_root}/zlmediakit/www:::"         # ZLMediaKit Web 目录（使用默认权限）
+        "${middleware_data_root}/zlmediakit/log:::"         # ZLMediaKit 日志（使用默认权限）
+        "${middleware_data_root}/zlmediakit/conf:::"        # ZLMediaKit 配置（使用默认权限）
+        "${middleware_data_root}/gpustack_data:::"          # GPUStack 数据
     )
     local created_count=0
     local total_count=${#storage_dirs[@]}
@@ -2237,18 +2268,19 @@ create_all_storage_directories() {
 
     # 同时设置所有父目录为777权限（仅顶层，父目录的数据子目录已在上面单独处理）
     local parent_dirs=(
-        "${SCRIPT_DIR}/standalone-logs"
-        "${SCRIPT_DIR}/db_data"
-        "${SCRIPT_DIR}/taos_data"
-        "${SCRIPT_DIR}/redis_data"
-        "${SCRIPT_DIR}/mq_data"
-        "${SCRIPT_DIR}/minio_data"
-        "${SCRIPT_DIR}/milvus_data"
+        "${middleware_data_root}/nacos_data"
+        "${middleware_data_root}/db_data"
+        "${middleware_data_root}/taos_data"
+        "${middleware_data_root}/redis_data"
+        "${middleware_data_root}/mq_data"
+        "${middleware_data_root}/minio_data"
+        "${middleware_data_root}/milvus_data"
         "${SCRIPT_DIR}/milvus_config"
-        "${SCRIPT_DIR}/srs_data"
-        "${SCRIPT_DIR}/nodered_data"
-        "${SCRIPT_DIR}/fuxa_data"
-        "${SCRIPT_DIR}/../zlmediakit"
+        "${middleware_data_root}/srs_data"
+        "${middleware_data_root}/nodered_data"
+        "${middleware_data_root}/fuxa_data"
+        "${middleware_data_root}/zlmediakit"
+        "${middleware_data_root}/gpustack_data"
         "${SCRIPT_DIR}/logs"
     )
     # 默认只设父目录顶层权限；FORCE_CHMOD=true 时递归兜底修复
@@ -2260,10 +2292,17 @@ create_all_storage_directories() {
         fi
     done
 
-    # SRS 容器绑定 NFS 媒体根 -> 容器 /data（与 docker-compose.yml 一致）
-    local _media_root="${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}"
-    run_priv mkdir -p "${_media_root}/playbacks" 2>/dev/null || true
-    run_priv chmod 777 "${_media_root}" "${_media_root}/playbacks" 2>/dev/null || true
+    # Existing installations must migrate Nacos state before any recreate. An
+    # empty data directory is accepted only through the explicit one-time flag.
+    ensure_nacos_data_ready || exit 1
+
+    # SRS 容器绑定宿主机 /data -> 容器 /data（与 docker-compose.yml 一致）
+    # 注意：只对 /data 顶层和 /data/playbacks 设权限，绝不对整个 /data 分区递归
+    # （/data 下含本仓库及全部 docker 数据，递归 chmod 会扫描海量文件导致严重卡顿）
+    # playbacks 同样不递归：录像无限增长，新文件可删性由 SRS 容器入口 umask 0000 保证
+    # （与 fix_srs.sh / srs-entrypoint.sh / install_middleware_mac.sh 约定一致）
+    run_priv mkdir -p /data/playbacks 2>/dev/null || true
+    run_priv chmod 777 /data /data/playbacks 2>/dev/null || true
     
     if [ $created_count -eq $total_count ]; then
         print_success "所有存储目录已创建并设置为777权限（${created_count}/${total_count}）"
@@ -2332,7 +2371,7 @@ prepare_emqx_volumes() {
 
 # 获取 Docker 网络网关 IP（用于容器访问宿主机服务）
 get_docker_network_gateway() {
-    local network_name="${1:-easyaiot-network}"
+    local network_name="${1:-yfeieye-network}"
     local gateway_ip=""
     
     # 方法1: 如果网络已存在，直接获取网关IP
@@ -2369,10 +2408,68 @@ get_docker_network_gateway() {
     return 0
 }
 
+# 解析 ZLMediaKit WebRTC 对外候选 IP。
+resolve_zlmediakit_rtc_extern_ip() {
+    local rtc_extern_ip="${ZLM_RTC_EXTERN_IP:-${MEDIA_SDP_IP:-}}"
+    if [ -z "$rtc_extern_ip" ]; then
+        rtc_extern_ip=$(read_middleware_env_value ZLM_RTC_EXTERN_IP)
+    fi
+    rtc_extern_ip="${rtc_extern_ip#\"}"
+    rtc_extern_ip="${rtc_extern_ip%\"}"
+    rtc_extern_ip="${rtc_extern_ip#\'}"
+    rtc_extern_ip="${rtc_extern_ip%\'}"
+
+    if [ -n "$rtc_extern_ip" ]; then
+        is_valid_ipv4 "$rtc_extern_ip" || return 1
+        printf '%s' "$rtc_extern_ip"
+        return 0
+    fi
+
+    rtc_extern_ip=$(get_host_ip)
+    is_valid_ipv4 "$rtc_extern_ip" || return 1
+    printf '%s' "$rtc_extern_ip"
+}
+
+normalize_zlmediakit_rtc_config() {
+    local config_file="$1"
+    local rtc_extern_ip="$2"
+    sed -i "/^\[rtc\]/,/^\[rtmp\]/{
+        s/^externIP=.*/externIP=${rtc_extern_ip}/
+        s/^port=8000[[:space:]]*$/port=8001/
+        s/^tcpPort=8000[[:space:]]*$/tcpPort=8001/
+    }" "$config_file"
+}
+
+apply_zlmediakit_api_secret() {
+    local config_file="$1"
+    local zlm_api_secret
+    zlm_api_secret=$(read_middleware_env_value ZLM_SECRET)
+    if [ -z "$zlm_api_secret" ] || [ "$zlm_api_secret" = "CHANGE_ME" ]; then
+        print_error "ZLM_SECRET 未配置，拒绝创建或沿用公开 API 密钥"
+        return 1
+    fi
+    if [[ ! "$zlm_api_secret" =~ ^[A-Za-z0-9._~-]{32,}$ ]]; then
+        print_error "ZLM_SECRET 必须至少 32 字节且仅包含 URL 安全字符"
+        return 1
+    fi
+    sed -i "/^\[api\]/,/^\[/ s|^secret=.*|secret=${zlm_api_secret}|" "$config_file"
+}
+
 # 准备 ZLMediaKit 配置文件
 prepare_zlmediakit_config() {
-    local zlm_config_dir="${SCRIPT_DIR}/../zlmediakit/conf"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local zlm_config_dir="${middleware_data_root}/zlmediakit/conf"
     local zlm_config_file="${zlm_config_dir}/config.ini"
+    local zlm_rtc_extern_ip
+    if ! zlm_rtc_extern_ip=$(resolve_zlmediakit_rtc_extern_ip); then
+        print_error "ZLMediaKit WebRTC 对外候选 IP 无效，请设置 ZLM_RTC_EXTERN_IP"
+        return 1
+    fi
+    print_info "ZLMediaKit WebRTC 对外候选 IP: ${zlm_rtc_extern_ip}"
+    if [[ "$zlm_rtc_extern_ip" =~ ^10\.|^192\.168\.|^172\.(1[6-9]|2[0-9]|3[01])\. ]]; then
+        print_warning "当前 WebRTC 候选 IP 为内网地址；公网访问请在 .env.docker 设置 ZLM_RTC_EXTERN_IP"
+    fi
     
     print_info "准备 ZLMediaKit 配置文件..."
     
@@ -2391,6 +2488,8 @@ prepare_zlmediakit_config() {
             sed -i 's/^enable_mp4=1/enable_mp4=0/' "$zlm_config_file"
             print_info "已关闭 ZLMediaKit mp4 录像: enable_mp4=0"
         fi
+        normalize_zlmediakit_rtc_config "$zlm_config_file" "$zlm_rtc_extern_ip"
+        apply_zlmediakit_api_secret "$zlm_config_file" || return 1
         return 0
     else
         print_warning "ZLMediaKit 配置文件不存在，将创建默认配置"
@@ -2403,7 +2502,7 @@ prepare_zlmediakit_config() {
 apiDebug=1
 defaultSnap=./www/logo.png
 downloadRoot=./www;
-secret=AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG
+secret=CHANGE_ME
 snapRoot=./www/snap/
 
 [cluster]
@@ -2536,12 +2635,12 @@ nackMaxCount=15
 nackMaxMS=3000
 nackMaxSize=2048
 nackRtpSize=8
-port=8000
+port=8001
 preferredCodecA=PCMA,PCMU,opus,mpeg4-generic
 preferredCodecV=H264,H265,AV1,VP9,VP8
 rembBitRate=0
 start_bitrate=0
-tcpPort=8000
+tcpPort=8001
 timeoutSec=30
 
 [rtmp]
@@ -2594,6 +2693,9 @@ pktBufSize=8192
 port=9000
 timeoutSec=5
 EOF
+
+    normalize_zlmediakit_rtc_config "$zlm_config_file" "$zlm_rtc_extern_ip"
+    apply_zlmediakit_api_secret "$zlm_config_file" || return 1
     
     # 验证文件是否创建成功
     if [ -f "$zlm_config_file" ]; then
@@ -2607,7 +2709,9 @@ EOF
 
 # 从 ZLM 配置文件中读取 api.secret（ZLM HTTP API 必须带 secret，否则报 Required parameter missed: "secret"）
 get_zlm_api_secret() {
-    local conf="$SCRIPT_DIR/../zlmediakit/conf/config.ini"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local conf="${middleware_data_root}/zlmediakit/conf/config.ini"
     if [ -f "$conf" ]; then
         awk -F= '/^\[api\]/ { in_api=1; next } /^\[/ { in_api=0 } in_api && $1=="secret" { gsub(/^[ \t]+|[ \t]+$/,"",$2); print $2; exit }' "$conf"
     fi
@@ -2639,6 +2743,626 @@ wait_for_zlmediakit() {
     
     print_error "ZLMediaKit 服务未就绪"
     return 1
+}
+
+# 配置 GPUStack 对外访问地址（供 Worker 节点注册）
+prepare_gpustack_env() {
+    [ "$SKIP_GPUSTACK" = "true" ] && return 0
+    local host_ip
+    host_ip=$(get_host_ip)
+    if [ -z "$host_ip" ]; then
+        print_gpustack_warning "无法获取宿主机 IP，GPUStack Worker 注册将使用 host.docker.internal:10180"
+        export GPUSTACK_SERVER_EXTERNAL_URL="http://host.docker.internal:10180"
+    else
+        export GPUSTACK_SERVER_EXTERNAL_URL="http://${host_ip}:10180"
+        print_gpustack_info "GPUStack 对外地址: $GPUSTACK_SERVER_EXTERNAL_URL"
+    fi
+}
+
+# 执行 docker 命令（优先当前用户，必要时使用 sudo）
+docker_cli() {
+    if docker "$@" 2>/dev/null; then
+        return 0
+    fi
+    if command -v sudo &>/dev/null; then
+        sudo docker "$@"
+        return $?
+    fi
+    docker "$@"
+}
+
+# GPUStack API 基础地址（脚本在宿主机执行，连本机 Server）
+_gpustack_api_base() {
+    echo "http://127.0.0.1:10180"
+}
+
+# 登录 GPUStack 管理 API（Session Cookie）
+gpustack_api_login() {
+    local api_base http_code
+    if [ -z "${GPUSTACK_ADMIN_PASSWORD}" ]; then
+        GPUSTACK_ADMIN_PASSWORD=$(read_middleware_env_value GPUSTACK_BOOTSTRAP_PASSWORD)
+    fi
+    if [ -z "${GPUSTACK_ADMIN_PASSWORD}" ] || [ "${GPUSTACK_ADMIN_PASSWORD}" = "CHANGE_ME" ]; then
+        print_gpustack_error "GPUSTACK_BOOTSTRAP_PASSWORD 未配置，拒绝使用仓库默认密码"
+        return 1
+    fi
+    api_base=$(_gpustack_api_base)
+    rm -f "$GPUSTACK_API_COOKIE_FILE"
+
+    http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
+        -X POST "${api_base}/auth/login" \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        -c "$GPUSTACK_API_COOKIE_FILE" \
+        --data-urlencode "username=${GPUSTACK_ADMIN_USER}" \
+        --data-urlencode "password=${GPUSTACK_ADMIN_PASSWORD}" 2>/dev/null || echo "000")
+
+    if [ "$http_code" = "200" ] || [ "$http_code" = "204" ]; then
+        return 0
+    fi
+    return 1
+}
+
+# 按名称查询集群 ID
+gpustack_api_get_cluster_id_by_name() {
+    local cluster_name="$1"
+    local api_base resp
+    api_base=$(_gpustack_api_base)
+
+    if [ ! -f "$GPUSTACK_API_COOKIE_FILE" ]; then
+        return 1
+    fi
+
+    resp=$(curl -sS -G "${api_base}/v2/clusters" \
+        --data-urlencode "name=${cluster_name}" \
+        -b "$GPUSTACK_API_COOKIE_FILE" 2>/dev/null) || return 1
+
+    CLUSTER_NAME="$cluster_name" RESP="$resp" python3 - <<'PY'
+import json, os, sys
+name = os.environ.get("CLUSTER_NAME", "")
+try:
+    data = json.loads(os.environ.get("RESP", "{}"))
+except json.JSONDecodeError:
+    sys.exit(1)
+for item in data.get("items", []):
+    if item.get("name") == name:
+        print(item["id"])
+        sys.exit(0)
+sys.exit(1)
+PY
+}
+
+# 创建 Docker 类型集群
+gpustack_api_create_cluster() {
+    local cluster_name="$1"
+    local server_url="$2"
+    local api_base resp http_code cluster_id
+    api_base=$(_gpustack_api_base)
+
+    if [ ! -f "$GPUSTACK_API_COOKIE_FILE" ]; then
+        return 1
+    fi
+
+    resp=$(curl -sS -w $'\n%{http_code}' \
+        -X POST "${api_base}/v2/clusters" \
+        -H 'Content-Type: application/json' \
+        -b "$GPUSTACK_API_COOKIE_FILE" \
+        -d "$(CLUSTER_NAME="$cluster_name" SERVER_URL="$server_url" python3 - <<'PY'
+import json, os
+print(json.dumps({
+    "name": os.environ["CLUSTER_NAME"],
+    "provider": "Docker",
+    "server_url": os.environ.get("SERVER_URL") or None,
+}))
+PY
+)" 2>/dev/null) || return 1
+
+    http_code="${resp##*$'\n'}"
+    resp="${resp%$'\n'*}"
+
+    if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+        echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])" 2>/dev/null
+        return 0
+    fi
+
+    if [ "$http_code" = "409" ]; then
+        gpustack_api_get_cluster_id_by_name "$cluster_name"
+        return $?
+    fi
+
+    return 1
+}
+
+# 获取集群 Worker 注册令牌
+gpustack_api_get_registration_token() {
+    local cluster_id="$1"
+    local api_base resp
+    api_base=$(_gpustack_api_base)
+
+    if [ ! -f "$GPUSTACK_API_COOKIE_FILE" ] || [ -z "$cluster_id" ]; then
+        return 1
+    fi
+
+    resp=$(curl -sS "${api_base}/v2/clusters/${cluster_id}/registration-token" \
+        -b "$GPUSTACK_API_COOKIE_FILE" 2>/dev/null) || return 1
+
+    echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin).get('token',''))" 2>/dev/null
+}
+
+# 自动创建 yfeieye 集群并获取注册令牌
+ensure_gpustack_cluster_and_token() {
+    local host_ip server_url cluster_id token
+
+    if [ -n "${GPUSTACK_TOKEN:-}" ]; then
+        print_gpustack_info "使用环境变量 GPUSTACK_TOKEN（跳过 API 获取）"
+        return 0
+    fi
+
+    if ! command -v curl &>/dev/null || ! command -v python3 &>/dev/null; then
+        print_gpustack_error "需要 curl 与 python3 才能配置 GPUStack 集群"
+        return 1
+    fi
+
+    if ! gpustack_api_login; then
+        print_gpustack_error "GPUStack 登录失败，请检查 GPUSTACK_ADMIN_USER / GPUSTACK_ADMIN_PASSWORD"
+        print_gpustack_info "默认密码与 docker-compose 中 GPUSTACK_BOOTSTRAP_PASSWORD 一致（仅首次初始化有效）"
+        return 1
+    fi
+
+    host_ip=$(get_host_ip)
+    if [ -z "$host_ip" ]; then
+        host_ip="127.0.0.1"
+    fi
+    server_url="http://${host_ip}:10180"
+
+    cluster_id=$(gpustack_api_get_cluster_id_by_name "$GPUSTACK_CLUSTER_NAME" 2>/dev/null) || cluster_id=""
+    if [ -z "$cluster_id" ]; then
+        print_gpustack_info "集群「${GPUSTACK_CLUSTER_NAME}」不存在，正在自动创建..."
+        cluster_id=$(gpustack_api_create_cluster "$GPUSTACK_CLUSTER_NAME" "$server_url" 2>/dev/null) || cluster_id=""
+        if [ -z "$cluster_id" ]; then
+            print_gpustack_error "自动创建 GPUStack 集群失败"
+            return 2
+        fi
+        print_gpustack_success "已创建 GPUStack 集群: ${GPUSTACK_CLUSTER_NAME} (id=${cluster_id})"
+    else
+        print_gpustack_info "GPUStack 集群已存在: ${GPUSTACK_CLUSTER_NAME} (id=${cluster_id})"
+    fi
+
+    token=$(gpustack_api_get_registration_token "$cluster_id" 2>/dev/null) || token=""
+    if [ -z "$token" ]; then
+        print_gpustack_error "获取集群注册令牌失败"
+        return 3
+    fi
+
+    GPUSTACK_TOKEN="$token"
+    export GPUSTACK_TOKEN
+    print_gpustack_success "已获取集群「${GPUSTACK_CLUSTER_NAME}」注册令牌"
+    return 0
+}
+
+# 提示用户手动创建集群后重试
+prompt_manual_gpustack_cluster_setup() {
+    local host_ip console_url
+    host_ip=$(get_host_ip)
+    console_url="http://${host_ip:-localhost}:10180"
+
+    print_gpustack_section "需要手动创建 GPUStack 集群"
+    print_gpustack_warning "无法自动创建或获取集群「${GPUSTACK_CLUSTER_NAME}」的注册令牌"
+    echo ""
+    print_gpustack_info "请打开 GPUStack 控制台: ${console_url}"
+    print_gpustack_info "  用户: ${GPUSTACK_ADMIN_USER}"
+    print_gpustack_info "  密码: 安装时 GPUSTACK_BOOTSTRAP_PASSWORD（若已修改请使用当前 admin 密码）"
+    print_gpustack_info "在「集群管理」中创建 Docker 类型集群，名称必须为: ${GREEN}${GPUSTACK_CLUSTER_NAME}${NC}"
+    echo ""
+    echo -ne "${YELLOW}[GPUStack][提示]${NC} 创建完成后按 Enter 重试，输入 q 跳过 GPUStack Worker 部署: "
+    read -r response
+    case "$(echo "$response" | tr '[:upper:]' '[:lower:]')" in
+        q|quit|skip|n|no)
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+# 准备 Worker 注册令牌（自动创建集群或引导手动创建）
+prepare_gpustack_worker_token() {
+    local cluster_id token
+
+    if ensure_gpustack_cluster_and_token; then
+        return 0
+    fi
+
+    while true; do
+        if ! prompt_manual_gpustack_cluster_setup; then
+            print_gpustack_warning "已跳过 GPUStack Worker 部署"
+            return 1
+        fi
+
+        if ! gpustack_api_login; then
+            print_gpustack_warning "GPUStack 登录失败，请检查账号密码后重试"
+            continue
+        fi
+
+        cluster_id=$(gpustack_api_get_cluster_id_by_name "$GPUSTACK_CLUSTER_NAME" 2>/dev/null) || cluster_id=""
+        if [ -z "$cluster_id" ]; then
+            print_gpustack_warning "仍未找到集群「${GPUSTACK_CLUSTER_NAME}」，请确认名称正确"
+            continue
+        fi
+
+        token=$(gpustack_api_get_registration_token "$cluster_id" 2>/dev/null) || token=""
+        if [ -n "$token" ]; then
+            GPUSTACK_TOKEN="$token"
+            export GPUSTACK_TOKEN
+            print_gpustack_success "已获取集群「${GPUSTACK_CLUSTER_NAME}」注册令牌"
+            return 0
+        fi
+
+        print_gpustack_warning "找到集群但获取注册令牌失败，请检查控制台后重试"
+    done
+}
+
+# 等待 GPUStack Server 就绪
+wait_for_gpustack_server() {
+    [ "$SKIP_GPUSTACK" = "true" ] && return 0
+    local max_attempts=60
+    local attempt=0
+    local check_url="http://127.0.0.1:10180/"
+
+    print_gpustack_info "等待 GPUStack Server 就绪..."
+    while [ "$attempt" -lt "$max_attempts" ]; do
+        if curl -sf "$check_url" >/dev/null 2>&1; then
+            print_gpustack_success "GPUStack Server 已就绪"
+            return 0
+        fi
+        attempt=$((attempt + 1))
+        sleep 2
+    done
+
+    print_gpustack_warning "GPUStack Server 未在预期时间内就绪，仍将尝试部署 Worker"
+    return 1
+}
+
+# 部署 GPUStack Worker（检测 GPU 后选择是否启用 NVIDIA runtime）
+deploy_gpustack_worker() {
+    if [ "$SKIP_GPUSTACK" = "true" ]; then
+        print_gpustack_info "已设置 SKIP_GPUSTACK=true，跳过 GPUStack Worker 部署"
+        return 0
+    fi
+    print_gpustack_section "部署 GPUStack Worker"
+
+    if ! docker_cli ps &>/dev/null; then
+        print_gpustack_error "无法访问 Docker，跳过 GPUStack Worker 部署"
+        return 1
+    fi
+
+    if ! prepare_gpustack_worker_token; then
+        return 1
+    fi
+
+    local host_ip
+    host_ip=$(get_host_ip)
+    if [ -z "$host_ip" ]; then
+        print_gpustack_warning "无法获取宿主机 IP，Worker 将使用 127.0.0.1"
+        host_ip="127.0.0.1"
+    else
+        print_gpustack_info "检测到宿主机 IP: $host_ip"
+    fi
+
+    local server_url="http://${host_ip}:10180"
+    local worker_ip="$host_ip"
+
+    if docker_cli image inspect "$GPUSTACK_WORKER_IMAGE" &>/dev/null; then
+        print_gpustack_info "GPUStack Worker 镜像已存在: $GPUSTACK_WORKER_IMAGE"
+    else
+        print_gpustack_info "拉取 GPUStack Worker 镜像: $GPUSTACK_WORKER_IMAGE"
+        if ! docker_cli pull "$GPUSTACK_WORKER_IMAGE" 2>&1 | tee -a "$GPUSTACK_LOG_FILE"; then
+            print_gpustack_error "拉取 GPUStack Worker 镜像失败"
+            return 1
+        fi
+    fi
+
+    if docker_cli ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$GPUSTACK_WORKER_NAME"; then
+        print_gpustack_info "移除已有容器: $GPUSTACK_WORKER_NAME"
+        docker_cli rm -f "$GPUSTACK_WORKER_NAME" 2>&1 | tee -a "$GPUSTACK_LOG_FILE" || true
+    fi
+
+    local -a run_args=(
+        run -d
+        --name "$GPUSTACK_WORKER_NAME"
+        -e "GPUSTACK_RUNTIME_DEPLOY_MIRRORED_NAME=gpustack-worker"
+        -e "GPUSTACK_TOKEN=${GPUSTACK_TOKEN}"
+        --restart=unless-stopped
+        --privileged
+        --network=host
+        --volume /var/run/docker.sock:/var/run/docker.sock
+        --volume gpustack-data:/var/lib/gpustack
+    )
+
+    if check_nvidia_gpu_support; then
+        print_gpustack_info "检测到 NVIDIA GPU，使用 NVIDIA runtime 启动 Worker"
+        run_args+=(--runtime nvidia)
+    else
+        print_gpustack_info "未检测到 NVIDIA GPU，以 CPU 模式启动 Worker"
+    fi
+
+    run_args+=(
+        "$GPUSTACK_WORKER_IMAGE"
+        --server-url "$server_url"
+        --worker-ip "$worker_ip"
+    )
+
+    print_gpustack_info "启动 GPUStack Worker: server-url=$server_url, worker-ip=$worker_ip"
+    if docker_cli "${run_args[@]}" 2>&1 | tee -a "$GPUSTACK_LOG_FILE"; then
+        print_gpustack_success "GPUStack Worker 已启动: $GPUSTACK_WORKER_NAME"
+        print_gpustack_info "查看日志: docker logs -f $GPUSTACK_WORKER_NAME"
+        print_gpustack_info "GPUStack 部署日志: $GPUSTACK_LOG_FILE"
+        return 0
+    fi
+
+    print_gpustack_error "GPUStack Worker 启动失败"
+    return 1
+}
+
+# 停止 GPUStack Worker
+stop_gpustack_worker() {
+    if docker_cli ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$GPUSTACK_WORKER_NAME"; then
+        print_gpustack_info "停止 GPUStack Worker: $GPUSTACK_WORKER_NAME"
+        docker_cli stop "$GPUSTACK_WORKER_NAME" 2>&1 | tee -a "$GPUSTACK_LOG_FILE" || true
+    fi
+}
+
+# Dify Compose 命令（独立 project，避免与中间件 compose 冲突）
+dify_compose() {
+    if [ ! -f "$DIFY_COMPOSE_FILE" ]; then
+        return 1
+    fi
+    local -a compose_args=(-f "$DIFY_COMPOSE_FILE" --project-name "$DIFY_PROJECT_NAME")
+    if [ -f "$DIFY_OVERRIDE_FILE" ]; then
+        compose_args+=(-f "$DIFY_OVERRIDE_FILE")
+    fi
+    $COMPOSE_CMD "${compose_args[@]}" "$@"
+}
+
+# 下载 Dify 官方 Docker 部署文件（仅首次）
+prepare_dify_bundle() {
+    if [ -f "$DIFY_COMPOSE_FILE" ]; then
+        print_dify_info "Dify ${DIFY_VERSION} 部署文件已就绪: $DIFY_DIR"
+        return 0
+    fi
+
+    print_dify_section "准备 Dify ${DIFY_VERSION} 部署文件"
+
+    if ! check_command git; then
+        print_dify_error "需要 git 以下载 Dify ${DIFY_VERSION} 部署文件"
+        return 1
+    fi
+
+    mkdir -p "$DIFY_DIR"
+    local upstream_dir="${DIFY_DIR}/.upstream"
+    rm -rf "$upstream_dir"
+
+    print_dify_info "从 Gitee 拉取 dify_ai/dify:${DIFY_VERSION} ..."
+    if ! git clone --depth 1 --branch "${DIFY_VERSION}" https://gitee.com/dify_ai/dify.git "$upstream_dir" 2>&1 | tee -a "$DIFY_LOG_FILE"; then
+        print_dify_error "下载 Dify 部署文件失败"
+        rm -rf "$upstream_dir"
+        return 1
+    fi
+
+    if [ ! -f "${upstream_dir}/docker/docker-compose.yaml" ]; then
+        print_dify_error "Dify 仓库中未找到 docker/docker-compose.yaml"
+        rm -rf "$upstream_dir"
+        return 1
+    fi
+
+    # 同步官方 docker 目录，保留本仓库自带的 override
+    if command -v rsync &>/dev/null; then
+        rsync -a --exclude='docker-compose.override.yml' "${upstream_dir}/docker/" "${DIFY_DIR}/" 2>&1 | tee -a "$DIFY_LOG_FILE"
+    else
+        cp -a "${upstream_dir}/docker/." "${DIFY_DIR}/"
+    fi
+    rm -rf "$upstream_dir"
+
+    if [ ! -f "$DIFY_COMPOSE_FILE" ]; then
+        print_dify_error "Dify docker-compose.yaml 未生成"
+        return 1
+    fi
+
+    print_dify_success "Dify ${DIFY_VERSION} 部署文件已下载到 $DIFY_DIR"
+    return 0
+}
+
+# 写入/更新 Dify .env 中的单个变量
+_dify_set_env_var() {
+    local key="$1"
+    local val="$2"
+    local env_file="${DIFY_DIR}/.env"
+
+    if [ ! -f "$env_file" ]; then
+        return 1
+    fi
+
+    if grep -q "^${key}=" "$env_file" 2>/dev/null; then
+        sed -i "s|^${key}=.*|${key}=${val}|" "$env_file"
+    else
+        echo "${key}=${val}" >> "$env_file"
+    fi
+}
+
+# 根据宿主机 IP 生成 Dify 对外访问 URL 并写入 .env
+prepare_dify_env() {
+    local host_ip dify_base_url
+    host_ip=$(get_host_ip)
+    if [ -z "$host_ip" ]; then
+        host_ip="localhost"
+        print_dify_warning "无法获取宿主机 IP，Dify 对外 URL 将使用 localhost"
+    fi
+
+    dify_base_url="http://${host_ip}:${DIFY_HTTP_PORT}"
+    export DIFY_PUBLIC_URL="$dify_base_url"
+
+    if [ ! -f "${DIFY_DIR}/.env" ]; then
+        if [ -f "${DIFY_DIR}/.env.example" ]; then
+            cp "${DIFY_DIR}/.env.example" "${DIFY_DIR}/.env"
+        else
+            print_dify_error "未找到 ${DIFY_DIR}/.env.example"
+            return 1
+        fi
+    fi
+
+    _dify_set_env_var "EXPOSE_NGINX_PORT" "${DIFY_HTTP_PORT}"
+    _dify_set_env_var "NGINX_PORT" "80"
+    # 仅写站点根 URL；dify-web entrypoint 会追加 /console/api、/api，api 侧也会拼接路径
+    _dify_set_env_var "CONSOLE_API_URL" "${dify_base_url}"
+    _dify_set_env_var "CONSOLE_WEB_URL" "${dify_base_url}"
+    _dify_set_env_var "SERVICE_API_URL" "${dify_base_url}"
+    _dify_set_env_var "APP_API_URL" "${dify_base_url}"
+    _dify_set_env_var "APP_WEB_URL" "${dify_base_url}"
+    _dify_set_env_var "FILES_URL" "${dify_base_url}"
+    _dify_set_env_var "INTERNAL_FILES_URL" "${dify_base_url}"
+    _dify_set_env_var "TRIGGER_URL" "${dify_base_url}"
+    _dify_set_env_var "ENDPOINT_URL_TEMPLATE" "${dify_base_url}/e/{hook_id}"
+    _dify_set_env_var "NEXT_PUBLIC_SOCKET_URL" "ws://${host_ip}:${DIFY_HTTP_PORT}"
+    _dify_set_env_var "VECTOR_STORE" "weaviate"
+    _dify_set_env_var "DB_TYPE" "postgresql"
+    _dify_set_env_var "COMPOSE_PROFILES" "weaviate,postgresql,collaboration"
+
+    print_dify_info "Dify 访问地址: ${dify_base_url}"
+    print_dify_info "首次使用请访问 ${dify_base_url}/install 完成管理员初始化"
+    return 0
+}
+
+# 创建 Dify 数据目录
+create_dify_storage_directories() {
+    local -a dify_dirs=(
+        "${DIFY_DIR}/volumes/app/storage"
+        "${DIFY_DIR}/volumes/db/data"
+        "${DIFY_DIR}/volumes/redis/data"
+        "${DIFY_DIR}/volumes/sandbox/dependencies"
+        "${DIFY_DIR}/volumes/sandbox/conf"
+        "${DIFY_DIR}/volumes/plugin_daemon"
+        "${DIFY_DIR}/volumes/weaviate"
+    )
+
+    for dir_path in "${dify_dirs[@]}"; do
+        mkdir -p "$dir_path" 2>/dev/null || true
+        run_priv chmod -R 777 "$dir_path" 2>/dev/null || true
+    done
+}
+
+# 拉取 Dify 所需镜像——仅拉取本地缺失的。
+# 全部已存在时零网络请求：原先无条件 `dify_compose pull` 每次都全量联表镜像源，
+# 源端一个 blob 抖动/超时就把"本可纯离线启动"的部署搞失败，且慢。
+check_and_pull_dify_images() {
+    if [ ! -f "$DIFY_COMPOSE_FILE" ]; then
+        return 0
+    fi
+
+    print_dify_info "检查 Dify 镜像..."
+    # compose v2 用 config --images 枚举镜像清单；v1 回退解析 config 输出
+    local imgs img
+    local missing=()
+    imgs=$(dify_compose config --images 2>/dev/null) \
+        || imgs=$(dify_compose config 2>/dev/null | awk '$1=="image:"{print $2}')
+    if [ -z "$imgs" ]; then
+        print_dify_warning "无法枚举 Dify 镜像清单，跳过预拉取（up 时会按需拉取）"
+        return 0
+    fi
+    for img in $imgs; do
+        docker image inspect "$img" >/dev/null 2>&1 || missing+=("$img")
+    done
+    if [ ${#missing[@]} -eq 0 ]; then
+        print_dify_success "Dify 镜像均已存在，跳过拉取"
+        return 0
+    fi
+    print_dify_info "缺失 ${#missing[@]} 个镜像，开始拉取: ${missing[*]}"
+    local fail=0
+    for img in "${missing[@]}"; do
+        docker pull "$img" 2>&1 | tee -a "$DIFY_LOG_FILE"
+        [ "${PIPESTATUS[0]}" -ne 0 ] && fail=1
+    done
+    if [ "$fail" -ne 0 ]; then
+        print_dify_warning "部分 Dify 镜像拉取失败，up 时将自动重试"
+        return 1
+    fi
+    print_dify_success "Dify 镜像检查完成"
+    return 0
+}
+
+# 等待 Dify Web 就绪
+wait_for_dify() {
+    local max_wait=180
+    local waited=0
+
+    print_dify_info "等待 Dify 就绪（端口 ${DIFY_HTTP_PORT}）..."
+    while [ "$waited" -lt "$max_wait" ]; do
+        if curl -sf --connect-timeout 3 "http://127.0.0.1:${DIFY_HTTP_PORT}/" >/dev/null 2>&1; then
+            print_dify_success "Dify 已就绪: ${DIFY_PUBLIC_URL:-http://localhost:${DIFY_HTTP_PORT}}"
+            return 0
+        fi
+        sleep 5
+        waited=$((waited + 5))
+    done
+
+    print_dify_warning "Dify 未在 ${max_wait}s 内就绪，请稍后检查: docker compose -p ${DIFY_PROJECT_NAME} ps"
+    return 1
+}
+
+# 打印 Dify 访问说明
+print_dify_access_guide() {
+    echo ""
+    print_dify_section "Dify 访问说明"
+    print_dify_info "控制台: ${DIFY_PUBLIC_URL:-http://localhost:${DIFY_HTTP_PORT}}"
+    print_dify_info "首次安装请访问: ${DIFY_PUBLIC_URL:-http://localhost:${DIFY_HTTP_PORT}}/install"
+    print_dify_info "部署日志: ${DIFY_LOG_FILE}"
+    echo ""
+}
+
+# 部署 Dify 1.14.2
+deploy_dify() {
+    if [ "$SKIP_DIFY" = "true" ]; then
+        print_dify_info "已设置 SKIP_DIFY=true，跳过 Dify 部署"
+        return 0
+    fi
+    print_dify_section "部署 Dify ${DIFY_VERSION}"
+
+    if ! docker_cli ps &>/dev/null; then
+        print_dify_error "无法访问 Docker，跳过 Dify 部署"
+        return 1
+    fi
+
+    if ! prepare_dify_bundle; then
+        return 1
+    fi
+
+    if ! prepare_dify_env; then
+        return 1
+    fi
+
+    create_dify_storage_directories
+
+    check_and_pull_dify_images || true
+
+    print_dify_info "启动 Dify 服务（project=${DIFY_PROJECT_NAME}）..."
+    # 取 PIPESTATUS[0]（tee 恒 0，`if 管道` 检测不到 up 失败）
+    dify_compose up -d 2>&1 | tee -a "$DIFY_LOG_FILE"
+    if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+        print_dify_error "Dify 启动失败"
+        return 1
+    fi
+
+    wait_for_dify || true
+    print_dify_access_guide
+    print_dify_success "Dify ${DIFY_VERSION} 部署完成"
+    return 0
+}
+
+# 停止 Dify
+stop_dify() {
+    if [ ! -f "$DIFY_COMPOSE_FILE" ]; then
+        return 0
+    fi
+
+    print_dify_info "停止 Dify 服务..."
+    dify_compose down 2>&1 | tee -a "$DIFY_LOG_FILE" || true
 }
 
 # 在安装 SRS 之前确保 NFS 媒体栈（单机默认本机 export；集群挂载远程 NFS_SERVER）
@@ -2675,23 +3399,111 @@ ensure_host_data_directory_before_srs() {
     ensure_nfs_media_before_srs
 }
 
-# 按部署形态写入 SRS http_hooks（SRS 使用 host 网络）
+# 从 .env.docker 安全读取单值，不执行文件内容。
+read_middleware_env_value() {
+    local key="$1"
+    [ -f "$MIDDLEWARE_ENV_FILE" ] || return 0
+    sed -n "s/^[[:space:]]*${key}=//p" "$MIDDLEWARE_ENV_FILE" \
+        | tail -n 1 | tr -d '\r'
+}
+
+resolve_middleware_data_root() {
+    local data_root="${YFEIEYE_DOCKER_DATA_ROOT:-}"
+    if [ -z "$data_root" ]; then
+        data_root=$(read_middleware_env_value YFEIEYE_DOCKER_DATA_ROOT)
+    fi
+    data_root="${data_root#\"}"
+    data_root="${data_root%\"}"
+    data_root="${data_root#\'}"
+    data_root="${data_root%\'}"
+    data_root="${data_root:-/opt/yfeieye-source/shared/docker}"
+    if [[ "$data_root" != /* ]] || [[ "$data_root" == *$'\n'* ]]; then
+        print_error "YFEIEYE_DOCKER_DATA_ROOT 必须是绝对路径"
+        return 1
+    fi
+    printf '%s' "${data_root%/}"
+}
+
+ensure_nacos_data_ready() {
+    local middleware_data_root nacos_data_dir allow_empty
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    nacos_data_dir="${middleware_data_root}/nacos_data/data"
+    mkdir -p "$nacos_data_dir" || return 1
+
+    if find "$nacos_data_dir" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+        return 0
+    fi
+
+    allow_empty="${YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT:-}"
+    if [ -z "$allow_empty" ]; then
+        allow_empty=$(read_middleware_env_value YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT)
+    fi
+    allow_empty=$(printf '%s' "$allow_empty" | tr '[:upper:]' '[:lower:]' | tr -d '\r')
+    if [[ "$allow_empty" =~ ^(1|true|yes)$ ]]; then
+        print_warning "Nacos 数据目录为空；已通过一次性显式开关允许首次初始化: $nacos_data_dir"
+        return 0
+    fi
+
+    print_error "Nacos 数据目录为空，拒绝启动以避免 release 切换后误初始化: $nacos_data_dir"
+    print_info "已有环境请先停写并迁移 /home/nacos/data；仅全新安装可临时设置 YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT=true"
+    return 1
+}
+
+# 读取 VIDEO bridge 回调主机。优先使用已导出的变量，其次读取
+# .env.docker；只接受主机/IP 字符，避免把任意 URL 注入 SRS 配置。
+resolve_video_callback_host() {
+    local callback_host="${VIDEO_CALLBACK_HOST:-}"
+    if [ -z "$callback_host" ]; then
+        callback_host=$(read_middleware_env_value VIDEO_CALLBACK_HOST)
+        callback_host="${callback_host#\"}"
+        callback_host="${callback_host%\"}"
+        callback_host="${callback_host#\'}"
+        callback_host="${callback_host%\'}"
+    fi
+    if [ -z "$callback_host" ]; then
+        print_error "VIDEO_CALLBACK_HOST 必须显式配置为 VIDEO 绑定的 Docker bridge 网关"
+        return 1
+    fi
+    if [[ ! "$callback_host" =~ ^[A-Za-z0-9._:-]+$ ]]; then
+        print_error "VIDEO_CALLBACK_HOST 只能是主机名或 IP 地址"
+        return 1
+    fi
+    printf '%s' "$callback_host"
+}
+
+# SRS Hook 使用仅在 SRS 与 VIDEO 间共享的 URL-safe token。空值、短值或
+# URL 不安全字符都直接拒绝，避免生成可绕过的回调配置。
+resolve_srs_hook_token() {
+    local hook_token="${YFEIEYE_SRS_HOOK_TOKEN:-}"
+    if [ -z "$hook_token" ]; then
+        hook_token=$(read_middleware_env_value YFEIEYE_SRS_HOOK_TOKEN)
+        hook_token="${hook_token#\"}"
+        hook_token="${hook_token%\"}"
+        hook_token="${hook_token#\'}"
+        hook_token="${hook_token%\'}"
+    fi
+    if [ "${#hook_token}" -lt 32 ]; then
+        print_error "YFEIEYE_SRS_HOOK_TOKEN 必须至少 32 个字符"
+        return 1
+    fi
+    if [[ ! "$hook_token" =~ ^[A-Za-z0-9._~-]+$ ]]; then
+        print_error "YFEIEYE_SRS_HOOK_TOKEN 只能包含 URL-safe 字符"
+        return 1
+    fi
+    printf '%s' "$hook_token"
+}
+
+# 写入直连 VIDEO bridge 的 SRS http_hooks（SRS 使用 host 网络）
 _apply_srs_http_hooks() {
     local srs_config_file="$1"
-    local gateway_ip="$2"
     local on_publish_url on_dvr_url
-
-    if is_mini_deploy_profile; then
-        local video_port="${FLASK_RUN_PORT:-6000}"
-        local host_ip=$(get_host_ip)
-        on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
-        on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
-        print_info "mini 形态：on_publish 直连 VIDEO；on_dvr 经 Gateway→iot-sink"
-    else
-        on_publish_url="http://${gateway_ip}:48080/admin-api/video/camera/callback/on_publish"
-        on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
-        print_info "SRS Hook：on_publish 经 Gateway→VIDEO；on_dvr 经 Gateway→iot-sink"
-    fi
+    local video_port="${FLASK_RUN_PORT:-6000}"
+    local video_callback_host srs_hook_token
+    video_callback_host=$(resolve_video_callback_host) || return 1
+    srs_hook_token=$(resolve_srs_hook_token) || return 1
+    on_publish_url="http://${video_callback_host}:${video_port}/video/camera/callback/on_publish?hook_token=${srs_hook_token}"
+    on_dvr_url="http://${video_callback_host}:${video_port}/video/camera/callback/on_dvr?hook_token=${srs_hook_token}"
+    print_info "SRS Hook 直连 VIDEO bridge 服务（shared token 已配置）"
 
     sed -i -E "s|on_dvr[[:space:]]+http://[^;]+;|on_dvr              ${on_dvr_url};|g" "$srs_config_file"
     sed -i -E "s|on_publish[[:space:]]+http://[^;]+;|on_publish          ${on_publish_url};|g" "$srs_config_file"
@@ -2700,31 +3512,17 @@ _apply_srs_http_hooks() {
 # 准备 SRS 配置文件
 # 强制更新模式：无论配置文件是否存在，都重新生成并自动替换 IP 地址
 prepare_srs_config() {
-    ensure_host_data_directory_before_srs
+    if [ "${1:-}" != "--config-only" ]; then
+        ensure_host_data_directory_before_srs
+    fi
 
     local srs_config_source="${SCRIPT_DIR}/../srs/conf"
-    local srs_config_target="${SCRIPT_DIR}/srs_data/conf"
+    local middleware_data_root
+    middleware_data_root=$(resolve_middleware_data_root) || return 1
+    local srs_config_target="${middleware_data_root}/srs_data/conf"
     local srs_config_file="${srs_config_target}/docker.conf"
     
     print_info "准备 SRS 配置文件..."
-    
-    # 获取宿主机 IP 地址（用于VIDEO服务，如果VIDEO在宿主机运行）
-    local host_ip=$(get_host_ip)
-    if [ -z "$host_ip" ]; then
-        print_warning "无法获取宿主机 IP，将使用 127.0.0.1（可能导致 VIDEO 模块回调失败）"
-        host_ip="127.0.0.1"
-    else
-        print_info "检测到宿主机 IP: $host_ip"
-    fi
-    
-    # 获取 Docker 网络网关 IP（用于Gateway服务，如果Gateway在宿主机运行）
-    local gateway_ip=$(get_docker_network_gateway "easyaiot-network")
-    if [ -z "$gateway_ip" ]; then
-        print_warning "无法获取 Docker 网络网关 IP，将使用 172.18.0.1"
-        gateway_ip="172.18.0.1"
-    else
-        print_info "检测到 Docker 网络网关 IP: $gateway_ip"
-    fi
     
     # 创建目标目录
     mkdir -p "$srs_config_target"
@@ -2736,7 +3534,11 @@ prepare_srs_config() {
     if [ -d "$srs_config_source" ] && [ -f "$srs_config_source/docker.conf" ]; then
         print_info "从源目录复制 SRS 配置文件..."
         if cp -f "$srs_config_source/docker.conf" "$srs_config_file" 2>/dev/null; then
-            _apply_srs_http_hooks "$srs_config_file" "$gateway_ip"
+            _apply_srs_http_hooks "$srs_config_file" || return 1
+            chmod 600 "$srs_config_file" || {
+                print_error "无法收紧 SRS 配置文件权限: $srs_config_file"
+                return 1
+            }
             print_success "SRS 配置文件已复制并更新: $srs_config_source/docker.conf -> $srs_config_file"
             # 验证文件确实存在
             if [ -f "$srs_config_file" ]; then
@@ -2752,14 +3554,12 @@ prepare_srs_config() {
     # 如果复制失败或源文件不存在，创建默认配置文件
     print_info "创建默认 SRS 配置文件..."
     local on_publish_url on_dvr_url
-    if is_mini_deploy_profile; then
-        local video_port="${FLASK_RUN_PORT:-6000}"
-        on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
-        on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
-    else
-        on_publish_url="http://${gateway_ip}:48080/admin-api/video/camera/callback/on_publish"
-        on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
-    fi
+    local video_port="${FLASK_RUN_PORT:-6000}"
+    local video_callback_host srs_hook_token
+    video_callback_host=$(resolve_video_callback_host) || return 1
+    srs_hook_token=$(resolve_srs_hook_token) || return 1
+    on_publish_url="http://${video_callback_host}:${video_port}/video/camera/callback/on_publish?hook_token=${srs_hook_token}"
+    on_dvr_url="http://${video_callback_host}:${video_port}/video/camera/callback/on_dvr?hook_token=${srs_hook_token}"
     cat > "$srs_config_file" << EOF
 # SRS Docker 配置文件
 # 用于 Docker 容器部署的 SRS 配置
@@ -2817,15 +3617,15 @@ vhost __defaultVhost__ {
     }
 }
 EOF
+    chmod 600 "$srs_config_file" || {
+        print_error "无法收紧 SRS 配置文件权限: $srs_config_file"
+        return 1
+    }
     
     # 验证文件是否创建成功
     if [ -f "$srs_config_file" ]; then
         print_success "默认 SRS 配置文件已创建: $srs_config_file"
-        if is_mini_deploy_profile; then
-            print_info "  - VIDEO 回调地址: ${on_publish_url}"
-        else
-            print_info "  - Gateway 回调地址: http://${gateway_ip}:48080/admin-api/video/camera/callback/*"
-        fi
+        print_info "  - VIDEO bridge 回调已启用（shared token 不输出）"
         return 0
     else
         print_error "无法创建 SRS 配置文件: $srs_config_file"
@@ -2950,10 +3750,14 @@ reset_postgresql_password() {
     
     # wait_for_postgresql 已用 pg_isready 确认可接受连接，无需再固定等待 5s
     
-    # 从 docker-compose.yml 中读取配置的密码
-    local target_password="iot45722414822"
+    local target_password
+    target_password=$(read_middleware_env_value POSTGRES_PASSWORD)
+    if [ -z "$target_password" ] || [ "$target_password" = "CHANGE_ME" ]; then
+        print_error "POSTGRES_PASSWORD 未配置，拒绝重置数据库密码"
+        return 1
+    fi
     
-    print_info "正在重置 postgres 用户密码为: $target_password"
+    print_info "正在重置 postgres 用户密码（凭据值不输出）"
     
     # 尝试通过容器内部重置密码
     # 方法1: 使用本地连接（不需要密码，通过 Unix socket）
@@ -3005,11 +3809,11 @@ reset_postgresql_password() {
         print_info "  3. 数据库数据目录损坏"
         echo ""
         print_info "手动修复命令："
-        print_info "  docker exec postgres-server psql -U postgres -d postgres -c \"ALTER USER postgres WITH PASSWORD '$target_password';\""
+        print_info "  请通过受控环境中的密码重置脚本重试（凭据值不输出）"
         print_info "或者重启容器后重试："
         print_info "  docker restart postgres-server"
         print_info "  sleep 10"
-        print_info "  docker exec postgres-server psql -U postgres -d postgres -c \"ALTER USER postgres WITH PASSWORD '$target_password';\""
+        print_info "  请通过受控环境中的密码重置脚本重试（凭据值不输出）"
         return 1
     fi
     
@@ -3032,7 +3836,12 @@ ensure_postgresql_password() {
         return 1
     fi
     
-    local target_password="iot45722414822"
+    local target_password
+    target_password=$(read_middleware_env_value POSTGRES_PASSWORD)
+    if [ -z "$target_password" ] || [ "$target_password" = "CHANGE_ME" ]; then
+        print_error "POSTGRES_PASSWORD 未配置，无法验证数据库密码"
+        return 1
+    fi
     
     # 测试当前密码是否正确
     print_info "测试当前 PostgreSQL 密码..."
@@ -3153,7 +3962,12 @@ EOF
         
         # 测试从宿主机连接（如果 psql 可用）
         if command -v psql &> /dev/null; then
-            local test_password="iot45722414822"
+            local test_password
+            test_password=$(read_middleware_env_value POSTGRES_PASSWORD)
+            if [ -z "$test_password" ] || [ "$test_password" = "CHANGE_ME" ]; then
+                print_error "POSTGRES_PASSWORD 未配置，跳过宿主机连接测试"
+                return 1
+            fi
             export PGPASSWORD="$test_password"
             if psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -c "SELECT 1;" > /dev/null 2>&1; then
                 print_success "宿主机连接测试成功"
@@ -4151,11 +4965,10 @@ init_databases() {
         else
             print_section "Nacos 密码配置确认"
             print_warning "自动验证未通过：Nacos 已有 admin 账号但密码与预期不一致"
-            print_info "请登录 http://localhost:8848/nacos 将 nacos 用户密码改为："
-            print_warning "${YELLOW}basiclab@iot78475418754${NC}"
+            print_info "请登录 http://localhost:8848/nacos，将 nacos 用户密码改为安全注入的 NACOS_PASSWORD"
             echo ""
             while true; do
-                echo -ne "${YELLOW}[提示]${NC} 是否已经完成 Nacos 密码配置（密码必须为: basiclab@iot78475418754）？(y/N): "
+                echo -ne "${YELLOW}[提示]${NC} 是否已经完成 Nacos 密码配置？(y/N): "
                 if _is_noninteractive; then
                     print_warning "非交互模式：Nacos 密码未验证通过，请稍后手动修正后重启相关服务"
                     break
@@ -4243,9 +5056,19 @@ _format_service_list() {
 # 启动中间件容器；可选服务镜像缺失时自动跳过，避免阻塞核心中间件
 # 遇到 rootless Docker 的 /dev/null OCI 错误时自动重试（最多 3 次，退避 3/6/12s）
 compose_up_middleware() {
+    local force_recreate=0
+    if [ "${1:-}" = "--force-recreate" ]; then
+        force_recreate=1
+        shift
+    fi
     local -a skip_services=("$@")
     local -a up_services=()
+    local -a compose_up_args=(up -d)
     local svc should_skip
+
+    if [ "$force_recreate" -eq 1 ]; then
+        compose_up_args+=(--force-recreate)
+    fi
 
     while IFS= read -r svc; do
         [ -z "$svc" ] && continue
@@ -4300,7 +5123,7 @@ compose_up_middleware() {
     print_info "正在启动 ${_svc_count} 个中间件容器：${_svc_list}"
     local _up_log _up_rc _retry _delay
     _up_log=$(mktemp)
-    mw_compose up -d "${up_services[@]}" > "$_up_log" 2>&1
+    mw_compose "${compose_up_args[@]}" "${up_services[@]}" > "$_up_log" 2>&1
     _up_rc=$?
     cat "$_up_log" >> "$LOG_FILE"
 
@@ -4316,7 +5139,7 @@ compose_up_middleware() {
         print_warning "检测到间歇性 OCI /dev/null 错误，${_delay}s 后重试（第 ${_retry}/3 次）..."
         sleep "$_delay"
         : > "$_up_log"
-        mw_compose up -d "${up_services[@]}" > "$_up_log" 2>&1
+        mw_compose "${compose_up_args[@]}" "${up_services[@]}" > "$_up_log" 2>&1
         _up_rc=$?
         cat "$_up_log" >> "$LOG_FILE"
     done
@@ -4367,19 +5190,11 @@ compose_up_middleware() {
     _repair_created_middleware_containers
     local _repair_rc=$?
 
-    # 仅当 compose up 失败、Created 已修干净、且核心容器确实在跑时，才覆盖错误码。
-    # 切勿把「没有任何容器被创建」(repair 直接 return 0) 误判为启动成功。
+    # repair 是补充恢复步骤，不能把原始 compose up 失败重新归类为成功。
     if [ "$_up_rc" -ne 0 ]; then
-        if [ "$_repair_rc" -eq 0 ] && _middleware_core_containers_running; then
-            print_success "Created 容器已修复，中间件启动成功"
-            _up_rc=0
-        else
-            print_error "中间件 compose up 失败（exit=${_up_rc}），核心容器未就绪"
-            print_info "请查看日志中的 Image Pulling / Error 行（常见：FUXA 镜像源 403）"
-        fi
+        return "$_up_rc"
     fi
-
-    return "$_up_rc"
+    return "$_repair_rc"
 }
 
 # 检测并修复 Created 状态的中间件容器（compose up 成功但 OCI 启动失败）。
@@ -4651,7 +5466,7 @@ extract_ports_from_compose() {
     local ports=()
     
     # 使用 docker-compose config 获取端口映射
-    local port_mappings=$($COMPOSE_CMD -f "$COMPOSE_FILE" config 2>/dev/null | grep -A 20 "^  ${service_name}:" | grep -E "^\s+- \"[0-9]+:" | sed 's/.*"\([0-9]*\):.*/\1/' || echo "")
+    local port_mappings=$(mw_compose config 2>/dev/null | grep -A 20 "^  ${service_name}:" | grep -E "^\s+- \"[0-9]+:" | sed 's/.*"\([0-9]*\):.*/\1/' || echo "")
     
     if [ -n "$port_mappings" ]; then
         while IFS= read -r port; do
@@ -4715,7 +5530,7 @@ check_and_clean_ports() {
     
     # 先执行 docker-compose down 清理所有残留容器和端口绑定
     print_info "清理 docker-compose 管理的容器和端口绑定..."
-    $COMPOSE_CMD -f "$COMPOSE_FILE" down 2>/dev/null || true
+    mw_compose down 2>/dev/null || true
     sleep 2
     
     # 强制清理所有可能占用端口的容器（包括停止状态的）
@@ -5429,7 +6244,7 @@ cleanup_stale_containers() {
     # 获取所有中间件容器名称
     local container_names=()
     for service in "${MIDDLEWARE_SERVICES[@]}"; do
-        local container_name=$(docker-compose -f "$COMPOSE_FILE" ps -q "$service" 2>/dev/null || echo "")
+        local container_name=$(mw_compose ps -q "$service" 2>/dev/null || echo "")
         if [ -z "$container_name" ]; then
             # 尝试通过容器名称查找
             case "$service" in
@@ -5541,10 +6356,17 @@ fix_nacos_derby_corruption() {
 # 没有任何用户，业务服务登录会报 "User nacos not found"。
 # Nacos 2.2+ 在 auth 开启后 /v1/auth/users/admin 可能不支持匿名调用，需用默认 nacos/nacos 登录后创建。
 # 密码必须与各服务 bootstrap-*.yaml 的 spring.cloud.nacos.*.password 一致。
-NACOS_INIT_PASSWORD="${NACOS_INIT_PASSWORD:-basiclab@iot78475418754}"
+NACOS_INIT_PASSWORD="${NACOS_INIT_PASSWORD:-}"
 NACOS_DEFAULT_PASSWORD="${NACOS_DEFAULT_PASSWORD:-nacos}"
 ensure_nacos_admin_user() {
     docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^nacos-server$' || return 0
+    if [ -z "${NACOS_INIT_PASSWORD}" ]; then
+        NACOS_INIT_PASSWORD=$(read_middleware_env_value NACOS_PASSWORD)
+    fi
+    if [ -z "${NACOS_INIT_PASSWORD}" ] || [ "${NACOS_INIT_PASSWORD}" = "CHANGE_ME" ]; then
+        print_error "NACOS_PASSWORD 未配置，拒绝初始化 Nacos 管理员"
+        return 1
+    fi
 
     print_info "初始化 Nacos 管理员账号与 dev 命名空间（用户 nacos，密码与各服务 bootstrap 一致）..."
 
@@ -5631,7 +6453,7 @@ ensure_nacos_admin_user() {
 
     print_error "Nacos admin 用户自动初始化失败，请手动配置"
     print_info "1. 登录 http://localhost:8848/nacos（默认账号 nacos/nacos）"
-    print_info "2. 将 nacos 用户密码改为: ${NACOS_INIT_PASSWORD}"
+    print_info "2. 使用已安全注入的 NACOS_INIT_PASSWORD 更新 nacos 用户密码（凭据值不输出）"
     print_info "3. 创建命名空间: namespaceId=dev, namespaceName=dev"
     print_info "4. 配置完成后可重新运行: ./install_middleware_linux.sh install"
     return 1
@@ -5705,6 +6527,7 @@ install_middleware() {
     print_section "启动中间件容器"
     # 取 PIPESTATUS[0] 判定（tee 恒 0，`if 管道` 永远走成功分支，失败会被掩盖）
     local -a _skip_optional=()
+    local _up_rc
     read -r -a _skip_optional <<< "$(collect_skippable_optional_services)"
     # 用 if 包裹以防止 compose_up 返回非零时触发 set -e（如 ZLMediaKit rlimit 等非致命错误）
     if compose_up_middleware "${_skip_optional[@]}"; then
@@ -5861,6 +6684,7 @@ install_middleware() {
     
     sleep 5
     bash "${SCRIPT_DIR}/set_permanent_token.sh" >/dev/null 2>&1 || true
+    return "${_up_rc}"
 }
 
 # 启动所有中间件
@@ -5898,6 +6722,7 @@ start_middleware() {
     check_and_clean_ports
     
     local -a _skip_optional=()
+    local _up_rc
     read -r -a _skip_optional <<< "$(collect_skippable_optional_services)"
     # 用 if 包裹以防止 compose_up 返回非零时触发 set -e（如 ZLMediaKit rlimit 等非致命错误）
     if compose_up_middleware "${_skip_optional[@]}"; then
@@ -5962,6 +6787,7 @@ start_middleware() {
 
     sleep 5
     bash "${SCRIPT_DIR}/set_permanent_token.sh" >/dev/null 2>&1 || true
+    return "${_up_rc}"
 }
 
 # 停止所有中间件
@@ -5973,7 +6799,13 @@ stop_middleware() {
     check_compose_file
     
     print_info "停止所有中间件服务..."
-    $COMPOSE_CMD -f "$COMPOSE_FILE" down 2>&1 | tee -a "$LOG_FILE"
+    local _down_rc
+    mw_compose down 2>&1 | tee -a "$LOG_FILE"
+    _down_rc="${PIPESTATUS[0]}"
+    if [ "$_down_rc" -ne 0 ]; then
+        print_error "停止中间件失败（Docker Compose 返回码: $_down_rc）"
+        return "$_down_rc"
+    fi
     
     print_success "所有中间件已停止"
 }
@@ -6005,7 +6837,7 @@ restart_middleware() {
     prepare_zlmediakit_config
 
     print_info "重启所有中间件服务..."
-    $COMPOSE_CMD -f "$COMPOSE_FILE" restart 2>&1 | tee -a "$LOG_FILE"
+    mw_compose up -d --force-recreate
     
     print_success "所有中间件重启完成"
     echo ""
@@ -6059,7 +6891,7 @@ status_middleware() {
     check_docker_compose
     check_compose_file
     
-    $COMPOSE_CMD -f "$COMPOSE_FILE" ps 2>&1 | tee -a "$LOG_FILE"
+    mw_compose ps 2>&1 | tee -a "$LOG_FILE"
 
 }
 
@@ -6073,10 +6905,10 @@ view_logs() {
 
     if [ -z "$service" ]; then
         print_info "查看主中间件 compose 日志..."
-        $COMPOSE_CMD -f "$COMPOSE_FILE" logs --tail=100 2>&1 | tee -a "$LOG_FILE"
+        mw_compose logs --tail=100 2>&1 | tee -a "$LOG_FILE"
     else
         print_info "查看 $service 服务日志..."
-        $COMPOSE_CMD -f "$COMPOSE_FILE" logs --tail=100 "$service" 2>&1 | tee -a "$LOG_FILE"
+        mw_compose logs --tail=100 "$service" 2>&1 | tee -a "$LOG_FILE"
     fi
 }
 
@@ -6089,7 +6921,7 @@ build_middleware() {
     check_compose_file
     
     print_info "构建所有中间件镜像..."
-    $COMPOSE_CMD -f "$COMPOSE_FILE" build --no-cache 2>&1 | tee -a "$LOG_FILE"
+    mw_compose build --no-cache 2>&1 | tee -a "$LOG_FILE"
     
     print_success "所有中间件镜像构建完成"
 }
@@ -6156,14 +6988,14 @@ clean_middleware() {
         
         # 第一步：先停止所有容器（正常停止）
         print_info "正在停止所有中间件服务..."
-        $COMPOSE_CMD -f "$COMPOSE_FILE" stop 2>&1 | tee -a "$LOG_FILE"
+        mw_compose stop 2>&1 | tee -a "$LOG_FILE"
         
         # 等待容器停止
         sleep 3
         
         # 第二步：强制停止所有容器（处理重启循环中的容器）
         print_info "强制停止所有容器..."
-        $COMPOSE_CMD -f "$COMPOSE_FILE" kill 2>&1 | tee -a "$LOG_FILE"
+        mw_compose kill 2>&1 | tee -a "$LOG_FILE"
         
         # 等待容器完全停止
         sleep 2
@@ -6172,11 +7004,11 @@ clean_middleware() {
         # 注意：使用 down -v 只会删除容器和卷，不会删除镜像
         # 如果要删除镜像，需要使用 down --rmi all 或 down --rmi local，这里不使用
         print_info "删除所有容器和 Docker 具名卷（镜像将保留，不会删除）..."
-        $COMPOSE_CMD -f "$COMPOSE_FILE" down -v 2>&1 | tee -a "$LOG_FILE"
+        mw_compose down -v 2>&1 | tee -a "$LOG_FILE"
         
         # 第四步：检查并强制删除可能残留的容器（处理重启循环中的容器）
         print_info "检查并清理残留容器..."
-        local remaining_containers=$($COMPOSE_CMD -f "$COMPOSE_FILE" ps -q 2>/dev/null || echo "")
+        local remaining_containers=$(mw_compose ps -q 2>/dev/null || echo "")
         if [ -n "$remaining_containers" ]; then
             print_warning "发现残留容器，正在强制删除..."
             echo "$remaining_containers" | xargs -r docker rm -f 2>&1 | tee -a "$LOG_FILE"
@@ -6364,9 +7196,10 @@ update_middleware() {
     fix_nacos_startup_failure
     print_info "重启所有中间件服务..."
     local -a _skip_optional=()
+    local _up_rc
     read -r -a _skip_optional <<< "$(collect_skippable_optional_services)"
     # 用 if 包裹以防止 compose_up 返回非零时触发 set -e（如 ZLMediaKit rlimit 等非致命错误）
-    if compose_up_middleware "${_skip_optional[@]}"; then
+    if compose_up_middleware --force-recreate "${_skip_optional[@]}"; then
         _up_rc=0
     else
         _up_rc=$?
@@ -6392,12 +7225,12 @@ update_middleware() {
         print_info "当前部署形态 (${EASYAIOT_DEPLOY_PROFILE}) 跳过 Milvus"
     fi
 
-
+    return "${_up_rc}"
 }
 
 # 显示帮助信息
 show_help() {
-    echo "EasyAIoT 中间件部署脚本"
+    echo "yFeiEye 中间件部署脚本"
     echo ""
     echo "使用方法:"
     echo "  ./install.sh [命令] [服务]"
@@ -6413,6 +7246,7 @@ show_help() {
     echo "  build           - 重新构建所有镜像"
     echo "  clean           - 清理所有容器和镜像"
     echo "  update          - 更新并重启所有中间件"
+    echo "  prepare-srs-config - 仅生成共享 SRS 配置，不启动或停止容器"
     echo "  profile         - 显示当前部署规格与服务范围"
     echo "  analyze-memory  - 分析运行中容器内存占用与规格符合性（见 analyze_deploy_memory.sh）"
     echo "  fix-postgresql  - 修复 PostgreSQL 密码问题"
@@ -6444,7 +7278,7 @@ main() {
     local cmd="${1:-help}"
 
     # 在执行任何命令之前（除了 help/profile），先检查 Git
-    if [ "$cmd" != "help" ] && [ "$cmd" != "--help" ] && [ "$cmd" != "-h" ] && [ "$cmd" != "profile" ]; then
+    if [ "$cmd" != "help" ] && [ "$cmd" != "--help" ] && [ "$cmd" != "-h" ] && [ "$cmd" != "profile" ] && [ "$cmd" != "prepare-srs-config" ]; then
         check_and_require_git
     fi
 
@@ -6489,6 +7323,9 @@ main() {
             refresh_compose_profile_args
             print_info "部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
             update_middleware
+            ;;
+        prepare-srs-config)
+            prepare_srs_config --config-only
             ;;
         fix-postgresql)
             ensure_postgresql_password

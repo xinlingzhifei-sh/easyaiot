@@ -14,13 +14,15 @@ NC='\033[0m' # No Color
 
 # 脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck source=../.scripts/docker/init-build-cache-dirs.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
+MIDDLEWARE_ENV_FILE="${YFEIEYE_MIDDLEWARE_ENV_FILE:-${YFEIEYE_ROOT}/.scripts/docker/.env.docker}"
+DEVICE_COMPOSE_ENV_FILE="${YFEIEYE_DEVICE_COMPOSE_ENV_FILE:-${SCRIPT_DIR}/.env}"
 COMPOSE_DESKTOP_FILE="${SCRIPT_DIR}/docker-compose.desktop.yaml"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/deploy_profile.sh"
 DEVICE_COMPOSE_PROFILE_ARGS=()
 
 refresh_device_compose_profile_args() {
@@ -36,11 +38,19 @@ refresh_device_compose_profile_args() {
 
 # 桌面端（Windows/macOS Docker Desktop）使用 bridge override，避免 host 网络端口不可达
 device_compose() {
-    if [ -f "$COMPOSE_DESKTOP_FILE" ] && { [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; }; then
-        $DOCKER_COMPOSE -f "$COMPOSE_FILE" -f "$COMPOSE_DESKTOP_FILE" ${DEVICE_COMPOSE_PROFILE_ARGS[@]+"${DEVICE_COMPOSE_PROFILE_ARGS[@]}"} "$@"
-    else
-        $DOCKER_COMPOSE -f "$COMPOSE_FILE" ${DEVICE_COMPOSE_PROFILE_ARGS[@]+"${DEVICE_COMPOSE_PROFILE_ARGS[@]}"} "$@"
+    local -a files=(-f "$COMPOSE_FILE")
+    if [ -f "$COMPOSE_DESKTOP_FILE" ] \
+        && { [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; }; then
+        files+=(-f "$COMPOSE_DESKTOP_FILE")
     fi
+    $DOCKER_COMPOSE --env-file "$MIDDLEWARE_ENV_FILE" --env-file "$DEVICE_COMPOSE_ENV_FILE" \
+        "${files[@]}" ${DEVICE_COMPOSE_PROFILE_ARGS[@]+"${DEVICE_COMPOSE_PROFILE_ARGS[@]}"} "$@"
+}
+
+prepare_device_state_dirs() {
+    local state_root="${YFEIEYE_DEVICE_STATE_ROOT:-/opt/yfeieye-source/shared/device}"
+    mkdir -p "$state_root/logs" "$state_root/node-logs"
+    chmod 0777 "$state_root/logs" "$state_root/node-logs"
 }
 
 # 按部署形态收集应启动的 DEVICE 服务名
@@ -297,6 +307,7 @@ apply_device_profile_env() {
 
 compose_up_detached() {
     local count
+    prepare_device_state_dirs
     refresh_device_compose_profile_args
     apply_device_profile_env
     count=$(device_compose config --services 2>/dev/null | wc -l | tr -d '[:space:]')
@@ -461,7 +472,7 @@ show_unhealthy_containers() {
 
 # 容器部署后同步宿主机控制面 Agent 凭据（数据库重建后 agent.env 令牌可能过期）
 # shellcheck source=../.scripts/node/ensure_platform_agent_invoke.sh
-source "${EASYAIOT_ROOT}/.scripts/node/ensure_platform_agent_invoke.sh"
+source "${YFEIEYE_ROOT}/.scripts/node/ensure_platform_agent_invoke.sh"
 
 _ensure_platform_agent_info() { print_info "$1"; }
 _ensure_platform_agent_ok() { print_success "$1"; }
@@ -501,15 +512,15 @@ check_docker_daemon() {
 }
 
 JARS_DIR="${SCRIPT_DIR}/target/jars"
-MAVEN_CACHE_DIR="$(maven_repository_dir "$EASYAIOT_ROOT")"
+MAVEN_CACHE_DIR="$(maven_repository_dir "$YFEIEYE_ROOT")"
 # 构建输入哈希戳（纯文件内容哈希，不依赖 git）：update/build 时输入未变则跳过 Maven 编译
-BUILD_STAMP_FILE="$(module_cache_root "$EASYAIOT_ROOT" device)/.build-stamp"
+BUILD_STAMP_FILE="$(module_cache_root "$YFEIEYE_ROOT" device)/.build-stamp"
 # 各运行时镜像产物哈希戳目录：按「Jar 内容 + 该模块 Dockerfile」判断单个镜像是否需要重建（依赖可复现构建）
-RUNTIME_STAMP_DIR="$(module_cache_root "$EASYAIOT_ROOT" device)/runtime-stamps"
+RUNTIME_STAMP_DIR="$(module_cache_root "$YFEIEYE_ROOT" device)/runtime-stamps"
 # 各 Maven 模块源码哈希戳目录：按「模块 pom.xml + src/」判断改了哪些模块，供选择性 reactor 构建（-pl）
-MODULE_HASH_DIR="$(module_cache_root "$EASYAIOT_ROOT" device)/module-hashes"
+MODULE_HASH_DIR="$(module_cache_root "$YFEIEYE_ROOT" device)/module-hashes"
 # 宿主机 Maven settings.xml（docker run 卷挂载编译用，aliyun mirror）；首次自动生成
-MAVEN_SETTINGS_FILE="$(module_cache_root "$EASYAIOT_ROOT" device)/settings.xml"
+MAVEN_SETTINGS_FILE="$(module_cache_root "$YFEIEYE_ROOT" device)/settings.xml"
 # C2（常驻 mvnd 容器，守护进程复用）：默认关闭走 C1 一次性 docker run；USE_MVND=1 启用，不可用时自动回退 C1
 USE_MVND="${USE_MVND:-0}"
 MVND_IMAGE="${MVND_IMAGE:-device-mvnd:latest}"
@@ -937,7 +948,8 @@ build_base_jars() {
     check_compose_file
     check_docker_daemon
     cd "$SCRIPT_DIR"
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
+    enable_docker_buildkit
 
     ensure_maven_settings "$MAVEN_SETTINGS_FILE"
     mkdir -p "$JARS_DIR" "$MAVEN_CACHE_DIR"
@@ -958,7 +970,7 @@ build_base_jars() {
     # 卷挂载编译入口：$1=1 离线(+--network none)，$1=0 联网。
     # 源码 RW（target 写回宿主机 → 增量）、m2 RW（直接持久，无 cp/导出）、settings RO。
     # --user：以宿主机用户身份写产物，避免 root 属主污染。HOME/MAVEN_CONFIG 指向容器内 /tmp（非 root 可写）。
-    # -ntp 静默传输进度；bf 收集器加速依赖图；artifact.threads 并行解析/下载。
+    # -ntp 静默传输进度；C1 使用串行 reactor 避免共享本地仓库锁竞争；artifact.threads 并行解析/下载。
     _run_build_container() {
         local offline="$1"
         local net=() off=""
@@ -973,7 +985,7 @@ build_base_jars() {
             -v "${MAVEN_SETTINGS_FILE}:/m2/settings.xml:ro" \
             -w /build \
             maven:3.9.11-eclipse-temurin-21-alpine \
-            mvn -s /m2/settings.xml -B -ntp -T 1C \
+            mvn -s /m2/settings.xml -B -ntp \
                 -Dmaven.artifact.threads=8 \
                 install ${maven_build_args} ${off} \
                 -Dmaven.repo.local=/m2/repository \
@@ -1107,8 +1119,8 @@ build_runtime_images() {
         return 0
     fi
 
-    # 并行构建待更新镜像（E）：各镜像仅 COPY 一个 Jar + chown，互相独立，
-    # 并行可把「串行累加」缩短为「最慢的一个」。成功后写哈希戳，失败时打印末尾日志。
+    # 串行构建待更新镜像（E）：各镜像仅 COPY 一个 Jar + chown。
+    # 逐个释放构建上下文可避免低磁盘服务器同时写入多个大 Jar；成功后写哈希戳，失败时打印末尾日志。
     local tmp_log_dir ctx_base
     tmp_log_dir="$(mktemp -d 2>/dev/null || echo "/tmp/device-runtime-$$")"
     mkdir -p "$tmp_log_dir"
@@ -1119,7 +1131,7 @@ build_runtime_images() {
     rm -rf "$ctx_base" 2>/dev/null || true
 
     local log jarname ctx
-    local pids=() tags=() logs=() dfs=() hashes=()
+    local fail=0
     for idx in "${build_idx[@]}"; do
         spec="${RUNTIME_IMAGE_SPECS[$idx]}"
         dockerfile="${spec%%|*}"
@@ -1130,25 +1142,20 @@ build_runtime_images() {
         ln "${JARS_DIR}/${jarname}" "${ctx}/target/jars/${jarname}" 2>/dev/null \
             || cp -f "${JARS_DIR}/${jarname}" "${ctx}/target/jars/${jarname}"
         log="${tmp_log_dir}/$(echo "$tag" | tr '/:' '__').log"
-        print_info "并行构建运行时镜像: $tag ($dockerfile)"
-        ( docker build ${DOCKER_PLATFORM:+--platform "$DOCKER_PLATFORM"} -f "$dockerfile" -t "$tag" "$ctx" ) >"$log" 2>&1 &
-        pids+=("$!"); tags+=("$tag"); logs+=("$log"); dfs+=("$dockerfile")
-        hashes+=("${img_hashes[$idx]}")
-    done
-
-    local fail=0 i
-    for i in "${!pids[@]}"; do
-        if wait "${pids[$i]}"; then
-            print_success "  ✓ ${tags[$i]}"
-            if [ -n "${hashes[$i]}" ]; then
-                printf '%s\n' "${hashes[$i]}" > "$(runtime_stamp_file "${tags[$i]}")" 2>/dev/null || true
+        print_info "构建运行时镜像: $tag ($dockerfile)"
+        if docker build ${DOCKER_PLATFORM:+--platform "$DOCKER_PLATFORM"} \
+            -f "$dockerfile" -t "$tag" "$ctx" >"$log" 2>&1; then
+            print_success "  ✓ $tag"
+            if [ -n "${img_hashes[$idx]}" ]; then
+                printf '%s\n' "${img_hashes[$idx]}" > "$(runtime_stamp_file "$tag")" 2>/dev/null || true
             fi
         else
             fail=1
-            print_error "构建失败: ${tags[$i]} (${dfs[$i]})"
-            print_info "----- ${tags[$i]} 构建日志（末尾 30 行）-----"
-            tail -n 30 "${logs[$i]}" 2>/dev/null | sed 's/^/    /'
+            print_error "构建失败: $tag ($dockerfile)"
+            print_info "----- $tag 构建日志（末尾 30 行）-----"
+            tail -n 30 "$log" 2>/dev/null | sed 's/^/    /'
         fi
+        rm -rf "$ctx" 2>/dev/null || true
     done
     rm -rf "$tmp_log_dir" "$ctx_base" 2>/dev/null || true
 
@@ -1299,17 +1306,7 @@ stop_services() {
 restart_services() {
     print_info "重启所有服务..."
     cd "$SCRIPT_DIR"
-    refresh_device_compose_profile_args
-    apply_device_profile_env
-    stop_device_disabled_services
-    local -a targets=()
-    read -r -a targets <<< "$(collect_device_up_services)"
-    if [ ${#targets[@]} -eq 0 ]; then
-        print_error "当前部署形态没有可重启的 DEVICE 服务"
-        return 1
-    fi
-    print_info "DEVICE 重启: ${targets[*]}"
-    device_compose restart "${targets[@]}"
+    compose_up_detached --force-recreate
     print_success "服务重启完成"
     ensure_platform_agent_after_device_stack
 }
@@ -1386,7 +1383,7 @@ restart_service() {
     fi
     print_info "重启服务: $service"
     cd "$SCRIPT_DIR"
-    device_compose restart "$service"
+    compose_up_detached --force-recreate --no-deps "$service"
     print_success "服务 $service 重启完成"
 }
 
@@ -1431,7 +1428,7 @@ start_service() {
 
 # 清理（停止并删除容器）
 clean() {
-    if [ "${EASYAIOT_AUTO_YES:-}" != "1" ]; then
+    if [ "${YFEIEYE_AUTO_YES:-}" != "1" ]; then
         print_warning "这将停止并删除所有容器，但保留镜像"
         local response
         while true; do
@@ -1496,7 +1493,7 @@ clean() {
 
 # 完全清理（包括镜像）
 clean_all() {
-    if [ "${EASYAIOT_AUTO_YES:-}" != "1" ]; then
+    if [ "${YFEIEYE_AUTO_YES:-}" != "1" ]; then
         print_warning "这将停止并删除所有容器和镜像"
         local response
         while true; do
@@ -1657,7 +1654,7 @@ main() {
 
                 if [ "$_do_local_build" -eq 0 ]; then
                     print_info "正在拉取预构建镜像..."
-                    if bash "${EASYAIOT_ROOT}/.scripts/docker/runtime_image.sh" pull; then
+                    if bash "${YFEIEYE_ROOT}/.scripts/docker/runtime_image.sh" pull; then
                         print_success "预构建镜像拉取成功"
                         export EASYAIOT_SKIP_BUILD=1
                     else

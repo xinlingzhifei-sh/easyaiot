@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import csv
 import json
@@ -23,6 +22,7 @@ from ultralytics import YOLO
 
 from app.blueprints.train_task import build_train_task_name, resolve_task_base_name
 from app.services.minio_service import ModelService
+from app.utils.model_upload_security import require_official_pretrained_model
 from app.utils.train_checkpoint import (
     CHECKPOINT_ACTION_FINALIZE,
     CHECKPOINT_ACTION_REJECT,
@@ -770,7 +770,16 @@ def api_start_train():
         epochs = data.get('epochs', 20)
         batch_size = data.get('batch_size', 16)
         img_size = data.get('imgsz', 640)
-        model_arch = data.get('modelPath', 'yolov8n.pt')
+        try:
+            model_arch = require_official_pretrained_model(
+                data.get('modelPath', 'yolov8n.pt')
+            )
+        except ValueError as model_error:
+            return jsonify({
+                'success': False,
+                'code': 400,
+                'msg': str(model_error),
+            }), 400
         dataset_url = data.get('datasetPath') or data.get('dataset_path')
         dataset_zip_path = dataset_url
         dataset_source = _normalize_dataset_source(
@@ -1049,74 +1058,16 @@ def recover_stale_train_tasks(app=None):
     return recovered
 
 
-def _parse_minio_download_url(url: str):
-    """解析 MinIO 下载 URL，返回 (bucket_name, object_key)。"""
-    try:
-        parsed = urlparse(url)
-        path_parts = parsed.path.split('/')
-        if len(path_parts) >= 5 and path_parts[3] == 'buckets':
-            bucket_name = path_parts[4]
-        else:
-            return None, None
-        query_params = parse_qs(parsed.query)
-        object_key = query_params.get('prefix', [None])[0]
-        return bucket_name, object_key
-    except Exception:
-        return None, None
-
-
 def _resolve_pretrained_model_path(model_arch: str, task_id: int):
     """
-    将 model_arch 解析为 YOLO 可用的本地路径或标准权重名。
+    将 model_arch 校验为 YOLO 官方基础权重名。
     返回 (resolved_path, error_message)，成功时 error_message 为 None。
     """
-    model_arch = (model_arch or 'yolov8n.pt').strip()
-    ai_root = get_project_root()
-
-    if model_arch.startswith('@AI/'):
-        rel = model_arch[4:].lstrip('/')
-        local = os.path.join(ai_root, rel)
-        if os.path.exists(local):
-            return os.path.abspath(local), None
-        return None, f'预训练模型不存在: {local}'
-
-    if model_arch.startswith('/api/v1/buckets/'):
-        bucket_name, object_key = _parse_minio_download_url(model_arch)
-        if not bucket_name or not object_key:
-            return None, f'预训练模型 URL 格式无效: {model_arch}'
-
-        storage_dir = os.path.join(ai_root, 'data', 'pretrained', f'train_{task_id}')
-        os.makedirs(storage_dir, exist_ok=True)
-        filename = os.path.basename(object_key) or 'pretrained.pt'
-        local_path = os.path.join(storage_dir, filename)
-
-        if os.path.exists(local_path):
-            return local_path, None
-
-        success, error_msg = ModelService.download_from_minio(
-            bucket_name=bucket_name,
-            object_name=object_key,
-            destination_path=local_path,
-        )
-        if success:
-            return local_path, None
-        return None, f'从 MinIO 下载预训练模型失败: {error_msg or "未知错误"}'
-
-    if os.path.isabs(model_arch) and os.path.exists(model_arch):
-        return model_arch, None
-
-    for candidate in (
-        os.path.join(ai_root, model_arch),
-        os.path.join(ai_root, 'model', model_arch),
-    ):
-        if os.path.exists(candidate):
-            return os.path.abspath(candidate), None
-
-    # 标准 ultralytics 权重名（如 yolov8n.pt），由 YOLO 自行解析
-    if '://' not in model_arch and not model_arch.startswith('/'):
-        return model_arch, None
-
-    return None, f'预训练模型路径不可用: {model_arch}'
+    del task_id
+    try:
+        return require_official_pretrained_model(model_arch or 'yolov8n.pt'), None
+    except ValueError as model_error:
+        return None, str(model_error)
 
 
 @train_bp.route('/<int:task_id>/stop', methods=['POST'])

@@ -143,7 +143,7 @@
       console.error(error);
       const errorList = parseImportErrors(error instanceof Error ? error.message : '导入失败');
       notification.open({
-        getContainer: () => document.querySelector('.user-warpper'),
+        getContainer: () => document.querySelector<HTMLElement>('.user-warpper') || document.body,
         placement: 'topLeft',
         message: '导入失败',
         description: errorList.map((item) => h('div', item)),

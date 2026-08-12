@@ -522,7 +522,7 @@ SCREENS = [
         "name": "智慧工厂综合态势",
         "cover": "dash-factory-cover.svg",
         "remarks": "产能 KPI、产线对比、良率与告警",
-        "subtitle": "EasyAIoT · Smart Factory Situation Awareness",
+        "subtitle": "yFeiEye · Smart Factory Situation Awareness",
         "accent": ("#5eead4", "#0e7490"),
         "cover_theme": dict(c1="#061820", c2="#0a4a5c", c3="#14b8a6", accent="#5eead4", motif="factory"),
         "kpis": [
@@ -558,7 +558,7 @@ SCREENS = [
         "name": "智慧园区运行监测",
         "cover": "dash-park-cover.svg",
         "remarks": "园区人流、车位能耗与通行安防",
-        "subtitle": "EasyAIoT · Smart Park Operations Monitor",
+        "subtitle": "yFeiEye · Smart Park Operations Monitor",
         "accent": ("#86efac", "#15803d"),
         "cover_theme": dict(c1="#052e16", c2="#166534", c3="#22c55e", accent="#86efac", motif="park"),
         "kpis": [
@@ -594,7 +594,7 @@ SCREENS = [
         "name": "设备运维健康看板",
         "cover": "dash-device-cover.svg",
         "remarks": "设备在线率、健康评分与工单",
-        "subtitle": "EasyAIoT · Device Health & Maintenance Board",
+        "subtitle": "yFeiEye · Device Health & Maintenance Board",
         "accent": ("#93c5fd", "#1d4ed8"),
         "cover_theme": dict(c1="#0b1220", c2="#1e3a8a", c3="#3b82f6", accent="#93c5fd", motif="device"),
         "kpis": [
@@ -630,7 +630,7 @@ SCREENS = [
         "name": "能源能耗分析大屏",
         "cover": "dash-energy-cover.svg",
         "remarks": "用电用气、峰谷分析与节电排名",
-        "subtitle": "EasyAIoT · Energy Consumption Analytics",
+        "subtitle": "yFeiEye · Energy Consumption Analytics",
         "accent": ("#fcd34d", "#b45309"),
         "cover_theme": dict(c1="#1c1006", c2="#92400e", c3="#f59e0b", accent="#fcd34d", motif="energy"),
         "kpis": [
@@ -821,7 +821,7 @@ def build_seed_sql(contents: dict[str, str], templates: dict[str, str]) -> str:
     lines.append("  (id, asset_name, asset_type, file_url, file_size, remarks, tenant_id, creator, updater, deleted)")
     lines.append("VALUES")
     assets = [
-        (9001, "EasyAIoT Logo", "image", "/resource/visualize-demo/asset-logo.svg", 18200, "演示：品牌 Logo"),
+        (9001, "yFeiEye Logo", "image", "/resource/visualize-demo/asset-logo.svg", 18200, "演示：品牌 Logo"),
         (9002, "深色大屏背景", "image", "/resource/visualize-demo/asset-bg.svg", 96000, "演示：1920x1080 深色背景"),
         (9003, "在线状态图标", "image", "/resource/visualize-demo/asset-icon.svg", 8200, "演示：状态图标素材"),
         (9004, "产线巡检视频封面", "video", "/resource/visualize-demo/asset-video.svg", 128000, "演示：视频类素材登记"),

@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * 文件客户端的配置
  * 不同实现的客户端，需要不同的配置，通过子类来定义
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 // @JsonTypeInfo 注解的作用，Jackson 多态

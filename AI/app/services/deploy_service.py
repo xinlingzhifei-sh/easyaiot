@@ -1,8 +1,7 @@
 """
 模型部署服务业务逻辑
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import socket
@@ -11,6 +10,7 @@ import logging
 from datetime import datetime
 
 from db_models import db, Model, AIService, beijing_now
+from app.utils.model_upload_security import require_web_safe_model_reference
 from app.utils.node_remote_python import resolve_ai_bundle_python
 from .deploy_daemon import DeployServiceDaemon
 
@@ -54,6 +54,14 @@ def _get_model(model_id: int) -> Model:
     if not model:
         raise ValueError(f'模型[{model_id}]不存在')
     return model
+
+
+def _resolve_deployable_model_path(model: Model) -> str:
+    if not model.onnx_model_path:
+        raise ValueError(
+            'Web 部署只允许 ONNX 模型；PyTorch 权重必须先在隔离环境转换'
+        )
+    return require_web_safe_model_reference(model.onnx_model_path)
 
 
 def _get_local_ip():
@@ -390,12 +398,7 @@ def deploy_model(
         logger.info(f'模型信息: {model.name}, 版本: {model.version}')
         
         # 检查模型路径
-        model_path = (model.model_path or model.onnx_model_path or 
-                     model.torchscript_model_path or model.tensorrt_model_path or 
-                     model.openvino_model_path)
-        if not model_path:
-            logger.error('模型没有可用的模型文件路径')
-            raise ValueError('模型没有可用的模型文件路径')
+        model_path = _resolve_deployable_model_path(model)
         
         logger.info(f'模型路径: {model_path}')
         
@@ -567,12 +570,7 @@ def start_service(service_id: int) -> dict:
         logger.info(f'模型信息: {model.name}, 版本: {model.version}')
         
         # 检查模型路径
-        model_path = (model.model_path or model.onnx_model_path or 
-                     model.torchscript_model_path or model.tensorrt_model_path or 
-                     model.openvino_model_path)
-        if not model_path:
-            logger.error('模型没有可用的模型文件路径')
-            raise ValueError('模型没有可用的模型文件路径')
+        model_path = _resolve_deployable_model_path(model)
         
         logger.info(f'模型路径: {model_path}')
         
@@ -933,4 +931,3 @@ def get_service_logs(service_id: int, lines: int = 100, date: str = None) -> dic
                 'is_all_file': not bool(date)
             }
         }
-

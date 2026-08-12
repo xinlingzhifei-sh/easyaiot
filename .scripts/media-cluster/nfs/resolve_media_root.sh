@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 解析 EasyAIoT 媒体根路径（NFS 挂载点或本地 bind 目录）
+# 解析 yFeiEye 媒体根路径（NFS 挂载点或本地 bind 目录）
 # 优先级：EASYAIOT_MEDIA_ROOT > 已挂载路径 > 可写 /mnt > $HOME/easyaiot/media
 
 easyaiot_home_media_root() {
@@ -45,7 +45,7 @@ resolve_easyaiot_media_root() {
     done
 
     # 已有本地目录（历史 ~/easyaiot/data 迁移或 prior fallback）
-    for candidate in "$home_root" "${HOME}/easyaiot/data"; do
+    for candidate in /data "$home_root" "${HOME}/easyaiot/data"; do
         if [ -d "${candidate}/playbacks" ] || [ -d "${candidate}/alert_images" ]; then
             echo "$candidate"
             return

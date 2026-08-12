@@ -100,7 +100,7 @@ const captchaType = ref('blockPuzzle')
 
 const formData = reactive({
   username: import.meta.env.VITE_APP_DEFAULT_LOGIN_USERNAME || '',
-  password: import.meta.env.VITE_APP_DEFAULT_LOGIN_PASSWORD || '',
+  password: '',
 })
 
 onLoad((options) => {

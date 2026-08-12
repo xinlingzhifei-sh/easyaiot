@@ -28,9 +28,8 @@ import java.util.List;
  * 注意，考虑到实现的简易，它的权重是使用 Nacos 的 nacos.weight，所以随机 + 权重也是基于 {@link NacosBalancer} 筛选。
  * 也就是说，如果你不使用 Nacos 作为注册中心，需要微调一下筛选的实现逻辑
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @RequiredArgsConstructor
 @Slf4j
@@ -81,7 +80,7 @@ public class GrayLoadBalancer implements ReactorServiceInstanceLoadBalancer {
         // 基于 tag 过滤实例列表
         chooseInstances = filterTagServiceInstances(chooseInstances, headers);
 
-        // 随机 + 权重获取实例列表 TODO BasicLab：目前直接使用 Nacos 提供的方法，如果替换注册中心，需要重新失败该方法
+        // 随机 + 权重获取实例列表 TODO yFeiEye：目前直接使用 Nacos 提供的方法，如果替换注册中心，需要重新失败该方法
         return new DefaultResponse(NacosBalancer.getHostByRandomWeight3(chooseInstances));
     }
 

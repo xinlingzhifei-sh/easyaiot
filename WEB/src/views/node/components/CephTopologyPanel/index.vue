@@ -54,7 +54,7 @@
         </template>
         <template v-else-if="column.key === 'action' || column.dataIndex === 'action'">
           <TableAction
-            :actions="buildRowActions(record)"
+            :actions="buildRowActions(record as CephTopologyNodeVO)"
           />
         </template>
       </template>
@@ -218,8 +218,8 @@ const { createMessage } = useMessage();
 const router = useRouter();
 const [registerDrawer, { openDrawer, closeDrawer, setDrawerProps }] = useDrawer();
 
-const assignLoading = ref(false);
 const loading = ref(false);
+const assignLoading = ref(false);
 const refreshing = ref(false);
 const checking = ref(false);
 const opLoading = ref<'client' | 'osd' | 'pool' | 'unmount' | null>(null);

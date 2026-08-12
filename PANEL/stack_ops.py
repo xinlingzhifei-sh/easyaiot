@@ -613,7 +613,7 @@ class StackOps:
         if plat.get('deploySupported') and not script_exists:
             message = script_missing_msg or (
                 f'未找到部署脚本：{script_path or self.install_script}。'
-                '请确认已挂载 EasyAIoT 仓库根目录 / 安装包内置 runtime，'
+                '请确认已挂载 yFeiEye 仓库根目录 / 安装包内置 runtime，'
                 '或设置正确的 INSTALL_SCRIPT / EASYAIOT_ROOT。'
             )
             hint = f'缺少 {script_name} 时无法执行部署操作。'
@@ -838,7 +838,7 @@ class StackOps:
         return self.get_job(job_id) or {'id': job_id, 'status': 'cancelled'}
 
     def list_deploy_processes(self, scope: Optional[str] = None) -> List[Dict[str, Any]]:
-        """扫描宿主机上的 EasyAIoT 部署相关进程。"""
+        """扫描宿主机上的 yFeiEye 部署相关进程。"""
         try:
             import psutil
         except ImportError as e:

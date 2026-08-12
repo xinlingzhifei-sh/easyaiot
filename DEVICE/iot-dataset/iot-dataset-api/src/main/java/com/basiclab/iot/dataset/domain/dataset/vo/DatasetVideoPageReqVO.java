@@ -9,9 +9,8 @@ import lombok.ToString;
 /**
  * DatasetVideoPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 视频数据集分页 Request VO")
 @Data

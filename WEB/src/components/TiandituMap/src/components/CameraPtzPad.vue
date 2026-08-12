@@ -93,7 +93,7 @@ const DIAG_ROTATE: Partial<Record<Dir, number>> = {
 <template>
   <div class="camera-ptz-pad">
     <div class="camera-ptz-pad__grid">
-      <template v-for="(cell, i) in DIRS" :key="i">
+      <template v-for="cell in DIRS" :key="cell.dir || 'center'">
         <span v-if="cell.center" class="camera-ptz-pad__center">
           <Icon icon="ant-design:aim-outlined" :size="14" />
         </span>

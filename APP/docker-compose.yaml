@@ -11,6 +11,7 @@ services:
 
     volumes:
       - ${NGINX_CONF:-./conf/nginx.conf}:/etc/nginx/nginx.conf:ro
+      - ${YFEIEYE_NGINX_SECRET_DIR:-/etc/nginx/yfeieye-secrets}:/etc/nginx/yfeieye-secrets:ro
       - ./logs:/app/logs
       - ./conf/ssl:/etc/nginx/ssl:ro
       - /etc/localtime:/etc/localtime:ro

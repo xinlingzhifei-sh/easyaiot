@@ -22,7 +22,7 @@ public final class AgentDeployUtil {
     }
 
     public static String buildEnvContent(long nodeId, String agentToken, int agentPort, String controlPlaneUrl) {
-        return "# EasyAIoT Node Agent 配置\n"
+        return "# yFeiEye Node Agent 配置\n"
                 + "PLATFORM_AGENT=0\n"
                 + "NODE_ID=" + nodeId + "\n"
                 + "AGENT_TOKEN=" + agentToken + "\n"
@@ -35,8 +35,8 @@ public final class AgentDeployUtil {
                 + "MEDIA_CLUSTER_ROOT=/opt/easyaiot/media-cluster\n"
                 + "MQTT_CLUSTER_ROOT=/opt/easyaiot/mqtt-cluster\n"
                 + "MINIO_ENDPOINT=http://localhost:9000\n"
-                + "MINIO_ACCESS_KEY=minioadmin\n"
-                + "MINIO_SECRET_KEY=your-secret\n";
+                + "MINIO_ACCESS_KEY=\n"
+                + "MINIO_SECRET_KEY=\n";
     }
 
     public static String buildInstallScript(String envContent) {

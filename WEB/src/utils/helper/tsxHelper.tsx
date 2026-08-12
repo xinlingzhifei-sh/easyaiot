@@ -1,6 +1,7 @@
 import type { Slots } from 'vue'
 import { isFunction } from '@/utils/is'
-import type { RenderOpts } from '@/components/Form'
+
+type RenderOpts = Record<string, unknown>
 
 /**
  * @description:  Get slot to prevent empty error

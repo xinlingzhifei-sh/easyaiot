@@ -2,7 +2,7 @@ import basicArrow from './src/BasicArrow.vue'
 import basicHelp from './src/BasicHelp.vue'
 import basicTitle from './src/BasicTitle.vue'
 
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 
 export const BasicArrow = withInstall(basicArrow)
 export const BasicHelp = withInstall(basicHelp)

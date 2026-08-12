@@ -87,7 +87,7 @@ export const customTabbarList: CustomTabBarItem[] = [
   //   iconActive: '/static/tabbar/homeHL.png',
   // },
   // add by 芋艿：图标可到 https://icon-sets.iconify.design/carbon/ 选择。另外，需要在 uno.config.ts 的 safelist 中添加图标类名
-  /** EasyAIoT 移动端核心 Tab：设备 / 推流 / 算法 / 告警 / 模型 / 推理 / 训练 / 我的 */
+  /** yFeiEye 移动端核心 Tab：设备 / 推流 / 算法 / 告警 / 模型 / 推理 / 训练 / 我的 */
   {
     text: '设备',
     pagePath: 'pages/device/index',

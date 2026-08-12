@@ -141,6 +141,13 @@ ensure_nfs_media_stack() {
         fi
     fi
 
+    if [ "$install_server" -eq 1 ] && [ "$NFS_EXPORT" = "$MOUNT_ROOT" ]; then
+        echo "NFS_LOCAL_DIRECT export=${NFS_EXPORT} mount=${MOUNT_ROOT} (跳过同路径客户端挂载)"
+        _ensure_local_media_permissions
+        echo ENSURE_NFS_MEDIA_STACK_OK
+        return 0
+    fi
+
     if ! run_priv env \
         MOUNT_ROOT="$MOUNT_ROOT" \
         NFS_SERVER="$server" \

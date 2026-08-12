@@ -34,23 +34,13 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, reactive, ref} from 'vue';
+import {computed, reactive} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, FormItem, Slider, Spin, Tag} from 'ant-design-vue';
-import {useMessage} from '@/hooks/web/useMessage';
-import {useUserStoreWithOut} from "@/store/modules/user";
 import {useGlobSetting} from "@/hooks/setting";
-import {useI18n} from "@/hooks/web/useI18n";
-
-const {t} = useI18n()
 
 defineOptions({name: 'DatasetVideoFrameModal'})
 
-const {createMessage} = useMessage();
-
-const userStore = useUserStoreWithOut();
-const token = userStore.getAccessToken;
-const headers = ref({'Authorization': `Bearer ${token}`});
 const {uploadUrl} = useGlobSetting();
 
 const state = reactive({
@@ -84,7 +74,7 @@ const rulesRef = reactive({
 });
 
 const useForm = Form.useForm;
-const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
+const {resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
 function handleCancel() {
   resetFields();

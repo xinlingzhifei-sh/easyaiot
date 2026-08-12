@@ -98,8 +98,18 @@ public final class MediaStackDeployUtil {
         env.put("ZLM_RTC_EXTERN_IP", host);
         env.put("ZLM_RTP_PORT_MIN", String.valueOf(zlmRtpMin));
         env.put("ZLM_RTP_PORT_MAX", String.valueOf(zlmRtpMax));
-        env.put("ZLM_SECRET", "EasyAIoT_Media_Secret");
+        env.put("ZLM_SECRET", requiredSecretEnvironmentVariable("ZLM_SECRET", 32));
         return env;
+    }
+
+    private static String requiredSecretEnvironmentVariable(String name, int minLength) {
+        String value = System.getenv(name);
+        if (StrUtil.isBlank(value) || value.length() < minLength
+                || !value.matches("[A-Za-z0-9._~-]+")) {
+            throw new IllegalStateException(
+                    name + " 未配置为至少 " + minLength + " 位 URL-safe 随机值，拒绝部署");
+        }
+        return value;
     }
 
     private static String buildDeployEnvScript(

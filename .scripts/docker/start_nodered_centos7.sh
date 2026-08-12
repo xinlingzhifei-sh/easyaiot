@@ -26,7 +26,7 @@
 #   --seed-only         仅导入/恢复演示规则链（容器需已运行，不重启）
 #
 # 默认访问信息（与 docker-compose.yml 一致）：
-#   编辑器:  http://127.0.0.1:1880  （页面标题 EasyAIoT）
+#   编辑器:  http://127.0.0.1:1880  （页面标题 yFeiEye）
 #   数据目录: .scripts/docker/nodered_data/data
 #   演示工程: .scripts/node-red/easyaiot_flows_demo.json
 #
@@ -88,7 +88,7 @@ print_section() {
 
 show_help() {
     cat <<'EOF'
-CentOS 7.9 单独部署 Node-RED（流程编排 / 低代码 · EasyAIoT）
+CentOS 7.9 单独部署 Node-RED（流程编排 / 低代码 · yFeiEye）
 
 用法:
   ./start_nodered_centos7.sh [选项]
@@ -535,11 +535,11 @@ check_required_files() {
     local missing=0
 
     if [ ! -f "$NODERED_SETTINGS" ]; then
-        print_warning "未找到 EasyAIoT settings: ${NODERED_SETTINGS}"
-        print_info "compose 挂载 ../node-red/settings.js（标题 EasyAIoT + 演示只读中间件）"
+        print_warning "未找到 yFeiEye settings: ${NODERED_SETTINGS}"
+        print_info "compose 挂载 ../node-red/settings.js（标题 yFeiEye + 演示只读中间件）"
         missing=1
     else
-        print_success "settings.js 存在（页面标题 EasyAIoT）"
+        print_success "settings.js 存在（页面标题 yFeiEye）"
     fi
 
     if [ ! -f "$NODERED_FLOWS_DEMO" ]; then
@@ -558,7 +558,7 @@ check_required_files() {
     fi
 
     if [ "$missing" -ne 0 ]; then
-        print_warning "部分 EasyAIoT Node-RED 资源缺失，容器仍可启动；请从仓库恢复 .scripts/node-red/"
+        print_warning "部分 yFeiEye Node-RED 资源缺失，容器仍可启动；请从仓库恢复 .scripts/node-red/"
     fi
 }
 
@@ -665,7 +665,7 @@ seed_nodered_demo() {
 
     # 直连本机容器端口（绕过公网 nginx 只读），可恢复被改删的演示规则链
     local seed_url="${NODERED_URL:-http://127.0.0.1:${NODERED_PORT}}"
-    print_section "导入/恢复 EasyAIoT Node-RED 演示规则链"
+    print_section "导入/恢复 yFeiEye Node-RED 演示规则链"
     print_info "目标: ${seed_url}（将覆盖 4 条演示页签，保留其它自定义流）"
     chmod +x "$SEED_SCRIPT" 2>/dev/null || true
     set +e
@@ -685,7 +685,7 @@ seed_nodered_demo() {
 show_connection_info() {
     print_section "Node-RED 访问信息"
     echo "  容器名:   ${CONTAINER_NAME}"
-    echo "  编辑器:   http://127.0.0.1:${NODERED_PORT}  （标题 EasyAIoT）"
+    echo "  编辑器:   http://127.0.0.1:${NODERED_PORT}  （标题 yFeiEye）"
     echo "  镜像:     ${NODERED_IMAGE}"
     echo "  数据目录: ${SCRIPT_DIR}/nodered_data/data"
     echo "  演示工程: ${SCRIPT_DIR}/../node-red/easyaiot_flows_demo.json"

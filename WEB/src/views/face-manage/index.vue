@@ -164,7 +164,7 @@
                 </div>
               </ListItem>
             </template>
-            <template #empty>
+            <template #footer v-if="personList.length === 0">
               <Empty description="暂无人员，点击「录入人脸」开始添加" />
             </template>
           </List>
@@ -303,7 +303,7 @@ const [registerTable, { reload }] = useTable({
   },
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect(record: FacePerson, selected: boolean) {
       if (selected) {
         checkedKeys.value = [...checkedKeys.value, record.id];
@@ -452,7 +452,8 @@ async function handleBatchDelete() {
   }
 }
 
-function getTableActions(record: FacePerson) {
+function getTableActions(rawRecord: FacePerson | Recordable) {
+  const record = rawRecord as FacePerson;
   return [
     {
       icon: 'ant-design:eye-filled',

@@ -19,9 +19,8 @@ import java.util.Map;
 /**
  * 设备管理服务降级处理
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Component
 public class RemoteDeviceFallbackFactory implements FallbackFactory<RemoteDeviceService> {

@@ -107,7 +107,7 @@
 </template>
 
 <script lang="ts" setup name="ModelExport">
-import { reactive, ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { reactive, ref, onMounted, onUnmounted } from 'vue';
 import { BasicTable, useTable } from '@/components/Table';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from './Data';
@@ -128,7 +128,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
-import {message, Space} from 'ant-design-vue';
+import {Space} from 'ant-design-vue';
 import { Button } from '@/components/Button'
 import { formatModelVersionDisplay } from '../../utils/modelVersionUtils';
 defineOptions({ name: 'ModelExport' });
@@ -207,12 +207,12 @@ function handleDel(record: any) {
 }
 
 // 处理表单字段值变化（卡片模式，实时监听）
-function handleFieldValueChange(field: string, value: any) {
+function handleFieldValueChange(_field: string, _value: any) {
   // 不再需要处理 model_id 变化
 }
 
 // 处理表格表单字段值变化（表格模式，实时监听）
-function handleTableFieldValueChange(field: string, value: any) {
+function handleTableFieldValueChange(_field: string, _value: any) {
   // 不再需要处理 model_id 变化
 }
 

@@ -14,9 +14,8 @@ import java.util.List;
 /**
  * RemoteProductPropertiesService
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @FeignClient(contextId = "RemoteProductPropertiesService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteProductPropertiesFallbackFactory.class)
 public interface RemoteProductPropertiesService {

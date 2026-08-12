@@ -11,7 +11,7 @@ import { Button } from '@/components/Button';
 import { copyText } from '@/utils/copyTextToClipboard';
 import type { StorageStackCheckResult } from '@/api/device/node';
 import { NODE_TERM } from '../../utils/constants';
-import { formatDeployLog, stepStatusLabel } from '../../utils/deployLog';
+import { formatDeployLog } from '../../utils/deployLog';
 
 defineOptions({ name: 'StorageStackCheckResult' });
 

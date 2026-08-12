@@ -12,8 +12,13 @@ $ErrorActionPreference = "Stop"
 $DB_HOST = "127.0.0.1"
 $DB_PORT = 5432
 $DB_USER = "postgres"
-$DB_PASSWORD = "iot45722414822"
+$DB_PASSWORD = $env:POSTGRES_PASSWORD
 $DB_NAME = "postgres"
+
+if ([string]::IsNullOrWhiteSpace($DB_PASSWORD)) {
+    Write-Error "POSTGRES_PASSWORD 未配置"
+    exit 1
+}
 
 function Write-Info {
     param([string]$Message)
@@ -254,4 +259,3 @@ Write-Info "  1. 容器是否正常运行: docker ps | Select-String postgres"
 Write-Info "  2. 端口是否正确映射: docker port postgres-server"
 Write-Info "  3. 密码是否正确: 运行 .\fix_postgresql_password.sh"
 Write-Info "  4. pg_hba.conf 配置: docker exec postgres-server cat /var/lib/postgresql/data/pg_hba.conf"
-

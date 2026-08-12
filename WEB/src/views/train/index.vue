@@ -49,7 +49,6 @@ import ModelExport from "@/views/train/components/ModelExport/index.vue";
 import DeployService from "@/views/train/components/DeployService/index.vue";
 import LLMManage from "@/views/train/components/LLMManage/index.vue";
 import SamInferencePage from "@/views/model/SamInference/index.vue";
-import GpuStackMonitorTip from '@/components/GpuStackMonitorTip/index.vue';
 import { isTrainAdvancedEnabled } from '@/utils/deployProfile';
 
 defineOptions({name: 'TRAIN'})
@@ -79,7 +78,7 @@ function normalizeTrainRouteTab(tab: string): string {
   return tab;
 }
 
-const state = reactive({
+const state = reactive<{ activeKey: string }>({
   activeKey: TRAIN_TAB_KEYS.MODEL_LIST
 });
 

@@ -25,7 +25,7 @@
 import { defineProps, watch } from 'vue';
 import { BasicTable, TableAction, useTable } from '/@/components/Table';
 import { useDrawer } from '/@/components/Drawer';
-import { getColumns, getFormConfig } from './Data.tsx';
+import { getColumns, getFormConfig } from './Data';
 import { historyQuery } from '/@/api/modules/task';
 import HistoryDetailDrawer from './HistoryDetailDrawer.vue';
 

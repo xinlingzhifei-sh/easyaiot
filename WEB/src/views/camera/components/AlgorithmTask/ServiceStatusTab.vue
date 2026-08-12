@@ -118,11 +118,9 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted } from 'vue';
-import { Card, Descriptions, DescriptionsItem, Tag as AntButton, Spin, Row, Col, Empty } from 'ant-design-vue';
 import { FileTextOutlined } from '@ant-design/icons-vue';
 import { useModal } from '@/components/Modal';
 import { 
-  getAlgorithmTask, 
   getTaskServicesStatus,
   getTaskExtractorLogs, 
   getTaskSorterLogs, 
@@ -269,4 +267,3 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 </style>
-

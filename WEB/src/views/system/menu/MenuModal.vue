@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateMenu(values)
+      await updateMenu(values as any)
     else
-      await createMenu(values)
+      await createMenu(values as any)
 
     closeModal()
     emit('success')

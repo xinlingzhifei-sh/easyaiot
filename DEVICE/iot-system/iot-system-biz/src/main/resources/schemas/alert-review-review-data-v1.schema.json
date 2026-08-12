@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yfeieye.alertReview.reviewData.v1",
+  "title": "yFeiEye alert review data",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "reviewDataVersion",
+    "labels",
+    "zones",
+    "objectIds",
+    "objects",
+    "detections",
+    "reviewSegment"
+  ],
+  "properties": {
+    "reviewDataVersion": {
+      "const": 1
+    },
+    "sourceSystem": {
+      "type": "string"
+    },
+    "ruleCode": {
+      "type": "string"
+    },
+    "sourceAlertType": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "zones": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "objectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "bbox": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "number"
+      },
+      "description": "Bounding box in x1,y1,x2,y2 order."
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "startTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ingestIdentityKeys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "bbox": {
+            "$ref": "#/properties/bbox"
+          }
+        }
+      }
+    },
+    "detections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "sourceAlertId",
+          "alertTime",
+          "cameraId"
+        ],
+        "properties": {
+          "sourceAlertId": {
+            "type": "string"
+          },
+          "alertTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cameraId": {
+            "type": "string"
+          },
+          "zoneCode": {
+            "type": "string"
+          },
+          "ruleCode": {
+            "type": "string"
+          },
+          "labels": {
+            "$ref": "#/properties/labels"
+          },
+          "zones": {
+            "$ref": "#/properties/zones"
+          },
+          "objectIds": {
+            "$ref": "#/properties/objectIds"
+          },
+          "confidence": {
+            "$ref": "#/properties/confidence"
+          },
+          "bbox": {
+            "$ref": "#/properties/bbox"
+          },
+          "correlationId": {
+            "$ref": "#/properties/correlationId"
+          }
+        }
+      }
+    },
+    "reviewSegment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "segmentId",
+        "cameraId",
+        "status",
+        "startTime",
+        "endTime",
+        "sourceAlertIds"
+      ],
+      "properties": {
+        "segmentId": {
+          "type": "string"
+        },
+        "cameraId": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "detection",
+            "alert"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "detection",
+            "alert",
+            "ended"
+          ]
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "objectIds": {
+          "$ref": "#/properties/objectIds"
+        },
+        "zones": {
+          "$ref": "#/properties/zones"
+        },
+        "sourceAlertIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

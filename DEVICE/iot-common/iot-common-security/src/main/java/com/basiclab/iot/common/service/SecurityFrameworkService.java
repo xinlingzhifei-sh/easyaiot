@@ -3,11 +3,17 @@ package com.basiclab.iot.common.service;
 /**
  * Security 框架 Service 接口，定义权限相关的校验操作
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public interface SecurityFrameworkService {
+
+    /**
+     * 判断当前登录用户是否为管理后台用户。
+     *
+     * @return 是否
+     */
+    boolean isAdminUser();
 
     /**
      * 判断是否有权限

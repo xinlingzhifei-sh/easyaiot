@@ -5,10 +5,10 @@ Priority: optional
 Architecture: __ARCH__
 Depends: libc6 (>= 2.31)
 Recommends: docker.io | docker-ce, docker-compose-v2 | docker-compose-plugin | docker-compose
-Maintainer: EasyAIoT <easyaiot@local>
-Homepage: https://github.com/soaring-xiongkulu/easyaiot
-Description: EasyAIoT platform ops console (PANEL)
- Independent ops panel for EasyAIoT: Docker container management,
+Maintainer: yFeiEye <easyaiot@local>
+Homepage: https://github.com/xinlingzhifei/easyaiot
+Description: yFeiEye platform ops console (PANEL)
+ Independent ops panel for yFeiEye: Docker container management,
  __INSTALL_SCRIPT__ UI, topology and host overview.
  .
  Binary embeds the Vue UI and Flask agent (listens on :9200 by default).

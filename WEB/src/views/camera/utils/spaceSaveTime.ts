@@ -20,7 +20,7 @@ export interface SpaceBreadcrumb {
 }
 
 /** 存储空间列表节点（叶子空间或 NVR/GB28181 分组文件夹） */
-export interface SpaceFolderNode extends Partial<SpaceInfo> {
+export type SpaceFolderNode = Partial<SnapSpace> & Partial<RecordSpace> & {
   node_type: SpaceFolderNodeType;
   node_key: string;
   name: string;

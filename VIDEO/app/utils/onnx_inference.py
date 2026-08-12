@@ -1,9 +1,8 @@
 """
 VIDEO 模块 ONNX 推理（支持按 GPU 设备 ID 选择 CUDA Execution Provider）
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import ast
 import json
@@ -249,32 +248,6 @@ def _parse_names_metadata(raw: str) -> Optional[Dict[int, str]]:
     return None
 
 
-def _get_classes_from_pt_files(onnx_model_path: str) -> Optional[Dict[int, str]]:
-    try:
-        model_dir = os.path.dirname(onnx_model_path)
-        model_basename = os.path.splitext(os.path.basename(onnx_model_path))[0]
-        pt_file = os.path.join(model_dir, f"{model_basename}.pt")
-        if os.path.exists(pt_file):
-            from ultralytics import YOLO
-            yolo_model = YOLO(pt_file)
-            if hasattr(yolo_model, 'names') and yolo_model.names:
-                return {int(k): str(v) for k, v in yolo_model.names.items()}
-        if os.path.isdir(model_dir):
-            for file in os.listdir(model_dir):
-                if file.endswith('.pt'):
-                    try:
-                        from ultralytics import YOLO
-                        pt_path = os.path.join(model_dir, file)
-                        yolo_model = YOLO(pt_path)
-                        if hasattr(yolo_model, 'names') and yolo_model.names:
-                            return {int(k): str(v) for k, v in yolo_model.names.items()}
-                    except Exception:
-                        continue
-    except Exception as e:
-        logging.debug(f"无法从YOLO模型文件获取类别信息: {str(e)}")
-    return None
-
-
 def _infer_yolo_num_classes(session: Any) -> Optional[int]:
     """从标准 YOLO ONNX 输出 shape [1, 4+N, anchors] 推断类别数。"""
     try:
@@ -313,10 +286,7 @@ def get_classes_from_onnx_model(onnx_model_path: str) -> Optional[Dict[int, str]
     except Exception as e:
         logging.debug(f"无法从ONNX模型元数据获取类别信息: {str(e)}")
 
-    parsed = _get_classes_from_pt_files(onnx_model_path)
-    if parsed:
-        logging.info('从YOLO模型文件获取到 %d 个类别', len(parsed))
-    return parsed
+    return None
 
 
 def resolve_onnx_classes_dict(
@@ -324,7 +294,7 @@ def resolve_onnx_classes_dict(
     session: Any,
     api_class_names: Optional[List[str]] = None,
 ) -> Dict[int, str]:
-    """按优先级解析 ONNX 类别：元数据 > AI API > 同目录 .pt > 推断占位 / COCO。"""
+    """按优先级解析 ONNX 类别：元数据 > AI API > 推断占位 / COCO。"""
     try:
         metadata = session.get_modelmeta()
         if hasattr(metadata, 'custom_metadata_map') and metadata.custom_metadata_map:
@@ -340,11 +310,6 @@ def resolve_onnx_classes_dict(
     if from_api:
         logging.info('使用 AI 模块返回的类别信息（%d 个类别）', len(from_api))
         return from_api
-
-    from_pt = _get_classes_from_pt_files(onnx_model_path)
-    if from_pt:
-        logging.info('从YOLO模型文件获取到 %d 个类别', len(from_pt))
-        return from_pt
 
     num_classes = _infer_yolo_num_classes(session)
     if num_classes == len(classes):

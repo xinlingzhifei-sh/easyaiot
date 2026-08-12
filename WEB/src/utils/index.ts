@@ -167,15 +167,12 @@ export function withInstall<T extends CustomComponent>(component: T, alias?: str
  */
 export function simpleDebounce(fn, delay = 100) {
   let timer: any | null = null
-  return () => {
-    // eslint-disable-next-line prefer-rest-params
-    const args = arguments
+  return (...args) => {
     if (timer)
       clearTimeout(timer)
 
     timer = setTimeout(() => {
-      // eslint-disable-next-line ts/no-invalid-this
-      fn.apply(this, args)
+      fn(...args)
     }, delay)
   }
 }

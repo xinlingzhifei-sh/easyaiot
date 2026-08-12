@@ -14,9 +14,8 @@ import java.util.concurrent.Executor;
  * 异步@Async多线程配置
  * 使用原则：每一个业务场景使用独立的线程池，不要使用全局共享线程池
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Configuration
 @EnableAsync

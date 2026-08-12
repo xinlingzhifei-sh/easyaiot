@@ -44,7 +44,7 @@
 
 ```bash
 # 重启 Kafka 容器
-cd /opt/projects/easyaiot/.scripts/docker
+cd /opt/projects/yfeieye/.scripts/docker
 docker-compose restart Kafka
 
 # 或者如果使用其他方式启动的 Kafka

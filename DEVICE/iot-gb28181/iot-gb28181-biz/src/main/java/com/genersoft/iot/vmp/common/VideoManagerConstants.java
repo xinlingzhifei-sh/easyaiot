@@ -33,6 +33,8 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_STREAM_AUTHORITY = "VMP_MEDIA_STREAM_AUTHORITY";
 
+	public static final String AUDIO_BROADCAST_AUTHORITY_PREFIX = "VMP_AUDIO_BROADCAST_AUTHORITY:";
+
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
 
 	public static final String SIP_SUBSCRIBE_PREFIX = "VMP_SIP_SUBSCRIBE_";

@@ -26,7 +26,6 @@
     <BasicTable
       @register="registerTable"
       :bordered="true"
-      :row-selection="false"
       class="model-table"
     >
       <!-- 工具栏：导出按钮 -->
@@ -80,7 +79,7 @@
               {
                 label: '下载',
                 icon: 'ant-design:download-filled',
-                color: 'primary',
+                color: 'success',
                 disabled: record.status !== 'COMPLETED',
                 tooltip: record.status !== 'COMPLETED' ? '等待导出完成' : '',
                 onClick: () => handleDownload(record),
@@ -167,7 +166,6 @@ import {
   QuestionCircleOutlined
 } from '@ant-design/icons-vue';
 import {
-  Empty,
   message
 } from 'ant-design-vue';
 import {
@@ -182,6 +180,7 @@ import dayjs from 'dayjs';
 import { Button } from '@/components/Button'
 const route = useRoute();
 const modelId = ref(route.params.modelId ? parseInt(route.params.modelId as string) : 0);
+const currentModelName = ref(String(route.query.modelName || '当前模型'));
 
 // 导出格式选项
 const exportFormats = [
@@ -250,10 +249,10 @@ const exportForm = reactive({
 });
 
 // 表格配置
-const [registerTable, { reload, updateTableDataRecord }] = useTable({
+const [registerTable, { reload }] = useTable({
   title: '',
   api: async (params) => {
-    const { page, pageSize, ...queryParams } = params;
+    const { page, pageSize } = params;
     const res = await getExportModelList({
       model_id: modelId.value,
       format: formatFilter.value,
@@ -283,6 +282,11 @@ const handleSearch = () => {
   reload();
 };
 
+function openExportModal() {
+  selectedFormat.value = exportFormats[0]?.value || '';
+  exportModalVisible.value = true;
+}
+
 // 选择导出格式
 const handleFormatSelect = ({ key }) => {
   selectedFormat.value = key;
@@ -309,7 +313,7 @@ const handleExportSubmit = async () => {
     const tempRecord = {
       id: Date.now(), // 临时ID
       exportId: res.exportId,
-      model_name: currentModelName,
+      model_name: currentModelName.value,
       format: selectedFormat.value,
       status: exportStatus.PENDING,
       created_at: new Date().toISOString(),
@@ -321,7 +325,7 @@ const handleExportSubmit = async () => {
 
     // 开始轮询状态
     startPolling(res.exportId);
-  } catch (error) {
+  } catch (error: any) {
     message.error(`导出失败: ${error.message}`);
   } finally {
     exportLoading.value = false;
@@ -378,7 +382,7 @@ const handleDownload = async (record) => {
     }, 100);
 
     message.success('文件下载成功');
-  } catch (error) {
+  } catch (error: any) {
     // 细化错误处理
     if (error.response?.status === 404) {
       message.error('文件不存在，请重新导出');
@@ -426,15 +430,19 @@ const formatFileSize = (bytes: number) => {
 
 // 日期格式化（优化）
 const formatDate = (dateString: string) => {
-  return dayjs(dateString).fromNow() + ` (${dayjs(dateString).format('MM-DD HH:mm')})`;
+  return dayjs(dateString).format('YYYY-MM-DD HH:mm');
 };
 
 // 表格操作方法（新增）
 const addTableRow = (record) => {
+  void record;
   // 根据实际表格组件的API实现添加行逻辑
 };
 
 const updateRecordStatus = (exportId: string, status: string, size?: number) => {
+  void exportId;
+  void status;
+  void size;
   // 根据实际表格组件的API实现更新行逻辑
 };
 </script>

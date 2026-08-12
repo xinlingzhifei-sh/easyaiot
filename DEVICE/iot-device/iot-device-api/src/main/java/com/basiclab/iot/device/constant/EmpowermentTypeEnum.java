@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @program: easyaiot-cloud-pro-datasource-column
+ * @program: yfeieye-cloud-pro-datasource-column
  * @description: 赋能类型
  * @packagename: com.basiclab.iot.empowerment.enumeration
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date: 2023-09-16 21:50
  **/
 @AllArgsConstructor

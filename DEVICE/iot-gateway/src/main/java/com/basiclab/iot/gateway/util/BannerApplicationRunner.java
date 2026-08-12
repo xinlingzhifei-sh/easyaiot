@@ -11,9 +11,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 项目启动成功后，提供文档相关的地址
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Component
 @Slf4j
@@ -29,9 +28,9 @@ public class BannerApplicationRunner implements ApplicationRunner {
                             "开发文档: \t{} \n\t" +
                             "视频教程: \t{} \n" +
                             "----------------------------------------------------------",
-                    "https://github.com/soaring-xiongkulu/easyaiot",
-                    "https://github.com/soaring-xiongkulu/easyaiot",
-                    "https://github.com/soaring-xiongkulu/easyaiot");
+                    "https://github.com/reese/yfeieye",
+                    "https://github.com/reese/yfeieye",
+                    "https://github.com/reese/yfeieye");
         });
     }
 

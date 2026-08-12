@@ -54,6 +54,6 @@ export const useChartInteract = (
   })
 }
 // 联动事件触发的 type 变更时，清除当前绑定内容
-export const clearInteractEvent = (chartConfig: CreateComponentType) => {
+export const clearInteractEvent = (_chartConfig: CreateComponentType) => {
 
 }

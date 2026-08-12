@@ -1,6 +1,6 @@
 import {useRoute} from 'vue-router'
 import {ResultEnum} from '@/enums/httpEnum'
-import {ErrorPageNameMap, PageEnum} from '@/enums/pageEnum'
+import {ErrorPageNameMap, PageEnum, ResultEnum as PageResultEnum} from '@/enums/pageEnum'
 import {docPath, giteeSourceCodePath} from '@/settings/pathConst'
 import {cryptoDecode} from './crypto'
 import {StorageEnum} from '@/enums/storageEnum'
@@ -34,7 +34,7 @@ export const routerTurnByName = (
     name: pageName,
   })
 }
-const { createMessage, createConfirm } = useMessage()
+const { createMessage } = useMessage()
 /**
  * * 根据名称获取路由信息
  * @param pageName
@@ -90,7 +90,7 @@ export const routerTurnByPath = (
  */
 export const redirectErrorPage = (code: ResultEnum) => {
   if (!code) return false
-  const pageName = ErrorPageNameMap.get(code)
+  const pageName = ErrorPageNameMap.get(code as unknown as PageResultEnum)
   if (!pageName) return false
   routerTurnByName(pageName)
 }

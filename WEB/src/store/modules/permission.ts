@@ -8,9 +8,11 @@ import {store} from '@/store'
 import type {AppRouteRecordRaw, Menu} from '@/router/types'
 import {asyncRoutes} from '@/router/routes'
 import dashboard from '@/router/routes/modules/dashboard'
+import node from '@/router/routes/modules/node'
 import {PAGE_NOT_FOUND_ROUTE} from '@/router/routes/basic'
 import {transformRouteToMenu} from '@/router/helper/menuHelper'
 import {flatMultiLevelRoutes, transformObjToRoute} from '@/router/helper/routeHelper'
+import {resolveRequiredLocalBackRoutes} from '@/router/helper/localBackRouteGuard'
 import {useI18n} from '@/hooks/web/useI18n'
 import {useMessage} from '@/hooks/web/useMessage'
 import {filter} from '@/utils/helper/treeHelper'
@@ -236,9 +238,10 @@ export const usePermissionStore = defineStore('app-permission', {
           // Dynamically introduce components
           // 动态引入组件
           routeList = transformObjToRoute(routeList)
+          const requiredLocalBackRoutes = resolveRequiredLocalBackRoutes(routeList, [node])
           //  Background routing to menu structure
           //  后台路由到菜单结构
-          const backMenuList = transformRouteToMenu([dashboard, ...routeList])
+          const backMenuList = transformRouteToMenu([dashboard, ...requiredLocalBackRoutes, ...routeList])
           console.log("backMenuList---", backMenuList);
           this.setBackMenuList(backMenuList)
           // remove meta.ignoreRoute item
@@ -247,7 +250,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = routeList.filter(routeRemoveIgnoreFilter)
           routeList = flatMultiLevelRoutes(routeList)
           console.log('routeList---', routeList);
-          routes = [PAGE_NOT_FOUND_ROUTE, dashboard, ...routeList]
+          routes = [PAGE_NOT_FOUND_ROUTE, dashboard, ...routeList, node]
           break
       }
 

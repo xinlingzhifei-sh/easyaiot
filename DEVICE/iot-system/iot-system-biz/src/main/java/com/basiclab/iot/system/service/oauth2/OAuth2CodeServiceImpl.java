@@ -18,9 +18,8 @@ import static com.basiclab.iot.system.enums.ErrorCodeConstants.OAUTH2_CODE_NOT_E
 /**
  * OAuth2.0 授权码 Service 实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Service
 @Validated

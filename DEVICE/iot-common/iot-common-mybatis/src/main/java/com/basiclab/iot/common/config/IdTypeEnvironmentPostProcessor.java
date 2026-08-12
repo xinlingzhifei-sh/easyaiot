@@ -16,9 +16,8 @@ import java.util.Set;
 /**
  * 当 IdType 为 {@link IdType#NONE} 时，根据 PRIMARY 数据源所使用的数据库，自动设置
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 public class IdTypeEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -41,7 +40,7 @@ public class IdTypeEnvironmentPostProcessor implements EnvironmentPostProcessor 
         }
 
         // 设置 Quartz JobStore 对应的 Driver
-        // TODO BasicLab：暂时没有找到特别合适的地方，先放在这里
+        // TODO yFeiEye：暂时没有找到特别合适的地方，先放在这里
         setJobStoreDriverIfPresent(environment, dbType);
 
         // 初始化 SQL 静态变量

@@ -1,8 +1,7 @@
 """
 设备区域检测服务
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import logging
@@ -12,6 +11,26 @@ from datetime import datetime
 from models import db, DeviceDetectionRegion, Device, Image
 
 logger = logging.getLogger(__name__)
+
+INERTIA_FRAMES_MIN = 0
+INERTIA_FRAMES_MAX = 10000
+LOITERING_SECONDS_MIN = 0
+LOITERING_SECONDS_MAX = 86400
+_MISSING = object()
+
+
+def _validate_integer_range(field_name: str, value: int, minimum: int, maximum: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f'{field_name} 必须是整数')
+    if value < minimum or value > maximum:
+        raise ValueError(f'{field_name} 必须在 {minimum} 到 {maximum} 之间')
+    return value
+
+
+def _get_alias_value(values: Dict, snake_name: str, camel_name: str):
+    if snake_name in values:
+        return values[snake_name]
+    return values.get(camel_name, _MISSING)
 
 
 def get_device_regions(device_id: str) -> List[DeviceDetectionRegion]:
@@ -26,7 +45,8 @@ def get_device_regions(device_id: str) -> List[DeviceDetectionRegion]:
 
 def create_device_region(device_id: str, region_name: str, region_type: str, points: List[Dict],
                         image_id: Optional[int] = None, color: str = '#FF5252', opacity: float = 0.3,
-                        is_enabled: bool = True, sort_order: int = 0, model_ids: Optional[List[int]] = None) -> DeviceDetectionRegion:
+                        is_enabled: bool = True, sort_order: int = 0, model_ids: Optional[List[int]] = None,
+                        inertia_frames: int = 1, loitering_seconds: int = 5) -> DeviceDetectionRegion:
     """创建设备检测区域"""
     try:
         # 验证设备是否存在
@@ -57,6 +77,14 @@ def create_device_region(device_id: str, region_name: str, region_type: str, poi
                 except:
                     pass
         
+        inertia_frames = _validate_integer_range(
+            'inertia_frames', inertia_frames, INERTIA_FRAMES_MIN, INERTIA_FRAMES_MAX
+        )
+        loitering_seconds = _validate_integer_range(
+            'loitering_seconds', loitering_seconds,
+            LOITERING_SECONDS_MIN, LOITERING_SECONDS_MAX,
+        )
+
         region = DeviceDetectionRegion(
             device_id=device_id,
             region_name=region_name,
@@ -67,7 +95,9 @@ def create_device_region(device_id: str, region_name: str, region_type: str, poi
             opacity=opacity,
             is_enabled=is_enabled,
             sort_order=sort_order,
-            model_ids=model_ids_json
+            model_ids=model_ids_json,
+            inertia_frames=inertia_frames,
+            loitering_seconds=loitering_seconds,
         )
         
         db.session.add(region)
@@ -134,6 +164,21 @@ def update_device_region(region_id: int, **kwargs) -> DeviceDetectionRegion:
                     region.model_ids = None
             else:
                 region.model_ids = None
+
+        inertia_frames = _get_alias_value(kwargs, 'inertia_frames', 'inertiaFrames')
+        if inertia_frames is not _MISSING:
+            region.inertia_frames = _validate_integer_range(
+                'inertia_frames', inertia_frames, INERTIA_FRAMES_MIN, INERTIA_FRAMES_MAX
+            )
+
+        loitering_seconds = _get_alias_value(
+            kwargs, 'loitering_seconds', 'loiteringSeconds'
+        )
+        if loitering_seconds is not _MISSING:
+            region.loitering_seconds = _validate_integer_range(
+                'loitering_seconds', loitering_seconds,
+                LOITERING_SECONDS_MIN, LOITERING_SECONDS_MAX,
+            )
         
         region.updated_at = datetime.utcnow()
         db.session.commit()
@@ -190,4 +235,3 @@ def update_device_cover_image(device_id: str, image_path: str) -> Device:
         db.session.rollback()
         logger.error(f"更新设备封面图失败: {str(e)}", exc_info=True)
         raise RuntimeError(f"更新设备封面图失败: {str(e)}")
-

@@ -2,7 +2,7 @@ import { onBeforeUnmount, ref, shallowRef, watch, type Ref } from 'vue';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Cluster from 'ol/source/Cluster';
-import Feature from 'ol/Feature';
+import Feature, { type FeatureLike } from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
 import Overlay from 'ol/Overlay';
@@ -72,7 +72,7 @@ export function useMapMarkers(options: UseMapMarkersOptions) {
   }
 
   /** 单个要素(摄像头/告警/展开后的叶子)的图标样式 */
-  function styleSingleFeature(target: Feature) {
+  function styleSingleFeature(target: FeatureLike) {
     const kind = target.get('kind') as MapMarkerData['kind'];
     const online = target.get('online') as boolean | undefined;
     const title = target.get('title') as string | undefined;

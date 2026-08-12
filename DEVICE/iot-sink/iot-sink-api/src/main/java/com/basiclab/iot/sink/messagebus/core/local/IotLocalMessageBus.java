@@ -16,9 +16,8 @@ import java.util.Map;
 /**
  * IotLocalMessageBus
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @RequiredArgsConstructor
 @Slf4j

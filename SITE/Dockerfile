@@ -59,7 +59,7 @@ RUN if [ -n "${APK_MIRROR}" ]; then \
     fi
 
 LABEL org.opencontainers.image.authors="basiclab"
-LABEL org.opencontainers.image.title="EasyAIoT SITE"
+LABEL org.opencontainers.image.title="yFeiEye SITE"
 
 WORKDIR /usr/share/nginx/html
 

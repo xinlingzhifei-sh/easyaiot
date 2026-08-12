@@ -4,7 +4,7 @@
       <RadioGroup
         v-model:value="activeKind"
         button-style="solid"
-        size="middle"
+        size="default"
         class="mode-radio-group"
       >
         <RadioButton value="snap">
@@ -79,7 +79,7 @@ function syncKindFromRoute() {
     const nextQuery: Record<string, unknown> = { ...route.query, storage: 'snap' };
     delete nextQuery.space_id;
     delete nextQuery.device_id;
-    router.replace({ path: route.path, query: nextQuery });
+    router.replace({ path: route.path, query: nextQuery as any });
     applyStorageKind('snap');
     return;
   }

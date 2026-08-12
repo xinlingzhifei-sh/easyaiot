@@ -96,7 +96,10 @@
           <!-- 联调参数 -->
           <template v-else-if="tab.key === 'params'">
             <CollapseContainer title="联调参数" :can-expan="false">
-              <BasicForm @register="registerParamForm" />
+              <BasicForm
+                @register="registerParamForm"
+                @field-value-change="handleParamValueChange"
+              />
               <Alert
                 v-for="(w, i) in paramWarnings"
                 :key="i"
@@ -376,9 +379,11 @@ const visibleTabs = computed(() => {
     return ALL_TABS.filter((t) => t.key === 'industrial' || t.key === 'verify');
   }
   if (isVideo.value) {
-    return ALL_TABS.filter((t) => !t.mqttOnly && !(t as any).industrialOnly);
+    return ALL_TABS.filter(
+      (t) => !('mqttOnly' in t && t.mqttOnly) && !('industrialOnly' in t && t.industrialOnly),
+    );
   }
-  return ALL_TABS.filter((t) => !(t as any).industrialOnly);
+  return ALL_TABS.filter((t) => !('industrialOnly' in t && t.industrialOnly));
 });
 
 const demoOpts = reactive({
@@ -472,10 +477,11 @@ const [registerParamForm, { setFieldsValue, resetSchema }] = useForm({
   schemas: paramSchemas,
   showActionButtonGroup: false,
   baseColProps: { span: 24 },
-  handleValuesChange: (values) => {
-    Object.assign(demoOpts, values);
-  },
 });
+
+function handleParamValueChange(field: string, value: unknown) {
+  demoOpts[field] = value;
+}
 
 /** 仅在「联调参数」Tab 已渲染表单后再同步，避免 useForm 未注册时报错导致整页空白 */
 async function syncParamForm() {

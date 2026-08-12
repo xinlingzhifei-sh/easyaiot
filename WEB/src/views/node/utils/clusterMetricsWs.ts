@@ -1,4 +1,5 @@
 import type { ComputeNodeVO } from '@/api/device/node';
+import { getAccessToken } from '@/utils/auth';
 
 export type ClusterWsMessageType = 'snapshot' | 'node_update';
 
@@ -31,7 +32,7 @@ export interface ClusterWsMessage {
 export type ClusterWsStatus = 'connecting' | 'open' | 'closed';
 
 export function buildClusterMetricsWsUrl(): string {
-  const token = localStorage.getItem('jwt_token') ?? '';
+  const token = getAccessToken() || '';
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const apiPrefix = (import.meta.env.VITE_GLOB_API_URL?.trim() || '/admin-api').replace(/\/$/, '');
   const prefix = apiPrefix.startsWith('/') ? apiPrefix : `/${apiPrefix}`;

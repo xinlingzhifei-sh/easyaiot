@@ -1,6 +1,6 @@
-# EasyAIoT WEB Module
+# yFeiEye WEB Module
 
-EasyAIoT WEB is a frontend project built with modern frontend technologies, providing device management, AI model Train, data monitoring, and user permission management functions.
+yFeiEye WEB is a frontend project built with modern frontend technologies, providing device management, AI model Train, data monitoring, and user permission management functions.
 
 ## Features
 

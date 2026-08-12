@@ -43,7 +43,7 @@
             <div class="toolbar-section">
               <a-radio-group
                 v-model:value="state.splitMode"
-                size="middle"
+                size="default"
                 button-style="solid"
                 class="split-mode-group"
                 @change="handleSplitModeChange"
@@ -456,14 +456,20 @@ async function fetchTree() {
 }
 
 const onLoadData: TreeProps['loadData'] = (treeNode) => {
-  return new Promise((resolve) => {
-    if (treeNode.dataRef.children) {
+  return new Promise<void>((resolve) => {
+    const dataRef = treeNode.dataRef;
+    if (!dataRef) {
+      treeNode.isLeaf = true;
+      resolve();
+      return;
+    }
+    if (dataRef.children) {
       resolve();
       return;
     }
 
     const sipId = String(
-      treeNode.dataRef.deviceIdentification ?? treeNode.dataRef.deviceId ?? '',
+      dataRef.deviceIdentification ?? dataRef.deviceId ?? '',
     ).trim();
     if (!sipId) {
       treeNode.isLeaf = true;
@@ -480,7 +486,7 @@ const onLoadData: TreeProps['loadData'] = (treeNode) => {
           assignGb28181SplitScreenKeys(tmpLoop, sipId);
           applyGb28181ChannelLeafFlags(tmpLoop);
 
-          treeNode.dataRef.children = tmpLoop;
+          dataRef.children = tmpLoop;
           treeNode.isLeaf = !tmpLoop?.length;
           treeData.value = [...treeData.value];
           resolve();

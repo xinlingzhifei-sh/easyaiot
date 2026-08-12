@@ -35,7 +35,7 @@ void printUsage(const char* program) {
 void printBanner() {
     std::cout << "\n";
     std::cout << "============================================\n";
-    std::cout << "  EasyAIoT RUNTIME\n";
+    std::cout << "  yFeiEye RUNTIME\n";
     std::cout << "  C++ frame pipeline for VIDEO executor=cpp\n";
     std::cout << "  Version " << RUNTIME_VERSION_STR << "\n";
     std::cout << "============================================\n";

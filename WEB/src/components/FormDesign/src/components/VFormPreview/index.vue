@@ -32,7 +32,7 @@ const state = reactive<{
 function showModal(jsonData: IFormConfig) {
   // console.log('showModal-', jsonData);
   formatRules(jsonData.schemas)
-  state.formConfig = jsonData
+  state.formConfig = jsonData as any
   state.open = true
 }
 

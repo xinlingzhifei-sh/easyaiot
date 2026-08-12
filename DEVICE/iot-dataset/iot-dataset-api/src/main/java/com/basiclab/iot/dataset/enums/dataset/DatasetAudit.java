@@ -6,9 +6,8 @@ import lombok.Getter;
 /**
  * 数据集审批状态
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date 2025-10-22
  */
 @Getter

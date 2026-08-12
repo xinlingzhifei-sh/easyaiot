@@ -29,10 +29,11 @@
   const DetailCom = shallowRef(TemplageDetail);
 
   const activeKey = ref('detail');
-  const record = ref(null);
-  const tabs = ref(null);
+  type DetailTab = { key: string; component: any; tab: string };
+  const record = ref<Recordable | null>(null);
+  const tabs = ref<DetailTab[]>([]);
 
-  const isTabDisabled = (item) => {
+  const isTabDisabled = (item: DetailTab) => {
     if (item.key === 'detail') {
       return false;
     }
@@ -49,11 +50,11 @@
   const handleClose = () => {
     activeKey.value = 'detail';
   };
-  const handleTabClick = (key) => {
+  const handleTabClick = (key: string) => {
     activeKey.value = key;
   };
 
-  const updateTab = (record) => {
+  const updateTab = (record: Recordable) => {
     const detail = [{ key: 'detail', component: DetailCom, tab: '详情' }];
     const apply = [{ key: 'apply', component: ApplyCom, tab: '模版' }];
     const params = [

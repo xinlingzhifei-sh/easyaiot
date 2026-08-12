@@ -27,9 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * 主要复用了 MyBatis Plus 的 TenantLineInnerInterceptorTest 的单元测试
  * 不过它的单元测试不是很规范，考虑到是复用的，所以暂时不进行修改~
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public class DataPermissionDatabaseInterceptorTest2 extends BaseMockitoUnitTest {
 

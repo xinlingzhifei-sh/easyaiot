@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 打包「脱离源码仓库可运行」的 EasyAIoT runtime 树（供 Ubuntu deb / Windows / macOS 安装包复用）
+# 打包「脱离源码仓库可运行」的 yFeiEye runtime 树（供 Ubuntu deb / Windows / macOS 安装包复用）
 #
 # 用法（在仓库根或任意目录）:
 #   source COMPILE/lib/pack_desktop_runtime.sh

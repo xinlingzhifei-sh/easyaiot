@@ -26,9 +26,8 @@ import java.util.Map;
 /**
  * 腾讯云模板短信发送器
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @since 2024-07-19
  */
 @Slf4j

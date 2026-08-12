@@ -238,7 +238,7 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-import {computed, nextTick, reactive, ref} from 'vue';
+import {computed, nextTick, reactive} from 'vue';
 import { formatLocationSummary } from '@/views/camera/utils/deviceLocation';
 import { isNvrChannelDevice } from '@/views/camera/utils/deviceLabel';
 import {BasicModal, useModal, useModalInner} from '@/components/Modal';
@@ -258,7 +258,7 @@ defineOptions({name: 'VideoModal'})
 
 const {createMessage} = useMessage();
 
-const state = reactive({
+const state = reactive<Record<string, any>>({
   isEdit: false,
   isView: false,
   type: null,
@@ -288,7 +288,7 @@ const state = reactive({
   ],
 });
 
-const modelRef = reactive({
+const modelRef = reactive<Record<string, any>>({
   id: '',
   name: '',
   source: '',
@@ -574,7 +574,7 @@ function getDirectDeviceValidateFields(): string[] {
 
 const rulesRef = reactive(getRules());
 
-function handleCLickChange(value) {
+function handleCLickChange(_value: unknown) {
   //console.log('handleCLickChange', value)
 }
 
@@ -647,7 +647,7 @@ function generateRtspUrl() {
 }
 
 // 处理码流类型变化
-function handleStreamChange(value) {
+function handleStreamChange(_value: unknown) {
   if (modelRef.cameraType === 'hikvision' || modelRef.cameraType === 'dahua' || modelRef.cameraType === 'uniview') {
     generateRtspUrl();
   }
@@ -894,7 +894,10 @@ function handleOk() {
           normalizeBoolFields(updateData);
           await updateDevice(modelRef.id, updateData);
         } else {
-          const saveData = {...modelRef};
+          const saveData: Parameters<typeof registerDevice>[0] = {
+            ...modelRef,
+            name: String(modelRef.name || '').trim(),
+          };
           normalizeBoolFields(saveData);
           const response = await registerDevice(saveData);
           const deviceId = resolveRegisteredDeviceId(response);
@@ -911,7 +914,10 @@ function handleOk() {
         }
       } else if (state.type === 'source') {
         // 独立摄像头处理
-        const saveData = {...modelRef};
+        const saveData: Parameters<typeof registerDevice>[0] = {
+          ...modelRef,
+          name: String(modelRef.name || '').trim(),
+        };
         normalizeBoolFields(saveData);
         const response = await registerDevice(saveData);
         const deviceId = resolveRegisteredDeviceId(response);
@@ -953,7 +959,10 @@ function handleOk() {
             console.warn('检查推流转发任务失败:', error);
           }
         } else {
-          const saveData = {...modelRef};
+          const saveData: Parameters<typeof registerDevice>[0] = {
+            ...modelRef,
+            name: String(modelRef.name || '').trim(),
+          };
           normalizeBoolFields(saveData);
           const response = await registerDevice(saveData);
           const deviceId = resolveRegisteredDeviceId(response);

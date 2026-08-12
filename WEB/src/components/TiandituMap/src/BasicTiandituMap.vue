@@ -48,7 +48,7 @@ const {
 
 let bootRaf = 0;
 let bootAttempts = 0;
-const bootTimers: ReturnType<typeof setTimeout>[] = [];
+const bootTimers: number[] = [];
 const MAX_BOOT_ATTEMPTS = 200;
 
 function scheduleBoot() {

@@ -225,7 +225,7 @@ const timeList = [
   { label: '7天', value: 168 },
   { label: '30天', value: 720 },
 ];
-const customTime = ref<string[]>([]);
+const customTime = ref<[string, string] | undefined>();
 const selectPriceDate = ref<any>('');
 const trendData = ref<TrendPoint[]>([]);
 const tableRowCount = ref(0);
@@ -251,7 +251,7 @@ function getTimeRange() {
 }
 
 function handleQuickRangeChange() {
-  customTime.value = [];
+  customTime.value = undefined;
   reload({ page: 1 }).then(() => {
     if (viewMode.value === 'predict') {
       loadPredict();
@@ -272,9 +272,9 @@ function disabledDate(current) {
 }
 
 function handleCustomRangeChange(dates) {
-  customTime.value = dates || [];
+  customTime.value = dates?.length === 2 ? [dates[0], dates[1]] : undefined;
   selectPriceDate.value = '';
-  if (customTime.value.length === 2) {
+  if (customTime.value?.length === 2) {
     reload({ page: 1 }).then(() => {
       if (viewMode.value === 'predict') {
         loadPredict();
@@ -682,7 +682,7 @@ const [register, { closeModal, getOpen }] = useModalInner(({ data }) => {
   state.identifier = data.propertyCode;
   state.industrialPoint = data.industrialPoint || null;
   currentTime.value = 1;
-  customTime.value = [];
+  customTime.value = undefined;
   trendData.value = [];
   tableRowCount.value = 0;
   viewMode.value = 'history';
@@ -721,14 +721,16 @@ const [register, { closeModal, getOpen }] = useModalInner(({ data }) => {
   reload({ page: 1 });
 });
 
-watch(getOpen, (open) => {
-  if (!open) {
-    disposeChart();
-    disposePredictChart();
-    trendData.value = [];
-    tableRowCount.value = 0;
-  }
-});
+if (getOpen) {
+  watch(getOpen, (open) => {
+    if (!open) {
+      disposeChart();
+      disposePredictChart();
+      trendData.value = [];
+      tableRowCount.value = 0;
+    }
+  });
+}
 
 const [registerTable, { setColumns, reload, redoHeight }] = useTable({
   canResize: false,
@@ -789,7 +791,7 @@ const [registerTable, { setColumns, reload, redoHeight }] = useTable({
 function resetAndClose() {
   trendData.value = [];
   tableRowCount.value = 0;
-  customTime.value = [];
+  customTime.value = undefined;
   state.industrialPoint = null;
   viewMode.value = 'history';
   disposeChart();

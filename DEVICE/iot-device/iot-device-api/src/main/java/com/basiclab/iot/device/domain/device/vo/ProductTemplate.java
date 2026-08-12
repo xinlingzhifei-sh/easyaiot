@@ -14,17 +14,15 @@ import java.time.LocalDateTime;
 /**
 * @description: ${description}
 * @packagename: com.basiclab.iot.device.domain.device.vo.entity
-* @author 翱翔的雄库鲁
-* @email andywebjava@163.com
-* @wechat EasyAIoT2025
+* @author reese
+* @email reese
 * @date: 2025-11-18 20:36
 **/
 
 /**
  * 产品模板
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @ApiModel(value = "产品模板")
 @Data

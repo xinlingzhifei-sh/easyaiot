@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * 支持 hmacmd5、hmacsha1、hmacsha256 签名和验签
  *
- * @author 翱翔的雄库鲁
+ * @author reese
  */
 @Slf4j
 public class SignUtils {

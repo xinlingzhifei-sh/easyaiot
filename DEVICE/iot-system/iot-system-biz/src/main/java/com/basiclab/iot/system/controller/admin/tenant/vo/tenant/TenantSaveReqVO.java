@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 /**
  * TenantSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 租户创建/修改 Request VO")
 @Data
@@ -26,11 +25,11 @@ public class TenantSaveReqVO {
     @Schema(description = "租户编号", example = "1024")
     private Long id;
 
-    @Schema(description = "租户名", example = "BasicLab")
+    @Schema(description = "租户名", example = "yFeiEye")
     @NotNull(message = "租户名不能为空")
     private String name;
 
-    @Schema(description = "联系人", example = "BasicLab")
+    @Schema(description = "联系人", example = "yFeiEye")
     @NotNull(message = "联系人不能为空")
     private String contactName;
 

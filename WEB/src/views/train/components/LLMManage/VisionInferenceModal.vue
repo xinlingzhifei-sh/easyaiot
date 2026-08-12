@@ -96,7 +96,7 @@ import { ref, computed } from 'vue';
 import { BasicModal, useModalInner } from '@/components/Modal';
 import { useMessage } from '@/hooks/web/useMessage';
 import { PlusOutlined, ExperimentOutlined } from '@ant-design/icons-vue';
-import { Upload, Modal, FormItem, Textarea, RadioGroup, Radio, Spin } from 'ant-design-vue';
+import { Modal, Textarea, RadioGroup, Radio, Spin } from 'ant-design-vue';
 import type { UploadFile, UploadProps } from 'ant-design-vue';
 import {
   visionInference,
@@ -109,7 +109,7 @@ defineOptions({ name: 'VisionInferenceModal' });
 const emit = defineEmits(['success', 'register']);
 
 const { createMessage } = useMessage();
-const [register, { setModalProps, closeModal }] = useModalInner(() => {
+const [register, { setModalProps }] = useModalInner(() => {
   // 初始化
   fileList.value = [];
   prompt.value = '';

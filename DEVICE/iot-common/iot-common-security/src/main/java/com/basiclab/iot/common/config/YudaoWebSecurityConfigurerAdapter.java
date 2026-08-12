@@ -1,8 +1,8 @@
 package com.basiclab.iot.common.config;
 
 import cn.hutool.core.collection.CollUtil;
+import com.basiclab.iot.common.enums.RpcConstants;
 import com.basiclab.iot.common.filter.TokenAuthenticationFilter;
-import com.basiclab.iot.common.web.config.WebProperties;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -40,17 +40,14 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertLi
 /**
  * 自定义的 Spring Security 配置适配器实现
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @AutoConfiguration
 @AutoConfigureOrder(-1) // 目的：先于 Spring Security 自动配置，避免一键改包后，org.* 基础包无法生效
 @EnableMethodSecurity(securedEnabled = true)
 public class YudaoWebSecurityConfigurerAdapter {
 
-    @Resource
-    private WebProperties webProperties;
     @Resource
     private SecurityProperties securityProperties;
 
@@ -129,19 +126,20 @@ public class YudaoWebSecurityConfigurerAdapter {
         httpSecurity
                 // ①：全局共享规则
                 .authorizeRequests()
-                // 1.1 静态资源，可匿名访问
+                // 1.1 内部 RPC 必须先校验服务身份，不能被后续匿名规则覆盖
+                .antMatchers(RpcConstants.RPC_API_PREFIX + "/**")
+                .access("@rpcInternalAccess.isAllowed(request)")
+                // 1.2 静态资源，可匿名访问
                 .antMatchers(HttpMethod.GET, "/*.html", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
-                // 1.2 设置 @PermitAll 无需认证
+                // 1.3 设置 @PermitAll 无需认证
                 .antMatchers(HttpMethod.GET, permitAllUrls.get(HttpMethod.GET).toArray(new String[0])).permitAll()
                 .antMatchers(HttpMethod.POST, permitAllUrls.get(HttpMethod.POST).toArray(new String[0])).permitAll()
                 .antMatchers(HttpMethod.PUT, permitAllUrls.get(HttpMethod.PUT).toArray(new String[0])).permitAll()
                 .antMatchers(HttpMethod.DELETE, permitAllUrls.get(HttpMethod.DELETE).toArray(new String[0])).permitAll()
-                // 1.3 基于 iot.security.permit-all-urls 无需认证
+                // 1.4 基于 iot.security.permit-all-urls 无需认证
                 .antMatchers(securityProperties.getPermitAllUrls().toArray(new String[0])).permitAll()
-                // 1.4 设置 App API 无需认证
-                .antMatchers(buildAppApi("/**")).permitAll()
-                // 1.5 验证码captcha 允许匿名访问
-                .antMatchers("/system/captcha/get", "/system/captcha/check", "/rpc-api/system/oauth2/token/check").permitAll()
+                // 1.5 验证码 captcha 允许匿名访问
+                .antMatchers("/system/captcha/get", "/system/captcha/check").permitAll()
                 // ②：每个项目的自定义规则
                 .and().authorizeRequests(registry -> // 下面，循环设置自定义规则
                         authorizeRequestsCustomizers.forEach(customizer -> customizer.customize(registry)))
@@ -152,10 +150,6 @@ public class YudaoWebSecurityConfigurerAdapter {
         // 添加 Token Filter
         httpSecurity.addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
-    }
-
-    private String buildAppApi(String url) {
-        return webProperties.getAppApi().getPrefix() + url;
     }
 
     private Multimap<HttpMethod, String> getPermitAllUrlsFromAnnotations() {

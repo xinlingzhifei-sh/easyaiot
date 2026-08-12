@@ -9,10 +9,11 @@ import { VAxios } from './Axios'
 import { checkStatus } from './checkStatus'
 import { formatRequestDate, joinTimestamp } from './helper'
 import type { RequestOptions, Result } from '@/types/axios'
+import { resolveTenantIdHeader } from '@/utils/http/axios/tenantHeader'
 import { useGlobSetting } from '@/hooks/setting'
 import { useMessage } from '@/hooks/web/useMessage'
 import { ContentTypeEnum, RequestEnum, ResultEnum } from '@/enums/httpEnum'
-import {isEmpty, isNull, isString, isUnDef, isUndefined} from '@/utils/is'
+import {isEmpty, isNull, isString, isUnDef} from '@/utils/is'
 import { getAccessToken, getTenantId, handleSessionTimeout } from '@/utils/auth'
 import { deepMerge, setObjToUrlParams } from '@/utils'
 import { useErrorLogStoreWithOut } from '@/store/modules/errorLog'
@@ -258,11 +259,10 @@ const transform: AxiosTransform = {
         : token
     }
     // 设置租户
-    if (tenantEnable && tenantEnable === 'true') {
-      const tenantId = getTenantId()
-      if (tenantId)
-        (config as Recordable).headers['tenant-id'] = tenantId
-    }
+    const tenantId = resolveTenantIdHeader(tenantEnable, getTenantId() as string | number | null | undefined)
+    if (tenantId !== undefined)
+      (config as Recordable).headers['tenant-id'] = tenantId
+
     return config
   },
 

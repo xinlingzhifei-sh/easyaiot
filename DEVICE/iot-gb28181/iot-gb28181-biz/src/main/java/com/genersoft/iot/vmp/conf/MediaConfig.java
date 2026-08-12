@@ -59,6 +59,9 @@ public class MediaConfig{
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
 
+    @Value("${media.rtp.public-port:0}")
+    private int rtpPublicPort;
+
     @Value("${media.rtp.port-range}")
     private String rtpPortRange;
 
@@ -125,6 +128,13 @@ public class MediaConfig{
         mediaServer.setHookIp(getHookIp());
         mediaServer.setSdpIp(getSdpIp());
         mediaServer.setStreamIp(getStreamIp());
+    }
+
+    public int resolveRtpPublicPort(MediaServer mediaServer) {
+        if (rtpPublicPort > 0) {
+            return rtpPublicPort;
+        }
+        return mediaServer.getRtpProxyPort();
     }
 
     /**

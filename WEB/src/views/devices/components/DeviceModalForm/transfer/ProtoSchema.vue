@@ -28,7 +28,7 @@
     defaultAttributesSchema,
     defaultRpcRequestSchema,
     defaultRpcResponseSchema,
-  } from './protoSchema.ts';
+  } from './protoSchema';
   import { Form, FormItem } from 'ant-design-vue';
   import { CodeEditor } from '@/components/CodeEditor';
 

@@ -1,6 +1,6 @@
 [Unit]
 Description=Auto-fix PostgreSQL pg_hba.conf on startup
-Documentation=file:///opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba_AUTO_START_README.md
+Documentation=file:///opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba_AUTO_START_README.md
 After=docker.service
 Requires=docker.service
 
@@ -10,8 +10,8 @@ Type=oneshot
 # 如果需要手动修改，请将 basiclab 替换为您的用户名
 User=basiclab
 Group=basiclab
-WorkingDirectory=/opt/projects/easyaiot/VIDEO
-ExecStart=/opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba_auto.sh
+WorkingDirectory=/opt/projects/yfeieye/VIDEO
+ExecStart=/opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba_auto.sh
 StandardOutput=journal
 StandardError=journal
 TimeoutStartSec=600

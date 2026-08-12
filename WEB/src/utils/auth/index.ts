@@ -5,6 +5,8 @@ import projectSetting from '@/settings/projectSetting'
 
 const REMEMBER_ME_KEY = 'REMEMBER_ME__'
 const JWT_TOKEN_KEY = 'jwt_token'
+const NODE_RED_AUTH_COOKIE = 'yfeieye_node_red_token'
+const NODE_RED_AUTH_PATHS = ['/dev-api/nodeRed', '/yfeieye/dev-api/nodeRed', '/nodeRed']
 
 const { permissionCacheType } = projectSetting
 
@@ -19,6 +21,19 @@ function getStorageFns() {
   return useLocalStorage()
     ? { get: Persistent.getLocal, set: Persistent.setLocal, clear: Persistent.clearLocal }
     : { get: Persistent.getSession, set: Persistent.setSession, clear: Persistent.clearSession }
+}
+
+function syncNodeRedAuthCookie(token?: string | null) {
+  if (typeof document === 'undefined')
+    return
+
+  const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+  for (const path of NODE_RED_AUTH_PATHS) {
+    if (token)
+      document.cookie = `${NODE_RED_AUTH_COOKIE}=${encodeURIComponent(token)}; Path=${path}; SameSite=Strict${secure}`
+    else
+      document.cookie = `${NODE_RED_AUTH_COOKIE}=; Path=${path}; Max-Age=0; SameSite=Strict${secure}`
+  }
 }
 
 export function getRememberMe(): boolean {
@@ -57,11 +72,14 @@ export function handleSessionTimeout() {
 }
 
 export function getAccessToken(): string {
-  return getAuthCache(ACCESS_TOKEN_KEY)
+  const token = getAuthCache<string>(ACCESS_TOKEN_KEY)
+  syncNodeRedAuthCookie(token)
+  return token
 }
 
 export function setAccessToken(value: string) {
   syncJwtToken(value)
+  syncNodeRedAuthCookie(value)
   return setAuthCache(ACCESS_TOKEN_KEY, value)
 }
 
@@ -93,6 +111,7 @@ export function setAuthCache(key: BasicKeys, value) {
 
 export function clearAuthCache(immediate = true) {
   syncJwtToken(null)
+  syncNodeRedAuthCookie(null)
   Persistent.clearLocal(immediate)
   Persistent.clearSession(immediate)
 }
@@ -100,10 +119,9 @@ export function clearAuthCache(immediate = true) {
 /** 登录时根据 rememberMe 切换存储介质并清理旧 Token */
 export function switchAuthStorage(remember: boolean) {
   setRememberMe(remember)
-  if (remember) {
+  syncNodeRedAuthCookie(null)
+  if (remember)
     Persistent.clearSession(true)
-  }
-  else {
+  else
     Persistent.clearLocal(true)
-  }
 }

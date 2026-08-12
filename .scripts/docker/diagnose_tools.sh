@@ -1,5 +1,5 @@
 #!/bin/bash
-# EasyAIoT 统一交互入口 — 两层引导菜单（供 install_linux*.sh 引用）
+# yFeiEye 统一交互入口 — 两层引导菜单（供 install_linux*.sh 引用）
 # 第一层：部署 | 分析
 # 第二层：各类可编号选择的具体操作
 
@@ -9,7 +9,7 @@ easyaiot_run_command() {
 }
 
 _print_root_header() {
-    local label="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本}"
+    local label="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本}"
     echo ""
     echo -e "${YELLOW}========================================${NC}"
     echo -e "${YELLOW}  ${label}${NC}"
@@ -56,7 +56,7 @@ _print_deploy_header() {
     echo ""
     echo "常用操作（多数场景选 1～4 即可）："
     echo "  1) 首次安装并启动全部服务"
-    echo "     说明：第一次在服务器部署 EasyAIoT 时选此项"
+    echo "     说明：第一次在服务器部署 yFeiEye 时选此项"
     echo "  2) 启动所有服务"
     echo "     说明：服务器重启后，或 stop 之后重新拉起"
     echo "  3) 停止所有服务"

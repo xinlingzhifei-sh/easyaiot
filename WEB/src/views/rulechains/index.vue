@@ -206,7 +206,7 @@ export default defineComponent({
         return params;
       },
       afterFetch: (data) => {
-        let list = [];
+        let list: any[] = [];
         data.forEach((element) => {
           if (element.type == 'tab') {
             list.push(element);
@@ -236,7 +236,7 @@ export default defineComponent({
       },
       rowSelection: {
         type: 'checkbox',
-        selectedRowKeys: checkedKeys,
+        selectedRowKeys: checkedKeys.value,
         onSelect: onSelect,
         onSelectAll: onSelectAll,
         getCheckboxProps(record) {
@@ -261,7 +261,7 @@ export default defineComponent({
 
     function openTargetModal(type: string, data?: any) {
       if (type === 'edit' && isNodeRedDemoFlow(data)) {
-        createMessage.warning('EasyAIoT 演示规则链为只读，禁止修改');
+        createMessage.warning('yFeiEye 演示规则链为只读，禁止修改');
         return;
       }
       openModal(true, {
@@ -298,7 +298,7 @@ export default defineComponent({
         return;
       }
       if (isNodeRedDemoFlow(record)) {
-        createMessage.warning('EasyAIoT 演示规则链为只读，禁止删除');
+        createMessage.warning('yFeiEye 演示规则链为只读，禁止删除');
         return;
       }
       try {
@@ -357,10 +357,10 @@ export default defineComponent({
       }
       const nodeRedPath = '/dev-api/nodeRed/#flow/';
       const title = isNodeRedDemoFlow(record)
-        ? `EasyAIoT · ${record.label || '演示规则链'}`
-        : (record.label || 'EasyAIoT');
+        ? `yFeiEye · ${record.label || '演示规则链'}`
+        : (record.label || 'yFeiEye');
       go({
-        path: `/rulechains/index/${encodeURIComponent(title)}`,
+        path: `/rulechains/index/${encodeURIComponent(title)}` as any,
         query: {code: record.id, path: nodeRedPath, title},
       });
     }

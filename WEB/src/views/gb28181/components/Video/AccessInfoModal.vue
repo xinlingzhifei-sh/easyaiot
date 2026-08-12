@@ -245,20 +245,22 @@ const [register] = useModalInner((data: { content?: string; count?: number } | u
   if (data?.count != null && data.count >= 1 && data.count <= 100) {
     generateCount.value = data.count;
   }
-  // 打开时若尚无内容，则用当前「生成组数」自动请求一次（保证使用弹窗内的组数且每次随机）
+  // 打开时若尚无内容，则读取当前接入配置；没有缓存时服务端会首次生成。
   if (!content.value) {
-    handleRegenerate();
+    loadAccessInfo(false);
   }
 });
 
-async function handleRegenerate() {
+async function loadAccessInfo(force = false) {
   regenLoading.value = true;
   try {
     const count = Math.min(100, Math.max(1, Number(generateCount.value) || 10));
-    const res = await generateDeviceAccessInfo(count);
+    const res = await generateDeviceAccessInfo(count, force);
     const text = extractAccessInfoText(res) || '未获取到内容';
     content.value = text;
-    createMessage.success('已重新生成接入配置');
+    if (force) {
+      createMessage.success('已重新生成接入配置');
+    }
   } catch (e: any) {
     const errMsg = '生成失败：' + (e?.message || e?.msg || String(e));
     content.value = errMsg;
@@ -266,6 +268,10 @@ async function handleRegenerate() {
   } finally {
     regenLoading.value = false;
   }
+}
+
+async function handleRegenerate() {
+  await loadAccessInfo(true);
 }
 
 async function copyContent() {

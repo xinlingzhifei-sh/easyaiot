@@ -70,7 +70,7 @@
 ### 运行测试
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python test_device_detection_region.py
 ```
 

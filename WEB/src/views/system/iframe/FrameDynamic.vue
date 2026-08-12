@@ -20,15 +20,20 @@
   import { useRoute } from 'vue-router';
   import { useTabs } from '/@/hooks/web/useTabs';
 
+  function getRouteString(value: unknown): string {
+    if (Array.isArray(value)) return String(value[0] ?? '');
+    return String(value ?? '');
+  }
+
   const route = useRoute();
-  const index = route.params?.taskId ?? route.params?.id ?? '';
-  const code = route.query?.code ?? '';
-  const path = route.query?.path ?? '';
-  const folder = route.query?.folder ?? '';
-  const titleQuery = route.query?.title ?? '';
+  const index = getRouteString(route.params?.taskId ?? route.params?.id);
+  const code = getRouteString(route.query?.code);
+  const path = getRouteString(route.query?.path);
+  const folder = getRouteString(route.query?.folder);
+  const titleQuery = getRouteString(route.query?.title);
   const { setTitle } = useTabs();
   setTitle(
-    decodeURIComponent(String(titleQuery || index)) || 'EasyAIoT',
+    decodeURIComponent(String(titleQuery || index)) || 'yFeiEye',
   );
   
   // 构建完整的 iframe 路径

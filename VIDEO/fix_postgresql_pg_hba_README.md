@@ -21,7 +21,7 @@ FATAL: no pg_hba.conf entry for host "172.18.0.1", user "postgres", database "io
 
 ```bash
 # 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 运行修复脚本（自动检查、修复、验证）
 bash fix_postgresql_pg_hba.sh
@@ -39,7 +39,7 @@ bash fix_postgresql_pg_hba.sh
 
 ```bash
 # 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 仅检查配置，不进行修改
 bash fix_postgresql_pg_hba.sh --check-only
@@ -49,7 +49,7 @@ bash fix_postgresql_pg_hba.sh --check-only
 
 ```bash
 # 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 强制重新添加配置（即使已存在）
 bash fix_postgresql_pg_hba.sh --force
@@ -159,10 +159,10 @@ bash fix_postgresql_pg_hba.sh
 
 ```bash
 # Docker 环境（使用容器服务名称）
-DATABASE_URL=postgresql://postgres:iot45722414822@PostgresSQL:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<数据库密码>@PostgresSQL:5432/iot-video20
 
 # 宿主机环境（使用 localhost）
-DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<数据库密码>@localhost:5432/iot-video20
 ```
 
 ## 🔧 工作原理
@@ -282,7 +282,7 @@ docker ps | grep postgres
 # 应该看到: 0.0.0.0:5432->5432/tcp
 
 # 5. 测试连接
-PGPASSWORD=iot45722414822 psql -h localhost -U postgres -d iot-video20 -c "SELECT 1;"
+PGPASSWORD='<数据库密码>' psql -h localhost -U postgres -d iot-video20 -c "SELECT 1;"
 ```
 
 ### 问题 5：权限问题

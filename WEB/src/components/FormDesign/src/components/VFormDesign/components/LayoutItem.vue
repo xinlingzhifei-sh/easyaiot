@@ -30,18 +30,12 @@ const emit = defineEmits(['dragStart', 'handleColAdd', 'handle-copy', 'handle-de
 
 const Draggable = draggable
 
-const { formDesignMethods: { handleSetSelectItem }, formConfig } = useFormDesignState()
+const { formDesignMethods: { handleSetSelectItem } } = useFormDesignState()
 const colPropsComputed = computed(() => {
   const { colProps = {} } = props.schema
   return colProps
 })
 
-const list1 = computed(() => props.schema.columns)
-
-// 计算布局元素，水平模式下为ACol，非水平模式下为div
-const layoutTag = computed(() => {
-  return formConfig.value.layout === 'horizontal' ? 'Col' : 'div'
-})
 </script>
 
 <template>

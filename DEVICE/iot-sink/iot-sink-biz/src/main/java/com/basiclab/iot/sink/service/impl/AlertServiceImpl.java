@@ -57,9 +57,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *        'device_id': ...
  *    }
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Service
@@ -93,10 +92,13 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public Integer processAlert(AlertNotificationMessage notificationMessage) {
-        // Kafka 消费线程无 HTTP 租户上下文；alert 表在 VIDEO 库且无 tenant_id 列
-        final Integer[] result = new Integer[1];
-        TenantUtils.executeIgnore(() -> result[0] = processAlertInternal(notificationMessage));
-        return result[0];
+        Long tenantId = notificationMessage == null ? null : notificationMessage.getTenantId();
+        if (tenantId == null || tenantId <= 0) {
+            log.error("告警消息缺少有效 tenantId，拒绝落库: deviceId={}",
+                    notificationMessage == null ? null : notificationMessage.getDeviceId());
+            return null;
+        }
+        return TenantUtils.execute(tenantId, () -> processAlertInternal(notificationMessage));
     }
 
     private Integer processAlertInternal(AlertNotificationMessage notificationMessage) {
@@ -150,7 +152,7 @@ public class AlertServiceImpl implements AlertService {
             
             if (minioPath != null && alertId != null) {
                 // 更新数据库中的图片路径
-                updateAlertImagePath(alertId, minioPath);
+                updateAlertImagePath(alertId, notificationMessage.getTenantId(), minioPath);
                 // 将 MinIO 下载地址回写到消息，使下游通知（HTTP/Webhook 等）推送可访问的图片 URL，而非本地磁盘路径
                 alert.setImagePath(minioPath);
                 log.debug("告警 {} 图片路径已更新: {}", alertId, minioPath);
@@ -176,9 +178,13 @@ public class AlertServiceImpl implements AlertService {
 
     @Override
     public Integer processSnapshotAlert(AlertNotificationMessage notificationMessage) {
-        final Integer[] result = new Integer[1];
-        TenantUtils.executeIgnore(() -> result[0] = processSnapshotAlertInternal(notificationMessage));
-        return result[0];
+        Long tenantId = notificationMessage == null ? null : notificationMessage.getTenantId();
+        if (tenantId == null || tenantId <= 0) {
+            log.error("抓拍告警消息缺少有效 tenantId，拒绝落库: deviceId={}",
+                    notificationMessage == null ? null : notificationMessage.getDeviceId());
+            return null;
+        }
+        return TenantUtils.execute(tenantId, () -> processSnapshotAlertInternal(notificationMessage));
     }
 
     private Integer processSnapshotAlertInternal(AlertNotificationMessage notificationMessage) {
@@ -275,7 +281,7 @@ public class AlertServiceImpl implements AlertService {
             
             if (minioPath != null && alertId != null) {
                 // 更新数据库中的图片路径
-                updateAlertImagePath(alertId, minioPath);
+                updateAlertImagePath(alertId, notificationMessage.getTenantId(), minioPath);
                 // 将 MinIO 下载地址回写到消息，使下游通知（HTTP/Webhook 等）推送可访问的图片 URL，而非本地磁盘路径
                 alert.setImagePath(minioPath);
                 log.debug("抓拍算法任务告警 {} 图片路径已更新: {}", alertId, minioPath);
@@ -899,6 +905,7 @@ public class AlertServiceImpl implements AlertService {
             
             // 构建AlertDO对象
             AlertDO alertDO = new AlertDO();
+            alertDO.setTenantId(notificationMessage.getTenantId());
             alertDO.setObject(alert.getObject());
             alertDO.setEvent(alert.getEvent());
             alertDO.setRegion(alert.getRegion());
@@ -1065,20 +1072,21 @@ public class AlertServiceImpl implements AlertService {
      * @param alertId 告警ID
      * @param minioPath MinIO 对象下载 API 路径
      */
-    private void updateAlertImagePath(Integer alertId, String minioPath) {
+    private void updateAlertImagePath(Integer alertId, Long tenantId, String minioPath) {
         if (alertMapper == null) {
             log.warn("AlertMapper不可用，跳过数据库更新");
             return;
         }
 
-        if (alertId == null || minioPath == null || minioPath.isEmpty()) {
-            log.warn("参数无效，跳过数据库更新: alertId={}, minioPath={}", alertId, minioPath);
+        if (alertId == null || tenantId == null || tenantId <= 0 || minioPath == null || minioPath.isEmpty()) {
+            log.warn("参数无效，跳过数据库更新: alertId={}, tenantId={}, minioPath={}",
+                    alertId, tenantId, minioPath);
             return;
         }
 
         try {
             // 更新数据库（使用@DS("video")注解的Mapper会自动切换到VIDEO数据库）
-            int result = alertMapper.updateImagePath(alertId, minioPath);
+            int result = alertMapper.updateImagePath(alertId, tenantId, minioPath);
             if (result > 0) {
                 log.debug("告警图片路径更新成功: alertId={}, minioPath={}", alertId, minioPath);
             } else {

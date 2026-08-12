@@ -26,6 +26,7 @@ const dashboard: AppRouteModule = {
         hideMenu: true, // 子路由不在菜单中显示
         hideBreadcrumb: true,
         hideTab: true,
+        fullContent: true,
       },
     },
   ],

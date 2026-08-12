@@ -31,11 +31,11 @@ NC='\033[0m' # No Color
 # 脚本目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck source=../.scripts/docker/init-build-cache-dirs.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/deploy_profile.sh"
 
 # 打印带颜色的消息
 print_info() {
@@ -182,15 +182,15 @@ get_web_build_cache_bust() {
     local git_rev stamp
     git_rev=$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || echo "nogit")
     stamp=""
-    if [ -f "$(web_build_stamp_file "$EASYAIOT_ROOT")" ]; then
-        stamp=$(tr -d '\n' < "$(web_build_stamp_file "$EASYAIOT_ROOT")")
+    if [ -f "$(web_build_stamp_file "$YFEIEYE_ROOT")" ]; then
+        stamp=$(tr -d '\n' < "$(web_build_stamp_file "$YFEIEYE_ROOT")")
     fi
     echo "${git_rev}-${stamp}"
 }
 
 # 执行 docker build（BuildKit + 宿主机 .build-cache/web/pnpm-store 本地 cache 后端）
 docker_build_image() {
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
     enable_docker_buildkit
     mkdir -p "${SCRIPT_DIR}/docker-build-logs"
     local ts log_new pnpm_log ec cache_bust
@@ -209,7 +209,7 @@ docker_build_image() {
     print_info "部署形态 VITE_GLOB_DEPLOY_PROFILE=${deploy_profile}"
     set -o pipefail
     local pnpm_store
-    pnpm_store="$(pnpm_store_dir "$EASYAIOT_ROOT")"
+    pnpm_store="$(pnpm_store_dir "$YFEIEYE_ROOT")"
     mkdir -p "${pnpm_store}"
     # 构建层缓存策略：
     # 默认依赖 Docker 守护进程自身的层缓存——稳定运行的服务器上，pnpm fetch/install 等重层会持续命中
@@ -473,6 +473,20 @@ check_dist() {
 }
 
 # 按部署形态写入 WEB compose 使用的 nginx 配置路径
+configure_stream_ticket_secret() {
+    local configurator="${YFEIEYE_ROOT}/.scripts/configure-nginx-stream-secret.mjs"
+    local video_env="${YFEIEYE_ROOT}/VIDEO/.env.docker"
+    if ! command -v node >/dev/null 2>&1; then
+        print_error "Node.js 未安装，无法生成播放器流地址签名密钥配置"
+        exit 1
+    fi
+    if [ ! -f "$video_env" ]; then
+        print_error "VIDEO/.env.docker 不存在，无法生成播放器流地址签名密钥配置"
+        exit 1
+    fi
+    node "$configurator" "--env-file=$video_env" --skip-nginx-check
+}
+
 ensure_nginx_conf_for_profile() {
     ensure_deploy_profile
     local conf="./conf/nginx.conf"
@@ -487,6 +501,8 @@ ensure_nginx_conf_for_profile() {
             echo "NGINX_CONF=${conf}" >> .env
         fi
     fi
+    # The nginx container validates this generated include when Compose starts it.
+    configure_stream_ticket_secret
     print_info "nginx 配置: ${conf} (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
 }
 
@@ -894,7 +910,7 @@ clean_service() {
     check_docker
     check_docker_compose
     
-    if [ "${EASYAIOT_AUTO_YES:-}" != "1" ]; then
+    if [ "${YFEIEYE_AUTO_YES:-}" != "1" ]; then
         print_warning "这将删除容器、镜像和数据卷，确定要继续吗？"
         local response
         while true; do
@@ -931,8 +947,8 @@ clean_service() {
         fi
 
         # 使下次 install/build 失效 Docker 层缓存（否则 pnpm install/build 会全部 CACHED）
-        init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
-        date +%s > "$(web_build_stamp_file "$EASYAIOT_ROOT")"
+        init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
+        date +%s > "$(web_build_stamp_file "$YFEIEYE_ROOT")"
         print_info "已更新 .build-cache/web/.build-stamp，下次构建将重新编译前端（.build-cache/web/pnpm-store 依赖缓存保留）"
         
     print_success "清理完成"
@@ -961,6 +977,9 @@ update_service() {
 
     local rev_after=""
     rev_after="$(git rev-parse HEAD 2>/dev/null || echo "")"
+
+    # update 的无构建快速路径也会重新创建容器，必须先生成并校验流地址签名密钥 include。
+    ensure_nginx_conf_for_profile
 
     # 无变更快速路径：提交号未变 + 本地无未提交改动 + 镜像已存在 + 部署形态未变 → 跳过前端重建
     # 说明1：clean 会删除镜像并刷新构建戳，故 clean 后镜像不存在 → 此处不会误跳过
@@ -1067,4 +1086,3 @@ main() {
 
 # 运行主函数
 main "$@"
-

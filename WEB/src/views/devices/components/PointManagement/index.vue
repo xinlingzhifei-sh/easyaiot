@@ -306,6 +306,7 @@ import {
   Table,
   Tag,
 } from "ant-design-vue";
+import type { TableColumnsType } from "ant-design-vue";
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import { getDevicethingModels, updateDevices } from "@/api/device/devices";
 import { getPropertiesList } from "@/api/device/phsyicalModal";
@@ -365,7 +366,7 @@ const emptyOpcUaPoint = (): PointConfig => ({
   writable: false,
 });
 
-function resolvePropertyCode(point?: PointConfig | null) {
+function resolvePropertyCode(point?: Partial<PointConfig> | null) {
   return String(point?.propertyCode || point?.identifier || "").trim();
 }
 
@@ -408,7 +409,7 @@ const radixOptions = [
   { label: "十六进制（HEX）", value: 16 },
 ];
 
-const columns = computed(() => {
+const columns = computed<TableColumnsType<PointConfig>>(() => {
   if (isOpcUa.value) {
     return [
       { title: "序号", key: "index", width: 64 },
@@ -514,7 +515,7 @@ async function loadRuntimeValues() {
   }
 }
 
-function openEditor(point?: PointConfig, index = -1) {
+function openEditor(point?: Partial<PointConfig>, index = -1) {
   editingIndex.value = index;
   const base = isOpcUa.value ? emptyOpcUaPoint() : emptyModbusPoint();
   const merged = { ...base, ...(point || {}) };
@@ -588,7 +589,7 @@ async function removePoint(index: number) {
 }
 
 const [registerHistory, { openModal: openHistory }] = useModal();
-function viewPoint(point: PointConfig) {
+function viewPoint(point: Partial<PointConfig>) {
   let protocolConfig: Record<string, any> = {};
   try {
     protocolConfig = getExtension().protocolConfig || {};

@@ -1,4 +1,4 @@
-# Guide de déploiement EasyAIoT sur macOS
+# Guide de déploiement yFeiEye sur macOS
 
 > Version du document : 1.1  
 > Date de mise à jour : 2026-08-01  

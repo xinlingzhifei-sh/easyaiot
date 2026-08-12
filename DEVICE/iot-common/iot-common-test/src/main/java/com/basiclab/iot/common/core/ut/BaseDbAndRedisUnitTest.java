@@ -20,9 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
  *
  * 相比 {@link BaseDbUnitTest} 来说，额外增加了内存 Redis
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = BaseDbAndRedisUnitTest.Application.class)
 @ActiveProfiles("unit-test") // 设置使用 application-unit-test 配置文件

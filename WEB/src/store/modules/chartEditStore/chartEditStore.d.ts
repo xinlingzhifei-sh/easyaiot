@@ -1,4 +1,4 @@
-import { CreateComponentType, CreateComponentGroupType, FilterEnum } from '@/packages/index.d'
+import { CreateComponentType, CreateComponentGroupType, FilterEnum } from '@/design/packages/index.d'
 import { HistoryActionTypeEnum } from '@/store/modules/chartHistoryStore/chartHistoryStore.d'
 import {
   RequestHttpEnum,

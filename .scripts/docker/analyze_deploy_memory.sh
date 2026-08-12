@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT 容器内存占用分析
+# yFeiEye 容器内存占用分析
 # ============================================
 # 统计当前运行中的中间件与业务容器实际内存占用，
 # 并与 mini / standard / full 三种部署规格的推荐上限对比。
@@ -339,7 +339,7 @@ main() {
         if $JSON_OUTPUT; then
             echo '{"error":"no_running_containers"}'
         else
-            print_warn "未发现运行中的 EasyAIoT 容器（easyaiot-network 或已知容器名）"
+            print_warn "未发现运行中的 yFeiEye 容器（easyaiot-network 或已知容器名）"
         fi
         exit 1
     fi
@@ -418,7 +418,7 @@ main() {
         print_info "其他容器合计: $(format_mib "$other_mib")"
     fi
     echo ""
-    print_info "EasyAIoT 容器总占用: $(format_mib "$total_mib")"
+    print_info "yFeiEye 容器总占用: $(format_mib "$total_mib")"
 
     print_section "部署规格符合性"
     load_saved_deploy_profile

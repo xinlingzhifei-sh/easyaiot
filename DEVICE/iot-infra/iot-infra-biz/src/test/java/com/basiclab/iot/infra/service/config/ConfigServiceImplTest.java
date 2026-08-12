@@ -29,9 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * ConfigServiceImplTest
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Import(ConfigServiceImpl.class)
 public class ConfigServiceImplTest extends BaseDbUnitTest {
@@ -155,7 +154,7 @@ public class ConfigServiceImplTest extends BaseDbUnitTest {
     public void testGetConfigPage() {
         // mock 数据
         ConfigDO dbConfig = randomConfigDO(o -> { // 等会查询到
-            o.setName("BasicLab");
+            o.setName("yFeiEye");
             o.setConfigKey("yunai");
             o.setType(ConfigTypeEnum.SYSTEM.getType());
             o.setCreateTime(buildTime(2021, 2, 1));
@@ -171,7 +170,7 @@ public class ConfigServiceImplTest extends BaseDbUnitTest {
         configMapper.insert(cloneIgnoreId(dbConfig, o -> o.setCreateTime(buildTime(2021, 1, 1))));
         // 准备参数
         ConfigPageReqVO reqVO = new ConfigPageReqVO();
-        reqVO.setName("艿");
+        reqVO.setName("Eye");
         reqVO.setKey("nai");
         reqVO.setType(ConfigTypeEnum.SYSTEM.getType());
         reqVO.setCreateTime(buildBetweenTime(2021, 1, 15, 2021, 2, 15));

@@ -93,6 +93,7 @@
     "ssoInfoDesc": "访问您的个人详细信息开始使用！",
     "ssoSignInFormTitle": "三方授权登录",
     "tenantName": "租户",
+    "tenantPlaceholder": "请输入租户",
     "userName": "账号"
   }
 }

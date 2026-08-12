@@ -305,7 +305,7 @@
     </setting-item-box>
 
     <setting-item-box name="颜色">
-      <setting-item :name="`层级-${index + 1}`" v-for="(item, index) in visualMap.inRange.color" :key="index">
+      <setting-item :name="`层级-${index + 1}`" v-for="(_, index) in visualMap.inRange.color" :key="index">
         <a-color-picker v-model:value="visualMap.inRange.color[index]" size="small"></a-color-picker>
       </setting-item>
     </setting-item-box>

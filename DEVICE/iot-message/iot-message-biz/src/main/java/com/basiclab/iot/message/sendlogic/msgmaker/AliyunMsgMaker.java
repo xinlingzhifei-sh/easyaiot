@@ -27,9 +27,8 @@ import java.util.Map;
 /**
  * 阿里云短信-消息加工器
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @since 2024-07-17
  */
 @Slf4j

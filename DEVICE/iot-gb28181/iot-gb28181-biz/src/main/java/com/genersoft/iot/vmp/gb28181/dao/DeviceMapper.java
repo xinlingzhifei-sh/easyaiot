@@ -386,9 +386,9 @@ public interface DeviceMapper {
             " where 1 = 1 "+
             " <if test='status != null'> AND de.on_line=${status}</if>"+
             " <if test='query != null'> AND (" +
-            " coalesce(custom_name, name) LIKE concat('%',#{query},'%') escape '/' " +
-            " OR device_id LIKE concat('%',#{query},'%') escape '/' " +
-            " OR ip LIKE concat('%',#{query},'%') escape '/')" +
+            " coalesce(custom_name, name) LIKE #{query} escape '/' " +
+            " OR device_id LIKE #{query} escape '/' " +
+            " OR ip LIKE #{query} escape '/')" +
             "</if> " +
             " order by create_time desc, device_id " +
             " </script>")

@@ -100,7 +100,7 @@ def parse_label_image_pairs(items: List[str], arg_name: str) -> List[Tuple[str, 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="EasyAIoT VIDEO 人脸功能全链路测试脚本",
+        description="yFeiEye VIDEO 人脸功能全链路测试脚本",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(

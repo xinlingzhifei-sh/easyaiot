@@ -17,10 +17,9 @@ import {
     HistoryTargetTypeEnum
 } from '@/store/modules/chartHistoryStore/chartHistoryStore.d'
 import {MenuEnum} from '@/enums/editPageEnum'
-import {getUUID, isArray, isString, loadingFinish, loadingStart} from '@/utils'
-import {
+import {getUUID, isArray, isString} from '@/utils'
+import type {
     ChartEditStorage,
-    ChartEditStoreEnum,
     ChartEditStoreType,
     EditCanvasConfigType,
     EditCanvasType,
@@ -29,8 +28,21 @@ import {
     RequestGlobalConfigType,
     TargetChartType,
 } from './chartEditStore.d'
+export type { ChartEditStorage, RequestConfigType, RequestDataPondItemType, RequestGlobalConfigType } from './chartEditStore.d'
 
-const {createMessage, createConfirm} = useMessage()
+export const ChartEditStoreEnum = {
+    EDIT_RANGE: 'editRange',
+    EDIT_CANVAS: 'editCanvas',
+    RIGHT_MENU_SHOW: 'rightMenuShow',
+    MOUSE_POSITION: 'mousePosition',
+    TARGET_CHART: 'targetChart',
+    RECORD_CHART: 'recordChart',
+    EDIT_CANVAS_CONFIG: 'editCanvasConfig',
+    REQUEST_GLOBAL_CONFIG: 'requestGlobalConfig',
+    COMPONENT_LIST: 'componentList',
+} as const
+
+const {createMessage} = useMessage()
 
 const chartHistoryStore = useChartHistoryStore()
 const settingStore = useSettingStore()
@@ -286,7 +298,7 @@ export const useChartEditStore = defineStore({
         },
         // * 统一格式化处理入参 id
         idPreFormat(id?: string | string[]) {
-            const idArr = []
+            const idArr: string[] = []
             if (!id) {
                 idArr.push(...this.getTargetChart.selectId)
                 return idArr
@@ -377,7 +389,7 @@ export const useChartEditStore = defineStore({
         },
         // * 设置页面样式属性
         setPageStyle<T extends keyof CSSStyleDeclaration>(key: T, value: any): void {
-            const dom = this.getEditCanvas.editConREtentDom
+            const dom = this.getEditCanvas.editContentDom
             if (dom) {
                 dom.style[key] = value
             }
@@ -663,7 +675,7 @@ export const useChartEditStore = defineStore({
                     })
                     return
                 }
-                historyData.forEach(item => {
+                historyData.forEach(() => {
                     this.setUnLock(false)
                 })
                 return
@@ -679,7 +691,7 @@ export const useChartEditStore = defineStore({
                     })
                     return
                 }
-                historyData.forEach(item => {
+                historyData.forEach(() => {
                     this.setShow(false)
                 })
                 return
@@ -739,7 +751,7 @@ export const useChartEditStore = defineStore({
         // * 创建分组
         setGroup(id?: string | string[], isHistory = true) {
             try {
-                let selectIds = this.idPreFormat(id) || this.getTargetChart.selectId
+                let selectIds: string[] = this.idPreFormat(id) || this.getTargetChart.selectId
                 selectIds = this.getSelectIdSortList(selectIds)
                 if (selectIds.length < 2) return
 

@@ -66,7 +66,7 @@ public final class ProductScriptTemplates {
      */
     public static final String COMPACT_TEXT = ""
             + "/**\n"
-            + " * 紧凑文本私有协议（EasyAIoT EA 协议）\n"
+            + " * 紧凑文本私有协议（yFeiEye EA 协议）\n"
             + " *\n"
             + " * 上行设备 → 平台（rawDataToProtocol）:\n"
             + " *   EA|UP|<tenantId>|<requestId>|<TYPE>|<k=v;k=v>\n"

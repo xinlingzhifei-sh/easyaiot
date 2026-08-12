@@ -180,11 +180,11 @@ print_success "找到 docker-compose.yml 文件"
 
 # 检查 Docker 网络
 print_info "检查 Docker 网络..."
-if docker network ls --format "{{.Name}}" | grep -q "^easyaiot-network$"; then
-    print_success "网络 easyaiot-network 存在"
+if docker network ls --format "{{.Name}}" | grep -q "^yfeieye-network$"; then
+    print_success "网络 yfeieye-network 存在"
 else
-    print_warning "网络 easyaiot-network 不存在"
-    print_info "创建网络: docker network create easyaiot-network"
+    print_warning "网络 yfeieye-network 不存在"
+    print_info "创建网络: docker network create yfeieye-network"
 fi
 
 print_section "开始验证服务"
@@ -208,7 +208,7 @@ fi
 
 # Redis
 verify_service "Redis" "redis-server" "6379" \
-    "docker exec redis-server redis-cli -a 'basiclab@iot975248395' ping | grep -q PONG"
+    "docker exec redis-server sh -c 'redis-cli -a \"\$REDIS_PASSWORD\" ping | grep -q PONG'"
 
 # Kafka
 if middleware_service_enabled "Kafka"; then
@@ -293,7 +293,6 @@ else
     print_info "  2. 查看容器日志: docker logs [容器名]"
     print_info "  3. 启动所有服务: docker-compose up -d"
     print_info "  4. 重启特定服务: docker-compose restart [服务名]"
-    print_info "  5. 检查网络: docker network inspect easyaiot-network"
+    print_info "  5. 检查网络: docker network inspect yfeieye-network"
     exit 1
 fi
-

@@ -9,7 +9,7 @@ import { LINKS, MISSION, TAGLINE } from '../data/site'
     <section class="page-hero">
       <div class="container">
         <SectionReveal>
-          <h1 class="display section-title">关于 EasyAIoT</h1>
+          <h1 class="display section-title">关于 yFeiEye</h1>
           <p class="lead">{{ TAGLINE }}。开源学习项目，致力于让 AI 真正 0 门槛。</p>
         </SectionReveal>
       </div>
@@ -21,7 +21,7 @@ import { LINKS, MISSION, TAGLINE } from '../data/site'
           <h2 class="display section-title">项目使命</h2>
           <p class="mission">{{ MISSION }}</p>
           <p class="body">
-            EasyAIoT（Easy AI Internet of Things）专注于人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
+            yFeiEye（yFeiEye）专注于人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
           </p>
         </SectionReveal>
         <SectionReveal class="reveal-delay-2">

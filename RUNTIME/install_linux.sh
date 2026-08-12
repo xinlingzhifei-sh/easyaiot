@@ -98,7 +98,7 @@ activate_runtime_env() {
   conda activate "$CONDA_ENV_NAME"
   # 补齐运行期常见缺失库（已存在则 conda 会跳过）
   # gflags：glog CMake package 的 find_dependency
-  # opencv=5：RUNTIME 依赖 opencv2/geometry.hpp
+  # OpenCV 5：与上游 RUNTIME 的 conda 构建环境保持一致
   conda install -y -c conda-forge \
     "opencv=5" \
     glog gflags \

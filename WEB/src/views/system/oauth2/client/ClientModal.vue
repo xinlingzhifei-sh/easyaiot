@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateOAuth2Client(values)
+      await updateOAuth2Client(values as any)
     else
-      await createOAuth2Client(values)
+      await createOAuth2Client(values as any)
 
     closeModal()
     emit('success')

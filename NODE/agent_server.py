@@ -1,6 +1,7 @@
 """
 Agent HTTP 服务：接收控制面下发的部署/停止指令。
 """
+import hmac
 import logging
 import os
 from flask import Flask, jsonify, request
@@ -31,7 +32,7 @@ def _err(msg: str, code: int = 1):
 
 def _check_token():
     token = request.headers.get('X-Agent-Token', '')
-    if not AGENT_TOKEN or token != AGENT_TOKEN:
+    if not AGENT_TOKEN or not token or not hmac.compare_digest(token, AGENT_TOKEN):
         return False
     return True
 

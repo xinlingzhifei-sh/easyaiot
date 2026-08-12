@@ -231,12 +231,9 @@
 import { computed, onUnmounted, reactive, ref, watch } from 'vue';
 import {
   Alert,
-  Checkbox,
-  CheckboxGroup,
   Empty,
   Form,
   FormItem,
-  InputNumber,
   Progress,
   Select,
   Slider,
@@ -553,7 +550,7 @@ async function startTask(): Promise<void> {
     const res = await startSamBootstrap(props.datasetId, {
       text_prompts: form.text_prompts,
       bootstrap_limit: form.bootstrap_limit,
-      bootstrap_selection: form.bootstrap_selection,
+      bootstrap_selection: form.bootstrap_selection as any,
       annotation_type: form.annotation_type,
       confidence_threshold: form.confidence_threshold,
       return_masks: form.annotation_type === 'polygon',

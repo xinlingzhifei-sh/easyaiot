@@ -1,0 +1,144 @@
+{
+  "environment": "public-staging",
+  "scenarios": {
+    "gb28181_public": {
+      "probes": {
+        "registration": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/camera/directory/sync-gb28181"
+        },
+        "play": {
+          "method": "GET",
+          "url": "https://eye.example.com/live/gb28181_34020000001320000001_34020000001320000002.flv"
+        },
+        "ptz": {
+          "method": "POST",
+          "url": "https://eye.example.com/dev-api/gb28181/ptz/control"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "gb28181_34020000001320000001_34020000001320000002",
+        "public_network": "public-internet",
+        "ptz_command": "left-stop"
+      }
+    },
+    "rtsp_same_lan": {
+      "probes": {
+        "source_validation": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/camera/register"
+        },
+        "play": {
+          "method": "GET",
+          "url": "https://eye.example.com/live/cam-lan-001.flv"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "cam-lan-001",
+        "rtsp_source": "rtsp://192.168.1.10/Streaming/Channels/101",
+        "lan_network": "office-lan"
+      }
+    },
+    "rtsp_edge_outbound": {
+      "probes": {
+        "edge_command": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/stream-forward/device/cam-edge-001/ensure-edge-task"
+        },
+        "publish_hook": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/media/hook/srs/on_publish"
+        },
+        "play": {
+          "method": "GET",
+          "url": "https://eye.example.com/live/cam-edge-001.flv"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "cam-edge-001",
+        "edge_node_id": "edge-node-7",
+        "command_id": "101"
+      }
+    },
+    "rtmp_public_push": {
+      "probes": {
+        "signed_url_issue": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/camera/device/cam-rtmp-001/rtmp-ingest-url"
+        },
+        "publish_hook": {
+          "method": "POST",
+          "url": "https://eye.example.com/video/media/hook/zlm/on_publish"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "cam-rtmp-001",
+        "tenant_id": "tenant-a",
+        "token_version": "1"
+      }
+    },
+    "http_flv_public_playback": {
+      "probes": {
+        "public_flv_playback": {
+          "method": "GET",
+          "url": "https://eye.example.com/live/cam-rtmp-001.flv"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "cam-rtmp-001",
+        "public_network": "cross-carrier",
+        "play_url": "https://eye.example.com/live/cam-rtmp-001.flv"
+      }
+    },
+    "webrtc_public_playback": {
+      "probes": {
+        "https_page": {
+          "method": "GET",
+          "url": "https://eye.example.com/#/camera"
+        },
+        "wss_signaling": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/webrtc/nat-config"
+        },
+        "access_state": {
+          "method": "GET",
+          "url": "https://eye.example.com/video/camera/access-state/health"
+        }
+      },
+      "evidence": {
+        "device_id": "cam-rtmp-001",
+        "network_name": "mobile-hotspot",
+        "https_origin_verified": "true",
+        "wss_signaling_verified": "true",
+        "ice_connection_state": "connected",
+        "selected_candidate_pair": "relay udp 203.0.113.10:3478 -> srflx 198.51.100.20:62000",
+        "public_candidate_observed": "true",
+        "turn_relay_verified": "true",
+        "cross_carrier_verified": "carrier-a-to-carrier-b",
+        "mobile_hotspot_verified": "ios-hotspot-carrier-b",
+        "weak_network_profile": "loss=3%,rtt=180ms,jitter=40ms",
+        "weak_network_result": "connected-and-played-60s"
+      }
+    }
+  }
+}

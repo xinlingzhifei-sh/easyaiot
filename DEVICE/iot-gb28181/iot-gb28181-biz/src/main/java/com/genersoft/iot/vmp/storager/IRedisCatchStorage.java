@@ -129,6 +129,10 @@ public interface IRedisCatchStorage {
 
     List<StreamAuthorityInfo> getAllStreamAuthorityInfo();
 
+    void registerAudioBroadcastAuthority(String app, String stream, String token);
+
+    boolean consumeAudioBroadcastAuthority(String app, String stream, String token);
+
     /**
      * 发送redis消息 查询所有推流设备的状态
      */

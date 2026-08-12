@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# EasyAIoT 媒体节点 — SRS + ZLMediaKit 一键部署
+# yFeiEye 媒体节点 — SRS + ZLMediaKit 一键部署
 # 参考 docker-compose.media-node.yml；若服务已在运行且健康检查通过则自动跳过。
 #
 # 用法（在目标媒体节点上）:
-#   export MEDIA_NODE_HOST=10.0.0.11 MEDIA_HOOK_HOST=10.0.0.1 MEDIA_HOOK_PORT=48080
+#   export MEDIA_NODE_HOST=10.0.0.11 MEDIA_HOOK_HOST=10.0.0.1 MEDIA_HOOK_PORT=6000 YFEIEYE_SRS_HOOK_TOKEN=<32+-url-safe>
 #   bash install_media_stack.sh
 #
 # 或一行执行（控制台「添加节点」会生成带变量的完整脚本）:
@@ -14,9 +14,10 @@ MEDIA_CLUSTER_ROOT="${MEDIA_CLUSTER_ROOT:-/opt/easyaiot/media-cluster}"
 MEDIA_NODE_NAME="${MEDIA_NODE_NAME:-media-node}"
 MEDIA_NODE_HOST="${MEDIA_NODE_HOST:-$(hostname -I 2>/dev/null | awk '{print $1}')}"
 MEDIA_HOOK_HOST="${MEDIA_HOOK_HOST:-127.0.0.1}"
-MEDIA_HOOK_PORT="${MEDIA_HOOK_PORT:-48080}"
-# 经 Gateway(48080) 回调需 /admin-api 前缀；直连 VIDEO(6000) 时设为空
-MEDIA_HOOK_PATH_PREFIX="${MEDIA_HOOK_PATH_PREFIX:-/admin-api}"
+MEDIA_HOOK_PORT="${MEDIA_HOOK_PORT:-6000}"
+# Internal hooks connect directly to VIDEO; do not route them through public nginx/Gateway.
+MEDIA_HOOK_PATH_PREFIX="${MEDIA_HOOK_PATH_PREFIX:-}"
+YFEIEYE_SRS_HOOK_TOKEN="${YFEIEYE_SRS_HOOK_TOKEN:-}"
 SRS_CANDIDATE_IP="${SRS_CANDIDATE_IP:-${MEDIA_NODE_HOST}}"
 SRS_RTMP_PORT="${SRS_RTMP_PORT:-1935}"
 SRS_HTTP_PORT="${SRS_HTTP_PORT:-8080}"
@@ -29,7 +30,7 @@ ZLM_RTP_PORT_MIN="${ZLM_RTP_PORT_MIN:-30000}"
 ZLM_RTP_PORT_MAX="${ZLM_RTP_PORT_MAX:-30500}"
 ZLM_RTC_PORT="${ZLM_RTC_PORT:-8800}"
 ZLM_RTC_EXTERN_IP="${ZLM_RTC_EXTERN_IP:-${SRS_CANDIDATE_IP:-${MEDIA_NODE_HOST}}}"
-ZLM_SECRET="${ZLM_SECRET:-EasyAIoT_Media_Secret}"
+ZLM_SECRET="${ZLM_SECRET:-}"
 SRS_IMAGE="${SRS_IMAGE:-ossrs/srs:5}"
 ZLM_IMAGE="${ZLM_IMAGE:-zlmediakit/zlmediakit:master}"
 SRS_IMAGE_TAR="${SRS_IMAGE_TAR:-ossrs-srs-5.tar}"
@@ -39,6 +40,28 @@ print_step() { echo ">>> $*"; }
 print_ok() { echo "[OK] $*"; }
 print_skip() { echo "[SKIP] $*"; }
 print_err() { echo "[ERROR] $*" >&2; }
+
+validate_hook_token() {
+  if [[ ${#YFEIEYE_SRS_HOOK_TOKEN} -lt 32 ]]; then
+    print_err "YFEIEYE_SRS_HOOK_TOKEN must contain at least 32 characters"
+    exit 1
+  fi
+  if [[ ! "${YFEIEYE_SRS_HOOK_TOKEN}" =~ ^[A-Za-z0-9._~-]+$ ]]; then
+    print_err "YFEIEYE_SRS_HOOK_TOKEN must contain only URL-safe characters"
+    exit 1
+  fi
+}
+
+validate_zlm_secret() {
+  if [[ ${#ZLM_SECRET} -lt 32 ]]; then
+    print_err "ZLM_SECRET must contain at least 32 characters"
+    exit 1
+  fi
+  if [[ ! "${ZLM_SECRET}" =~ ^[A-Za-z0-9._~-]+$ ]]; then
+    print_err "ZLM_SECRET must contain only URL-safe characters"
+    exit 1
+  fi
+}
 
 load_offline_image() {
   local canonical="$1"
@@ -175,6 +198,15 @@ compose_up() {
   )
 }
 
+compose_force_recreate() {
+  local service="$1"
+  (
+    cd "${MEDIA_CLUSTER_ROOT}"
+    # shellcheck disable=SC2086
+    ${COMPOSE_CMD} -f docker-compose.media-node.yml up -d --force-recreate "${service}"
+  )
+}
+
 ensure_dirs() {
   print_step "创建媒体数据目录 /mnt/easyaiot-media"
   sudo mkdir -p /mnt/easyaiot-media/playbacks /mnt/easyaiot-media/logs
@@ -213,43 +245,64 @@ zlm_healthy() {
 
 render_srs_config() {
   local out="${MEDIA_CLUSTER_ROOT}/srs/docker.conf"
+  local tmp
+  tmp=$(mktemp "${out}.tmp.XXXXXX")
+  SRS_CONFIG_CHANGED=0
   export MEDIA_NODE_ID="${MEDIA_NODE_NAME}-srs"
-  export MEDIA_HOOK_HOST MEDIA_HOOK_PORT MEDIA_HOOK_PATH_PREFIX SRS_CANDIDATE_IP SRS_RTC_PORT
+  export MEDIA_HOOK_HOST MEDIA_HOOK_PORT MEDIA_HOOK_PATH_PREFIX YFEIEYE_SRS_HOOK_TOKEN
+  export SRS_CANDIDATE_IP SRS_RTC_PORT
   print_step "渲染 SRS 配置 -> ${out}"
-  envsubst '${MEDIA_NODE_ID} ${MEDIA_HOOK_HOST} ${MEDIA_HOOK_PORT} ${MEDIA_HOOK_PATH_PREFIX} ${SRS_CANDIDATE_IP} ${SRS_RTC_PORT}' \
-    < "${MEDIA_CLUSTER_ROOT}/srs/cluster.conf.template" \
-    | sed -E \
-      -e "s/^listen[[:space:]]+[0-9]+;/listen              ${SRS_RTMP_PORT};/" \
-      -e "/http_server/,/}/ s/listen[[:space:]]+[0-9]+;/listen          ${SRS_HTTP_PORT};/" \
-      -e "/http_api/,/}/ s/listen[[:space:]]+[0-9]+;/listen          ${SRS_API_PORT};/" \
-    > "${out}"
+  if ! envsubst '${MEDIA_NODE_ID} ${MEDIA_HOOK_HOST} ${MEDIA_HOOK_PORT} ${MEDIA_HOOK_PATH_PREFIX} ${YFEIEYE_SRS_HOOK_TOKEN} ${SRS_CANDIDATE_IP} ${SRS_RTC_PORT}' \
+      < "${MEDIA_CLUSTER_ROOT}/srs/cluster.conf.template" \
+      | sed -E \
+        -e "s/^listen[[:space:]]+[0-9]+;/listen              ${SRS_RTMP_PORT};/" \
+        -e "/http_server/,/}/ s/listen[[:space:]]+[0-9]+;/listen          ${SRS_HTTP_PORT};/" \
+        -e "/http_api/,/}/ s/listen[[:space:]]+[0-9]+;/listen          ${SRS_API_PORT};/" \
+      > "${tmp}"; then
+    rm -f "${tmp}"
+    return 1
+  fi
+  chmod 600 "${tmp}"
+  if [[ -f "${out}" ]] && cmp -s "${tmp}" "${out}"; then
+    rm -f "${tmp}"
+  else
+    mv -f "${tmp}" "${out}"
+    SRS_CONFIG_CHANGED=1
+  fi
+  chmod 600 "${out}"
   print_ok "SRS 配置已生成"
 }
 
 render_zlm_config() {
   local out="${MEDIA_CLUSTER_ROOT}/zlm/config.ini"
   export MEDIA_NODE_ID="${MEDIA_NODE_NAME}-zlm"
-  export MEDIA_HOOK_HOST MEDIA_HOOK_PORT MEDIA_HOOK_PATH_PREFIX ZLM_SECRET
+  export MEDIA_HOOK_HOST MEDIA_HOOK_PORT MEDIA_HOOK_PATH_PREFIX YFEIEYE_SRS_HOOK_TOKEN ZLM_SECRET
   export ZLM_HTTP_PORT ZLM_RTMP_PORT ZLM_RTSP_PORT ZLM_RTP_PORT_MIN ZLM_RTP_PORT_MAX
   export ZLM_RTC_PORT ZLM_RTC_EXTERN_IP
   print_step "渲染 ZLM 配置 -> ${out}"
-  envsubst '${MEDIA_NODE_ID} ${MEDIA_HOOK_HOST} ${MEDIA_HOOK_PORT} ${MEDIA_HOOK_PATH_PREFIX} ${ZLM_SECRET} ${ZLM_HTTP_PORT} ${ZLM_RTMP_PORT} ${ZLM_RTSP_PORT} ${ZLM_RTP_PORT_MIN} ${ZLM_RTP_PORT_MAX} ${ZLM_RTC_PORT} ${ZLM_RTC_EXTERN_IP}' \
+  envsubst '${MEDIA_NODE_ID} ${MEDIA_HOOK_HOST} ${MEDIA_HOOK_PORT} ${MEDIA_HOOK_PATH_PREFIX} ${YFEIEYE_SRS_HOOK_TOKEN} ${ZLM_SECRET} ${ZLM_HTTP_PORT} ${ZLM_RTMP_PORT} ${ZLM_RTSP_PORT} ${ZLM_RTP_PORT_MIN} ${ZLM_RTP_PORT_MAX} ${ZLM_RTC_PORT} ${ZLM_RTC_EXTERN_IP}' \
     < "${MEDIA_CLUSTER_ROOT}/zlm/config.ini.template" \
     > "${out}"
+  chmod 600 "${out}"
   print_ok "ZLM 配置已生成"
 }
 
 deploy_srs() {
   assert_not_running "SRS" srs_healthy
-  if srs_healthy; then
+  render_srs_config
+  if srs_healthy && [[ "${SRS_CONFIG_CHANGED}" -eq 0 ]]; then
     print_skip "SRS 已在运行（API ${SRS_API_PORT} 可访问），跳过部署"
     return 0
   fi
-  render_srs_config
-  print_step "启动 SRS 容器"
-  export MEDIA_NODE_ID="${MEDIA_NODE_NAME}-srs"
+  export MEDIA_NODE_ID="${MEDIA_NODE_NAME}"
   export ZLM_HTTP_PORT
-  compose_up srs
+  if srs_healthy; then
+    print_step "SRS 配置已更新，重建容器以使新配置生效"
+    compose_force_recreate srs
+  else
+    print_step "启动 SRS 容器"
+    compose_up srs
+  fi
   local i=0
   while [[ $i -lt 30 ]]; do
     if srs_healthy; then
@@ -271,7 +324,7 @@ deploy_zlm() {
   fi
   render_zlm_config
   print_step "启动 ZLMediaKit 容器"
-  export MEDIA_NODE_ID="${MEDIA_NODE_NAME}-zlm"
+  export MEDIA_NODE_ID="${MEDIA_NODE_NAME}"
   export ZLM_HTTP_PORT
   compose_up zlm
   local i=0
@@ -289,7 +342,9 @@ deploy_zlm() {
 
 main() {
   echo "========================================"
-  echo " EasyAIoT 媒体栈部署 — ${MEDIA_NODE_NAME} @ ${MEDIA_NODE_HOST}"
+  validate_hook_token
+  validate_zlm_secret
+  echo " yFeiEye 媒体栈部署 — ${MEDIA_NODE_NAME} @ ${MEDIA_NODE_HOST}"
   echo "========================================"
   if [[ -n "${MEDIA_RENDER_CONFIGS_ONLY:-}" ]]; then
     render_srs_config

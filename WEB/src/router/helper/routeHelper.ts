@@ -5,6 +5,7 @@ import { EXCEPTION_COMPONENT, LAYOUT, getParentLayout } from '@/router/constant'
 import type { AppRouteModule, AppRouteRecordRaw } from '@/router/types'
 import { warn } from '@/utils/log'
 import { isHttpUrl } from '@/utils/is'
+import { normalizeViewComponentPath, resolveViewComponentPath } from './routeComponentPath'
 
 export type LayoutMapKey = 'LAYOUT'
 const IFRAME = () => import('@/views/base/iframe/FrameBlank.vue')
@@ -51,13 +52,10 @@ function asyncImportRoute(routes: AppRouteRecordRaw[] | undefined) {
 
 function dynamicImport(dynamicViewsModules: Record<string, () => Promise<Recordable>>, component: string) {
   const keys = Object.keys(dynamicViewsModules)
+  const normalizedComponent = resolveViewComponentPath(component)
   const matchKeys = keys.filter((key) => {
     const k = key.replace('../../views', '')
-    const startFlag = component.startsWith('/')
-    const endFlag = component.endsWith('.vue') || component.endsWith('.tsx')
-    const startIndex = startFlag ? 0 : 1
-    const lastIndex = endFlag ? k.length : k.lastIndexOf('.')
-    return k.substring(startIndex, lastIndex) === component
+    return normalizeViewComponentPath(k) === normalizedComponent
   })
   if (matchKeys?.length === 1) {
     const matchKey = matchKeys[0]

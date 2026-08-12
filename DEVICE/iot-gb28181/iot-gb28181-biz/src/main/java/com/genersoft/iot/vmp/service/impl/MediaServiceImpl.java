@@ -6,9 +6,11 @@ import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.session.SipInviteSessionManager;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
@@ -59,6 +61,9 @@ public class MediaServiceImpl implements IMediaService {
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
+    private IGbChannelService channelService;
+
+    @Autowired
     private SipInviteSessionManager sessionManager;
 
     @Autowired
@@ -88,6 +93,13 @@ public class MediaServiceImpl implements IMediaService {
         // 推流鉴权的处理
         if (!"rtp".equals(app)) {
             if ("talk".equals(app) && stream.endsWith("_talk")) {
+                ResultForOnPublish result = new ResultForOnPublish();
+                result.setEnable_mp4(false);
+                result.setEnable_audio(true);
+                return result;
+            }
+            if ("broadcast".equals(app) || "talk".equals(app)) {
+                authenticateAudioBroadcast(app, stream, params);
                 ResultForOnPublish result = new ResultForOnPublish();
                 result.setEnable_mp4(false);
                 result.setEnable_audio(true);
@@ -225,6 +237,35 @@ public class MediaServiceImpl implements IMediaService {
             result.setEnable_mp4(false);
         }
         return result;
+    }
+
+    private void authenticateAudioBroadcast(String app, String stream, String params) {
+        Map<String, String> paramMap = MediaServerUtils.urlParamToMap(params);
+        String token = paramMap.get("callId");
+        if (token == null || !redisCatchStorage.consumeAudioBroadcastAuthority(app, stream, token)) {
+            throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
+        }
+
+        int separator = stream.indexOf('_');
+        if (separator <= 0 || separator == stream.length() - 1 || stream.indexOf('_', separator + 1) >= 0) {
+            throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
+        }
+        String deviceId = stream.substring(0, separator);
+        String channelId = stream.substring(separator + 1);
+
+        DeviceChannel deviceChannel;
+        try {
+            deviceChannel = deviceChannelService.getOne(deviceId, channelId);
+        } catch (ControllerException exception) {
+            throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
+        }
+        if (deviceChannel == null) {
+            throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
+        }
+        CommonGBChannel commonChannel = channelService.queryCommonChannelByDeviceChannel(deviceChannel);
+        if (commonChannel == null || Integer.valueOf(0).equals(commonChannel.getEnableBroadcast())) {
+            throw new ControllerException(ErrorCode.ERROR401.getCode(), "Unauthorized");
+        }
     }
 
     @Override

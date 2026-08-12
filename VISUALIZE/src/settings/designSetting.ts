@@ -6,7 +6,7 @@ import designColor from './designColor.json'
 export const lang = LangEnum.ZH
 
 // 水印文字
-export const watermarkText = "EasyAIoT"
+export const watermarkText = "yFeiEye"
 
 // 分组名称
 export const groupTitle = "分组"

@@ -41,6 +41,13 @@
               </div>
             </div>
           </TabPane>
+          <TabPane key="rtmp_push" tab="RTMP 公网推流">
+            <div class="dc-pane">
+              <div class="dc-body">
+                <RtmpIngestPanel class="panel-host" @success="handlePanelSuccess" />
+              </div>
+            </div>
+          </TabPane>
         </Tabs>
       </TabPane>
 
@@ -100,6 +107,7 @@ import {
 import OnvifScanPanel from './panels/OnvifScanPanel.vue';
 import SegmentScanPanel from './panels/SegmentScanPanel.vue';
 import DirectRtspPanel from './panels/DirectRtspPanel.vue';
+import RtmpIngestPanel from './panels/RtmpIngestPanel.vue';
 import NvrManualPanel from './panels/NvrManualPanel.vue';
 import Gb28181AccessPanel from './panels/Gb28181AccessPanel.vue';
 import RtcPlatformPanel from './panels/RtcPlatformPanel.vue';

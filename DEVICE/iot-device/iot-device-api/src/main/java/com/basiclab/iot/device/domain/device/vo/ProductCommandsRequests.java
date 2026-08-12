@@ -9,16 +9,14 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 /**
  * 产品模型设备下发服务命令属性表
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @ApiModel(value = "产品模型设备下发服务命令属性表")
 @Data

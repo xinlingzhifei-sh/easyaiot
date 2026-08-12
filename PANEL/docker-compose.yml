@@ -1,4 +1,4 @@
-# EasyAIoT PANEL（独立控制台，不依赖 WEB）
+# yFeiEye PANEL（独立控制台，不依赖 WEB）
 # 构建上下文为 PANEL/ 目录；宿主机仓库根通过 volume 挂到 /easyaiot
 
 services:

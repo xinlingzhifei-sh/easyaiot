@@ -51,7 +51,7 @@
 </template>
 <script lang="ts" setup>
   import { Select } from 'ant-design-vue';
-  import { ref, nextTick, watch, watchEffect, defineProps } from 'vue';
+  import { ref, nextTick, watch, watchEffect, defineProps, PropType } from 'vue';
   import { BasicTable, useTable, TableAction, BasicColumn, FormProps } from '@/components/Table';
   import {
     getAttribute,
@@ -194,6 +194,11 @@
   };
   const checkedKeys = ref<Array<string | number>>([]);
 
+  type ScopeOption = {
+    label: string;
+    value: string;
+  };
+
   const props = defineProps({
     id: { type: String, default: '' },
     info: { type: Object },
@@ -202,7 +207,7 @@
       default: 'RULE_CHAIN',
     },
     scopeList: {
-      type: Array,
+      type: Array as PropType<ScopeOption[]>,
       default: () => {
         return [
           { label: '客户端属性', value: 'CLIENT_SCOPE' },
@@ -249,7 +254,7 @@
   const [registerTable, { reload }] = useTable({
     title: tableTitle,
     api: getAttribute,
-    beforeFetch: (data) => {
+    beforeFetch: (_data) => {
       // 接口请求前 参数处理
       //console.log('-------', data, props);
       let params = {
@@ -260,10 +265,10 @@
 
       return params;
     },
-    afterFetch: (data) => {
+    afterFetch: (data: any[]) => {
       //请求之后对返回值进行处理
       //console.log('-------！', data);
-      let list = data.map((res, index) => {
+      let list = data.map((res: any, index) => {
         let newDate = new Date(res.lastUpdateTs);
         res.id = index;
         res.lastUpdateTs = moment(newDate)?.format?.('YYYY-MM-DD HH:mm:ss') ?? res.lastUpdateTs;
@@ -286,7 +291,7 @@
     },
     rowSelection: {
       type: 'checkbox',
-      selectedRowKeys: checkedKeys,
+      selectedRowKeys: checkedKeys as any,
       onSelect: onSelect,
       onSelectAll: onSelectAll,
     },

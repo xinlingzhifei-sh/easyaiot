@@ -13,7 +13,7 @@
       <n-list-item>
         <n-space class="go-my-2" :size="20">
           <n-text class="item-left">产品名称：</n-text>
-          <n-text>EasyAIoT</n-text>
+          <n-text>yFeiEye</n-text>
         </n-space>
       </n-list-item>
 

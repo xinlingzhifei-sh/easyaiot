@@ -25,7 +25,7 @@
 #
 # 可用环境变量覆盖默认值：
 #   PG_CONTAINER（默认 postgres-server） PG_USER（postgres）
-#   PG_PASSWORD（iot45722414822）        PG_PORT（5432）
+#   PG_PASSWORD（必填，由环境变量提供）        PG_PORT（5432）
 #   SQL_DIR（目标 *10.sql 所在目录，默认脚本上一级 .scripts/postgresql/）
 #   PG_NETWORK（默认共享 postgres 容器网络命名空间 container:<容器>；设为某 bridge 网络名则改走该网络）
 #   PG_DB_HOST（默认 127.0.0.1；显式指定 PG_NETWORK 时默认用容器名）
@@ -51,7 +51,7 @@ SQL_DIR="${SQL_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 # ---- 配置（可用环境变量覆盖）----
 CONTAINER="${PG_CONTAINER:-postgres-server}"
 PG_USER="${PG_USER:-postgres}"
-PG_PASSWORD="${PG_PASSWORD:-iot45722414822}"
+PG_PASSWORD="${PG_PASSWORD:-}"
 PG_PORT="${PG_PORT:-5432}"
 # 默认：用 Docker 官方镜像 python:3.11-slim 现场 pip 自建 migra（migra 无官方预构建镜像）
 # 想改用某个现成镜像：MIGRA_BUILD_LOCAL=false MIGRA_IMAGE=<你的migra镜像> ./sync_schema_migra.sh
@@ -77,6 +77,11 @@ print_section() {
     echo -e "${YELLOW}========================================${NC}"
     echo ""
 }
+
+if [ -z "$PG_PASSWORD" ]; then
+    print_error "必须通过 PG_PASSWORD 环境变量提供 PostgreSQL 密码"
+    exit 1
+fi
 
 # 命名规约：<名字>10.sql  <->  数据库 <名字>20
 # （iot-device10.sql <-> iot-device20，iot-gb2818110.sql <-> iot-gb2818120）

@@ -13,18 +13,23 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendRespVO;
 import com.basiclab.iot.common.core.aop.TenantIgnore;
 import com.basiclab.iot.node.domain.vo.PlatformAgentBootstrapRespVO;
 import com.basiclab.iot.node.domain.vo.PlatformHostRespVO;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ComputeNodeService;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+
 import static com.basiclab.iot.common.domain.CommonResult.success;
+import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
+import static com.basiclab.iot.node.enums.ErrorCodeConstants.PLATFORM_BOOTSTRAP_TOKEN_INVALID;
 
 @Tag(name = "管理后台 - 服务器节点")
 @RestController
@@ -37,6 +42,8 @@ public class ComputeNodeController {
     private ComputeNodeService computeNodeService;
     @Resource
     private ControlPlaneEndpointResolver controlPlaneEndpointResolver;
+    @Value("${easyaiot.agent.platform-bootstrap-token:}")
+    private String platformAgentBootstrapToken;
 
     @PostMapping("/create")
     @Operation(summary = "创建服务器节点")
@@ -102,7 +109,9 @@ public class ComputeNodeController {
     @GetMapping("/platform-host")
     @Operation(summary = "获取平台宿主机 IP（供 Agent 平台接入地址自动填充）")
     public CommonResult<PlatformHostRespVO> getPlatformHost() {
+        PlatformAgentBootstrapRespVO bootstrap = computeNodeService.getPlatformAgentBootstrap();
         return success(new PlatformHostRespVO(
+                bootstrap.getNodeId(),
                 controlPlaneEndpointResolver.resolveHookHost(),
                 controlPlaneEndpointResolver.resolveHookPort()));
     }
@@ -110,7 +119,11 @@ public class ComputeNodeController {
     @GetMapping("/platform-agent-bootstrap")
     @Operation(summary = "获取控制面宿主机 Agent 启动凭据（供宿主机自动拉起 Agent）")
     @TenantIgnore
-    public CommonResult<PlatformAgentBootstrapRespVO> getPlatformAgentBootstrap() {
+    public CommonResult<PlatformAgentBootstrapRespVO> getPlatformAgentBootstrap(
+            @RequestHeader(value = "X-Bootstrap-Token", required = false) String bootstrapToken) {
+        if (!NodeTokenVerifier.matches(platformAgentBootstrapToken, bootstrapToken)) {
+            throw exception(PLATFORM_BOOTSTRAP_TOKEN_INVALID);
+        }
         return success(computeNodeService.getPlatformAgentBootstrap());
     }
 

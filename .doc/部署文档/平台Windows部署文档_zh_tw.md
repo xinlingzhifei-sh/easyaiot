@@ -1,4 +1,4 @@
-# EasyAIoT 平台 Windows 本地部署指南
+# yFeiEye 平台 Windows 本地部署指南
 
 > 文檔版本：2.1  
 > 更新日期：2026-08-01  
@@ -139,7 +139,7 @@ bash .scripts/docker/install_windows.sh install
 
 ### 1.1 項目簡介
 
-EasyAIoT 是一個物聯網+AI視頻分析平台，支持攝像頭接入、視頻流轉發、AI算法分析等功能。
+yFeiEye 是一個物聯網+AI視頻分析平台，支持攝像頭接入、視頻流轉發、AI算法分析等功能。
 
 ### 1.2 系統架構
 
@@ -224,8 +224,8 @@ npm -v
 
 創建虛擬環境：
 ```powershell
-conda create -n easyaiot python=3.10
-conda activate easyaiot
+conda create -n yfeieye python=3.10
+conda activate yfeieye
 ```
 
 #### 2.2.4 FFmpeg
@@ -252,7 +252,7 @@ G:\ffmpeg-7.0.2-essentials_build\
 
 本文檔假設項目路徑為：
 ```
-F:\EASYLOT\easyaiot-V4.0.0\
+F:\EASYLOT\yfeieye-V4.0.0\
 ```
 
 中間件安裝路徑：
@@ -274,7 +274,7 @@ F:\EASYLOT\TDengine\  ####自行下載
 - 版本：16.x
 - 端口：5432
 - 用戶名：postgres
-- 密碼：`iot45722414822`
+- 密碼：`<POSTGRES_PASSWORD>`
 
 #### 啟動命令
 ```powershell
@@ -287,14 +287,14 @@ net start postgresql-x64-16
 
 #### 創建數據庫
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-system\";"
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-video20\";"
 ```
 
 #### 驗證連接
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
 ```
 
@@ -304,7 +304,7 @@ $env:PGPASSWORD='iot45722414822'
 #### 安裝信息
 - 版本：7.x
 - 端口：6379
-- 密碼：`basiclab@iot975248395`
+- 密碼：`<REDIS_OR_MINIO_PASSWORD>`
 
 #### 啟動命令
 ```powershell
@@ -315,7 +315,7 @@ cd F:\EASYLOT\Redis
 #### 驗證連接
 ```powershell
 cd F:\EASYLOT\Redis
-.\redis-cli.exe -a "basiclab@iot975248395" ping
+.\redis-cli.exe -a "<REDIS_OR_MINIO_PASSWORD>" ping
 # 應返回 PONG
 ```
 
@@ -326,7 +326,7 @@ cd F:\EASYLOT\Redis
 - 版本：2.x
 - 端口：8848
 - 用戶名：nacos
-- 密碼：`basiclab@iot78475418754`
+- 密碼：`<NACOS_PASSWORD>`
 - 命名空間：local
 
 #### 啟動命令
@@ -353,7 +353,7 @@ http://localhost:8848/nacos
 - API端口：9000
 - 控制台端口：9001
 - 用戶名：minioadmin
-- 密碼：`basiclab@iot975248395`
+- 密碼：`<REDIS_OR_MINIO_PASSWORD>`
 
 #### 啟動命令
 ```powershell
@@ -456,7 +456,7 @@ docker run -d --name srs-server `
   -p 8080:8080 `
   -p 1985:1985 `
   -p 8000:8000/udp `
-  -v "F:\EASYLOT\easyaiot-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
+  -v "F:\EASYLOT\yfeieye-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
   ossrs/srs:5 ./objs/srs -c conf/docker.conf
 ```
 
@@ -504,20 +504,20 @@ DEVICE 目錄下有多個 Spring Boot 微服務，需要分別啟動。
 
 #### 4.2.1 啟動網關服務
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-gateway
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-gateway
 mvn spring-boot:run
 # 或者使用 IDE 啟動
 ```
 
 #### 4.2.2 啟動系統服務
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-system\iot-system-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-system\iot-system-biz
 mvn spring-boot:run
 ```
 
 #### 4.2.3 啟動基礎設施服務
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-infra\iot-infra-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-infra\iot-infra-biz
 mvn spring-boot:run
 ```
 
@@ -531,8 +531,8 @@ mvn spring-boot:run
 
 #### 4.3.1 安裝依賴
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
@@ -541,18 +541,18 @@ pip install -r requirements.txt
 編輯 `VIDEO/.env` 文件，確保以下配置正確：
 ```properties
 # 數據庫
-DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/iot-video20
 
 # Nacos
 NACOS_SERVER=localhost:8848
 NACOS_NAMESPACE=local
 NACOS_USERNAME=nacos
-NACOS_PASSWORD=basiclab@iot78475418754
+NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # MinIO
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=basiclab@iot975248395
+MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # FFmpeg 路徑（Windows 必須配置完整路徑）
 FFMPEG_PATH=G:/ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe
@@ -563,8 +563,8 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 
 #### 4.3.3 啟動服務
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 ```
 
@@ -575,15 +575,15 @@ python run.py
 
 #### 4.4.1 安裝依賴
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
 #### 4.4.2 啟動服務
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 ```
 
@@ -594,7 +594,7 @@ python run.py
 
 #### 4.5.1 安裝依賴
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm install
 # 或者使用 pnpm
 pnpm install
@@ -602,7 +602,7 @@ pnpm install
 
 #### 4.5.2 啟動開發服務器
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -700,7 +700,7 @@ http_stream = f"http://127.0.0.1:8080/live/{short_stream_name}.flv"
 
 #### 手動修復已有數據
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20" -c "UPDATE device SET rtmp_stream = 'rtmp://127.0.0.1:1935/live/cam_' || SUBSTRING(id, 1, 8), http_stream = 'http://127.0.0.1:8080/live/cam_' || SUBSTRING(id, 1, 8) || '.flv';"
 ```
 
@@ -800,7 +800,7 @@ VIDEO 服務啟動時報數據庫連接錯誤。
 #### 排查步驟
 1. 確認 PostgreSQL 服務已啟動：
    ```powershell
-   $env:PGPASSWORD='iot45722414822'
+   $env:PGPASSWORD='<POSTGRES_PASSWORD>'
    & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
    ```
 
@@ -845,7 +845,7 @@ VIDEO 服務啟動時報數據庫連接錯誤。
 
 ```powershell
 # 設置密碼環境變量
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 
 # 連接數據庫
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20"
@@ -907,17 +907,17 @@ Invoke-RestMethod -Uri "http://127.0.0.1:1985/api/v1/versions"
 
 ```powershell
 # VIDEO 服務
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 
 # AI 服務
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 
 # WEB 前端
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -950,10 +950,10 @@ npm run dev
 
 | 服務 | 用戶名 | 密碼 |
 |------|--------|------|
-| PostgreSQL | postgres | iot45722414822 |
-| Redis | - | basiclab@iot975248395 |
-| Nacos | nacos | basiclab@iot78475418754 |
-| MinIO | minioadmin | basiclab@iot975248395 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> |
+| Redis | - | <REDIS_OR_MINIO_PASSWORD> |
+| Nacos | nacos | <NACOS_PASSWORD> |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | WEB 前端 | admin | admin123 |
 | 測試攝像頭 | admin | sr336699 |

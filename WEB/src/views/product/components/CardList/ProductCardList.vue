@@ -82,7 +82,6 @@ import PRODUCT_NORMAL from "@/assets/images/product/product_normal.png";
 import PRODUCT_GATEWAY from "@/assets/images/product/product_gateway.png";
 import PRODUCT_SUB from "@/assets/images/product/product_sub.png";
 import PRODUCT_VIDEO from "@/assets/images/product/product_video.png";
-import {useMessage} from "@/hooks/web/useMessage";
 
 const ListItem = List.Item;
 
@@ -93,8 +92,6 @@ const props = defineProps({
   //api
   api: propTypes.func,
 });
-const { createMessage } = useMessage();
-
 //暴露内部方法
 const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
 

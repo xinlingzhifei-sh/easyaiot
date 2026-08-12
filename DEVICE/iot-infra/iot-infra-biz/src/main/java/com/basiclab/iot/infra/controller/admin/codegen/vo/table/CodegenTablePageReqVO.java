@@ -14,9 +14,8 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * CodegenTablePageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Schema(description = "管理后台 - 表定义分页 Request VO")
@@ -28,7 +27,7 @@ public class CodegenTablePageReqVO extends PageParam {
     @Schema(description = "表名称，模糊匹配", example = "Yudao")
     private String tableName;
 
-    @Schema(description = "表描述，模糊匹配", example = "BasicLab")
+    @Schema(description = "表描述，模糊匹配", example = "yFeiEye")
     private String tableComment;
 
     @Schema(description = "实体，模糊匹配", example = "Yudao")

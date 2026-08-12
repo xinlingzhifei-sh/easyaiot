@@ -183,12 +183,12 @@ check_compose_file() {
 # 检查并创建 Docker 网络
 check_network() {
     print_info "检查 Docker 网络..."
-    if docker network ls --format "{{.Name}}" | grep -q "^easyaiot-network$"; then
-        print_success "网络 easyaiot-network 已存在"
+    if docker network ls --format "{{.Name}}" | grep -q "^yfeieye-network$"; then
+        print_success "网络 yfeieye-network 已存在"
     else
-        print_warning "网络 easyaiot-network 不存在，正在创建..."
-        if docker network create easyaiot-network &> /dev/null; then
-            print_success "网络 easyaiot-network 创建成功"
+        print_warning "网络 yfeieye-network 不存在，正在创建..."
+        if docker network create yfeieye-network &> /dev/null; then
+            print_success "网络 yfeieye-network 创建成功"
         else
             print_error "网络创建失败"
             exit 1

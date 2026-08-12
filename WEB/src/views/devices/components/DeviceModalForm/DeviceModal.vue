@@ -457,6 +457,7 @@ import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 import {
   Alert, Col, Divider, Form, FormItem, Input, InputNumber, Row, Select, Spin, Switch, Textarea, Tooltip,
 } from 'ant-design-vue';
+import type { SelectValue } from 'ant-design-vue/es/select';
 import { Button } from '@/components/Button';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getDeviceProfiles } from '@/api/device/product';
@@ -602,7 +603,8 @@ function resolvePointPropertyCode(point?: { propertyCode?: string; identifier?: 
   return String(point?.propertyCode || point?.identifier || '').trim();
 }
 
-function handlePointPropertyBind(point: any, code: string) {
+function handlePointPropertyBind(point: any, value: SelectValue) {
+  const code = typeof value === 'string' ? value : '';
   const previous = String(point._lastBoundPropertyCode || '').trim();
   point.propertyCode = code;
   if (!point.identifier || point.identifier === previous) {

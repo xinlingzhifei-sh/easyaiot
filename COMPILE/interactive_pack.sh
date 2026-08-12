@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT COMPILE 交互式打包管理脚本
+# yFeiEye COMPILE 交互式打包管理脚本
 #
 # 用法：
 #   cd easyaiot && bash COMPILE/interactive_pack.sh
@@ -177,7 +177,7 @@ run_macos_flow() {
   echo "产物目录：${dist_dir}"
   ls -lh "${dist_dir}/easyaiot-panel" 2>/dev/null || true
   ls -ld "${dist_dir}/runtime" 2>/dev/null || true
-  ls -ld "${dist_dir}/EasyAIoT Panel.app" 2>/dev/null || true
+  ls -ld "${dist_dir}/yFeiEye Panel.app" 2>/dev/null || true
   ls -lh "${dist_dir}"/easyaiot-panel-*.dmg 2>/dev/null || true
   echo "macOS 打包完成。图标为圆形白底（与 Linux 一致）。"
 }

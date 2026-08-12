@@ -7822,7 +7822,8 @@ var ZLMRTCClient = (function (exports) {
 	        w: 0,
 	        h: 0
 	      },
-	      usedatachannel: false
+	      usedatachannel: false,
+	      pcConfig: null
 	    };
 	    this.options = Object.assign({}, defaults, options);
 	    if (this.options.debug) {
@@ -7841,7 +7842,7 @@ var ZLMRTCClient = (function (exports) {
 	    this._remoteStream = null;
 	    this._localStream = null;
 	    this._tracks = [];
-	    this.pc = new RTCPeerConnection(null);
+	    this.pc = new RTCPeerConnection(this.options.pcConfig || null);
 	    this.pc.onicecandidate = this.e.onicecandidate;
 	    this.pc.onicecandidateerror = this.e.onicecandidateerror;
 	    this.pc.ontrack = this.e.ontrack;

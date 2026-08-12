@@ -1,5 +1,5 @@
 [Unit]
-Description=EasyAIoT PANEL ops console
+Description=yFeiEye PANEL ops console
 After=network-online.target
 Wants=network-online.target
 

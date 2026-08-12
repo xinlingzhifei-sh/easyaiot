@@ -158,7 +158,7 @@ const classificationData = computed(() => {
   return Object.entries(props.record.classification_results)
     .map(([className, confidence]) => ({
       class: className,
-      confidence: parseFloat(confidence)
+      confidence: parseFloat(String(confidence))
     }))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, 5);
@@ -222,7 +222,7 @@ const getFileExtension = (path: string) => {
 };
 
 // 监听记录变化
-watch(() => props.record, (newRecord) => {
+watch(() => props.record, (_newRecord) => {
   // 可以在这里添加其他监听逻辑
 }, { immediate: true });
 </script>

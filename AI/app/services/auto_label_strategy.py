@@ -168,6 +168,22 @@ def get_counters(task) -> dict[str, int]:
     }
 
 
+def _require_completed_train_artifact(model, source_label: str) -> tuple[str, str]:
+    from db_models import TrainTask
+
+    if not model or not model.model_path:
+        raise ValueError(f'{source_label}没有训练权重')
+    backing_task = TrainTask.query.filter(
+        TrainTask.minio_model_path == model.model_path,
+        TrainTask.status == 'completed',
+    ).first()
+    if not backing_task:
+        raise ValueError(
+            f'{source_label}不是平台已完成训练任务生成的权重，拒绝加载 .pt'
+        )
+    return model.model_path, source_label
+
+
 def resolve_train_pretrained_path(strategy: dict, *, current_model_id: int | None, round_no: int) -> tuple[str | None, str]:
     """
     解析训练用的预训练权重。
@@ -178,7 +194,10 @@ def resolve_train_pretrained_path(strategy: dict, *, current_model_id: int | Non
     if round_no > 1 and current_model_id:
         m = Model.query.get(int(current_model_id))
         if m and m.model_path:
-            return m.model_path, f'迭代模型 model_id={current_model_id}'
+            return _require_completed_train_artifact(
+                m,
+                f'迭代模型 model_id={current_model_id}',
+            )
 
     for key, label in (
         ('pretrain_model_id', '微调基座'),
@@ -192,7 +211,7 @@ def resolve_train_pretrained_path(strategy: dict, *, current_model_id: int | Non
             continue
         m = Model.query.get(mid)
         if m and m.model_path:
-            return m.model_path, f'{label} model_id={mid}'
+            return _require_completed_train_artifact(m, f'{label} model_id={mid}')
 
     arch = resolve_model_arch_path(strategy.get('model_arch'))
     display = strategy.get('model_arch') or DEFAULT_MODEL_ARCH

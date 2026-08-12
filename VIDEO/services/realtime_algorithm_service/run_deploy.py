@@ -4,9 +4,8 @@
 整合缓流器、抽帧器、推帧器功能，支持追踪和告警
 参照test_services_pipeline.py和test_services_pipeline_tracking.py
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -50,8 +49,12 @@ import app.utils.nvidia_lib_path  # noqa: F401  须在 import onnxruntime 之前
 
 # 导入VIDEO模块的模型
 from models import db, AlgorithmTask, Device
-from app.utils.gb28181_source import resolve_gb28181_alternate_pull_url, resolve_gb28181_source
-from app.services.camera_service import resolve_device_ai_rtmp_stream
+from app.utils.gb28181_source import (
+    prefer_hevc_http_ts_for_ffmpeg,
+    resolve_gb28181_alternate_pull_url,
+    resolve_gb28181_source,
+)
+from app.services.camera_service import gb28181_device_stream_urls, resolve_device_ai_rtmp_stream
 from app.utils.alert_images_paths import resolve_alert_images_root
 from app.utils.decode.stream_adapter import is_async_stream, open_device_stream, stream_mode_label
 from app.utils.onnx_inference import ONNXInference
@@ -63,9 +66,15 @@ except ModuleNotFoundError as exc:
     # VIDEO Python 算法服务公共运行库。
     from lib.utf8_detection_label import draw_detection_label
 from app.utils.algo_model_detect import (
+    allowed_classes_include_person,
+    dedupe_detections_by_iou,
+    filter_person_like_detections,
     is_end2end_ultralytics_model,
     is_yolo26_model,
+    prefer_loaded_person_classes,
+    resolve_model_allowed_class_names,
     run_model_detection,
+    run_tiled_model_detection,
     warmup_model_detection,
 )
 from app.utils.face_capture_queue_service import (
@@ -407,11 +416,18 @@ stop_event = threading.Event()
 task_config = None
 yolo_models = {}
 yolo_model_devices = {}  # {model_id: 'cpu' | 'cuda:N'}
+yolo_model_allowed_classes = {}  # {model_id: set[str] | None}
 yolo_model_meta = {}  # {model_id: {'yolo26': bool, 'end2end': bool, 'path': str}}
 # 为每个摄像头创建独立的追踪器
 trackers = {}  # {device_id: SimpleTracker}
 # 为每个摄像头创建独立的帧索引计数器
 frame_counts = {}  # {device_id: int}
+_MAX_HEARTBEAT_COUNTER = 2_147_483_647
+_heartbeat_stats_lock = threading.Lock()
+_heartbeat_stats_initialized = False
+_heartbeat_total_frames_base = 0
+_heartbeat_total_detections_base = 0
+_heartbeat_session_detections = 0
 # 双检测队列：overlay（主画面叠框）与 alert（告警）完全分离
 overlay_detection_queues = {}  # {device_id: queue.Queue}
 alert_detection_queues = {}  # {device_id: queue.Queue}
@@ -422,7 +438,7 @@ device_caps = {}  # {device_id: FfmpegVideoStream | AsyncVideoStream | cv2.Video
 # 摄像头推送进程（FFmpeg进程）
 device_pushers = {}  # {device_id: subprocess.Popen}
 # 固定速率推帧线程：将推帧从主循环解耦，确保匀速推流
-device_output_frames = {}  # {device_id: {'frame': np.ndarray, 'w': int, 'h': int} or None}
+device_output_frames = {}  # {device_id: {'frame': np.ndarray, 'w': int, 'h': int, 'updated_at': float} or None}
 device_output_locks = {}  # {device_id: threading.Lock()}
 device_push_threads = {}  # {device_id: threading.Thread}
 device_push_running = {}  # {device_id: threading.Event()}
@@ -444,6 +460,57 @@ _sam_client = None
 device_latest_overlay_locks = {}  # {device_id: threading.Lock()}
 
 
+def _initialize_heartbeat_statistics(task) -> None:
+    """仅在进程启动时读取一次持久化基线，避免热更新后重复累加。"""
+    global _heartbeat_stats_initialized
+    global _heartbeat_total_frames_base, _heartbeat_total_detections_base
+
+    with _heartbeat_stats_lock:
+        if _heartbeat_stats_initialized:
+            return
+        try:
+            _heartbeat_total_frames_base = max(0, int(getattr(task, 'total_frames', 0) or 0))
+        except (TypeError, ValueError):
+            _heartbeat_total_frames_base = 0
+        try:
+            _heartbeat_total_detections_base = max(0, int(getattr(task, 'total_detections', 0) or 0))
+        except (TypeError, ValueError):
+            _heartbeat_total_detections_base = 0
+        _heartbeat_stats_initialized = True
+
+
+def _record_realtime_detections(detections) -> None:
+    """累计 Overlay 检测的新目标数；告警队列不重复计数。"""
+    global _heartbeat_session_detections
+
+    fresh_count = sum(1 for item in detections if not item.get('is_cached'))
+    if fresh_count <= 0:
+        return
+    with _heartbeat_stats_lock:
+        _heartbeat_session_detections = min(
+            _MAX_HEARTBEAT_COUNTER,
+            _heartbeat_session_detections + fresh_count,
+        )
+
+
+def _heartbeat_statistics() -> dict:
+    session_frames = sum(
+        max(0, int(value or 0))
+        for value in list(frame_counts.values())
+    )
+    with _heartbeat_stats_lock:
+        return {
+            'total_frames': min(
+                _MAX_HEARTBEAT_COUNTER,
+                _heartbeat_total_frames_base + session_frames,
+            ),
+            'total_detections': min(
+                _MAX_HEARTBEAT_COUNTER,
+                _heartbeat_total_detections_base + _heartbeat_session_detections,
+            ),
+        }
+
+
 def _alert_event_suppress_seconds() -> float:
     """从任务配置读取告警事件抑制间隔（秒），减轻 hook/Kafka 压力。"""
     if task_config is None:
@@ -460,7 +527,10 @@ def _alert_event_suppress_seconds() -> float:
 # 观感推流帧率（与 AI 抽帧完全解耦）：默认 25fps
 AI_OUTPUT_FPS = int(os.getenv(
     'AI_OUTPUT_FPS',
-    os.getenv('AI_SOURCE_FPS', os.getenv('VIEW_OUTPUT_FPS', os.getenv('VIEW_SOURCE_FPS', '25'))),
+    os.getenv(
+        'AI_SOURCE_FPS',
+        os.getenv('VIEW_OUTPUT_FPS', os.getenv('VIEW_SOURCE_FPS', os.getenv('SOURCE_FPS', '25'))),
+    ),
 ))
 TARGET_WIDTH = int(os.getenv('AI_TARGET_WIDTH', os.getenv('VIEW_TARGET_WIDTH', os.getenv('TARGET_WIDTH', '1280'))))
 TARGET_HEIGHT = int(os.getenv('AI_TARGET_HEIGHT', os.getenv('VIEW_TARGET_HEIGHT', os.getenv('TARGET_HEIGHT', '720'))))
@@ -469,8 +539,8 @@ TARGET_RESOLUTION = (TARGET_WIDTH, TARGET_HEIGHT)
 EXTRACT_INTERVAL = int(os.getenv('EXTRACT_INTERVAL', '12'))
 # 运行时任务级抽帧间隔（load_task_config 后覆盖环境变量默认值）
 _runtime_extract_interval = EXTRACT_INTERVAL
-# overlay 叠框专用抽帧间隔（与告警/任务 DB extract_interval 解耦，默认每 5 帧检测一次）
-OVERLAY_EXTRACT_INTERVAL = int(os.getenv('OVERLAY_EXTRACT_INTERVAL', '5'))
+# overlay 显式配置优先；未配置时跟随任务 DB extract_interval，避免 CPU 多模型过载
+OVERLAY_EXTRACT_INTERVAL = int(os.getenv('OVERLAY_EXTRACT_INTERVAL', str(EXTRACT_INTERVAL)))
 _runtime_overlay_extract_interval = OVERLAY_EXTRACT_INTERVAL
 _runtime_alert_extract_interval = int(
     os.getenv('ALERT_EXTRACT_INTERVAL', str(max(EXTRACT_INTERVAL * 2, EXTRACT_INTERVAL)))
@@ -621,6 +691,16 @@ def _resolve_worker_thread_count(
 ALERT_EXTRACT_INTERVAL = int(os.getenv('ALERT_EXTRACT_INTERVAL', str(max(EXTRACT_INTERVAL * 2, EXTRACT_INTERVAL))))
 # 主画面 overlay 推理分辨率（默认同 YOLO_IMG_SIZE，可单独调低以提速）
 OVERLAY_YOLO_IMG_SIZE = int(os.getenv('OVERLAY_YOLO_IMG_SIZE', os.getenv('YOLO_IMG_SIZE', '640')))
+PERSON_TILED_DETECTION_ENABLED = os.getenv('PERSON_TILED_DETECTION_ENABLED', 'true').strip().lower() in ('1', 'true', 'yes', 'on')
+PERSON_TILE_COLUMNS = int(os.getenv('PERSON_TILE_COLUMNS', '3'))
+PERSON_TILE_ROWS = int(os.getenv('PERSON_TILE_ROWS', '2'))
+PERSON_TILE_OVERLAP = float(os.getenv('PERSON_TILE_OVERLAP', '0.20'))
+PERSON_TILE_CONF_THRESHOLD = float(os.getenv('PERSON_TILE_CONF_THRESHOLD', '0.18'))
+PERSON_MIN_CONFIDENCE = float(os.getenv('PERSON_MIN_CONFIDENCE', '0.18'))
+PERSON_MIN_HEIGHT_RATIO = float(os.getenv('PERSON_MIN_HEIGHT_RATIO', '0.04'))
+PERSON_MIN_AREA_RATIO = float(os.getenv('PERSON_MIN_AREA_RATIO', '0.00005'))
+PERSON_MIN_WIDTH_HEIGHT_RATIO = float(os.getenv('PERSON_MIN_WIDTH_HEIGHT_RATIO', '0.10'))
+PERSON_MAX_WIDTH_HEIGHT_RATIO = float(os.getenv('PERSON_MAX_WIDTH_HEIGHT_RATIO', '0.95'))
 # 画质分档（算法链路）：优先 AI_VIDEO_QUALITY_PROFILE
 VIDEO_QUALITY_PROFILE = os.getenv(
     'AI_VIDEO_QUALITY_PROFILE',
@@ -646,7 +726,23 @@ QUALITY_PROFILE_PRESETS = {
         'yolo_img_size': 640,
     },
 }
-if VIDEO_QUALITY_PROFILE in QUALITY_PROFILE_PRESETS:
+MANUAL_QUALITY_CONFIGURED = any(
+    (os.getenv(key) or '').strip()
+    for key in (
+        'AI_SOURCE_FPS',
+        'AI_TARGET_WIDTH',
+        'AI_TARGET_HEIGHT',
+        'AI_FFMPEG_VIDEO_BITRATE',
+        'AI_FFMPEG_GOP_SIZE',
+        'SOURCE_FPS',
+        'TARGET_WIDTH',
+        'TARGET_HEIGHT',
+        'FFMPEG_VIDEO_BITRATE',
+        'FFMPEG_GOP_SIZE',
+        'YOLO_IMG_SIZE',
+    )
+)
+if VIDEO_QUALITY_PROFILE in QUALITY_PROFILE_PRESETS and not MANUAL_QUALITY_CONFIGURED:
     selected_profile = QUALITY_PROFILE_PRESETS[VIDEO_QUALITY_PROFILE]
     TARGET_WIDTH = selected_profile['target_width']
     TARGET_HEIGHT = selected_profile['target_height']
@@ -677,7 +773,16 @@ def _get_effective_quality_profile_name() -> str:
 
 
 def _get_effective_realtime_stream_params():
-    """返回观感推流参数；output_fps 固定走 AI_OUTPUT_FPS，与 EXTRACT_INTERVAL 无关。"""
+    """返回观感推流参数；自动模式的帧率与 AI 检测抽帧间隔解耦。"""
+    if not AUTO_QUALITY_ENABLED or MANUAL_QUALITY_CONFIGURED:
+        return (
+            'manual',
+            int(AI_OUTPUT_FPS),
+            int(TARGET_WIDTH),
+            int(TARGET_HEIGHT),
+            str(FFMPEG_VIDEO_BITRATE),
+            int(FFMPEG_GOP_SIZE),
+        )
     profile_name = AUTO_QUALITY_LOCK_PROFILE if AUTO_QUALITY_LOCK_PROFILE in QUALITY_PROFILE_PRESETS else _get_effective_quality_profile_name()
     preset = QUALITY_PROFILE_PRESETS.get(profile_name, QUALITY_PROFILE_PRESETS['high'])
     output_fps = max(1, int(AI_OUTPUT_FPS))
@@ -758,6 +863,13 @@ LATEST_OVERLAY_MAX_AGE_SEC = max(0.0, LATEST_OVERLAY_MAX_AGE_MS / 1000.0)
 
 FACE_CLASS_KEYWORDS = ('face', 'facial', 'person_face', '人脸')
 PLATE_CLASS_KEYWORDS = ('plate', 'license_plate', 'licence_plate', 'car_plate', '车牌')
+
+
+def _normalize_gb28181_opencv_input_url(url: Optional[str]) -> Optional[str]:
+    converted = prefer_hevc_http_ts_for_ffmpeg(url)
+    if converted and url and converted != url:
+        logger.info(f"GB28181 HEVC input switched from HTTP-FLV to HTTP-TS: {url} -> {converted}")
+    return converted
 
 
 def _detections_to_overlay_entries(detections, timestamp):
@@ -1026,6 +1138,7 @@ def _run_yolo_on_frame(
             break
         try:
             infer_device = yolo_model_devices.get(model_id, get_infer_device(device_id))
+            allowed_class_names = yolo_model_allowed_classes.get(model_id)
             model_dets = run_model_detection(
                 yolo_model,
                 frame,
@@ -1033,8 +1146,35 @@ def _run_yolo_on_frame(
                 iou=YOLO_DETECT_IOU,
                 imgsz=effective_imgsz,
                 infer_device=infer_device,
-                should_keep=_make_detection_filter(yolo_model),
+                should_keep=_should_keep_detection,
+                allowed_class_names=allowed_class_names,
             )
+            if PERSON_TILED_DETECTION_ENABLED and allowed_classes_include_person(allowed_class_names):
+                tiled_dets = run_tiled_model_detection(
+                    yolo_model,
+                    frame,
+                    columns=PERSON_TILE_COLUMNS,
+                    rows=PERSON_TILE_ROWS,
+                    overlap_ratio=PERSON_TILE_OVERLAP,
+                    conf=PERSON_TILE_CONF_THRESHOLD,
+                    iou=0.45,
+                    imgsz=imgsz,
+                    infer_device=infer_device,
+                    should_keep=_should_keep_detection,
+                    allowed_class_names=allowed_class_names,
+                )
+                if tiled_dets:
+                    model_dets = dedupe_detections_by_iou(model_dets + tiled_dets, iou_threshold=0.45)
+            if allowed_classes_include_person(allowed_class_names):
+                model_dets = filter_person_like_detections(
+                    model_dets,
+                    frame.shape,
+                    min_confidence=PERSON_MIN_CONFIDENCE,
+                    min_height_ratio=PERSON_MIN_HEIGHT_RATIO,
+                    min_area_ratio=PERSON_MIN_AREA_RATIO,
+                    min_width_height_ratio=PERSON_MIN_WIDTH_HEIGHT_RATIO,
+                    max_width_height_ratio=PERSON_MAX_WIDTH_HEIGHT_RATIO,
+                )
             all_detections.extend(model_dets)
         except Exception as e:
             if stop_event.is_set():
@@ -1128,8 +1268,11 @@ def _apply_runtime_sampling_config(task):
     global _runtime_extract_interval, _runtime_overlay_extract_interval, _runtime_alert_extract_interval, motion_gate
 
     _runtime_extract_interval = _resolve_runtime_extract_interval(task)
-    _runtime_overlay_extract_interval = max(
-        1, int(os.getenv('OVERLAY_EXTRACT_INTERVAL', str(OVERLAY_EXTRACT_INTERVAL)))
+    overlay_env = os.getenv('OVERLAY_EXTRACT_INTERVAL', '').strip()
+    _runtime_overlay_extract_interval = (
+        max(1, int(overlay_env))
+        if overlay_env
+        else _runtime_extract_interval
     )
 
     alert_env = os.getenv('ALERT_EXTRACT_INTERVAL', '').strip()
@@ -1358,8 +1501,11 @@ def _download_model_from_minio_direct(bucket_name: str, object_key: str, local_p
     except ImportError:
         logger.warning('未安装 minio 包，跳过直连 MinIO 下载')
         return False
-    access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-    secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+    access_key = os.getenv('MINIO_ACCESS_KEY', '')
+    secret_key = os.getenv('MINIO_SECRET_KEY', '')
+    if not access_key or not secret_key:
+        logger.warning('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
+        return False
     secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     tmp_path = f"{local_path}.minio.tmp"
@@ -1583,8 +1729,9 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
     Returns:
         Dict[int, YOLO]: 模型字典 {model_id: YOLO模型实例}
     """
-    global yolo_model_devices, yolo_model_meta
+    global yolo_model_devices, yolo_model_allowed_classes, yolo_model_meta
     yolo_model_devices.clear()
+    yolo_model_allowed_classes.clear()
     yolo_model_meta.clear()
     try:
         from ultralytics import YOLO
@@ -1620,6 +1767,7 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
                     import requests
                     import os as os_module
                     ai_service_url = os_module.getenv('AI_SERVICE_URL', 'http://localhost:5000')
+                    model_info = {}
 
                     try:
                         response = requests.get(
@@ -1635,6 +1783,12 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
                                 model_api_class_names = (
                                     model_info.get('classNames') or model_info.get('class_names')
                                 )
+                                yolo_model_allowed_classes[model_id] = resolve_model_allowed_class_names(model_info)
+                                if yolo_model_allowed_classes.get(model_id):
+                                    logger.info(
+                                        f"模型 {model_id} ({model_info.get('name')}) 允许输出类别: "
+                                        f"{sorted(yolo_model_allowed_classes[model_id])}"
+                                    )
 
                                 if not model_path:
                                     logger.warning(f"模型 {model_id} 没有模型路径，跳过")
@@ -1697,6 +1851,16 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
                         api_class_names=model_api_class_names,
                     )
                     models[model_id] = onnx_model
+                    yolo_model_allowed_classes[model_id] = prefer_loaded_person_classes(
+                        yolo_model_allowed_classes.get(model_id),
+                        onnx_model.classes_dict.values() if onnx_model.classes_dict else None,
+                    )
+                    yolo_model_allowed_classes.setdefault(model_id, None)
+                    if yolo_model_allowed_classes.get(model_id):
+                        logger.info(
+                            f"模型 {model_id} 最终允许输出类别: "
+                            f"{sorted(yolo_model_allowed_classes[model_id])}"
+                        )
                     yolo_model_devices[model_id] = (
                         f'onnx:cuda:{gpu_id}' if gpu_id is not None else 'onnx:cpu'
                     )
@@ -1710,6 +1874,16 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
                     yolo_model = YOLO(model_path_str)
                     infer_device = get_infer_device(model_id)
                     models[model_id] = yolo_model
+                    yolo_model_allowed_classes[model_id] = prefer_loaded_person_classes(
+                        yolo_model_allowed_classes.get(model_id),
+                        getattr(yolo_model, 'names', {}).values() if getattr(yolo_model, 'names', None) else None,
+                    )
+                    yolo_model_allowed_classes.setdefault(model_id, None)
+                    if yolo_model_allowed_classes.get(model_id):
+                        logger.info(
+                            f"模型 {model_id} 最终允许输出类别: "
+                            f"{sorted(yolo_model_allowed_classes[model_id])}"
+                        )
                     yolo_model_devices[model_id] = infer_device
                     yolo26 = is_yolo26_model(
                         yolo_model, model_path=model_path_str, model_id=model_id,
@@ -1761,9 +1935,20 @@ def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
         return {}
 
 
+def _reuse_loaded_yolo_models(model_ids: List[int]) -> Optional[Dict[int, Any]]:
+    """模型列表未变化时复用现有实例，避免热更新周期重复加载和预热。"""
+    requested_model_ids = list(dict.fromkeys(model_ids))
+    if not yolo_models or set(requested_model_ids) != set(yolo_models):
+        return None
+    return {
+        model_id: yolo_models[model_id]
+        for model_id in requested_model_ids
+    }
+
+
 def load_task_config():
     """从数据库加载任务配置（重启时会重新加载，确保获取最新的摄像头信息）"""
-    global task_config, yolo_models, yolo_model_devices, tracker, _sam_config, _sam_client
+    global task_config, yolo_models, yolo_model_devices, yolo_model_allowed_classes, tracker, _sam_config, _sam_client
     global motion_gate
 
     try:
@@ -1782,6 +1967,7 @@ def load_task_config():
             return False
 
         task_config = task
+        _initialize_heartbeat_statistics(task)
 
         _apply_runtime_sampling_config(task)
 
@@ -1822,13 +2008,18 @@ def load_task_config():
             logger.error(f"任务 {TASK_ID} 没有配置模型ID列表")
             return False
 
-        # 加载YOLO模型列表
-        yolo_models = load_yolo_models(model_ids)
-        if not yolo_models:
-            logger.error(f"任务 {TASK_ID} 没有成功加载任何模型")
-            return False
-
-        logger.info(f"✅ 成功加载 {len(yolo_models)} 个YOLO模型")
+        # 热更新时模型列表通常没有变化，复用实例可避免每 30 秒重复加载和预热。
+        reused_models = _reuse_loaded_yolo_models(model_ids)
+        if reused_models is not None:
+            yolo_models = reused_models
+            logger.info(f"模型配置未变化，复用已加载的 {len(yolo_models)} 个模型")
+        else:
+            loaded_models = load_yolo_models(model_ids)
+            if not loaded_models:
+                logger.error(f"任务 {TASK_ID} 没有成功加载任何模型")
+                return False
+            yolo_models = loaded_models
+            logger.info(f"✅ 成功加载 {len(yolo_models)} 个YOLO模型")
 
         # 从摄像头列表获取输入流地址（支持RTSP和RTMP）和RTMP输出流地址（重新加载，确保获取最新地址）
         # 注意：rtmp_input_url和rtmp_output_url字段已废弃，改为从摄像头列表获取
@@ -1841,6 +2032,30 @@ def load_task_config():
                 db_session.refresh(device)
                 # 输入流地址（支持RTSP/RTMP，以及通过gb28181://虚拟源动态解析）
                 rtsp_url = resolve_gb28181_source(device.source, logger=logger) if device.source else None
+                if not rtsp_url and device.source and device.source.strip().lower().startswith('gb28181://'):
+                    try:
+                        _, gb_http_stream, _, _ = gb28181_device_stream_urls(device.id)
+                    except Exception:
+                        gb_http_stream = None
+                    if gb_http_stream:
+                        rtsp_url = gb_http_stream
+                        logger.warning(
+                            f"GB28181 source resolve failed for {device.id}; "
+                            f"using generated GB28181 HTTP stream: {gb_http_stream}"
+                        )
+                    for cached_attr in ('http_stream', 'rtmp_stream'):
+                        if rtsp_url:
+                            break
+                        cached_url = (getattr(device, cached_attr, None) or '').strip()
+                        if cached_url:
+                            rtsp_url = cached_url
+                            logger.warning(
+                                f"GB28181 source resolve failed for {device.id}; "
+                                f"using cached {cached_attr}: {cached_url}"
+                            )
+                            break
+                if device.source and device.source.strip().lower().startswith('gb28181://'):
+                    rtsp_url = _normalize_gb28181_opencv_input_url(rtsp_url)
                 if not rtsp_url:
                     logger.warning(f"设备 {device.id} 未获取到可用输入流地址，跳过该设备")
                     continue
@@ -2233,7 +2448,7 @@ def _resolve_face_matching_threshold() -> Optional[float]:
     from models import AlgorithmTask, FaceLibrary
     lib_ids = AlgorithmTask._parse_library_ids(getattr(task_config, 'face_library_ids', None))
     if lib_ids:
-        library = FaceLibrary.query.get(lib_ids[0])
+        library = db_session.get(FaceLibrary, lib_ids[0])
         if library is not None and getattr(library, 'similarity_threshold', None) is not None:
             return float(library.similarity_threshold)
     return None
@@ -2342,6 +2557,7 @@ def send_heartbeat():
                 heartbeat_url = f"http://localhost:{VIDEO_SERVICE_PORT}/video/algorithm/heartbeat/realtime"
 
         # 发送心跳
+        statistics = _heartbeat_statistics()
         response = requests.post(
             heartbeat_url,
             json={
@@ -2349,7 +2565,8 @@ def send_heartbeat():
                 'server_ip': server_ip,
                 'port': None,  # 实时算法服务不监听端口
                 'process_id': process_id,
-                'log_path': log_path
+                'log_path': log_path,
+                **statistics,
             },
             timeout=5
         )
@@ -2811,11 +3028,15 @@ def _normalize_srs_api_host(host: str) -> str:
 def _resolve_ai_rtmp_push_url(device_id: str, device_ai_rtmp_stream: Optional[str] = None) -> Optional[str]:
     """解析 AI 推流 FFmpeg 地址。
 
-    远程分片在节点本机推 SRS，固定走 127.0.0.1（避免外网 IP 回环/on_publish 误判）；
+    远程分片或本机 SRS 可用时固定走 127.0.0.1（避免外网 IP 回环/on_publish 误判）；
     播放地址仍由 stream_url_sync_service 写入 device.ai_rtmp_stream（外网 IP）。
     """
     pod_ip = os.getenv('POD_IP', '').strip()
     if pod_ip:
+        rtmp_port = _srs_rtmp_port()
+        return f'rtmp://127.0.0.1:{rtmp_port}/ai/{device_id}'
+
+    if _check_srs_api_ready('127.0.0.1', _srs_api_port(), timeout=1.0):
         rtmp_port = _srs_rtmp_port()
         return f'rtmp://127.0.0.1:{rtmp_port}/ai/{device_id}'
 
@@ -3148,13 +3369,62 @@ def _bgr_frame_to_ffmpeg_rgb24_bytes(frame: np.ndarray, expect_h: int, expect_w:
     except Exception:
         return None
 
+
+def _output_frame_stale_seconds() -> float:
+    try:
+        return max(0.5, float(os.getenv("AI_OUTPUT_FRAME_STALE_SEC", "3")))
+    except (TypeError, ValueError):
+        return 3.0
+
+
+def _is_output_frame_info_fresh(
+    output_frame_info: Optional[dict],
+    now: Optional[float] = None,
+    stale_seconds: Optional[float] = None,
+) -> bool:
+    if not output_frame_info or output_frame_info.get('frame') is None:
+        return False
+    updated_at = output_frame_info.get('updated_at')
+    if updated_at is None:
+        return False
+    try:
+        age = (time.time() if now is None else now) - float(updated_at)
+    except (TypeError, ValueError):
+        return False
+    return age <= (stale_seconds if stale_seconds is not None else _output_frame_stale_seconds())
+
+
+def _terminate_stale_pusher(device_id: str, pusher_process, reason: str) -> None:
+    if not pusher_process or pusher_process.poll() is not None:
+        device_pushers.pop(device_id, None)
+        return
+    try:
+        if pusher_process.stdin:
+            pusher_process.stdin.close()
+    except Exception:
+        pass
+    try:
+        pusher_process.terminate()
+        pusher_process.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        try:
+            pusher_process.kill()
+            pusher_process.wait(timeout=1)
+        except Exception:
+            pass
+    except Exception as e:
+        logger.debug(f"设备 {device_id} 关闭过期AI推流进程失败({reason}): {e}")
+    finally:
+        device_pushers.pop(device_id, None)
+
+
 def _fixed_rate_push_worker(device_id: str):
     """固定速率推帧线程：独立于主循环，以精确帧率间隔向 FFmpeg 推帧。
     
     核心思路：
     - 主循环负责读取帧、缓冲、AI处理，将待推帧写入 device_output_frames
     - 本线程以 steady clock 间隔读取 latest output frame 并写入 FFmpeg stdin
-    - 当 AI 处理慢、主循环未产出新帧时，重复推上一帧（保持流畅，避免卡顿快进）
+    - 当 AI 处理慢、主循环短时间未产出新帧时，重复推上一帧；超过新鲜度阈值则断开推流，避免旧画面伪装成直播
     - 当主循环产出帧过快时，只保留最新帧（丢旧帧追实时）
     """
     logger.info(f"📤 固定速率推帧线程启动 [设备: {device_id}]")
@@ -3167,10 +3437,11 @@ def _fixed_rate_push_worker(device_id: str):
     last_push_frame = None
     last_push_w = None
     last_push_h = None
+    last_push_frame_updated_at = None
     last_push_time = time.perf_counter()
     push_frame_count = 0
+    stale_seconds = _output_frame_stale_seconds()
     flush_every = max(1, int(os.getenv('AI_PUSH_FLUSH_EVERY', os.getenv('VIEW_PUSH_FLUSH_EVERY', '5'))))
-
     while push_running and not push_running.is_set() and not stop_event.is_set():
         try:
             # 精确帧率控制：计算下一帧应该推送的时间
@@ -3206,8 +3477,31 @@ def _fixed_rate_push_worker(device_id: str):
             frame_to_push = None
             push_w = None
             push_h = None
+            now_wall = time.time()
             
             if output_frame_info is not None and output_frame_info.get('frame') is not None:
+                if not _is_output_frame_info_fresh(output_frame_info, now_wall, stale_seconds):
+                    updated_at = output_frame_info.get('updated_at')
+                    try:
+                        age = now_wall - float(updated_at)
+                    except (TypeError, ValueError):
+                        age = -1.0
+                    logger.warning(
+                        f"设备 {device_id} AI输出帧过期({age:.1f}s)，关闭AI推流并等待源流恢复"
+                    )
+                    _terminate_stale_pusher(device_id, pusher_process, "AI输出帧过期")
+                    if output_lock:
+                        with output_lock:
+                            if device_output_frames.get(device_id) is output_frame_info:
+                                device_output_frames[device_id] = None
+                    last_push_frame = None
+                    last_push_w = None
+                    last_push_h = None
+                    last_push_frame_updated_at = None
+                    _mark_quality_failure("AI输出帧过期")
+                    time.sleep(0.05)
+                    continue
+
                 frame_to_push = output_frame_info['frame']
                 push_w = output_frame_info['w']
                 push_h = output_frame_info['h']
@@ -3215,11 +3509,26 @@ def _fixed_rate_push_worker(device_id: str):
                 last_push_frame = frame_to_push
                 last_push_w = push_w
                 last_push_h = push_h
-            elif last_push_frame is not None:
-                # 没有新帧，重复上一帧（保持流畅）
+                last_push_frame_updated_at = float(output_frame_info.get('updated_at'))
+            elif (
+                last_push_frame is not None
+                and last_push_frame_updated_at is not None
+                and now_wall - last_push_frame_updated_at <= stale_seconds
+            ):
+                # 没有新帧，短时间重复上一帧（保持流畅）
                 frame_to_push = last_push_frame
                 push_w = last_push_w
                 push_h = last_push_h
+            elif last_push_frame is not None:
+                logger.warning(f"设备 {device_id} AI输出帧过期，停止重复旧帧")
+                _terminate_stale_pusher(device_id, pusher_process, "AI输出帧过期")
+                last_push_frame = None
+                last_push_w = None
+                last_push_h = None
+                last_push_frame_updated_at = None
+                _mark_quality_failure("AI输出帧过期")
+                time.sleep(0.05)
+                continue
             else:
                 # 首帧尚未就绪，等待
                 time.sleep(0.005)
@@ -3356,6 +3665,7 @@ def buffer_streamer_worker(device_id: str):
                     if _resolve_elapsed >= 30.0:
                         _last_gb28181_resolve_time = time.time()
                         _new_url = resolve_gb28181_source(_original_source, logger=logger)
+                        _new_url = _normalize_gb28181_opencv_input_url(_new_url)
                         if _new_url and _new_url != rtsp_url:
                             logger.info(f"📌 设备 {device_id} GB28181源重新解析: {rtsp_url} -> {_new_url}")
                             rtsp_url = _new_url
@@ -3430,11 +3740,15 @@ def buffer_streamer_worker(device_id: str):
 
                 if not cap.isOpened():
                     _fallback_url = None
-                    if _is_gb28181 and _original_source and rtsp_url.startswith('rtmp://'):
+                    if _is_gb28181 and _original_source and (
+                        rtsp_url.startswith('rtmp://')
+                        or rtsp_url.startswith('rtsp://')
+                    ):
                         _fallback_url = resolve_gb28181_alternate_pull_url(
                             _original_source, rtsp_url, logger=logger,
                         )
                     if _fallback_url:
+                        _fallback_url = _normalize_gb28181_opencv_input_url(_fallback_url)
                         if cap is not None:
                             try:
                                 cap.release()
@@ -3861,7 +4175,7 @@ def buffer_streamer_worker(device_id: str):
                                 logger.error("")
                                 logger.error("2. 启动SRS服务器：")
                                 logger.error(
-                                    "   - 使用Docker Compose: cd /opt/projects/easyaiot/.scripts/docker && docker-compose up -d srs")
+                                    "   - 使用Docker Compose: cd /opt/projects/yfeieye/.scripts/docker && docker-compose up -d srs")
                                 logger.error(
                                     "   - 或使用Docker: docker run -d --name srs-server -p 1935:1935 -p 1985:1985 -p 8080:8080 ossrs/srs:5")
                                 logger.error("")
@@ -3989,6 +4303,8 @@ def buffer_streamer_worker(device_id: str):
                             'frame': output_frame,
                             'w': frame_width,
                             'h': frame_height,
+                            'updated_at': current_timestamp,
+                            'frame_number': frame_count,
                         }
                 if overlay_applied and frame_count % 100 == 0:
                     logger.debug(
@@ -4168,6 +4484,7 @@ def overlay_detection_worker(worker_id: int):
                         consecutive_errors = 0
                     continue
 
+                _record_realtime_detections(detections)
                 cache_updated = _update_device_latest_overlay(
                     device_id_from_data,
                     detections,
@@ -4188,7 +4505,7 @@ def overlay_detection_worker(worker_id: int):
                     )
             else:
                 idle_count += 1
-                sleep_time = min(0.05 * (2 ** idle_count), 1.0)
+                sleep_time = min(0.05 * (2 ** min(idle_count, 5)), 1.0)
                 time.sleep(sleep_time)
 
         except Exception as e:
@@ -4323,7 +4640,7 @@ def alert_detection_worker(worker_id: int):
                     )
             else:
                 idle_count += 1
-                sleep_time = min(0.05 * (2 ** idle_count), 1.0)
+                sleep_time = min(0.05 * (2 ** min(idle_count, 5)), 1.0)
                 time.sleep(sleep_time)
 
         except Exception as e:
@@ -4362,6 +4679,7 @@ def shutdown_yolo_workers(timeout: float = 8.0):
 
     yolo_models.clear()
     yolo_model_devices.clear()
+    yolo_model_allowed_classes.clear()
     yolo_model_meta.clear()
 
 
@@ -4469,10 +4787,14 @@ def main():
     logger.info(f"   视频比特率: {FFMPEG_VIDEO_BITRATE}")
     logger.info(f"   GOP大小: {FFMPEG_GOP_SIZE} (约2秒一个关键帧)")
     logger.info(f"   编码线程数: {FFMPEG_THREADS if FFMPEG_THREADS else '自动'}")
-    logger.info(f"   YOLO检测分辨率: {YOLO_IMG_SIZE}")
+    logger.info(f"   YOLO检测分辨率: {YOLO_IMG_SIZE} (原640)")
     logger.info(f"   Overlay队列大小: {OVERLAY_DETECTION_QUEUE_SIZE}, Worker: {OVERLAY_WORKER_THREADS}, imgsz: {OVERLAY_YOLO_IMG_SIZE}")
-    logger.info(f"   告警队列大小: {ALERT_DETECTION_QUEUE_SIZE}, Worker: {ALERT_WORKER_THREADS}")
-    logger.info(f"   AI检测间隔(仅推理): overlay={OVERLAY_EXTRACT_INTERVAL}, alert={ALERT_EXTRACT_INTERVAL} (告警/任务DB优先; overlay不受DB extract_interval影响)")
+    logger.info(
+        f"   人形分块检测: {PERSON_TILED_DETECTION_ENABLED}, "
+        f"grid={PERSON_TILE_COLUMNS}x{PERSON_TILE_ROWS}, overlap={PERSON_TILE_OVERLAP}, conf={PERSON_TILE_CONF_THRESHOLD}"
+    )
+    logger.info(f"   告警队列大小: {ALERT_DETECTION_QUEUE_SIZE}, Worker: {ALERT_WORKER_THREADS}, 抽帧间隔: {ALERT_EXTRACT_INTERVAL}")
+    logger.info(f"   AI检测间隔(仅推理): overlay={OVERLAY_EXTRACT_INTERVAL}, alert={ALERT_EXTRACT_INTERVAL} (未显式配置时跟随任务DB extract_interval)")
     logger.info(f"   叠框追踪: OVERLAY_USE_TRACKING={OVERLAY_USE_TRACKING}")
     logger.info(f"   运动门控: MOTION_GATE_ENABLED={os.getenv('MOTION_GATE_ENABLED', 'false')}")
     logger.info(f"   Overlay保留最新帧: {OVERLAY_KEEP_LATEST} (阈值: {OVERLAY_KEEP_LATEST_THRESHOLD})")

@@ -1,14 +1,14 @@
 import type { TreeItem } from '@/components/Tree';
 import type { MonitorTreeDeviceNode, MonitorTreeDirectoryNode } from '@/api/device/camera';
 import { formatCameraDeviceLabel, isGb28181Device, parseGb28181Source } from './deviceLabel';
-import { resolveWvpSipDeviceId } from './gb28181DeviceGroup';
+import { filterValidWvpDevices, resolveWvpSipDeviceId } from './gb28181DeviceId';
 import { findMonitorGbDeviceByChannel } from './monitorDeviceTree';
 import type { GbChannelRef } from './gb28181Tree';
 
 /** WVP 国标 SIP 设备 ID → 展示名（与设备列表 queryVideoList 一致） */
 export function buildGbSipNameMap(wvpDevices: Record<string, any>[]): Map<string, string> {
   const map = new Map<string, string>();
-  for (const wvp of wvpDevices) {
+  for (const wvp of filterValidWvpDevices(wvpDevices)) {
     const sip = resolveWvpSipDeviceId(wvp);
     if (!sip) continue;
     const name = String(wvp.name || '').trim();

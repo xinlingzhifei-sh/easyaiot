@@ -9,9 +9,8 @@ import javax.validation.constraints.NotNull;
 /**
  * Demo02CategorySaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 示例分类新增/修改 Request VO")
 @Data
@@ -20,7 +19,7 @@ public class Demo02CategorySaveReqVO {
     @Schema(description = "编号", example = "10304")
     private Long id;
 
-    @Schema(description = "名字", example = "BasicLab")
+    @Schema(description = "名字", example = "yFeiEye")
     @NotEmpty(message = "名字不能为空")
     private String name;
 

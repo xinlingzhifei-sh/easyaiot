@@ -93,7 +93,7 @@ const {createMessage} = useMessage();
 const route = useRoute()
 
 const [registerAddModel, {openModal: openAddModal}] = useModal();
-const [registerPlayerAddModel, {openModal: openPlayerAddModal}] = useModal();
+const [, {openModal: openPlayerAddModal}] = useModal();
 
 const state = reactive({
   isTableMode: false,
@@ -123,7 +123,6 @@ const [
 ] = useTable({
   canResize: true,
   showIndexColumn: false,
-  actionColOptions: {span: 4},
   title: '通道列表',
   api: queryChannelList,
   beforeFetch: (data) => {
@@ -155,7 +154,7 @@ const [
   onChange,
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -166,7 +165,7 @@ const [
       }
     },
   },
-  onColumnsChange: (data) => {
+  onColumnsChange: () => {
     //console.log('ColumnsChanged', data);
   },
 });
@@ -188,7 +187,7 @@ function onSelect(record, selected) {
   }
 }
 
-function onSelectAll(selected, selectedRows, changeRows) {
+function onSelectAll(selected, _selectedRows, changeRows) {
   const changeIds = changeRows.map((item) => item.id);
   if (selected) {
     checkedKeys.value = [...checkedKeys.value, ...changeIds];
@@ -256,11 +255,13 @@ function handleEdit(record) {
   openAddModal(true, {record});
   cardListReload();
 }
+void handleEdit;
 
 //播放按钮事件
 function handlePlay(record) {
   openPlayerAddModal(true, record)
 }
+void handlePlay;
 
 const router = useRouter();
 
@@ -271,6 +272,7 @@ function handleDeviceRecord(record) {
   };
   router.push({name: 'Gb28181DeviceRecord', params});
 }
+void handleDeviceRecord;
 
 function handleCloudRecord(record) {
   const params = {
@@ -309,6 +311,7 @@ function handleSuccess() {
 // 表格刷新
 function handlePlayerSuccess() {
 }
+void handlePlayerSuccess;
 </script>
 
 <style lang="less" scoped>

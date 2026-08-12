@@ -1,7 +1,10 @@
 import os
 import shutil
+import sys
 import tempfile
+import types
 import unittest
+from unittest.mock import patch
 
 try:
     import torch
@@ -12,6 +15,7 @@ from app.utils.train_checkpoint import (
     CHECKPOINT_ACTION_FINALIZE,
     CHECKPOINT_ACTION_REJECT,
     CHECKPOINT_ACTION_RESUME,
+    _default_checkpoint_loader,
     cleanup_staged_checkpoint,
     find_yolo_checkpoint,
     prepare_yolo_resume_checkpoint,
@@ -40,6 +44,18 @@ class TrainCheckpointResumeTest(unittest.TestCase):
             target_epochs=target_epochs,
             loader=lambda _: checkpoint,
         )
+
+    def test_default_loader_never_enables_pickle_object_loading(self):
+        calls = []
+        fake_torch = types.SimpleNamespace(
+            load=lambda *args, **kwargs: calls.append((args, kwargs)) or {},
+        )
+
+        with patch.dict(sys.modules, {'torch': fake_torch}):
+            _default_checkpoint_loader(self.source_path)
+
+        self.assertTrue(calls)
+        self.assertIs(calls[0][1]['weights_only'], True)
 
     def test_resumable_checkpoint_survives_train_results_cleanup(self):
         prepared = self._prepare({
@@ -124,7 +140,7 @@ class TrainCheckpointResumeTest(unittest.TestCase):
             {
                 'epoch': 38,
                 'optimizer': {'state': {}, 'param_groups': []},
-                'model': torch.nn.Linear(1, 1),
+                'model': {'weight': torch.ones(1, 1), 'bias': torch.zeros(1)},
                 'train_args': {'epochs': 100},
             },
             self.source_path,

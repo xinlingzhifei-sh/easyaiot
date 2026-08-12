@@ -1,5 +1,5 @@
 @echo off
-REM EasyAIoT Windows deploy launcher (bypasses ExecutionPolicy for this script only)
+REM yFeiEye Windows deploy launcher (bypasses ExecutionPolicy for this script only)
 setlocal
 cd /d "%~dp0"
 chcp 65001 >nul

@@ -11,9 +11,8 @@ import java.util.List;
 /**
  * Excel 工具类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @since 2023-07-06
  */
 public class ExcelUtils {

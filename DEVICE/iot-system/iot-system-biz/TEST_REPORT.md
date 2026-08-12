@@ -68,14 +68,14 @@ CMD ["sh", "-c", "java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar
 ### 方法 1: 使用测试脚本（推荐）
 
 ```bash
-cd /projects/easyaiot/DEVICE/iot-system/iot-system-biz
+cd /projects/yfeieye/DEVICE/iot-system/iot-system-biz
 ./test-build.sh
 ```
 
 ### 方法 2: 使用 docker-compose
 
 ```bash
-cd /projects/easyaiot/DEVICE
+cd /projects/yfeieye/DEVICE
 docker compose build iot-system
 docker compose up -d iot-system
 docker compose logs -f iot-system
@@ -84,7 +84,7 @@ docker compose logs -f iot-system
 ### 方法 3: 直接使用 docker 命令
 
 ```bash
-cd /projects/easyaiot/DEVICE/iot-system/iot-system-biz
+cd /projects/yfeieye/DEVICE/iot-system/iot-system-biz
 docker build -t iot-module-system-biz:test .
 docker run -d \
   --name iot-system-test \

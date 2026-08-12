@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# EasyAIoT ARM Python 离线 wheel（按模块隔离）
+# yFeiEye ARM Python 离线 wheel（按模块隔离）
 # 目录: .build-cache/arm/{ai,video}/pip-wheels
 # 下载方式: ARM 容器内 pip download + 清华 PyPI 源（与 build-runtime 一致）
 # ============================================
@@ -25,15 +25,15 @@ image_to_tar_name() {
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 # shellcheck source=init-build-cache-dirs.sh
 source "${SCRIPT_DIR}/init-build-cache-dirs.sh"
 
-AI_DIR="${EASYAIOT_ROOT}/AI"
-VIDEO_DIR="${EASYAIOT_ROOT}/VIDEO"
+AI_DIR="${YFEIEYE_ROOT}/AI"
+VIDEO_DIR="${YFEIEYE_ROOT}/VIDEO"
 
 ARM_BASE_IMAGE="${ARM_BASE_IMAGE:-pytorch/manylinuxaarch64-builder:cuda12.9}"
-DOCKER_IMAGES_DIR="$(arm_docker_images_dir "$EASYAIOT_ROOT")"
+DOCKER_IMAGES_DIR="$(arm_docker_images_dir "$YFEIEYE_ROOT")"
 PIP_INDEX_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 PIP_DOWNLOAD_TIMEOUT="${PIP_DOWNLOAD_TIMEOUT:-600}"
 PIP_DOWNLOAD_RETRIES="${PIP_DOWNLOAD_RETRIES:-15}"
@@ -52,9 +52,10 @@ case "${MODULE_ARG^^}" in
         ;;
 esac
 
-PIP_WHEELS_DIR="$(arm_pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" "$CACHE_MODULE")"
+PIP_WHEELS_DIR="$(arm_pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" "$CACHE_MODULE")"
+ARM_REQUIREMENTS_FILE="$(yfeieye_build_cache_base "$YFEIEYE_ROOT")/arm/${CACHE_MODULE}/requirements.arm.txt"
 
-init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
 
 if ! check_command docker; then
     print_error "未检测到 docker，请先安装 Docker"
@@ -116,9 +117,10 @@ append_requirements_file() {
 }
 
 prepare_flattened_requirements_arm() {
-    local req_file="$1"
+    local req_file="$1"  # requirements.txt (ARM 版含 torch)
     local out_file out_dir tmp_req req_dir line_count
-    out_dir="$(easyaiot_build_cache_base "$EASYAIOT_ROOT")/tmp"
+    # ★ 在项目 .build-cache 下创建临时文件，确保 Docker 挂载时路径可达
+    out_dir="$(yfeieye_build_cache_base "$YFEIEYE_ROOT")/tmp"
     mkdir -p "$out_dir"
     out_file="${out_dir}/requirements-${CACHE_MODULE}-arm-flat.txt"
     tmp_req="${out_dir}/requirements-${CACHE_MODULE}-arm-src.txt"
@@ -246,5 +248,5 @@ download_pip_packages() {
 
 download_pip_packages
 
-du -sh "$(easyaiot_build_cache_base "$EASYAIOT_ROOT")/arm" 2>/dev/null || true
+du -sh "$(yfeieye_build_cache_base "$YFEIEYE_ROOT")/arm" 2>/dev/null || true
 print_success "ARM 预下载完成: ${PIP_WHEELS_DIR}"

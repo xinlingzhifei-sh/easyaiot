@@ -220,6 +220,7 @@ function inputHex() {
     alert('请输入3位或者6位合法十六进制值')
   }
 }
+void inputHex
 function inputRgb() {
   if (isRgb(attr.modelRgb)) {
     const [r, g, b] = attr.modelRgb.split(',')

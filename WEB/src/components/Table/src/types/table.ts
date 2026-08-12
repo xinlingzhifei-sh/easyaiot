@@ -1,5 +1,5 @@
 import type { VNodeChild } from 'vue'
-import type { TableRowSelection as ITableRowSelection, Key } from 'ant-design-vue/lib/table/interface'
+import type { ColumnFilterItem as AntColumnFilterItem, TableRowSelection as ITableRowSelection, Key } from 'ant-design-vue/lib/table/interface'
 import type { ColumnProps } from 'ant-design-vue/lib/table'
 import type { PaginationProps } from './pagination'
 
@@ -49,11 +49,7 @@ export interface ExpandedRowRenderRecord<T> extends TableCustomRecord<T> {
   indent?: number
   expanded?: boolean
 }
-export interface ColumnFilterItem {
-  text?: string
-  value?: string
-  children?: any
-}
+export type ColumnFilterItem = AntColumnFilterItem
 
 export interface TableCustomRecord<T = Recordable> {
   record?: T
@@ -172,6 +168,7 @@ export interface BasicTableProps<T = any> {
   // 自定义处理接口返回参数
   afterFetch?: Fn
   // 查询条件请求之前处理
+  onSuccess?: Fn
   handleSearchInfoFn?: Fn
   // 请求接口配置
   fetchSetting?: Partial<FetchSetting>
@@ -418,13 +415,7 @@ export type CellFormat =
 
 export interface BasicColumn extends ColumnProps<Recordable> {
   children?: BasicColumn[]
-  filters?: {
-    text: string
-    value: string
-    children?:
-    | unknown[]
-    | (((props: Record<string, unknown>) => unknown[]) & (() => unknown[]) & (() => unknown[]))
-  }[]
+  filters?: ColumnFilterItem[]
 
   //
   flag?: 'INDEX' | 'DEFAULT' | 'CHECKBOX' | 'RADIO' | 'ACTION'

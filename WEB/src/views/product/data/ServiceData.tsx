@@ -1535,11 +1535,11 @@ export function getDeviceFormConfig(): Partial<FormProps> {
 }
 
 export const EditFormSchemas = (
-  checkIdentifier:
+  _checkIdentifier:
     | false
     | DebouncedFunc<(val: string) => Promise<void>>
     | ((val: string) => Promise<void>),
-  functionType:
+  _functionType:
     | false
     | string,
 ): FormSchema[] => {
@@ -1890,7 +1890,7 @@ export const PropsSchemas = ({ handleChange, isInner }: SchemasFn): FormSchema[]
 };
 
 // 服务
-export const ServerSchemas = ({ btnClick, list, handleCheckSubuct }: SchemasFn): FormSchema[] => {
+export const ServerSchemas = (_options: SchemasFn): FormSchema[] => {
   return [
     // {
     //   field: 'inputParams',
@@ -2004,7 +2004,7 @@ export const ServerSchemas = ({ btnClick, list, handleCheckSubuct }: SchemasFn):
 };
 
 // 事件
-export const EventSchemas = ({ btnClick, list, handleCheckSubuct }: SchemasFn): FormSchema[] => {
+export const EventSchemas = (_options: SchemasFn): FormSchema[] => {
   return [
     // {
     //   field: 'outParams',

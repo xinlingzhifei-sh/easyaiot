@@ -18,9 +18,8 @@ import java.util.Map;
  * 抓拍算法任务告警通知Kafka消费者（iot-message服务）
  * 消费抓拍算法任务告警通知消息，触发各渠道通知（短信、邮件、企业微信、HTTP、钉钉、飞书等）
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Slf4j
 @Component

@@ -1,4 +1,4 @@
-# EasyAIoT COMPILE - CentOS/RHEL ARM64 EL7/EL8/EL9 cross build
+# yFeiEye COMPILE - CentOS/RHEL ARM64 EL7/EL8/EL9 cross build
 # 需本机已注册 qemu-aarch64；yum/dnf 默认国内源
 ARG BASE_IMAGE=rockylinux:9
 ARG EL_RELEASE=9

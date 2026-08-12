@@ -4,7 +4,7 @@ import { isNil } from 'lodash-es'
 import { Skeleton } from 'ant-design-vue'
 import { useTimeoutFn } from '@vueuse/core'
 import CollapseHeader from './CollapseHeader.vue'
-import { CollapseTransition } from '@/components/Transition'
+import CollapseTransition from '@/components/Transition/src/CollapseTransition.vue'
 import { triggerWindowResize } from '@/utils/event'
 import { useDesign } from '@/hooks/web/useDesign'
 

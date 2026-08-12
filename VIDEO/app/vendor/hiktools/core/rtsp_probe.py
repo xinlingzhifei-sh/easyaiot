@@ -115,7 +115,7 @@ async def _rtsp_describe(
         req += "Accept: application/sdp\r\n"
         if auth:
             req += f"Authorization: {auth}\r\n"
-        req += "User-Agent: EasyAIoT-RTSP-Probe/1.0\r\n"
+        req += "User-Agent: yFeiEye-RTSP-Probe/1.0\r\n"
         req += "\r\n"
         cseq += 1
         try:

@@ -197,7 +197,7 @@ def provide_solutions(has_srs, has_video, has_gateway, accessible_endpoints):
     if not has_video and not has_gateway:
         print("\n⚠️  VIDEO服务和网关服务都未运行")
         print("\n选项1: 启动VIDEO服务（推荐用于测试）")
-        print("   cd /opt/projects/easyaiot/VIDEO")
+        print("   cd /opt/projects/yfeieye/VIDEO")
         print("   python run.py")
         print("\n选项2: 启动网关服务")
         print("   检查DEVICE服务是否运行")
@@ -210,7 +210,7 @@ def provide_solutions(has_srs, has_video, has_gateway, accessible_endpoints):
         print("\n解决方案:")
         if not has_video:
             print("1. 启动VIDEO服务:")
-            print("   cd /opt/projects/easyaiot/VIDEO")
+            print("   cd /opt/projects/yfeieye/VIDEO")
             print("   python run.py")
         if not has_gateway:
             print("2. 启动网关服务（如果使用网关）")

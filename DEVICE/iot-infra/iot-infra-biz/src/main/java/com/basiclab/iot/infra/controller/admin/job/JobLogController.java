@@ -31,9 +31,8 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * JobLogController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "管理后台 - 定时任务日志")
 @RestController

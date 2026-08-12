@@ -1,20 +1,33 @@
 package com.basiclab.iot.sink.javascript;
 
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.EnvironmentAccess;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.ResourceLimits;
+import org.graalvm.polyglot.io.IOAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.util.function.Predicate;
+import javax.script.ScriptException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JavaScript 引擎工厂。
  * <p>
  * 每个产品脚本使用独立 {@link ScriptEngine}，避免多产品函数互相覆盖。
- * Java 21 默认无 Nashorn，依赖 GraalJS（见 pom）。
+ * Java 21 默认无 Nashorn，仅允许使用项目锁定版本的 GraalJS。
  * <p>
- * GraalJS 需显式打开 host access，否则 jsUtil / Java.type 不可用。
+ * 脚本只能调用显式加入白名单的编解码方法，禁止宿主类查找、IO、进程、
+ * 线程、环境变量和 Polyglot 跨语言访问。
+ *
+ * @author reese
+ * @email reese
  */
 public final class JsEngine {
 
@@ -23,8 +36,16 @@ public final class JsEngine {
     private static final JsUtilFunction JS_UTIL = new JsUtilFunction();
 
     private static final String ENGINE_IMPORT =
-            "var ReadBuffer = Java.type('" + ReadBuffer.class.getName() + "');\n"
-                    + "var WriteBuffer = Java.type('" + WriteBuffer.class.getName() + "');\n";
+            "function ReadBuffer(data) { return jsUtil.readBuffer(data); }\n"
+                    + "function WriteBuffer() { return jsUtil.writeBuffer(); }\n";
+
+    private static final String ENGINE_WARMUP =
+            "jsUtil.utf8Bytes(jsUtil.toJsonString(jsUtil.newMap()));";
+
+    private static final HostAccess SCRIPT_HOST_ACCESS = buildHostAccess();
+    private static final ResourceLimits SCRIPT_RESOURCE_LIMITS = ResourceLimits.newBuilder()
+            .statementLimit(1_000_000, source -> true)
+            .build();
 
     static {
         // 降低解释器模式告警噪音（非 GraalVM JDK 时正常）
@@ -35,32 +56,34 @@ public final class JsEngine {
     }
 
     /**
-     * 创建隔离的 ScriptEngine（含 jsUtil / Graal host 权限）。
+     * 创建隔离的 ScriptEngine。
      */
     public static ScriptEngine createEngine() {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("graal.js");
-        if (engine == null) {
-            engine = manager.getEngineByName("js");
-        }
-        if (engine == null) {
-            engine = manager.getEngineByName("javascript");
-        }
-        if (engine == null) {
-            engine = manager.getEngineByName("nashorn");
-        }
-        if (engine == null) {
-            throw new IllegalStateException(
-                    "无法找到 JavaScript 引擎。请确认 iot-sink-biz 已引入 GraalJS（js-scriptengine）依赖");
-        }
-
-        // 必须用 ScriptContext.setAttribute：GraalJS 据此打开 HostAccess.ALL
-        ScriptContext ctx = engine.getContext();
-        ctx.setAttribute("polyglot.js.allowHostAccess", true, ScriptContext.ENGINE_SCOPE);
-        ctx.setAttribute("polyglot.js.allowHostClassLookup",
-                (Predicate<String>) JsEngine::allowHostClass, ScriptContext.ENGINE_SCOPE);
-        ctx.setAttribute("polyglot.js.nashorn-compat", true, ScriptContext.ENGINE_SCOPE);
+        Context.Builder contextBuilder = Context.newBuilder("js")
+                .allowHostAccess(SCRIPT_HOST_ACCESS)
+                .allowHostClassLookup(className -> false)
+                .allowHostClassLoading(false)
+                .allowIO(IOAccess.NONE)
+                .allowNativeAccess(false)
+                .allowCreateProcess(false)
+                .allowCreateThread(false)
+                .allowEnvironmentAccess(EnvironmentAccess.NONE)
+                .allowPolyglotAccess(PolyglotAccess.NONE)
+                .resourceLimits(SCRIPT_RESOURCE_LIMITS);
+        ScriptEngine engine = GraalJSScriptEngine.create(null, contextBuilder);
         engine.put("jsUtil", JS_UTIL);
+
+        // 固定可信表达式不接触用户输入；将 Graal HostAccess 与 JSON 冷启动移出用户脚本的 2 秒预算。
+        try {
+            engine.eval(ENGINE_WARMUP);
+        } catch (ScriptException e) {
+            try {
+                ((GraalJSScriptEngine) engine).close();
+            } catch (Exception closeException) {
+                e.addSuppressed(closeException);
+            }
+            throw new IllegalStateException("无法预热 JavaScript 引擎", e);
+        }
 
         log.debug("[createEngine][创建 JS 引擎: {}]", engine.getClass().getName());
         return engine;
@@ -71,26 +94,45 @@ public final class JsEngine {
     }
 
     public static String engineName() {
-        try {
-            return createEngine().getClass().getName();
+        try (GraalJSScriptEngine engine = (GraalJSScriptEngine) createEngine()) {
+            return engine.getClass().getName();
         } catch (Exception e) {
             return "unavailable: " + e.getMessage();
         }
     }
 
-    private static boolean allowHostClass(String className) {
-        if (className == null) {
-            return false;
+    private static HostAccess buildHostAccess() {
+        HostAccess.Builder builder = HostAccess.newBuilder(HostAccess.NONE)
+                .allowArrayAccess(true)
+                .allowListAccess(true)
+                .allowMapAccess(true);
+        allowPublicDeclaredMethods(builder, JsUtilFunction.class);
+        allowPublicDeclaredMethods(builder, ReadBuffer.class);
+        allowPublicDeclaredMethods(builder, WriteBuffer.class);
+        allowMethod(builder, Map.class, "get", Object.class);
+        allowMethod(builder, Map.class, "put", Object.class, Object.class);
+        allowMethod(builder, Map.class, "containsKey", Object.class);
+        allowMethod(builder, Map.class, "size");
+        allowMethod(builder, Map.class, "isEmpty");
+        allowMethod(builder, List.class, "get", int.class);
+        allowMethod(builder, List.class, "size");
+        return builder.build();
+    }
+
+    private static void allowPublicDeclaredMethods(HostAccess.Builder builder, Class<?> type) {
+        for (Method method : type.getDeclaredMethods()) {
+            if (Modifier.isPublic(method.getModifiers())) {
+                builder.allowAccess(method);
+            }
         }
-        return className.startsWith("com.basiclab.iot.sink.javascript.")
-                || "java.lang.String".equals(className)
-                || "java.lang.Integer".equals(className)
-                || "java.lang.Long".equals(className)
-                || "java.lang.Double".equals(className)
-                || "java.lang.Boolean".equals(className)
-                || "java.util.HashMap".equals(className)
-                || "java.util.LinkedHashMap".equals(className)
-                || "java.util.ArrayList".equals(className)
-                || "java.nio.charset.StandardCharsets".equals(className);
+    }
+
+    private static void allowMethod(HostAccess.Builder builder, Class<?> type,
+                                    String name, Class<?>... parameterTypes) {
+        try {
+            builder.allowAccess(type.getMethod(name, parameterTypes));
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException("无法注册脚本白名单方法: " + type.getName() + "." + name, e);
+        }
     }
 }

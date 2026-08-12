@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="EasyAIoT RTC 服务")
+    parser = argparse.ArgumentParser(description="yFeiEye RTC 服务")
     parser.add_argument("--env", type=str, default="", help="加载 .env.{name} 配置文件")
     return parser.parse_args()
 
@@ -56,7 +56,7 @@ def create_app() -> Flask:
     @app.route("/")
     def index():
         return {
-            "service": "EasyAIoT RTC",
+            "service": "yFeiEye RTC",
             "description": "go2rtc 二次开发模块 — 消费级摄像头桥接",
             "platforms": [
                 "tapo", "tuya", "ring", "nest", "xiaomi",

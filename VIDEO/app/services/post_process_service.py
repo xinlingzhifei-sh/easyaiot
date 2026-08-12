@@ -137,7 +137,7 @@ def ensure_task_workspace(task: AlgorithmTask) -> Dict[str, Any]:
     workspace.mkdir(parents=True, exist_ok=True)
 
     script_name = (task.post_process_script or 'post_process.py').strip() or 'post_process.py'
-    script_path = workspace / script_name
+    script_path = get_task_script_path(task.id, script_name)
     created_files = []
 
     if not script_path.exists():

@@ -26,8 +26,7 @@
 # 默认连接信息（与 docker-compose.yml 一致）：
 #   API:     http://127.0.0.1:9000
 #   控制台:  http://127.0.0.1:9001
-#   用户:    minioadmin
-#   密码:    basiclab@iot975248395
+#   凭据:    通过 MINIO_ROOT_USER / MINIO_ROOT_PASSWORD 安全注入
 # ============================================
 
 set -e
@@ -45,11 +44,11 @@ cd "$SCRIPT_DIR"
 COMPOSE_FILE="docker-compose.yml"
 SERVICE_MINIO="MinIO"
 CONTAINER_NAME="minio-server"
-NETWORK_NAME="easyaiot-network"
+NETWORK_NAME="yfeieye-network"
 MINIO_API_PORT=9000
 MINIO_CONSOLE_PORT=9001
-MINIO_ROOT_USER="minioadmin"
-MINIO_ROOT_PASSWORD="basiclab@iot975248395"
+MINIO_ROOT_USER="${MINIO_ROOT_USER:-}"
+MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-}"
 DOCKER_MIRROR="https://docker.m.daocloud.io/"
 
 # 与 docker-compose.yml 保持一致，启动时从 compose 解析
@@ -533,8 +532,8 @@ show_connection_info() {
     echo "  容器名:   ${CONTAINER_NAME}"
     echo "  API:      http://127.0.0.1:${MINIO_API_PORT}"
     echo "  控制台:   http://127.0.0.1:${MINIO_CONSOLE_PORT}"
-    echo "  用户名:   ${MINIO_ROOT_USER}"
-    echo "  密码:     ${MINIO_ROOT_PASSWORD}"
+    echo "  用户名:   <由 MINIO_ROOT_USER 安全注入，不输出>"
+    echo "  密码:     <已安全注入，不输出>"
     echo ""
     print_info "常用命令:"
     echo "  docker ps | grep ${CONTAINER_NAME}"

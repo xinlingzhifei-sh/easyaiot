@@ -39,9 +39,8 @@ import static com.basiclab.iot.common.utils.SecurityFrameworkUtils.getLoginUserI
 /**
  * CodegenController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "管理后台 - 代码生成器")
 @RestController
@@ -57,7 +56,7 @@ public class CodegenController {
     @Parameters({
             @Parameter(name = "dataSourceConfigId", description = "数据源配置的编号", required = true, example = "1"),
             @Parameter(name = "name", description = "表名，模糊匹配", example = "Yudao"),
-            @Parameter(name = "comment", description = "描述，模糊匹配", example = "BasicLab")
+            @Parameter(name = "comment", description = "描述，模糊匹配", example = "yFeiEye")
     })
     //@PreAuthorize("@ss.hasPermission('infra:codegen:query')")
     public CommonResult<List<DatabaseTableRespVO>> getDatabaseTableList(

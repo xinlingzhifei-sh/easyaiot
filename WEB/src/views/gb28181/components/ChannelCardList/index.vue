@@ -140,14 +140,11 @@ import DAHUA_IMAGE from "@/assets/images/video/dahua.png";
 import HAIKANG_IMAGE from "@/assets/images/video/haikang.png";
 import HUAWEI_IMAGE from "@/assets/images/video/huawei.png";
 import OTHER_IMAGE from "@/assets/images/video/other.png";
-import {useModal} from "@/components/Modal";
 import { Icon } from '@/components/Icon';
 import {
   formatGbChannelDeviceType,
   normalizeWvpChannelItem,
 } from '@/views/camera/utils/gb28181Channel';
-
-const [registerAddModel, {openModal: openAddModal}] = useModal();
 
 const ListItem = List.Item;
 // 组件接收参数
@@ -170,6 +167,7 @@ const emit = defineEmits([
   'setLocation',
   'deviceRecord',
   'cloudRecord',
+  'snapshot',
 ]);
 //数据
 const data = ref([]);
@@ -177,9 +175,6 @@ const data = ref([]);
 const state = reactive({
   loading: true,
 });
-
-function handleSuccess() {
-}
 
 function formatChannelManufacturer(item: Record<string, unknown>) {
   const name = (item.manufacturer ?? item.manufacture ?? '').toString().trim();
@@ -293,6 +288,7 @@ function handleSetLocation(record: object) {
 async function handleDeviceRecord(record: object) {
   emit('deviceRecord', record);
 }
+void handleDeviceRecord
 
 async function handleCloudRecord(record: object) {
   emit('cloudRecord', record);

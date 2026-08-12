@@ -15,6 +15,10 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+_TOKEN_ENV = 'IOT_SINK_POST_PROCESS_TOKEN'
+_TOKEN_HEADER = 'X-Iot-Sink-Token'
+_MIN_TOKEN_LENGTH = 32
+
 
 def _sink_enqueue_url() -> str:
     explicit = (os.getenv('IOT_SINK_API_URL') or '').strip().rstrip('/')
@@ -90,8 +94,20 @@ def publish_post_process_request(
         return False
 
     url = _sink_enqueue_url()
+    token = (os.getenv(_TOKEN_ENV) or '').strip()
+    if len(token) < _MIN_TOKEN_LENGTH:
+        logger.error('%s 未配置或长度不足，拒绝发送后处理入队请求', _TOKEN_ENV)
+        return False
     try:
-        response = requests.post(url, json=message, timeout=5, headers={'Content-Type': 'application/json'})
+        response = requests.post(
+            url,
+            json=message,
+            timeout=5,
+            headers={
+                'Content-Type': 'application/json',
+                _TOKEN_HEADER: token,
+            },
+        )
         if response.status_code != 200:
             logger.warning(
                 '后处理入队失败 status=%s url=%s body=%s',

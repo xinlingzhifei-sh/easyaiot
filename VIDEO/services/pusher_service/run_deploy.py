@@ -2,9 +2,8 @@
 推送器服务模板工程
 用于推送视频流和事件告警
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys

@@ -1,12 +1,24 @@
 <template>
-  <div class="monitor-dashboard">
+  <div
+    class="monitor-dashboard"
+    :class="{ 'monitor-dashboard--embedded': dashboardOverlayReleased }"
+    data-testid="monitor-dashboard"
+  >
     <!-- 顶部头部 -->
-    <MonitorHeader :active-videos="activeVideos" />
+    <MonitorHeader
+      :active-videos="activeVideos"
+      :statistics="statistics"
+      :today-alarm-count="todayAlarmCount"
+      :dashboard-health="dashboardHealth"
+      :last-updated-text="lastUpdatedText"
+      @admin-entry="releaseDashboardOverlay"
+    />
     
     <!-- 主体内容 -->
     <div class="monitor-content">
       <!-- 左侧导航 -->
-      <MonitorSidebar 
+      <MonitorSidebar
+        class="monitor-devices"
         :selected-device="selectedDevice"
         @device-change="handleDeviceChange"
         @device-play="handleDevicePlay"
@@ -18,42 +30,67 @@
           ref="videoMonitorRef"
           :device="selectedDevice"
           :video-list="videoList"
+          :alert-record-list="alarmList"
           @video-list-change="handleVideoListChange"
         />
       </div>
       
       <!-- 右侧告警信息 -->
-      <AlarmPanel 
+      <AlarmPanel
+        class="monitor-alarms"
         :alarm-list="alarmList"
         :today-alarm-count="todayAlarmCount"
+        :dashboard-health="dashboardHealth"
+        :refreshing="refreshing"
         @play-alarm="handlePlayAlarm"
+        @retry="refreshDashboardData"
       />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import MonitorHeader from './components/Header.vue'
 import MonitorSidebar from './components/Sidebar.vue'
 import VideoMonitor from './components/VideoMonitor.vue'
 import AlarmPanel from './components/AlarmPanel.vue'
-import { queryAlarmList, getDashboardStatistics } from '@/api/device/calculate'
-import { resolveAlertImageDisplayUrl } from '@/utils/alertMinioImage'
-import { formatAlertListTitle } from '@/views/alert/alertDisplay'
+import { useDashboardData } from './useDashboardData'
 
 defineOptions({
   name: 'MonitorDashboard'
 })
 
 const videoMonitorRef = ref<InstanceType<typeof VideoMonitor> | null>(null)
+const dashboardOverlayReleased = ref(false)
 
-// 选中的设备
-const selectedDevice = ref<any>({
-  id: '1',
-  name: '',
-  location: ''
+// GB28181 的 gb_ch_* 仅用于播放，告警与统计接口必须使用同步后的真实设备 ID。
+const selectedDevice = ref<any>(null)
+const activeDeviceId = computed(() => {
+  const candidate = selectedDevice.value?.device?.id ?? selectedDevice.value?.id
+  const deviceId = String(candidate ?? '').trim()
+  return !deviceId || deviceId.startsWith('gb_ch_') ? '' : deviceId
 })
+
+const {
+  alarmList,
+  dashboardHealth,
+  lastUpdatedText,
+  refreshDashboardData,
+  refreshing,
+  statistics,
+  todayAlarmCount,
+} = useDashboardData(activeDeviceId)
+
+function releaseDashboardOverlay() {
+  dashboardOverlayReleased.value = true
+  const style = document.getElementById('monitor-dashboard-style')
+  if (style) {
+    document.head.removeChild(style)
+  }
+}
+
+defineExpose({ releaseDashboardOverlay })
 
 // 视频列表
 const videoList = ref([
@@ -69,200 +106,58 @@ const videoList = ref([
 // 正在播放的视频列表
 const activeVideos = ref<any[]>([])
 
-// 告警列表
-const alarmList = ref<any[]>([])
-
-// 今日告警次数
-const todayAlarmCount = ref(0)
-
-// 加载告警列表
-const loadAlarmList = async () => {
-  try {
-    const response = await queryAlarmList({
-      pageNo: 1,
-      pageSize: 7, // 只加载最近7条
-    }, { polling: true })
-    
-    if (response && response.alert_list) {
-      // 处理告警数据，确保格式正确
-      alarmList.value = response.alert_list.map((item: any) => {
-        let imageUrl = resolveAlertImageDisplayUrl(item.image_url) || null
-        
-        // 处理告警级别
-        let level = item.level || '告警'
-        if (!item.level) {
-          // 根据event类型设置默认级别
-          if (item.event && (item.event.includes('火') || item.event.includes('fire'))) {
-            level = '一级'
-          } else if (item.event && (item.event.includes('烟') || item.event.includes('smoke'))) {
-            level = '二级'
-          } else {
-            level = '三级'
-          }
-        }
-        
-        // 处理告警类型
-        let type = 'default'
-        if (item.event) {
-          if (item.event.includes('火') || item.event.includes('fire')) {
-            type = 'fire'
-          } else if (item.event.includes('烟') || item.event.includes('smoke')) {
-            type = 'smoke'
-          } else if (item.event.includes('入侵') || item.event.includes('intrusion')) {
-            type = 'intrusion'
-          }
-        }
-        
-        return {
-          id: item.id || item.alert_id,
-          type: type,
-          title: formatAlertListTitle(item),
-          event: item.event,
-          level: level,
-          location: item.device_name || item.location || '未知设备',
-          time: item.time || item.alert_time || item.created_at || '',
-          image: imageUrl,
-          image_url: item.image_url,
-          device_name: item.device_name,
-          device_id: item.device_id,
-          task_type: item.task_type,
-          information: item.information,
-          matched_person_name: item.matched_person_name,
-          source_event: item.source_event,
-        }
-      })
-    } else {
-      alarmList.value = []
-    }
-  } catch (error) {
-    console.error('加载告警列表失败', error)
-    alarmList.value = []
-  }
-}
-
-// 加载今日告警次数
-const loadTodayAlarmCount = async () => {
-  try {
-    const statsResponse = await getDashboardStatistics()
-    if (statsResponse) {
-      todayAlarmCount.value = statsResponse.today_alarm_count || 0
-    } else {
-      todayAlarmCount.value = 0
-    }
-  } catch (error) {
-    console.error('加载今日告警次数失败', error)
-    todayAlarmCount.value = 0
-  }
-}
-
-// 刷新定时器
-let refreshTimer: any = null
-let delayTimer: any = null
-let isMounted = false
-
 /** 大屏层 z-index 为 9999，需抬高挂载在 body 上的弹层，否则确认框/提示会被挡住 */
 const MONITOR_OVERLAY_Z_INDEX = 10050
 
 // 动态添加样式，隐藏顶部导航栏、标签页和左侧菜单，让大屏覆盖整个屏幕
 onMounted(() => {
-  isMounted = true
-  
-  const style = document.createElement('style')
-  style.id = 'monitor-dashboard-style'
-  style.textContent = `
-    .ant-layout-header,
-    .layout-multiple-header,
-    .layout-tabs,
-    .layout-footer {
-      display: none !important;
-    }
-    .ant-layout-sider,
-    .layout-sider-wrapper {
-      display: none !important;
-    }
-    .ant-layout-content,
-    .layout-content {
-      padding: 0 !important;
-      margin: 0 !important;
-      height: 100vh !important;
-      overflow: hidden !important;
-    }
-    .ant-layout-main {
-      height: 100vh !important;
-      overflow: hidden !important;
-      margin-left: 0 !important;
-    }
-    .ant-modal-root,
-    .ant-modal-wrap,
-    .ant-modal-mask,
-    .ant-message,
-    .ant-notification {
-      z-index: ${MONITOR_OVERLAY_Z_INDEX} !important;
-    }
-  `
-  document.head.appendChild(style)
-  
-  // 初始加载告警列表和今日告警次数（使用 Promise.all 确保同时发起，但去重机制会确保只发送一次请求）
-  Promise.all([
-    loadAlarmList(),
-    loadTodayAlarmCount()
-  ]).catch(error => {
-    console.error('初始加载失败', error)
-  })
-  
-  // 错峰刷新：延迟3秒开始，每5秒刷新一次告警列表和今日告警次数（3秒、8秒、13秒...）
-  delayTimer = setTimeout(() => {
-    // 检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    Promise.all([
-      loadAlarmList(),
-      loadTodayAlarmCount()
-    ]).catch(error => {
-      console.error('刷新数据失败', error)
-    })
-    
-    // 再次检查组件是否仍然挂载
-    if (!isMounted) return
-    
-    refreshTimer = setInterval(() => {
-      // 每次执行前检查组件是否仍然挂载
-      if (!isMounted) {
-        if (refreshTimer) {
-          clearInterval(refreshTimer)
-          refreshTimer = null
-        }
-        return
+  if (!document.getElementById('monitor-dashboard-style')) {
+    const style = document.createElement('style')
+    style.id = 'monitor-dashboard-style'
+    style.textContent = `
+      .ant-layout-header,
+      .layout-multiple-header,
+      .layout-tabs,
+      .layout-footer,
+      [class*="layout-header"],
+      [class*="layout-multiple-header"],
+      [class*="multiple-tabs"],
+      [class*="layout-footer"] {
+        display: none !important;
       }
-      
-      Promise.all([
-        loadAlarmList(),
-        loadTodayAlarmCount()
-      ]).catch(error => {
-        console.error('定时刷新失败', error)
-      })
-    }, 5000)
-  }, 3000)
+      .ant-layout-sider,
+      .layout-sider-wrapper,
+      [class*="layout-sider"] {
+        display: none !important;
+      }
+      .ant-layout-content,
+      .layout-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+      }
+      .ant-layout-main {
+        height: 100vh !important;
+        overflow: hidden !important;
+        margin-left: 0 !important;
+      }
+      .ant-modal-root,
+      .ant-modal-wrap,
+      .ant-modal-mask,
+      .ant-message,
+      .ant-notification {
+        z-index: ${MONITOR_OVERLAY_Z_INDEX} !important;
+      }
+    `
+    document.head.appendChild(style)
+  }
 })
 
 onUnmounted(() => {
-  isMounted = false
-  
   const style = document.getElementById('monitor-dashboard-style')
   if (style) {
     document.head.removeChild(style)
-  }
-  
-  // 清理延迟定时器
-  if (delayTimer) {
-    clearTimeout(delayTimer)
-    delayTimer = null
-  }
-  
-  // 清理定时器
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-    refreshTimer = null
   }
 })
 
@@ -295,45 +190,128 @@ const handleVideoListChange = (videos: any[]) => {
 
 <style lang="less">
 .monitor-dashboard {
+  --dashboard-bg: #061017;
+  --dashboard-bg-soft: #08151d;
+  --dashboard-panel: #0a1720;
+  --dashboard-panel-strong: #0e202b;
+  --dashboard-border: #1d3541;
+  --dashboard-border-strong: #2d5967;
+  --dashboard-cyan: #26d5e4;
+  --dashboard-blue: var(--dashboard-cyan);
+  --dashboard-green: #3ddc97;
+  --dashboard-amber: #f5b942;
+  --dashboard-accent: var(--dashboard-amber);
+  --dashboard-red: #ff5f6d;
+  --dashboard-danger: var(--dashboard-red);
+  --dashboard-text: #edf7fa;
+  --dashboard-muted: #91a8b4;
+  --dashboard-weak: #617a86;
+  --dashboard-radius: 2px;
+
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   max-height: 100vh;
-  background: linear-gradient(25deg, #0f2249, #182e5a 20%, #0f2249 40%, #182e5a 60%, #0f2249 80%, #182e5a 100%);
+  background: var(--dashboard-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--dashboard-text);
   font-size: 14px;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  z-index: 9999;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  isolation: isolate;
 
   a {
     text-decoration: none;
-    color: #399bff;
+    color: var(--dashboard-cyan);
   }
+}
+
+.monitor-dashboard--embedded {
+  pointer-events: none;
+  opacity: 0;
 }
 
 .monitor-content {
   flex: 1;
   min-height: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 284px minmax(0, 1fr) 328px;
+  grid-template-areas: 'devices center alarms';
   overflow: hidden;
-  padding: 0 16px 16px 16px;
-  gap: 16px;
+  padding: 12px 16px 16px;
+  gap: 12px;
   box-sizing: border-box;
-  margin-top: 8px;
 }
 
 .monitor-center {
-  flex: 1;
+  grid-area: center;
+  min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.monitor-devices {
+  grid-area: devices;
+  min-width: 0;
+  min-height: 0;
+}
+
+.monitor-alarms {
+  grid-area: alarms;
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 1600px) {
+  .monitor-content {
+    grid-template-columns: 248px minmax(0, 1fr) 300px;
+    gap: 10px;
+    padding: 10px 12px 12px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .monitor-content {
+    grid-template-columns: minmax(220px, 26vw) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(220px, 0.72fr);
+    grid-template-areas:
+      'devices center'
+      'alarms center';
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .monitor-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      'center'
+      'alarms'
+      'devices';
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 8px;
+    gap: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dashboard-border-strong) transparent;
+  }
+
+  .monitor-center {
+    height: min(64vh, 560px);
+    min-height: 480px;
+  }
 }
 </style>

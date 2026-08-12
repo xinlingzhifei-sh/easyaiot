@@ -38,24 +38,41 @@ def parse_script_args():
                        help='指定环境配置文件，例如: --env=prod 会加载 .env.prod，默认加载 .env')
     return parser.parse_args()
 
-# 保存原始sys.argv
-_original_argv = sys.argv.copy()
+# Manual-only runtime remains unloaded during unittest discovery.
+_script_args = None
+create_app = None
+db = Device = SnapTask = SnapSpace = Alert = None
 
-# 解析参数（在导入run.py之前）
-_script_args = parse_script_args()
 
-# 临时修改sys.argv，只保留脚本名称和--env参数（如果有），供run.py导入时使用
-_new_argv = [sys.argv[0]]
-if _script_args.env:
-    _new_argv.extend(['--env', _script_args.env])
-sys.argv = _new_argv
+def load_script_runtime():
+    """Parse manual-script arguments and import VIDEO runtime lazily."""
+    global create_app, db, Device, SnapTask, SnapSpace, Alert
 
-# 导入Flask应用和数据库模型
-from run import create_app
-from models import db, Device, SnapTask, SnapSpace, Alert
+    args = parse_script_args()
+    original_argv = sys.argv.copy()
+    runtime_argv = [sys.argv[0]]
+    if args.env:
+        runtime_argv.extend(['--env', args.env])
+    sys.argv = runtime_argv
+    try:
+        from run import create_app as app_factory
+        from models import (
+            db as database,
+            Device as DeviceModel,
+            SnapTask as SnapTaskModel,
+            SnapSpace as SnapSpaceModel,
+            Alert as AlertModel,
+        )
+    finally:
+        sys.argv = original_argv
 
-# 恢复原始sys.argv（虽然已经不需要了，但为了安全）
-sys.argv = _original_argv
+    create_app = app_factory
+    db = database
+    Device = DeviceModel
+    SnapTask = SnapTaskModel
+    SnapSpace = SnapSpaceModel
+    Alert = AlertModel
+    return args
 
 # 配置
 VIDEO_SERVICE_URL = os.getenv('VIDEO_SERVICE_URL', 'http://localhost:6000')
@@ -80,10 +97,6 @@ def signal_handler(signum, frame):
         # 第二次按 Ctrl+C，强制退出
         print(f"\n\n{Colors.RED}⚠️  强制退出！{Colors.RESET}")
         os._exit(1)
-
-# 注册信号处理器
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
 
 # 颜色输出
 class Colors:
@@ -401,7 +414,11 @@ def check_device_message_service():
 
 
 def main():
-    global VIDEO_SERVICE_URL, ALERT_HOOK_ENDPOINT
+    global VIDEO_SERVICE_URL, ALERT_HOOK_ENDPOINT, _script_args
+
+    _script_args = load_script_runtime()
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
     # 使用已解析的参数
     args = _script_args
@@ -587,4 +604,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

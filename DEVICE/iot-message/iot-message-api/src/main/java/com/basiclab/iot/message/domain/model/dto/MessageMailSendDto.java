@@ -8,9 +8,8 @@ import lombok.Data;
  * 消息发送DTO
  * 支持所有消息类型的发送参数
  * 
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @desc
  * @created 2025-07-22
  */

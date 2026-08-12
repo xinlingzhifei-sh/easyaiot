@@ -861,6 +861,7 @@ public class DeviceServiceImpl implements IDeviceService, CommandLineRunner {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
+            query = "%" + query + "%";
         }
         List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181, query, status);
         return new PageInfo<>(all);

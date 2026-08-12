@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EasyAIoT Node Agent - 工作节点代理
+yFeiEye Node Agent - 工作节点代理
 - HTTP 服务：接收部署/停止指令（端口 9100）
 - 控制面通道：注册 + 心跳
 """
@@ -34,10 +34,17 @@ CONTROL_PLANE_URL = os.environ.get(
     'CONTROL_PLANE_URL', 'http://localhost:48080/admin-api/node/agent'
 ).rstrip('/')
 HEARTBEAT_INTERVAL = int(os.environ.get('HEARTBEAT_INTERVAL', '10'))
+COMMAND_POLL_ENABLED = os.environ.get('COMMAND_POLL_ENABLED', 'true').lower() in ('1', 'true', 'yes', 'on')
+COMMAND_POLL_INTERVAL = float(os.environ.get('COMMAND_POLL_INTERVAL', '3'))
+COMMAND_POLL_MAX_COMMANDS = int(os.environ.get('COMMAND_POLL_MAX_COMMANDS', '5'))
 AGENT_VERSION = '1.0.0'
 AGENT_ENV_FILE = os.environ.get('AGENT_ENV_FILE', '')
 BOOTSTRAP_WAIT_SECONDS = int(os.environ.get('BOOTSTRAP_WAIT_SECONDS', '180'))
 BOOTSTRAP_RETRY_INTERVAL = int(os.environ.get('BOOTSTRAP_RETRY_INTERVAL', '3'))
+PLATFORM_AGENT_BOOTSTRAP_TOKEN = os.environ.get(
+    'PLATFORM_AGENT_BOOTSTRAP_TOKEN',
+    os.environ.get('EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN', ''),
+).strip()
 
 
 def _detect_platform_agent() -> bool:
@@ -86,9 +93,18 @@ def persist_credentials() -> None:
 
 def try_refresh_credentials(*, allow_node_id_change: bool = False) -> bool:
     global NODE_ID, AGENT_TOKEN
+    if not PLATFORM_AGENT:
+        return False
+    if not PLATFORM_AGENT_BOOTSTRAP_TOKEN:
+        logger.error('缺少 PLATFORM_AGENT_BOOTSTRAP_TOKEN，拒绝请求平台 bootstrap 凭据')
+        return False
     url = bootstrap_url()
     try:
-        resp = requests.get(url, timeout=10)
+        resp = requests.get(
+            url,
+            headers={'X-Bootstrap-Token': PLATFORM_AGENT_BOOTSTRAP_TOKEN},
+            timeout=10,
+        )
         if resp.status_code != 200:
             logger.debug('bootstrap 请求失败 HTTP %s: %s', resp.status_code, url)
             return False
@@ -307,6 +323,39 @@ def _wait_for_control_plane() -> None:
         time.sleep(BOOTSTRAP_RETRY_INTERVAL)
 
 
+def build_command_executors():
+    try:
+        from stream_forward_executor import StreamForwardExecutor
+    except ImportError as exc:
+        logger.warning('stream forward executor unavailable: %s', exc)
+        return {}
+
+    stream_forward_executor = StreamForwardExecutor()
+    return {
+        'stream_forward.deploy': stream_forward_executor.deploy,
+        'stream_forward.stop': stream_forward_executor.stop,
+    }
+
+
+def start_command_loop():
+    from agent_commands import AgentCommandClient, AgentCommandRunner
+
+    command_client = AgentCommandClient(
+        CONTROL_PLANE_URL,
+        NODE_ID,
+        AGENT_TOKEN,
+        max_commands=COMMAND_POLL_MAX_COMMANDS,
+    )
+    command_runner = AgentCommandRunner(command_client, build_command_executors())
+    thread = threading.Thread(
+        target=command_runner.run_forever,
+        args=(COMMAND_POLL_INTERVAL,),
+        daemon=True,
+    )
+    thread.start()
+    return thread
+
+
 def main():
     wait_for_platform_credentials()
     _wait_for_control_plane()
@@ -317,6 +366,8 @@ def main():
     from agent_server import run_server  # noqa: F401 - 先加载 HTTP 服务与 workload manager
 
     threading.Thread(target=heartbeat_loop, daemon=True).start()
+    if COMMAND_POLL_ENABLED:
+        start_command_loop()
     run_server()
 
 

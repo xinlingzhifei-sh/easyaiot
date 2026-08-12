@@ -50,7 +50,7 @@ import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from './Data';
 import VideoCardList from '@/views/gb28181/components/VideoCardList/index.vue';
 import AccessInfoModal from './AccessInfoModal.vue';
-import { queryVideoList, refreshChannelList, generateDeviceAccessInfo } from '@/api/device/gb28181';
+import { queryVideoList, refreshChannelList } from '@/api/device/gb28181';
 import { Button } from '@/components/Button'
 defineOptions({ name: 'Video' });
 

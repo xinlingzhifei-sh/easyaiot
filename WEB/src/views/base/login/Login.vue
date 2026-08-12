@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
 import LoginForm from './LoginForm.vue'
 import ForgetPasswordForm from './ForgetPasswordForm.vue'
 import { AppDarkModeToggle, AppLocalePicker, AppLogo } from '@/components/Application'
-import { useGlobSetting } from '@/hooks/setting'
-import { useI18n } from '@/hooks/web/useI18n'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useLocaleStore } from '@/store/modules/locale'
 
@@ -14,81 +11,31 @@ defineProps({
   },
 })
 
-const globSetting = useGlobSetting()
 const { prefixCls } = useDesign('login')
-const { t } = useI18n()
 const localeStore = useLocaleStore()
 const showLocale = localeStore.getShowPicker
-const title = computed(() => globSetting?.title ?? '')
 </script>
 
 <template>
-  <div :class="prefixCls" class="relative h-full min-h-full w-full overflow-hidden px-4">
-    <div :class="prefixCls" class="relative h-full min-h-full w-full overflow-hidden px-4">
-      <div class="absolute right-4 top-4 flex items-center">
-        <AppDarkModeToggle v-if="!sessionTimeout" class="enter-x mr-2" />
-        <AppLocalePicker v-if="!sessionTimeout && showLocale" class="enter-x xl:text-gray-600" :show-text="false" />
-      </div>
-
-      <span class="-enter-x xl:hidden">
-      <AppLogo :always-show-title="true" />
-    </span>
-
-      <div class="relative mx-auto h-full py-2 container sm:px-10">
-        <div class="h-full flex">
-          <div class="mr-4 hidden min-h-full pl-4 xl:w-6/12 xl:flex xl:flex-col">
-            <AppLogo class="-enter-x" />
-            <!--            <div class="my-auto">-->
-            <!--              <img :alt="title" src="@/assets/svg/login-box-bg.svg" class="-enter-x w-1/2 -mt-16">-->
-            <!--              <div class="-enter-x mt-10 font-medium text-white">-->
-            <!--                <span class="mt-4 inline-block text-3xl dark:text-gray-500"> {{ t('sys.login.signInTitle') }}</span>-->
-            <!--              </div>-->
-            <!--              <div class="-enter-x mt-5 font-normal text-white dark:text-gray-500">-->
-            <!--                {{ t('sys.login.signInDesc') }}-->
-            <!--              </div>-->
-            <!--            </div>-->
-          </div>
-          <div class="h-full w-full flex py-5 xl:my-0 xl:h-auto xl:w-6/12 xl:py-0">
-            <!-- eslint-disable max-len -->
-            <div :class="`${prefixCls}-form`" class="enter-x relative mx-auto my-auto w-full rounded-md px-5 py-8 shadow-md xl:ml-16 lg:w-2/4 sm:w-3/4 xl:w-auto xl:bg-transparent xl:p-4 sm:px-8 xl:shadow-none">
-              <!--   平台登录框           -->
-              <LoginForm />
-              <ForgetPasswordForm />
-            </div>
-          </div>
-        </div>
-      </div>
+  <div :class="prefixCls">
+    <div :class="`${prefixCls}-toolbar`">
+      <AppDarkModeToggle v-if="!sessionTimeout" class="enter-x mr-2" />
+      <AppLocalePicker v-if="!sessionTimeout && showLocale" class="enter-x xl:text-gray-600" :show-text="false" />
     </div>
-    <span class="-enter-x xl:hidden">
-      <AppLogo :always-show-title="true" />
-    </span>
 
-    <div class="relative mx-auto h-full py-2 container sm:px-10">
-      <div class="h-full flex">
-        <div class="mr-4 hidden min-h-full pl-4 xl:w-6/12 xl:flex xl:flex-col">
-          <AppLogo class="-enter-x" />
-          <div class="my-auto">
-<!--            <img :alt="title" src="@/assets/svg/login-box-bg.svg" class="-enter-x w-1/2 -mt-16">-->
-<!--            <div class="-enter-x mt-10 font-medium text-white">-->
-<!--              <span class="mt-4 inline-block text-3xl"> {{ t('sys.login.signInTitle') }}</span>-->
-<!--            </div>-->
-<!--            <div class="-enter-x mt-5 font-normal text-white dark:text-gray-500">-->
-<!--              {{ t('sys.login.signInDesc') }}-->
-<!--            </div>-->
-          </div>
-        </div>
-        <div class="h-full w-full flex py-5 xl:my-0 xl:h-auto xl:w-6/12 xl:py-0">
-          <!-- eslint-disable max-len -->
-          <div
-            :class="`${prefixCls}-form`"
-            class="enter-x relative mx-auto my-auto w-full rounded-md px-5 py-8 shadow-md xl:ml-16 lg:w-2/4 sm:w-3/4 xl:w-auto xl:bg-transparent xl:p-4 sm:px-8 xl:shadow-none"
-          >
-            <LoginForm />
-            <ForgetPasswordForm />
-          </div>
+    <div :class="`${prefixCls}-brand`">
+      <AppLogo :always-show-title="true" />
+    </div>
+
+    <main :class="`${prefixCls}-main`">
+      <div :class="`${prefixCls}-content`">
+        <div :class="`${prefixCls}-brand-spacer`" />
+        <div :class="`${prefixCls}-form`">
+          <LoginForm />
+          <ForgetPasswordForm />
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -105,14 +52,10 @@ body {
 
 html[data-theme='dark'] {
   .@{prefix-cls} {
-    padding: 0;
-    /* 背景图不重复 */
-    background: var(--platform-login-bg-dark, url('@/assets/images/dark-bg.png')) no-repeat;
-    background-size: 100% 100%; /* 拉伸图片，适应容器 */
-
+    background: var(--platform-login-bg-dark, url('@/assets/svg/login-yfeiEye.svg')) center center / cover no-repeat;
 
     &::before {
-      background-image: url('@/assets/svg/login-bg-dark.svg');
+      background-image: none;
     }
 
     .ant-input,
@@ -126,7 +69,7 @@ html[data-theme='dark'] {
 
     &-form {
       background: rgba(23, 23, 23, 0.88) !important;
-      border:1px solid #505050;
+      border: 1px solid #505050;
     }
 
     .app-iconify {
@@ -142,71 +85,112 @@ html[data-theme='dark'] {
 }
 
 .@{prefix-cls} {
-  padding: 0;
-  //background-color: @dark-bg;
-  background: var(--platform-login-bg-light, url('@/assets/images/light-bg.png')) no-repeat;
-  background-size: 100% 100%; /* 拉伸图片，适应容器 */
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 32px;
+  overflow: auto;
+  background: var(--platform-login-bg-light, url('@/assets/svg/login-yfeiEye.svg')) center center / cover no-repeat;
 
-  .@{prefix-cls}-form {
-    padding: 1.5rem 2.1rem .8rem 2.1rem;
+  &-toolbar {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+  }
+
+  &-brand {
+    position: absolute;
+    top: 6px;
+    left: 34px;
+    z-index: 2;
+    max-width: 660px;
+  }
+
+  &-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    min-height: calc(100vh - 64px);
+    min-height: calc(100dvh - 64px);
+    padding-top: 92px;
+  }
+
+  &-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  &-brand-spacer {
+    display: none;
+  }
+
+  &-form {
+    box-sizing: border-box;
+    width: min(350px, calc(100vw - 64px));
+    padding: 24px 32px 24px;
     background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 18px 48px rgb(0 17 56 / 18%);
   }
 
   @media (max-width: @screen-xl) {
     background-color: #293146;
 
-    .@{prefix-cls}-form {
-      background-color: #fff;
+    &-brand {
+      top: 10px;
+      left: 24px;
+      max-width: min(660px, calc(100vw - 48px));
+    }
+
+    &-content {
+      margin-top: 0;
+    }
+
+    &-main {
+      padding-top: 104px;
     }
   }
 
-/*  &::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    margin-left: -48%;
-    content: '';
-    //background-image: url('@/assets/svg/login-bg.svg');
-    background-repeat: no-repeat;
-    background-position: 100%;
-    background-size: auto 100%;
-
-    @media (max-width: @screen-xl) {
-      display: none;
-    }
-  }*/
-
   .@{logo-prefix-cls} {
-    position: absolute;
-    top: 12px;
-    height: 30px;
+    position: static;
+    height: 116px;
+    gap: 18px;
 
+    .logo-icon {
+      flex: 0 0 160px;
+      width: 160px;
+      height: 110px;
+    }
+
+    .logo-title,
     &__title {
-      font-size: 16px;
+      align-self: flex-start;
+      max-width: 460px;
+      margin-top: 18px;
+      font-size: 40px !important;
+      font-weight: 800;
+      line-height: 1.12;
       color: #fff;
+      white-space: normal;
+      text-shadow: 0 0 12px rgb(87 146 255 / 65%), 0 0 26px rgb(30 106 255 / 45%);
     }
 
     img {
-      width: 32px;
-    }
-  }
-
-  .container {
-    .@{logo-prefix-cls} {
-      display: flex;
-      width: 60%;
-      height: 80px;
-
-      &__title {
-        font-size: 24px;
-        color: #fff;
-      }
-
-      img {
-        width: 48px;
-      }
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
   }
 
@@ -219,23 +203,9 @@ html[data-theme='dark'] {
   }
 
   input:not([type='checkbox']) {
-    min-width: 360px;
-
-    @media (max-width: @screen-xl) {
-      min-width: 320px;
-    }
-
-    @media (max-width: @screen-lg) {
-      min-width: 260px;
-    }
-
-    @media (max-width: @screen-md) {
-      min-width: 240px;
-    }
-
-    @media (max-width: @screen-sm) {
-      min-width: 160px;
-    }
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .@{countdown-prefix-cls} input {
@@ -244,6 +214,167 @@ html[data-theme='dark'] {
 
   .ant-divider-inner-text {
     font-size: 12px;
+  }
+
+  .ant-form {
+    padding: 4px 0 !important;
+  }
+
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-btn-link {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .form-title {
+    padding: 0 0 8px !important;
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  @media (max-width: @screen-lg) {
+    display: block;
+    padding: 24px;
+
+    &-brand {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      max-width: 620px;
+      margin: 8px auto 24px;
+    }
+
+    &-main {
+      min-height: calc(100vh - 156px);
+      min-height: calc(100dvh - 156px);
+      padding-top: 0;
+    }
+
+    &-content {
+      display: block;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    &-brand-spacer {
+      display: none;
+    }
+
+    &-form {
+      width: min(350px, calc(100vw - 48px));
+      max-width: 100%;
+      padding: 28px 30px 26px;
+      margin: 0 auto;
+    }
+
+    .@{logo-prefix-cls} {
+      justify-content: center;
+      height: 104px;
+      gap: 16px;
+
+      .logo-icon {
+        flex-basis: 146px;
+        width: 146px;
+        height: 100px;
+      }
+
+      .logo-title,
+      &__title {
+        max-width: 390px;
+        font-size: 32px !important;
+      }
+    }
+  }
+
+  @media (max-width: @screen-md) {
+    padding: 18px;
+
+    &-toolbar {
+      top: 12px;
+      right: 12px;
+    }
+
+    &-brand {
+      max-width: 100%;
+      margin: 10px auto 18px;
+    }
+
+    &-main {
+      min-height: auto;
+    }
+
+    &-form {
+      width: min(350px, calc(100vw - 36px));
+      max-width: 100%;
+      padding: 26px 18px 24px;
+    }
+
+    .@{logo-prefix-cls} {
+      justify-content: center;
+      height: auto;
+      gap: 12px;
+
+      .logo-icon {
+        flex-basis: 112px;
+        width: 112px;
+        height: 78px;
+      }
+
+      .logo-title,
+      &__title {
+        max-width: 230px;
+        font-size: 24px !important;
+      }
+    }
+
+    .form-title {
+      font-size: 26px;
+    }
+
+    &-form {
+      .ant-row {
+        gap: 14px;
+        align-items: center;
+      }
+
+      .ant-col-12 {
+        flex: 0 0 auto;
+        max-width: none;
+      }
+
+      .ant-form-item[style] {
+        text-align: left !important;
+      }
+    }
+  }
+
+  @media (max-width: @screen-sm) {
+    &-brand {
+      margin-top: 42px;
+    }
+
+    &-form {
+      width: min(360px, calc(100vw - 36px));
+      padding: 26px 14px 22px;
+    }
+
+    .@{logo-prefix-cls} {
+      .logo-icon {
+        flex-basis: 92px;
+        width: 92px;
+        height: 64px;
+      }
+
+      .logo-title,
+      &__title {
+        max-width: min(220px, calc(100vw - 148px));
+        font-size: 20px !important;
+      }
+    }
   }
 }
 </style>

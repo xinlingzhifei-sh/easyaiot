@@ -21,7 +21,7 @@
   import Apply from '@/views/notice/components/msgPush/PushTemplate/components/Apply.vue';
 
   const activeKey = ref('detail');
-  const record = ref(-1);
+  const record = ref<Record<string, any>>({});
   const tabs = [
     { key: 'detail', component: ConfigDetail, tab: '详情' },
     { key: 'apply', component: Apply, tab: '应用' },
@@ -33,7 +33,7 @@
 
   const [register] = useDrawerInner((data) => {
     // console.log('data ..', data);
-    record.value = data;
+    record.value = data?.record ?? data;
   });
   const handleClose = () => {
     activeKey.value = 'detail';

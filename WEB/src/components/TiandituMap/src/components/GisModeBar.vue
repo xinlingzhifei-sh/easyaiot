@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Badge, RadioButton, RadioGroup } from 'ant-design-vue';
+import type { RadioChangeEvent } from 'ant-design-vue';
 import { Icon } from '@/components/Icon';
 
 export interface GisModeOption {
@@ -18,8 +19,8 @@ const emit = defineEmits<{
   (e: 'change', key: string): void;
 }>();
 
-function onModeChange(e: { target: { value: string } }) {
-  emit('change', e.target.value);
+function onModeChange(e: RadioChangeEvent) {
+  emit('change', String(e.target.value));
 }
 </script>
 
@@ -27,7 +28,7 @@ function onModeChange(e: { target: { value: string } }) {
   <div class="gis-mode-bar">
     <RadioGroup
       :value="activeKey"
-      size="middle"
+      size="default"
       button-style="solid"
       class="gis-mode-bar__tabs"
       @change="onModeChange"

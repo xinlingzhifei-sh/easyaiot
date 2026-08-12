@@ -108,6 +108,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getLog } from '@/api/device/entity-views';
+import type { Dayjs } from 'dayjs';
 import moment from 'moment';
 import { Input, Select, SelectOption, Tag, DatePicker } from 'ant-design-vue';
 import { Icon } from '@/components/Icon';
@@ -134,13 +135,21 @@ const isIndustrialProtocol = computed(() => {
 
 const route = useRoute();
 const { createMessage } = useMessage();
+const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+const formatRangeValue = (value: string | Dayjs) =>
+  typeof value === 'string' ? moment(value).format(DATE_TIME_FORMAT) : value.format(DATE_TIME_FORMAT);
 
 const deviceId = computed(() => route.params?.id as string);
 
-const filterForm = reactive({
-  level: undefined as string | undefined,
-  keyword: undefined as string | undefined,
-  timeRange: undefined as any,
+// 筛选表单
+const filterForm = reactive<{
+  level?: string;
+  keyword?: string;
+  timeRange?: [string, string] | [Dayjs, Dayjs];
+}>({
+  level: undefined,
+  keyword: undefined,
+  timeRange: undefined,
 });
 
 const logList = ref<any[]>([]);
@@ -173,8 +182,8 @@ const fetchDeviceLogData = async () => {
       params.keyword = filterForm.keyword;
     }
     if (filterForm.timeRange && filterForm.timeRange.length === 2) {
-      params.startTime = moment(filterForm.timeRange[0]).format('YYYY-MM-DD HH:mm:ss');
-      params.endTime = moment(filterForm.timeRange[1]).format('YYYY-MM-DD HH:mm:ss');
+      params.startTime = formatRangeValue(filterForm.timeRange[0]);
+      params.endTime = formatRangeValue(filterForm.timeRange[1]);
     }
 
     const response = await getLog({
@@ -182,6 +191,8 @@ const fetchDeviceLogData = async () => {
       id: deviceId.value,
       params,
     });
+    
+    
 
     const data = normalizeList(response);
     logList.value = data.sort((a, b) => {
@@ -298,4 +309,3 @@ onMounted(() => {
   }
 }
 </style>
-

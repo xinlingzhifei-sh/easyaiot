@@ -48,7 +48,15 @@ def resolve_video_service_base_url() -> str:
     if explicit:
         return explicit
     port = (os.getenv('VIDEO_SERVICE_PORT') or os.getenv('FLASK_RUN_PORT') or '6000').strip()
-    host = (os.getenv('VIDEO_SERVICE_HOST') or os.getenv('POD_IP') or os.getenv('HOST_IP') or '127.0.0.1').strip()
+    host = (
+        os.getenv('VIDEO_SERVICE_HOST')
+        or os.getenv('FLASK_RUN_HOST')
+        or os.getenv('POD_IP')
+        or os.getenv('HOST_IP')
+        or '127.0.0.1'
+    ).strip()
+    if host in {'0.0.0.0', '::', '[::]'}:
+        host = '127.0.0.1'
     return f'http://{host}:{port}'
 
 

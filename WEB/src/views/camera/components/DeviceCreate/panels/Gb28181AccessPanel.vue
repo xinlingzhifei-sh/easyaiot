@@ -164,17 +164,19 @@ function parseContent(text: string): ParsedGroup[] {
 const parsedGroups = computed(() => parseContent(content.value));
 
 onMounted(() => {
-  handleRegenerate();
+  loadAccessInfo(false);
 });
 
-async function handleRegenerate() {
+async function loadAccessInfo(force = false) {
   regenLoading.value = true;
   try {
     const values = getFieldsValue();
     const count = Math.min(100, Math.max(1, Number(values.generateCount) || 10));
-    const res = await generateDeviceAccessInfo(count);
+    const res = await generateDeviceAccessInfo(count, force);
     content.value = extractAccessInfoText(res) || '未获取到内容';
-    createMessage.success('已生成');
+    if (force) {
+      createMessage.success('已生成');
+    }
   } catch (e: unknown) {
     const err = e as { message?: string; msg?: string };
     content.value = '生成失败：' + (err?.message || err?.msg || String(e));
@@ -182,6 +184,10 @@ async function handleRegenerate() {
   } finally {
     regenLoading.value = false;
   }
+}
+
+async function handleRegenerate() {
+  await loadAccessInfo(true);
 }
 
 async function copyContent() {

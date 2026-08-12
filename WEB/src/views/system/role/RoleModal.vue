@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateRole(values)
+      await updateRole(values as any)
     else
-      await createRole(values)
+      await createRole(values as any)
 
     closeModal()
     emit('success')

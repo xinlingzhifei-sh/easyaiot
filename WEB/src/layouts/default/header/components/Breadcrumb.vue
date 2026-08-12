@@ -22,7 +22,7 @@ defineProps({
   theme: propTypes.oneOf(['dark', 'light']),
 })
 
-const routes = ref<RouteLocationMatched[]>([])
+const routes = ref<any[]>([])
 const { currentRoute } = useRouter()
 const { prefixCls } = useDesign('layout-breadcrumb')
 const { getShowBreadCrumbIcon } = useRootSetting()
@@ -74,7 +74,7 @@ function getMatched(menus: Menu[], parent: string[]) {
   return metched
 }
 
-function filterItem(list: RouteLocationMatched[]) {
+function filterItem(list: any[]) {
   return filter(list, (item) => {
     const { meta, name } = item
     if (!meta)
@@ -88,7 +88,7 @@ function filterItem(list: RouteLocationMatched[]) {
   }).filter(item => !item.meta?.hideBreadcrumb)
 }
 
-function handleClick(route: RouteLocationMatched, paths: string[], e: Event) {
+function handleClick(route: any, paths: string[], e: Event) {
   e?.preventDefault()
   const { children, redirect, meta } = route
 
@@ -117,12 +117,16 @@ function handleClick(route: RouteLocationMatched, paths: string[], e: Event) {
   }
 }
 
-function hasRedirect(routes: RouteLocationMatched[], route: RouteLocationMatched) {
+function hasRedirect(routes: any[], route: any) {
   return routes.indexOf(route) !== routes.length - 1
 }
 
-function getIcon(route) {
+function getIcon(route: any) {
   return route.icon || route.meta?.icon
+}
+
+function getRouteTitle(route: any) {
+  return route.name || route.meta?.title || ''
 }
 </script>
 
@@ -132,10 +136,10 @@ function getIcon(route) {
       <template #itemRender="{ route, routes: routesMatched, paths }">
         <Icon v-if="getShowBreadCrumbIcon && getIcon(route)" :icon="getIcon(route)" />
         <span v-if="!hasRedirect(routesMatched, route)">
-          {{ t(route.name || route.meta.title) }}
+          {{ t(getRouteTitle(route)) }}
         </span>
         <router-link v-else to="" @click="handleClick(route, paths, $event)">
-          {{ t(route.name || route.meta.title) }}
+          {{ t(getRouteTitle(route)) }}
         </router-link>
       </template>
     </Breadcrumb>

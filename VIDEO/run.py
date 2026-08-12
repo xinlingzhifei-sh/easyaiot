@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import argparse
 import os
@@ -20,7 +19,12 @@ from healthcheck import HealthCheck, EnvironmentDump
 from nacos import NacosClient
 from sqlalchemy import text
 
-from app.utils.video_env import load_video_env
+from app.utils.nacos_registration import (
+    NacosRegistrationConfig,
+    NacosRegistrationLoop,
+    resolve_registration_ip,
+)
+from app.utils.video_env import load_video_env, validate_production_runtime_secrets
 
 from app.blueprints import camera, alert, snap, playback, record, algorithm_task, stream_forward, face
 
@@ -124,6 +128,9 @@ def send_heartbeat(client, ip, port, stop_event):
 
 
 def create_app(start_background_tasks=None):
+    validate_production_runtime_secrets()
+    from app.services.record_export_service import validate_record_export_signing_configuration
+    validate_record_export_signing_configuration()
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
     
@@ -156,17 +163,19 @@ def create_app(start_background_tasks=None):
     
     # MinIO对象存储配置
     app.config['MINIO_ENDPOINT'] = os.environ.get('MINIO_ENDPOINT', 'localhost:9000')
-    app.config['MINIO_ACCESS_KEY'] = os.environ.get('MINIO_ACCESS_KEY', 'minioadmin')
-    app.config['MINIO_SECRET_KEY'] = os.environ.get('MINIO_SECRET_KEY', 'minioadmin')
+    app.config['MINIO_ACCESS_KEY'] = os.environ.get('MINIO_ACCESS_KEY', '')
+    app.config['MINIO_SECRET_KEY'] = os.environ.get('MINIO_SECRET_KEY', '')
+    if not app.config['MINIO_ACCESS_KEY'] or not app.config['MINIO_SECRET_KEY']:
+        raise RuntimeError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
     app.config['MINIO_SECURE'] = os.environ.get('MINIO_SECURE', 'false').lower() == 'true'
     
     # Kafka配置
     # 重要：VIDEO服务使用 host 网络模式，必须使用 localhost 访问 Kafka
-    # 如果环境变量中配置了容器名（如 Kafka:9092），需要强制覆盖为 localhost:9092
-    kafka_bootstrap_servers = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+    # 如果环境变量中配置了容器名（如 Kafka:9092），需要强制覆盖为 Kafka EXTERNAL listener。
+    kafka_bootstrap_servers = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
     if 'Kafka' in kafka_bootstrap_servers or 'kafka-server' in kafka_bootstrap_servers:
-        print(f'⚠️  检测到 Kafka 配置使用容器名，强制覆盖为 localhost:9092（VIDEO服务使用 host 网络模式）')
-        kafka_bootstrap_servers = 'localhost:9092'
+        print(f'⚠️  检测到 Kafka 配置使用容器名，强制覆盖为 localhost:9094（VIDEO服务使用 host 网络模式）')
+        kafka_bootstrap_servers = 'localhost:9094'
     app.config['KAFKA_BOOTSTRAP_SERVERS'] = kafka_bootstrap_servers
     app.config['KAFKA_ALERT_TOPIC'] = os.environ.get('KAFKA_ALERT_TOPIC', 'iot-alert-notification')
     app.config['KAFKA_ALERT_NOTIFICATION_TOPIC'] = os.environ.get('KAFKA_ALERT_NOTIFICATION_TOPIC', 'iot-alert-notification')
@@ -226,6 +235,7 @@ def create_app(start_background_tasks=None):
                 ensure_algorithm_task_pose_columns,
                 ensure_algorithm_task_pose_intent_columns,
                 ensure_algorithm_task_post_process_columns,
+                ensure_algorithm_task_motion_gate_columns,
                 ensure_algorithm_task_alert_class_columns,
                 ensure_algorithm_task_detect_conf_column,
                 ensure_algorithm_task_executor_columns,
@@ -235,6 +245,7 @@ def create_app(start_background_tasks=None):
             ensure_algorithm_task_pose_columns(db.engine)
             ensure_algorithm_task_pose_intent_columns(db.engine)
             ensure_algorithm_task_post_process_columns(db.engine)
+            ensure_algorithm_task_motion_gate_columns(db.engine)
             ensure_algorithm_task_alert_class_columns(db.engine)
             ensure_algorithm_task_detect_conf_column(db.engine)
             ensure_algorithm_task_executor_columns(db.engine)
@@ -244,6 +255,10 @@ def create_app(start_background_tasks=None):
             try:
                 # 确保所有表都存在（包括 device_directory）
                 db.create_all()
+                from app.services.video_schema_migration_service import apply_video_schema_migrations
+                applied_schema_migrations = apply_video_schema_migrations(db.session)
+                if applied_schema_migrations:
+                    print(f"Video schema migrations applied: {', '.join(applied_schema_migrations)}")
                 
                 # 检查 device 表的 directory_id 列是否存在
                 result = db.session.execute(text("""
@@ -1023,53 +1038,53 @@ def create_app(start_background_tasks=None):
     if not start_background_tasks:
         return app
 
-    # Nacos注册与心跳线程管理
-    try:
-        # 获取环境变量
-        nacos_server = os.getenv('NACOS_SERVER', 'Nacos:8848')
-        namespace = os.getenv('NACOS_NAMESPACE', '')
-        service_name = os.getenv('SERVICE_NAME', 'video-server')
-        port = int(os.getenv('FLASK_RUN_PORT', 6000))
-        username = os.getenv('NACOS_USERNAME', 'nacos')
-        password = os.getenv('NACOS_PASSWORD', 'basiclab@iot78475418754')
+    from app.services.record_export_service import start_record_export_worker
+    app.record_export_worker_thread = start_record_export_worker(app)
 
-        # 获取IP地址
-        ip = os.getenv('POD_IP') or get_local_ip()
+    # Nacos registration must survive slow Nacos startup after host reboots.
+    nacos_server = os.getenv('NACOS_SERVER', 'Nacos:8848')
+    namespace = os.getenv('NACOS_NAMESPACE', '')
+    service_name = os.getenv('SERVICE_NAME', 'video-server')
+    port = int(os.getenv('FLASK_RUN_PORT', 6000))
+    username = os.getenv('NACOS_USERNAME', 'nacos')
+    password = os.getenv('NACOS_PASSWORD', '')
+    ip = resolve_registration_ip(
+        bind_host=os.getenv('FLASK_RUN_HOST', '0.0.0.0'),
+        pod_ip=os.getenv('POD_IP'),
+        local_ip_factory=get_local_ip,
+    )
 
-        # 创建Nacos客户端
-        app.nacos_client = NacosClient(
+    app.nacos_client = None
+    app.registered_ip = ip
+    app.nacos_registered = False
+    app.heartbeat_stop_event = threading.Event()
+
+    def mark_nacos_registered(client):
+        app.nacos_client = client
+        app.registered_ip = ip
+        app.nacos_registered = True
+
+    app.nacos_registration_loop = NacosRegistrationLoop(
+        NacosRegistrationConfig(
             server_addresses=nacos_server,
             namespace=namespace,
             username=username,
-            password=password
-        )
-
-        # 注册服务实例
-        app.nacos_client.add_naming_instance(
+            password=password,
             service_name=service_name,
             ip=ip,
             port=port,
-            cluster_name="DEFAULT",
-            healthy=True,
-            ephemeral=True
-        )
-        print(f"✅ 服务注册成功: {service_name}@{ip}:{port}")
-
-        # 存储注册IP到主应用对象
-        app.registered_ip = ip
-
-        # 启动心跳线程
-        app.heartbeat_stop_event = threading.Event()
-        app.heartbeat_thread = threading.Thread(
-            target=send_heartbeat,
-            args=(app.nacos_client, ip, port, app.heartbeat_stop_event),
-            daemon=True
-        )
-        app.heartbeat_thread.start()
-
-    except Exception as e:
-        print(f"❌ Nacos注册失败: {str(e)}")
-        app.nacos_client = None
+        ),
+        NacosClient,
+        on_registered=mark_nacos_registered,
+    )
+    app.nacos_registration_loop.tick()
+    app.heartbeat_thread = threading.Thread(
+        target=app.nacos_registration_loop.run,
+        args=(app.heartbeat_stop_event,),
+        daemon=True,
+    )
+    app.heartbeat_thread.start()
+    print(f"Nacos registration loop started: {service_name}@{ip}:{port}")
 
     # Nacos初始化标记
     has_setup_nacos = False
@@ -1078,7 +1093,7 @@ def create_app(start_background_tasks=None):
     def setup_nacos_once():
         nonlocal has_setup_nacos
         if not has_setup_nacos:
-            app.nacos_registered = True if hasattr(app, 'nacos_client') else False
+            app.nacos_registered = bool(getattr(app, 'nacos_client', None))
             has_setup_nacos = True
 
     # 应用退出时注销服务

@@ -88,8 +88,7 @@ const handleDelete = async (serviceId: number) => {
 
 const handleToggleEnabled = async (record: AlgorithmModelService) => {
   try {
-    // 将布尔值转换为整数：true -> 1, false -> 0
-    const newValue = record.is_enabled ? 0 : 1;
+    const newValue = !record.is_enabled;
     const response = await updateTaskService(record.id, {
       is_enabled: newValue,
     });
@@ -118,4 +117,3 @@ defineExpose({
 .algorithm-service-list {
 }
 </style>
-

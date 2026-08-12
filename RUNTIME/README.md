@@ -1,6 +1,6 @@
 # RUNTIME 模块
 
-EasyAIoT 的 **C++ 帧执行器**。负责拉流、解码、AI 推理与结果回传；**不替代 VIDEO**。
+yFeiEye 的 **C++ 帧执行器**（由原 TASK 演进）。负责拉流、解码、AI 推理与结果回传；**不替代 VIDEO**。
 
 | 角色 | 模块 | 职责 |
 |------|------|------|
@@ -152,7 +152,7 @@ cat /opt/easyaiot/RUNTIME/node.env
 
 ### 手工调试（冒烟）
 
-1. 编辑 `/opt/easyaiot/RUNTIME/config/atomic.example.ini`：改 `rtsp_url`、模型路径等  
+1. 编辑 `/opt/easyaiot/RUNTIME/config/atomic.example.ini`：改 `rtsp_url`、模型路径等
 2. 启动：
 
 ```bash
@@ -187,7 +187,7 @@ curl -s http://127.0.0.1:8123/health
 
 ## 集群分发（iot-node · 一键）
 
-**页面只需一步**：WEB「业务运行时分发」→ **高性能算法 · RUNTIME(C++)** →「分发 RUNTIME」  
+**页面只需一步**：WEB「业务运行时分发」→ **高性能算法 · RUNTIME(C++)** →「分发 RUNTIME」
 （或算法 bundle「全量分发」，会顺带安装 RUNTIME。）
 
 控制面后台自动串联：`install_linux.sh`（若未编译）→ `export_runtime_cpp.sh` → SSH 安装到节点 `/opt/easyaiot/RUNTIME`。
@@ -231,7 +231,7 @@ VIDEO 各 Linux 安装入口通过 [`VIDEO/scripts/ensure_runtime_cpp.sh`](../VI
 - `VIDEO/.docker-compose.runtime.override.yaml`（容器内 `/opt/easyaiot/RUNTIME` + conda/ORT[/cuda] lib）
 - `RUNTIME/.bundle-runtime/{arch}/easyaiot-runtime-*.tar.gz`（集群离线包）
 
-跳过：`EASYAIOT_RUNTIME_SKIP=1`  
+跳过：`EASYAIOT_RUNTIME_SKIP=1`
 强制失败中止 VIDEO：`EASYAIOT_RUNTIME_REQUIRED=1`
 
 ---

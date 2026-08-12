@@ -13,9 +13,8 @@ import java.util.List;
 /**
  * MailTemplateDO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @TableName(value = "system_mail_template", autoResultMap = true)
 @Data

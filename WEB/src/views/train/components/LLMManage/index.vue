@@ -71,11 +71,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useModal } from '@/components/Modal';
-import { Col } from 'ant-design-vue';
 import { PlusOutlined, SwapOutlined } from '@ant-design/icons-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { getBasicColumns, getFormConfig } from './Data';
@@ -140,8 +139,9 @@ const getLLMListApi = async (params: any) => {
         total = response.data.total || 0;
       } else if ('list' in response && Array.isArray(response.list)) {
         // 转换器已解包的格式：直接包含 list 和 total
-        items = response.list;
-        total = response.total || 0;
+        const direct = response as unknown as { list: LLMModel[]; total?: number };
+        items = direct.list;
+        total = direct.total || 0;
       }
     }
     
@@ -165,20 +165,21 @@ const getLLMListApi = async (params: any) => {
 };
 
 // 获取状态文本（基于is_active，不再使用status字段）
-const getStatusText = (status: string, isActive: boolean) => {
+const getStatusText = (_status: string, isActive: boolean) => {
   // 只根据is_active判断，不再使用status字段
   return isActive ? '已激活' : '未激活';
 };
 
 // 获取状态颜色（基于is_active，不再使用status字段）
-const getStatusColor = (status: string, isActive: boolean) => {
+const getStatusColor = (_status: string, isActive: boolean) => {
   // 只根据is_active判断，不再使用status字段
   return isActive ? 'green' : 'default';
 };
 
 // 获取表格操作按钮
-const getTableActions = (record: LLMModel) => {
-  const actions = [
+const getTableActions = (rawRecord: LLMModel | Recordable) => {
+  const record = rawRecord as LLMModel;
+  const actions: ActionItem[] = [
     {
       icon: 'ant-design:eye-filled',
       tooltip: '查看',
@@ -227,6 +228,8 @@ const handleToggleViewMode = () => {
 
 // 处理表单字段值变化（卡片模式，实时监听）
 function handleFieldValueChange(field: string, value: any) {
+  void field;
+  void value;
   // 可以在这里处理字段值变化
 }
 
@@ -236,12 +239,14 @@ const handleTableReset = async () => {
   await form.resetFields();
   reload();
 };
+void handleTableReset;
 
 // 提交表单（表格模式）
 const handleTableSubmit = async () => {
   const form = getForm();
   await form.submit();
 };
+void handleTableSubmit;
 
 // 创建
 const handleCreate = () => {
@@ -348,7 +353,7 @@ const handleDeactivate = async (record: LLMModel) => {
 const handleTest = async (record: LLMModel) => {
   try {
     createMessage.loading({ content: '正在测试连接...', key: 'test' });
-    const response = await testLLM(record.id!);
+    const response = (await testLLM(record.id!)) as any;
     // 检查响应格式：如果响应转换器已经处理过，可能只返回 data，也可能返回完整对象
     let testSuccess = false;
     if (response && typeof response === 'object' && 'code' in response) {
@@ -405,6 +410,7 @@ const handleTest = async (record: LLMModel) => {
     }
   }
 };
+void handleTest;
 
 // 成功回调
 const handleSuccess = () => {

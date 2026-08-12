@@ -44,30 +44,30 @@ spring:
         master:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/iot-device20?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
         tdengine:
           driver-class-name: com.taosdata.jdbc.rs.RestfulDriver
-          url: jdbc:TAOS-RS://localhost:6041/iot_device?user=root&password=taosdata&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
-          username: root
-          password: taosdata
+          url: jdbc:TAOS-RS://localhost:6041/iot_device?user=${TDENGINE_USER}&password=${TDENGINE_PASSWORD}&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8
+          username: ${TDENGINE_USER}
+          password: ${TDENGINE_PASSWORD}
         video: # VIDEO数据库数据源（用于访问Alert表）
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/iot-video20?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
         node: # iot-node 数据库（后处理 Worker 地址解析）
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/iot-node20?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
 
   # Redis 配置。Redisson 默认的配置足够使用，一般不需要进行调优
   redis:
     host: localhost # 地址
     port: 6379 # 端口
     database: 0 # 数据库索引
-    password: basiclab@iot975248395 # 密码，建议生产环境开启
+    password: ${REDIS_PASSWORD} # 密码，建议生产环境开启
     lettuce:
       pool:
         max-active: 8    # 根据业务需求设置（生产环境建议8-16）
@@ -182,8 +182,8 @@ fdfs:
 minio:
   url: http://localhost:9000
   downloadUrl: http://localhost:9001
-  accessKey: minioadmin
-  secretKey: basiclab@iot975248395
+  accessKey: ${MINIO_ACCESS_KEY}
+  secretKey: ${MINIO_SECRET_KEY}
   bucketName: snap-space
   chunk: 5
   chunkSize: 5
@@ -202,7 +202,7 @@ basiclab:
         read-timeout: 30s
       # 设备 Token 配置
       token:
-        secret: yudaoIotGatewayTokenSecret123456789 # Token 密钥，至少32位
+        secret: ${IOT_SINK_TOKEN_SECRET} # Token 密钥，至少32位
         expiration: 7d
       # 设备 Topic 订阅配置
       topic:
@@ -233,8 +233,8 @@ basiclab:
           http-port: 8090 # EMQX HTTP 服务端口（用于认证和事件回调）
           mqtt-host: localhost # MQTT 服务器地址
           mqtt-port: 1883 # MQTT 服务器端口（1883 非 SSL，8883 SSL）
-          mqtt-username: emqx # MQTT 用户名（sink 作为客户端登录 Broker）
-          mqtt-password: 123456 # MQTT 密码
+          mqtt-username: ${IOT_SINK_EMQX_MQTT_USERNAME} # MQTT 用户名（sink 作为客户端登录 Broker）
+          mqtt-password: ${IOT_SINK_EMQX_MQTT_PASSWORD} # MQTT 密码
           mqtt-ssl: false # MQTT 是否开启 SSL
           mqtt-client-id: iot-sink-local # MQTT 客户端 ID
           mqtt-topics: # MQTT 订阅的主题列表（标准 IoT Topic + 算法总线）

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.media.bean.ResultForOnPublish;
 import com.genersoft.iot.vmp.media.event.media.*;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaSendRtpStoppedEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
+import com.genersoft.iot.vmp.media.zlm.dto.ZLMResult;
 import com.genersoft.iot.vmp.media.zlm.dto.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.media.zlm.event.HookZlmServerKeepaliveEvent;
@@ -45,6 +47,9 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private IMediaService mediaService;
+
+    @Autowired
+    private ZLMRESTfulUtils zlmRestfulUtils;
 
     @Autowired
     private MediaConfig mediaConfig;
@@ -108,7 +113,10 @@ public class ZLMHttpHookListener {
         // TODO 加快处理速度
 
         String mediaServerId = json.getString("mediaServerId");
-        MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+        MediaServer mediaServer = getHookMediaServer(mediaServerId);
+        if (mediaServer != null && !Objects.equals(mediaServer.getId(), mediaServerId)) {
+            param.setMediaServerId(mediaServer.getId());
+        }
         if (mediaServer == null) {
             HookResultForOnPublish fail = HookResultForOnPublish.Fail();
             log.warn("[ZLM HOOK]推流鉴权 响应：{}->找不到对应的mediaServer", param.getMediaServerId());
@@ -125,6 +133,16 @@ public class ZLMHttpHookListener {
             log.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, fail);
             return fail;
         }
+    }
+
+    private MediaServer getHookMediaServer(String mediaServerId) {
+        if (!ObjectUtils.isEmpty(mediaServerId)) {
+            MediaServer mediaServer = mediaServerService.getOne(mediaServerId);
+            if (mediaServer != null) {
+                return mediaServer;
+            }
+        }
+        return mediaServerService.getDefaultMediaServer();
     }
 
     /**
@@ -195,12 +213,40 @@ public class ZLMHttpHookListener {
         }
 
         JSONObject ret = new JSONObject();
-        boolean close = mediaService.closeStreamOnNoneReader(param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
+        boolean hasActiveReaders = "rtp".equals(param.getApp())
+                && hasActiveReaders(mediaInfo, param.getApp(), param.getStream());
+        boolean close = !hasActiveReaders
+                && mediaService.closeStreamOnNoneReader(
+                param.getMediaServerId(), param.getApp(), param.getStream(), param.getSchema());
         log.info("[ZLM HOOK]流无人观看是否触发关闭：{}, {}->{}->{}/{}", close, param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
         ret.put("code", 0);
         ret.put("close", close);
         return ret;
+    }
+
+    private boolean hasActiveReaders(MediaServer mediaServer, String app, String stream) {
+        try {
+            ZLMResult<JSONArray> mediaList = zlmRestfulUtils.getMediaList(mediaServer, app, stream);
+            if (mediaList == null || mediaList.getCode() != 0) {
+                log.warn("[ZLM HOOK]查询跨协议读者数失败，保留国标源流: {}/{}", app, stream);
+                return true;
+            }
+            if (mediaList.getData() == null) {
+                return false;
+            }
+            for (int i = 0; i < mediaList.getData().size(); i++) {
+                JSONObject media = mediaList.getData().getJSONObject(i);
+                if (media != null && media.getIntValue("readerCount") > 0) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (RuntimeException exception) {
+            log.warn("[ZLM HOOK]查询跨协议读者数异常，保留国标源流: {}/{}",
+                    app, stream, exception);
+            return true;
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
     <n-result
       status="info"
       title="可视化编辑器"
-      description="请从 EasyAIoT 管理后台「可视化 → 可视化项目管理」打开编辑器"
+      description="请从 yFeiEye 管理后台「可视化 → 可视化项目管理」打开编辑器"
     />
   </div>
 </template>

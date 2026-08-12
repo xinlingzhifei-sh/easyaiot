@@ -71,9 +71,9 @@ async function handleSubmit() {
     values.menuIds = [...menuKeys.value, ...menuHalfKeys.value]
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateTenantPackage(values)
+      await updateTenantPackage(values as any)
     else
-      await createTenantPackage(values)
+      await createTenantPackage(values as any)
 
     closeModal()
     emit('success')

@@ -136,7 +136,7 @@ export const postRelation = (params) => {
 /**
  * @description: 审计日志列表
  */
-export const getLog = ({ module, id, params }) => {
+export const getLog = ({ id, params }: { module?: string; id: string | number; params: any }) => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
   return defHttp.get(
     {

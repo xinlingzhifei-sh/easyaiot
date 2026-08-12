@@ -73,7 +73,7 @@ import {getBasicColumns, getFormConfig} from "./Data";
 import NodeCardList from "@/views/gb28181/components/NodeCardList/index.vue";
 import {useMessage} from "@/hooks/web/useMessage";
 import {useModal} from "@/components/Modal";
-import {useRoute, useRouter} from "vue-router";
+import {useRoute} from "vue-router";
 import NodeModal from "@/views/gb28181/components/NodeModal/index.vue";
 import {
   batchDeleteGbChannels,
@@ -90,8 +90,6 @@ const {createMessage} = useMessage();
 const route = useRoute()
 
 const [registerAddModel, {openModal: openAddModal}] = useModal();
-
-const router = useRouter();
 
 const state = reactive({
   isTableMode: false,
@@ -121,7 +119,6 @@ const [
 ] = useTable({
   canResize: true,
   showIndexColumn: false,
-  actionColOptions: {span: 4},
   title: '通道列表',
   api: queryChannelList,
   beforeFetch: (data) => {
@@ -153,7 +150,7 @@ const [
   onChange,
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -164,7 +161,7 @@ const [
       }
     },
   },
-  onColumnsChange: (data) => {
+  onColumnsChange: () => {
     //console.log('ColumnsChanged', data);
   },
 });
@@ -186,7 +183,7 @@ function onSelect(record, selected) {
   }
 }
 
-function onSelectAll(selected, selectedRows, changeRows) {
+function onSelectAll(selected, _selectedRows, changeRows) {
   const changeIds = changeRows.map((item) => item.id);
   if (selected) {
     checkedKeys.value = [...checkedKeys.value, ...changeIds];

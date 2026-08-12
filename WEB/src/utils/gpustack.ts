@@ -2,7 +2,7 @@
 
 const trimEnv = (value: string | undefined) => (value ?? '').trim()
 
-const GPUSTACK_MONITOR_TIP_DISMISSED_KEY = 'easyaiot_gpustack_monitor_tip_dismissed'
+const GPUSTACK_MONITOR_TIP_DISMISSED_KEY = 'yfeieye_gpustack_monitor_tip_dismissed'
 
 /** 用户是否已关闭算力监控提示条（摄像头/模型管理共用，持久化到 localStorage） */
 export function isGpuStackMonitorTipDismissed(): boolean {

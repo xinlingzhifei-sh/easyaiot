@@ -1,6 +1,6 @@
 import {useMessage} from "@/hooks/web/useMessage";
 
-const { createMessage, createConfirm } = useMessage()
+const { createMessage } = useMessage()
 /**
  * *获取上传的文件数据
  * @param { File } file 文件对象

@@ -39,9 +39,8 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertSe
 /**
  * 代码生成 Service 实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Service
 public class CodegenServiceImpl implements CodegenService {

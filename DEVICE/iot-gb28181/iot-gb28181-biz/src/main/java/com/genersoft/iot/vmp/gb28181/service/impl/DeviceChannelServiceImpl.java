@@ -152,6 +152,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 DeviceChannel deviceChannelInDb = channelsInStore.get(channel.getDataDeviceId() + channel.getDeviceId());
                 if ( deviceChannelInDb != null) {
                     channel.setId(deviceChannelInDb.getId());
+                    preserveStreamIdentification(channel, deviceChannelInDb);
                     channel.setUpdateTime(now);
                     updateChannels.add(channel);
                 }else {
@@ -205,6 +206,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
         return result;
+    }
+
+    private void preserveStreamIdentification(DeviceChannel refreshed, DeviceChannel stored) {
+        if (ObjectUtils.isEmpty(refreshed.getStreamIdentification())) {
+            refreshed.setStreamIdentification(stored.getStreamIdentification());
+        }
     }
 
     @Override
@@ -418,6 +425,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if (channelInDb != null) {
                 deviceChannel.setStreamId(channelInDb.getStreamId());
                 deviceChannel.setHasAudio(channelInDb.isHasAudio());
+                preserveStreamIdentification(deviceChannel, channelInDb);
                 deviceChannel.setId(channelInDb.getId());
                 if (channelInDb.getStatus() != null && !channelInDb.getStatus().equalsIgnoreCase(deviceChannel.getStatus())){
                     List<Platform> platformList = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getDeviceId());

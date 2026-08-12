@@ -5,9 +5,8 @@ import lombok.Getter;
 
 /**
  * @Description: 设备类型
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/10/25$ 16:19$
  * @UpdateDate: 2024/10/25$ 16:19$
  */

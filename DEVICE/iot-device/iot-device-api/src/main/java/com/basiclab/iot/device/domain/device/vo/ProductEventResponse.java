@@ -14,11 +14,11 @@ import java.io.Serializable;
 /**
 
  * @Description:    java类作用描述
- * @Author:         EasyAIoT
- * @E-mail:         andywebjava@163.com
- * @Website:        https://gitee.com/soaring-xiongkulu/easyaiot
+ * @Author:         yFeiEye
+ * @E-mail:         reese
+ * @Website:        https://gitee.com/reese/yfeieye
  * @CreateDate:     2024/12/25$ 23:52$
- * @UpdateUser:     EasyAIoT
+ * @UpdateUser:     yFeiEye
  * @UpdateDate:     2024/12/25$ 23:52$
  * @UpdateRemark:   修改内容
  * @Version:        1.0
@@ -26,9 +26,8 @@ import java.io.Serializable;
  */
 /**
  * 产品模型设备响应服务命令属性表
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @ApiModel(value="产品模型设备响应事件属性表")
 @Data

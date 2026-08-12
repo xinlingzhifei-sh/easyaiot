@@ -1,5 +1,5 @@
-import type { DeviceInfo, MonitorTreeDeviceNode } from '@/api/device/camera';
-import { getDeviceInfo } from '@/api/device/camera';
+import type { DeviceAccessProtocol, DeviceInfo, MonitorTreeDeviceNode } from '@/api/device/camera';
+import { getDeviceInfo, reportDevicePlayError, reportDevicePlayReady } from '@/api/device/camera';
 import { playByDeviceAndChannel } from '@/api/device/gb28181';
 import {
   formatCameraDeviceLabel,
@@ -9,6 +9,17 @@ import {
   shouldPlayViaGb28181,
 } from './deviceLabel';
 import { isProtectedStreamUrl, signStreamUrl } from './streamTicket';
+import {
+  pickLivePlayerEngine,
+  pickWvpPlaySource as pickWvpLivePlayerSource,
+  pickWvpPlaySources as pickWvpLivePlayerSources,
+  type WvpPlaySource,
+  type WvpPlaySourceOption,
+} from './livePlayer';
+import {
+  convertRtmpToHttp as convertRtmpToHttpForBrowser,
+  rewriteStreamUrlForBrowser as rewriteStreamUrlForBrowserForBrowser,
+} from './streamUrlRewrite';
 
 export type DevicePlayModalOpener = (visible: boolean, data: Record<string, any>) => void;
 
@@ -51,7 +62,7 @@ export function isGb28181DeviceRecord(record: { source?: string | null; device_k
   return isGb28181Device(record.source, record.device_kind);
 }
 
-export function hasDirectPlayStream(record: DeviceInfo, ai = false): boolean {
+export function hasDirectPlayStream(record: Record<string, any>, ai = false): boolean {
   if (isGb28181DeviceRecord(record)) return false;
   if ((record as { device_kind?: string }).device_kind === 'gb28181_sip') return false;
   if (!ai && extractVolcLiveUrl(record as Record<string, any>)) return true;
@@ -62,15 +73,15 @@ export function hasDirectPlayStream(record: DeviceInfo, ai = false): boolean {
 }
 
 /** 设备是否具备可播放流（原始流、AI 流或国标点播） */
-export function hasPlayableStream(record: DeviceInfo): boolean {
+export function hasPlayableStream(record: Record<string, any>): boolean {
   if (shouldPlayViaGb28181(record)) return true;
   return hasDirectPlayStream(record) || hasDirectPlayStream(record, true);
 }
 
-type DirectStreamFields = Pick<
+type DirectStreamFields = Partial<Pick<
   DeviceInfo,
   'http_stream' | 'rtmp_stream' | 'ai_http_stream' | 'ai_rtmp_stream'
->;
+>>;
 
 export interface DirectPlayUrlResult {
   url: string | null;
@@ -90,49 +101,9 @@ export const AI_PLAY_FALLBACK_MS = 2500;
 export const AI_STREAM_LOAD_TIMEOUT_SEC = 3;
 export const AI_STREAM_HEART_TIMEOUT_SEC = 8;
 
-const LOCAL_STREAM_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
-
-/**
- * RFC1918 私网 + 169.254 链路本地地址。此类 host 通常是媒体节点自身探测到的内网 IP，
- * 公网/跨网页面浏览器无法直连，须改写为页面 host 交由 nginx 反代。
- */
-function isPrivateLanHost(host: string): boolean {
-  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(host || '');
-  if (!m) return false;
-  const a = Number(m[1]);
-  const b = Number(m[2]);
-  if (a === 10) return true;
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  if (a === 192 && b === 168) return true;
-  if (a === 169 && b === 254) return true;
-  return false;
-}
-
-/** 流是否在远端集群 SRS/ZLM 节点（页面 nginx 无法代理，须保留原 host） */
-function isRemoteClusterStreamHost(streamHost: string, pageHostname: string): boolean {
-  if (!streamHost || !pageHostname) return false;
-  if (LOCAL_STREAM_HOSTS.has(streamHost) || LOCAL_STREAM_HOSTS.has(pageHostname)) return false;
-  // 私网/链路本地 IP 不是可直连的远端集群节点，改写为页面 host 经 nginx 代理
-  if (isPrivateLanHost(streamHost)) return false;
-  return streamHost !== pageHostname;
-}
-
 /** 将服务端生成的 127.0.0.1/localhost 流地址改写为当前页面主机名，便于浏览器拉流 */
 export function rewriteStreamUrlForBrowser(url: string): string {
-  const trimmed = url?.trim();
-  if (!trimmed || typeof window === 'undefined') return trimmed;
-
-  try {
-    const parsed = new URL(trimmed);
-    const pageHost = window.location.hostname;
-    if (!pageHost || LOCAL_STREAM_HOSTS.has(pageHost)) return trimmed;
-    if (!LOCAL_STREAM_HOSTS.has(parsed.hostname)) return trimmed;
-
-    parsed.hostname = pageHost;
-    return parsed.toString();
-  } catch {
-    return trimmed;
-  }
+  return rewriteStreamUrlForBrowserForBrowser(url);
 }
 
 /**
@@ -148,23 +119,16 @@ export function rewriteStreamHostToPageHost(
   options?: { forcePageProxy?: boolean },
 ): string {
   const trimmed = url?.trim();
-  if (!trimmed || typeof window === 'undefined') return trimmed;
+  if (!options?.forcePageProxy || !trimmed || typeof window === 'undefined') {
+    return rewriteStreamUrlForBrowserForBrowser(trimmed);
+  }
 
   try {
     const parsed = new URL(trimmed);
     const pageHostname = window.location.hostname;
     if (!pageHostname) return trimmed;
-
-    // 集群模式：流在远端 SRS/ZLM 节点，nginx 仅代理本机 srs-host，不应改写为页面 host
-    if (!options?.forcePageProxy && isRemoteClusterStreamHost(parsed.hostname, pageHostname)) {
-      return trimmed;
-    }
-
-    // mini/单机：SRS(8080)/ZLM(6080) 等本机媒体流由页面 nginx 反代，改写为当前页面 host。
-    // 用 hostname+port 分别赋值：页面在默认端口(443/80)时 window.location.port 为空，
-    // 借此清掉流地址上的 8080/6080，避免浏览器直连（公网常关闭）的媒体端口。
     parsed.hostname = pageHostname;
-    parsed.port = window.location.port;
+    parsed.port = window.location.port || '';
     return parsed.toString();
   } catch {
     return trimmed;
@@ -243,20 +207,7 @@ export function flvUrlForHttpProbe(url: string): string {
 
 /** RTMP 转 HTTP-FLV（Jessibuca 浏览器端需 HTTP/WS 地址） */
 export function convertRtmpToHttp(rtmpUrl: string): string | null {
-  const trimmed = rtmpUrl?.trim();
-  if (!trimmed || !trimmed.startsWith('rtmp://')) {
-    return null;
-  }
-  try {
-    const url = new URL(trimmed);
-    const server = url.hostname;
-    let path = url.pathname.replace(/^\//, '');
-    if (!path) path = 'live';
-    if (!path.endsWith('.flv')) path = `${path}.flv`;
-    return rewriteStreamUrlForBrowser(`http://${server}:8080/${path}`);
-  } catch {
-    return null;
-  }
+  return convertRtmpToHttpForBrowser(rtmpUrl);
 }
 
 function toBrowserPlayUrl(stream?: string | null): string | null {
@@ -266,6 +217,59 @@ function toBrowserPlayUrl(stream?: string | null): string | null {
   if (!httpUrl) return null;
   // 所有播放地址统一走当前页面 host:port，便于不同环境下浏览器直接拉流（HTTP-FLV）
   return normalizeJessibucaPlayUrl(rewriteStreamHostToPageHost(httpUrl));
+}
+
+function inferAccessProtocolFromUrl(url?: string | null): DeviceAccessProtocol {
+  const raw = url?.trim();
+  if (!raw) return 'http_flv';
+  try {
+    const parsed = new URL(raw, 'http://localhost');
+    const scheme = parsed.protocol.replace(':', '').toLowerCase();
+    const path = parsed.pathname.toLowerCase();
+    const query = parsed.search.toLowerCase();
+    if (scheme === 'rtsp') return 'rtsp';
+    if (scheme === 'rtmp') return 'rtmp';
+    if (scheme === 'webrtc' || scheme === 'rtc' || path.includes('webrtc') || query.includes('rtc')) {
+      return 'webrtc';
+    }
+    return 'http_flv';
+  } catch {
+    return 'http_flv';
+  }
+}
+
+async function safeReportDevicePlayReady(
+  deviceId: string,
+  url: string,
+  protocol?: DeviceAccessProtocol,
+  ai = false,
+) {
+  try {
+    await reportDevicePlayReady(deviceId, {
+      protocol: protocol || inferAccessProtocolFromUrl(url),
+      play_url: url,
+      ai,
+    });
+  } catch {
+    /* status reporting must not block playback */
+  }
+}
+
+async function safeReportDevicePlayError(
+  deviceId: string,
+  protocol: DeviceAccessProtocol,
+  reasonCode: string,
+  reasonMessage: string,
+) {
+  try {
+    await reportDevicePlayError(deviceId, {
+      protocol,
+      reason_code: reasonCode,
+      reason_message: reasonMessage,
+    });
+  } catch {
+    /* status reporting must not block playback */
+  }
 }
 
 /** 是否为算法任务输出的 AI 流（检测框烧录在此路流上） */
@@ -393,75 +397,99 @@ export function schedulePendingAiStreamUpgrade(
   });
 }
 
-export function supportsRtspForward(record: DeviceInfo): boolean {
+export function supportsRtspForward(record: Record<string, any>): boolean {
   return !isGb28181DeviceRecord(record);
 }
 
 /** 从 WVP 点播结果中选取浏览器可播地址（HTTPS 页优先 wss/https，并做 localhost 改写） */
+export function pickWvpPlaySource(
+  streamContent: Record<string, any> | null | undefined,
+): WvpPlaySource | null {
+  return pickWvpLivePlayerSource(streamContent, { toBrowserPlayUrl });
+}
+
+export function pickWvpPlaySources(
+  streamContent: Record<string, any> | null | undefined,
+): WvpPlaySourceOption[] {
+  return pickWvpLivePlayerSources(streamContent, { toBrowserPlayUrl });
+}
+
 export function pickWvpPlayUrl(streamContent: Record<string, any> | null | undefined): string | null {
-  if (!streamContent) return null;
-  const isHttps =
-    typeof window !== 'undefined' && window.location.protocol === 'https:';
-  const candidates = isHttps
-    ? [
-        streamContent.wss_flv,
-        streamContent.https_flv,
-        streamContent.wss_fmp4,
-        streamContent.https_fmp4,
-        streamContent.ws_flv,
-        streamContent.flv,
-        streamContent.fmp4,
-      ]
-    : [
-        streamContent.ws_flv,
-        streamContent.flv,
-        streamContent.ws_fmp4,
-        streamContent.fmp4,
-        streamContent.https_flv,
-        streamContent.wss_flv,
-      ];
-  for (const raw of candidates) {
-    const url = toBrowserPlayUrl(raw);
-    if (url) return url;
-  }
-  return toBrowserPlayUrl(streamContent.rtmp);
+  return pickWvpPlaySource(streamContent)?.url ?? null;
 }
 
 export async function resolveGb28181StreamUrl(
   sipDeviceId: string,
   channelId: string,
 ): Promise<string | null> {
+  const deviceId = gb28181VirtualDeviceId(sipDeviceId, channelId);
+  const url = (await resolveGb28181StreamSource(sipDeviceId, channelId))?.url ?? null;
+  if (url) {
+    void safeReportDevicePlayReady(deviceId, url, 'gb28181');
+  } else {
+    void safeReportDevicePlayError(
+      deviceId,
+      'gb28181',
+      'gb28181_play_url_unavailable',
+      'WVP play returned no playable stream',
+    );
+  }
+  return url;
+}
+
+export async function resolveGb28181StreamSource(
+  sipDeviceId: string,
+  channelId: string,
+): Promise<WvpPlaySource | null> {
+  return (await resolveGb28181StreamSources(sipDeviceId, channelId))[0] ?? null;
+}
+
+export async function resolveGb28181StreamSources(
+  sipDeviceId: string,
+  channelId: string,
+): Promise<WvpPlaySourceOption[]> {
   const res = await playByDeviceAndChannel(sipDeviceId, channelId);
   const streamContent = (res as any)?.data?.data ?? (res as any)?.data;
-  return pickWvpPlayUrl(streamContent);
+  return pickWvpPlaySources(streamContent);
 }
 
 export interface GbChannelPlayUrlResult {
   url: string | null;
   fallbackUrl?: string | null;
   preferAi?: boolean;
+  playerEngine?: WvpPlaySource['playerEngine'] | null;
+  videoCodec?: WvpPlaySource['videoCodec'] | null;
+  playSources?: WvpPlaySourceOption[] | null;
   pendingAiUrl?: string | null;
+}
+
+function buildManualWvpPlaySource(url?: string | null): GbChannelPlayUrlResult {
+  const trimmed = url?.trim();
+  return { url: trimmed || null, playerEngine: null, videoCodec: null };
 }
 
 /** 加载国标通道对应的 device 表记录（含 ai_http_stream） */
 export async function loadGbChannelSyncedDevice(
   sipDeviceId: string,
   channelId: string,
-  synced?: MonitorTreeDeviceNode | null,
+  synced?: Record<string, any> | null,
 ): Promise<MonitorTreeDeviceNode | null> {
   if (synced?.ai_http_stream?.trim() || synced?.ai_rtmp_stream?.trim()) {
-    return synced;
+    return synced as MonitorTreeDeviceNode;
   }
-  // 目录树已有同步设备但无 AI 地址时，跳过详情请求，直接走 WVP 点播
-  if (synced?.id) {
-    return synced;
-  }
+  const syncedId = String(synced?.id ?? '').trim();
+  const lookupId =
+    syncedId && !syncedId.startsWith('gb_ch_')
+      ? syncedId
+      : gb28181VirtualDeviceId(sipDeviceId, channelId);
   try {
-    const res = await getDeviceInfo(gb28181VirtualDeviceId(sipDeviceId, channelId));
+    const res = await getDeviceInfo(lookupId);
     const device = (res as any)?.data ?? res;
-    return device?.id ? (device as MonitorTreeDeviceNode) : synced ?? null;
+    return device?.id
+      ? (device as MonitorTreeDeviceNode)
+      : (synced as MonitorTreeDeviceNode | null | undefined) ?? null;
   } catch {
-    return synced ?? null;
+    return (synced as MonitorTreeDeviceNode | null | undefined) ?? null;
   }
 }
 
@@ -473,22 +501,31 @@ export async function resolveGbChannelPlayUrls(
   channelId: string,
   options?: {
     enableAi?: boolean;
-    synced?: MonitorTreeDeviceNode | null;
+    synced?: Record<string, any> | null;
     wvpUrl?: string | null;
   },
 ): Promise<GbChannelPlayUrlResult> {
   const enableAi = options?.enableAi ?? false;
-  const wvpPromise =
+  const wvpSourcePromise: Promise<GbChannelPlayUrlResult> =
     options?.wvpUrl != null
-      ? Promise.resolve(options.wvpUrl)
-      : resolveGb28181StreamUrl(sipDeviceId, channelId);
+      ? Promise.resolve(buildManualWvpPlaySource(options.wvpUrl))
+      : resolveGb28181StreamSources(sipDeviceId, channelId).then((sources) => {
+          const source = sources[0];
+          if (!source) return { url: null, playSources: sources };
+          return {
+            url: source.url,
+            playerEngine: source.playerEngine,
+            videoCodec: source.videoCodec,
+            playSources: sources,
+          };
+        });
 
   if (!enableAi) {
-    return { url: await wvpPromise };
+    return wvpSourcePromise;
   }
 
-  const [wvpUrl, synced] = await Promise.all([
-    wvpPromise,
+  const [wvpSource, synced] = await Promise.all([
+    wvpSourcePromise,
     loadGbChannelSyncedDevice(sipDeviceId, channelId, options?.synced ?? null),
   ]);
 
@@ -498,16 +535,29 @@ export async function resolveGbChannelPlayUrls(
       true,
     );
     if (url) {
+      if (!isAiStreamPlayUrl(url) && !pendingAiUrl && wvpSource.url) {
+        return wvpSource;
+      }
+      const aiPlayerEngine = pickLivePlayerEngine({
+        url,
+        videoCodec: wvpSource.videoCodec,
+      });
+      if (synced.id) {
+        void safeReportDevicePlayReady(synced.id, url, inferAccessProtocolFromUrl(url), !!preferAi);
+      }
       return {
         url,
-        fallbackUrl: fallbackUrl ?? wvpUrl,
+        fallbackUrl: preferAi ? wvpSource.url : fallbackUrl ?? wvpSource.url,
         preferAi,
+        playerEngine: aiPlayerEngine,
+        videoCodec: wvpSource.videoCodec,
+        playSources: wvpSource.playSources,
         pendingAiUrl,
       };
     }
   }
 
-  return { url: wvpUrl };
+  return wvpSource;
 }
 
 export interface DialogPlayerOpenOptions {
@@ -517,7 +567,7 @@ export interface DialogPlayerOpenOptions {
 
 export async function openDeviceInDialogPlayer(
   openModal: DevicePlayModalOpener,
-  record: DeviceInfo,
+  record: Record<string, any>,
   options?: DialogPlayerOpenOptions,
 ): Promise<boolean> {
   const enableAi = options?.enableAi ?? true;
@@ -574,7 +624,13 @@ export async function resolveMonitorPlayUrl(
   streamType: 'video' | 'ai' = 'video',
 ): Promise<string | null> {
   if (streamType === 'ai') {
-    return pickAiPlayUrl(device);
+    const url = pickAiPlayUrl(device);
+    if (url) {
+      void safeReportDevicePlayReady(device.id, url, inferAccessProtocolFromUrl(url), true);
+    } else {
+      void safeReportDevicePlayError(device.id, 'http_flv', 'ai_play_url_unavailable', 'AI playback URL is not configured');
+    }
+    return url;
   }
 
   const gbIds = getGb28181PlayIds(device as Record<string, any>);
@@ -582,5 +638,11 @@ export async function resolveMonitorPlayUrl(
     return resolveGb28181StreamUrl(gbIds.sipDeviceId, gbIds.channelId);
   }
 
-  return pickVideoPlayUrl(device);
+  const url = pickVideoPlayUrl(device);
+  if (url) {
+    void safeReportDevicePlayReady(device.id, url, inferAccessProtocolFromUrl(url));
+  } else {
+    void safeReportDevicePlayError(device.id, 'http_flv', 'play_url_unavailable', 'Playback URL is not configured');
+  }
+  return url;
 }

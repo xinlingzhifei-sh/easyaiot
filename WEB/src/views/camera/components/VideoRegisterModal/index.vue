@@ -38,13 +38,13 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-import {computed, reactive, ref} from 'vue';
+import {computed, reactive} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, FormItem, Input, Select, Spin,} from 'ant-design-vue';
 
 defineOptions({name: 'VideoRegisterModal'})
 
-const state = reactive({
+const state = reactive<Record<string, any>>({
   record: null,
   editLoading: false,
   streamList: [
@@ -69,37 +69,16 @@ const [register, {closeModal}] = useModalInner((data) => {
 
 const emits = defineEmits(['success']);
 
-const checkedKeys = ref<Array<string>>([]);
-
-function onSelect(record, selected) {
-  if (selected) {
-    checkedKeys.value = [...checkedKeys.value, record.ip];
-  } else {
-    checkedKeys.value = checkedKeys.value.filter((ip) => ip !== record.ip);
-  }
-}
-
-function onSelectAll(selected, selectedRows, changeRows) {
-  const changeIds = changeRows.map((item) => item.ip);
-  if (selected) {
-    checkedKeys.value = [...checkedKeys.value, ...changeIds];
-  } else {
-    checkedKeys.value = checkedKeys.value.filter((ip) => {
-      return !changeIds.includes(ip);
-    });
-  }
-}
-
 const rulesRef = reactive({
   deviceVersion: [{required: true, message: '请输入视频设备号', trigger: ['change']}],
 });
 
-function handleCLickChange(value) {
+function handleCLickChange(_value: unknown) {
   //console.log('handleCLickChange', value)
 }
 
 const useForm = Form.useForm;
-const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
+const {resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
 function handleCancel() {
   //console.log('handleCancel');
@@ -108,7 +87,7 @@ function handleCancel() {
 
 function handleOk() {
   // alert(JSON.stringify(modelRef));
-  emits('success', {...modelRef, ...state.record});
+  emits('success', {...modelRef, ...(state.record || {})});
   closeModal();
   resetFields();
 }

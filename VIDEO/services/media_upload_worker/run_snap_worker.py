@@ -18,9 +18,9 @@ logger = logging.getLogger('snap-upload-worker')
 
 TOPIC = os.getenv('MEDIA_KAFKA_SNAP_TOPIC', 'media.snap.completed')
 GROUP = os.getenv('MEDIA_KAFKA_SNAP_CONSUMER_GROUP', 'upload-worker-snap')
-BOOTSTRAP = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+BOOTSTRAP = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
 if 'Kafka' in BOOTSTRAP or 'kafka-server' in BOOTSTRAP:
-    BOOTSTRAP = 'localhost:9092'
+    BOOTSTRAP = 'localhost:9094'
 
 
 def run():

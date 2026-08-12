@@ -38,7 +38,7 @@ export interface DirectoryJsonTemplate {
   createdAt?: number;
 }
 
-const CUSTOM_TEMPLATE_STORAGE_KEY = 'easyaiot_directory_json_custom_templates';
+const CUSTOM_TEMPLATE_STORAGE_KEY = 'yfeieye_directory_json_custom_templates';
 
 /** 内置使用样例（不含默认分组） */
 export const DIRECTORY_JSON_SAMPLES: DirectoryJsonTemplate[] = [

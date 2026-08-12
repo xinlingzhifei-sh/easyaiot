@@ -92,9 +92,6 @@ import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
 import {useMessage} from "@/hooks/web/useMessage";
 import SERVER from "@/assets/images/video/ai-task.png";
-import {useRouter} from "vue-router";
-
-const router = useRouter();
 
 const ListItem = List.Item;
 // 组件接收参数

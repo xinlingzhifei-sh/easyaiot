@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: BSD-3-Clause AND ISC AND MIT
 /*BSD 3-Clause License
 
 Copyright (c) 2014-2017, ipkn

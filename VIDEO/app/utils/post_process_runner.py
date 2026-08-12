@@ -8,6 +8,7 @@ from __future__ import annotations
 import importlib.util
 import logging
 import os
+import re
 import sys
 import threading
 import time
@@ -20,6 +21,7 @@ _MODULE_CACHE: Dict[str, Any] = {}
 _MODULE_MTIME: Dict[str, float] = {}
 _CACHE_LOCK = threading.Lock()
 _STATE: Dict[str, Dict[str, Any]] = {}
+_SAFE_SCRIPT_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\.py\Z')
 
 
 def get_workspace_root() -> Path:
@@ -35,7 +37,14 @@ def get_task_workspace_dir(task_id: int) -> Path:
 
 
 def get_task_script_path(task_id: int, script_name: str = 'post_process.py') -> Path:
-    return get_task_workspace_dir(task_id) / script_name
+    normalized_name = str(script_name or '').strip()
+    if (
+        not _SAFE_SCRIPT_NAME.fullmatch(normalized_name)
+        or '/' in normalized_name
+        or '\\' in normalized_name
+    ):
+        raise ValueError('后处理脚本名必须是安全的 .py 文件名')
+    return get_task_workspace_dir(task_id) / normalized_name
 
 
 def task_needs_sink_processing(task_config: Any) -> bool:

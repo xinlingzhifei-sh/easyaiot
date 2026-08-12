@@ -1,5 +1,5 @@
 #!/bin/bash
-# EasyAIoT Docker Compose GPU 配置辅助（AI / VIDEO 共用）
+# yFeiEye Docker Compose GPU 配置辅助（AI / VIDEO 共用）
 
 GPU_AVAILABLE=false
 GPU_HARDWARE_DETECTED=false

@@ -8,6 +8,7 @@ import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -43,9 +44,17 @@ public class DvrUploadServiceImpl implements DvrUploadService {
     @Autowired(required = false)
     private JdbcTemplate jdbcTemplate;
 
+    @Value("${YFEIEYE_DVR_TENANT_ID:}")
+    private String configuredTenantId;
+
     @Override
     public boolean processDvrEvent(Map<String, Object> event) {
         if (event == null || event.isEmpty()) {
+            return false;
+        }
+        Long tenantId = resolveTenantId(event);
+        if (tenantId == null) {
+            log.error("DVR 事件缺少有效 tenant_id，拒绝落库");
             return false;
         }
         String stream = stringVal(event.get("stream"));
@@ -84,7 +93,7 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             return false;
         }
 
-        String bucketName = ensureRecordBucket(resolvedDeviceId);
+        String bucketName = ensureRecordBucket(tenantId, resolvedDeviceId);
         if (!StringUtils.hasText(bucketName)) {
             return false;
         }
@@ -100,7 +109,7 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             recordTime = LocalDateTime.now(SHANGHAI);
         }
         String dateDir = recordTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        String objectName = resolvedDeviceId + "/" + dateDir + "/" + filename;
+        String objectName = "tenants/" + tenantId + "/" + resolvedDeviceId + "/" + dateDir + "/" + filename;
 
         if (minioClient == null) {
             log.warn("MinIO 不可用，跳过 DVR 上传 device={} file={}", resolvedDeviceId, absolute);
@@ -121,8 +130,8 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             String minioUrl = "/api/v1/buckets/" + bucketName + "/objects/download?prefix="
                     + URLEncoder.encode(objectName, StandardCharsets.UTF_8);
             int duration = 30;
-            upsertPlayback(resolvedDeviceId, minioUrl, objectName, recordTime, fileSize, duration);
-            patchAlertsRecord(resolvedDeviceId, recordTime, duration, minioUrl);
+            upsertPlayback(tenantId, resolvedDeviceId, minioUrl, objectName, recordTime, fileSize, duration);
+            patchAlertsRecord(tenantId, resolvedDeviceId, recordTime, duration, minioUrl);
             if (mediaProperties.isRemoveLocalAfterUpload()) {
                 tryDelete(absolute);
             }
@@ -164,24 +173,24 @@ public class DvrUploadServiceImpl implements DvrUploadService {
         }
     }
 
-    private String ensureRecordBucket(String deviceId) {
+    private String ensureRecordBucket(Long tenantId, String deviceId) {
         if (jdbcTemplate == null) {
-            return "record-" + deviceId;
+            return "record-" + tenantId + "-" + deviceId;
         }
         try {
             DynamicDataSourceContextHolder.push("video");
             List<String> buckets = jdbcTemplate.query(
-                    "SELECT bucket_name FROM record_space WHERE device_id = ? LIMIT 1",
+                    "SELECT bucket_name FROM record_space WHERE tenant_id = ? AND device_id = ? LIMIT 1",
                     (rs, rowNum) -> rs.getString(1),
-                    deviceId);
+                    tenantId, deviceId);
             if (!buckets.isEmpty() && StringUtils.hasText(buckets.get(0))) {
                 return buckets.get(0);
             }
-            String bucket = "record-" + deviceId.replaceAll("[^a-zA-Z0-9._-]", "-");
+            String bucket = "record-" + tenantId + "-" + deviceId.replaceAll("[^a-zA-Z0-9._-]", "-");
             jdbcTemplate.update(
-                    "INSERT INTO record_space (space_name, space_code, bucket_name, save_mode, save_time, device_id, created_at, updated_at) "
-                            + "VALUES (?, ?, ?, 0, 0, ?, NOW(), NOW()) ON CONFLICT DO NOTHING",
-                    "录像空间-" + deviceId, deviceId, bucket, deviceId);
+                    "INSERT INTO record_space (tenant_id, space_name, space_code, bucket_name, save_mode, save_time, device_id, created_at, updated_at) "
+                            + "VALUES (?, ?, ?, ?, 0, 0, ?, NOW(), NOW()) ON CONFLICT DO NOTHING",
+                    tenantId, "录像空间-" + deviceId, deviceId, bucket, deviceId);
             return bucket;
         } catch (Exception e) {
             log.warn("record_space 查询失败 device={}: {}", deviceId, e.getMessage());
@@ -192,7 +201,7 @@ public class DvrUploadServiceImpl implements DvrUploadService {
     }
 
     private void upsertPlayback(
-            String deviceId, String filePathUrl, String objectName,
+            Long tenantId, String deviceId, String filePathUrl, String objectName,
             LocalDateTime recordTime, long fileSize, int duration) {
         if (jdbcTemplate == null) {
             return;
@@ -204,25 +213,29 @@ public class DvrUploadServiceImpl implements DvrUploadService {
                     rs -> rs.next() ? rs.getString(1) : deviceId,
                     deviceId);
             Integer existing = jdbcTemplate.query(
-                    "SELECT id FROM playback WHERE device_id = ? AND (file_path = ? OR file_path = ?) LIMIT 1",
+                    "SELECT id FROM playback WHERE tenant_id = ? AND device_id = ? "
+                            + "AND (file_path = ? OR file_path = ?) LIMIT 1",
                     rs -> rs.next() ? rs.getInt(1) : null,
-                    deviceId, filePathUrl, objectName);
+                    tenantId, deviceId, filePathUrl, objectName);
             if (existing != null) {
                 jdbcTemplate.update(
-                        "UPDATE playback SET file_path = ?, file_size = ?, event_time = ?, duration = ?, updated_at = NOW() WHERE id = ?",
-                        filePathUrl, fileSize, recordTime, duration, existing);
+                        "UPDATE playback SET file_path = ?, file_size = ?, event_time = ?, duration = ?, updated_at = NOW() "
+                                + "WHERE id = ? AND tenant_id = ?",
+                        filePathUrl, fileSize, recordTime, duration, existing, tenantId);
             } else {
                 jdbcTemplate.update(
-                        "INSERT INTO playback (file_path, event_time, device_id, device_name, duration, file_size, created_at, updated_at) "
-                                + "VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
-                        filePathUrl, recordTime, deviceId, deviceName, duration, fileSize);
+                        "INSERT INTO playback (tenant_id, file_path, event_time, device_id, device_name, duration, file_size, created_at, updated_at) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+                        tenantId, filePathUrl, recordTime, deviceId, deviceName, duration, fileSize);
             }
         } finally {
             DynamicDataSourceContextHolder.clear();
         }
     }
 
-    private void patchAlertsRecord(String deviceId, LocalDateTime eventTime, int duration, String filePathUrl) {
+    private void patchAlertsRecord(
+            Long tenantId, String deviceId, LocalDateTime eventTime,
+            int duration, String filePathUrl) {
         if (jdbcTemplate == null || !StringUtils.hasText(filePathUrl)) {
             return;
         }
@@ -231,10 +244,10 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             LocalDateTime legacyStart = eventTime.minusSeconds(Math.max(duration, 1));
             LocalDateTime endTime = eventTime.plusSeconds(Math.max(duration, 1));
             int updated = jdbcTemplate.update(
-                    "UPDATE alert SET record_path = ? WHERE device_id = ? "
+                    "UPDATE alert SET record_path = ? WHERE tenant_id = ? AND device_id = ? "
                             + "AND time >= ? AND time <= ? "
                             + "AND (record_path IS NULL OR TRIM(record_path) = '')",
-                    filePathUrl, deviceId, legacyStart, endTime);
+                    filePathUrl, tenantId, deviceId, legacyStart, endTime);
             if (updated > 0) {
                 log.info("已回写 {} 条告警 record_path device={}", updated, deviceId);
             }
@@ -298,6 +311,22 @@ public class DvrUploadServiceImpl implements DvrUploadService {
 
     private static String stringVal(Object o) {
         return o == null ? "" : String.valueOf(o).trim();
+    }
+
+    private Long resolveTenantId(Map<String, Object> event) {
+        String value = stringVal(event.get("tenant_id"));
+        if (!StringUtils.hasText(value)) {
+            value = stringVal(event.get("tenantId"));
+        }
+        if (!StringUtils.hasText(value)) {
+            value = stringVal(configuredTenantId);
+        }
+        try {
+            long tenantId = Long.parseLong(value);
+            return tenantId > 0 ? tenantId : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static void tryDelete(Path path) {

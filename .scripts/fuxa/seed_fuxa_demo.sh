@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 将 EasyAIoT 高质量组态演示工程导入运行中的 FUXA
+# 将 yFeiEye 高质量组态演示工程导入运行中的 FUXA
 # 用法：bash .scripts/fuxa/seed_fuxa_demo.sh
 #
 # 依赖：FUXA 已启动（默认 http://127.0.0.1:1881），账号 admin/123456

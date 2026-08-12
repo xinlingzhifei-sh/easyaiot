@@ -1,5 +1,4 @@
 import { BasicColumn, FormProps } from '@/components/Table';
-import { Tag } from 'ant-design-vue';
 
 export function getBasicColumns(): BasicColumn[] {
   return [

@@ -1,8 +1,7 @@
 """
 算法任务、抽帧器、排序器管理路由
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import os
@@ -291,6 +290,35 @@ def restart_task(task_id):
 # 新架构统一使用实时算法服务心跳接口，旧的抽帧器、排序器、推送器心跳接口已移除
 
 
+def _apply_realtime_heartbeat_statistics(task, data, now=None) -> bool:
+    """单调更新实时任务统计，忽略旧进程迟到的较小计数。"""
+    reported = {}
+    for field in ('total_frames', 'total_detections'):
+        raw = data.get(field)
+        if raw is None:
+            continue
+        try:
+            value = int(raw)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f'{field} 必须是非负整数') from exc
+        if value < 0:
+            raise ValueError(f'{field} 必须是非负整数')
+        reported[field] = min(value, 2_147_483_647)
+
+    advanced = False
+    for field, value in reported.items():
+        current = int(getattr(task, field, 0) or 0)
+        if value > current:
+            setattr(task, field, value)
+            advanced = True
+
+    if advanced:
+        processed_at = now or datetime.utcnow()
+        task.last_process_time = processed_at
+        task.last_success_time = processed_at
+    return advanced
+
+
 @algorithm_task_bp.route('/heartbeat/realtime', methods=['POST'])
 def receive_realtime_heartbeat():
     """接收实时算法服务心跳"""
@@ -331,9 +359,16 @@ def receive_realtime_heartbeat():
             log_base_dir = os.path.join(video_root, 'logs')
             task.service_log_path = os.path.join(log_base_dir, f'task_{task_id}')
         
-        # 更新运行状态为running
-        if task.run_status != 'stopped':
+        # Enabled tasks that are still sending heartbeats are running, even if a
+        # previous restart left the persisted run_status as stopped.
+        if task.is_enabled:
             task.run_status = 'running'
+
+        try:
+            _apply_realtime_heartbeat_statistics(task, data)
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({'code': 400, 'msg': str(e)}), 400
         
         db.session.commit()
         
@@ -855,10 +890,18 @@ def toggle_post_process(task_id):
         enabled = data.get('enabled')
         if enabled is None:
             return jsonify({'code': 400, 'msg': '缺少 enabled 参数'}), 400
+        script_name = None
+        if data.get('post_process_script'):
+            from app.utils.post_process_runner import get_task_script_path
+            script_name = str(data['post_process_script']).strip() or 'post_process.py'
+            try:
+                get_task_script_path(task_id, script_name)
+            except ValueError as exc:
+                return jsonify({'code': 400, 'msg': str(exc)}), 400
         task = AlgorithmTask.query.get_or_404(task_id)
         task.post_process_enabled = bool(enabled)
-        if data.get('post_process_script'):
-            task.post_process_script = str(data['post_process_script']).strip() or 'post_process.py'
+        if script_name:
+            task.post_process_script = script_name
         if data.get('post_process_replicas') is not None:
             try:
                 task.post_process_replicas = max(1, int(data['post_process_replicas']))
@@ -904,4 +947,3 @@ def list_post_process_results(task_id):
     except Exception as e:
         logger.error('查询后处理结果失败: %s', e, exc_info=True)
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
-

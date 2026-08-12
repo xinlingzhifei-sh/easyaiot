@@ -170,7 +170,7 @@ def get_node(node_id: int) -> Dict[str, Any]:
 def get_platform_node_id() -> Optional[int]:
     """获取控制面节点 ID，用于调度时排除或降权本机。"""
     try:
-        data = _get('/platform-agent-bootstrap', {})
+        data = _get('/platform-host', {})
         node_id = data.get('nodeId')
         return int(node_id) if node_id is not None else None
     except Exception as e:

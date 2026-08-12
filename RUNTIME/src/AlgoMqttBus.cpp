@@ -294,6 +294,16 @@ std::string AlgoMqttBus::normalizeAlertPayload(const std::string& flatAlertJson,
         payload["alert"] = alert;
     }
 
+    if (!payload.isMember("tenant_id") || payload["tenant_id"].isNull()) {
+        if (root.isMember("tenant_id")) {
+            payload["tenant_id"] = root["tenant_id"];
+        } else if (root.isMember("tenantId")) {
+            payload["tenant_id"] = root["tenantId"];
+        } else if (!config.mqttTenant.empty()) {
+            payload["tenant_id"] = config.mqttTenant;
+        }
+    }
+
     std::string nodeId = config.computeNodeId;
     if (nodeId.empty()) {
         const char* env = std::getenv("COMPUTE_NODE_ID");

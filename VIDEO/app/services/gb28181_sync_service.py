@@ -311,6 +311,23 @@ def _apply_gb_attributes(device, attributes: dict) -> bool:
     return changed
 
 
+def _record_gb28181_registered(mapped_id: str, sip_device_id: str, channel_id: str) -> None:
+    try:
+        from app.services.device_access_state_service import record_device_access_event
+
+        record_device_access_event(
+            device_id=mapped_id,
+            protocol="gb28181",
+            state="registered",
+            reason_code="gb28181_channel_synced",
+            reason_message="GB28181 channel synced from WVP",
+            source_event="gb28181.channel.sync",
+            stream_id=f"{sip_device_id}/{channel_id}",
+        )
+    except Exception as e:
+        logger.warning('鍥芥爣閫氶亾鐘舵€佸啓鍏ュけ璐? device_id=%s: %s', mapped_id, e)
+
+
 def _upsert_gb_device(
     sip_device_id: str,
     channel_id: str,
@@ -337,14 +354,16 @@ def _upsert_gb_device(
         if not device.directory_id:
             device.directory_id = default_dir_id
             changed = True
-        if device.rtmp_stream or device.http_stream:
+        if (device.rtmp_stream or '') != (rtmp_stream or ''):
             device.rtmp_stream = rtmp_stream
+            changed = True
+        if http_stream and (device.http_stream or '').strip() != http_stream:
             device.http_stream = http_stream
             changed = True
-        if not (device.ai_rtmp_stream or '').strip():
+        if ai_rtmp_stream and (device.ai_rtmp_stream or '').strip() != ai_rtmp_stream:
             device.ai_rtmp_stream = ai_rtmp_stream
             changed = True
-        if not (device.ai_http_stream or '').strip():
+        if ai_http_stream and (device.ai_http_stream or '').strip() != ai_http_stream:
             device.ai_http_stream = ai_http_stream
             changed = True
         if _apply_gb_location(device, location or {}):
@@ -353,6 +372,7 @@ def _upsert_gb_device(
             changed = True
         if changed:
             db.session.commit()
+        _record_gb28181_registered(mapped_id, sip_device_id, channel_id)
         return False
 
     loc = location or {}
@@ -386,6 +406,7 @@ def _upsert_gb_device(
     )
     db.session.add(device)
     db.session.commit()
+    _record_gb28181_registered(mapped_id, sip_device_id, channel_id)
     return True
 
 
@@ -419,14 +440,19 @@ def backfill_gb28181_ai_stream_urls() -> int:
         source = (device.source or '').strip()
         if not source.lower().startswith(prefix):
             continue
-        need_ai = not (device.ai_rtmp_stream or '').strip() or not (device.ai_http_stream or '').strip()
-        if not need_ai:
-            continue
-        _, _, ai_rtmp, ai_http = gb28181_device_stream_urls(device.id)
-        if not (device.ai_rtmp_stream or '').strip():
+        _, http, ai_rtmp, ai_http = gb28181_device_stream_urls(device.id)
+        changed = False
+        if http and (device.http_stream or '').strip() != http:
+            device.http_stream = http
+            changed = True
+        if ai_rtmp and (device.ai_rtmp_stream or '').strip() != ai_rtmp:
             device.ai_rtmp_stream = ai_rtmp
-        if not (device.ai_http_stream or '').strip():
+            changed = True
+        if ai_http and (device.ai_http_stream or '').strip() != ai_http:
             device.ai_http_stream = ai_http
+            changed = True
+        if not changed:
+            continue
         updated += 1
     if updated:
         db.session.commit()

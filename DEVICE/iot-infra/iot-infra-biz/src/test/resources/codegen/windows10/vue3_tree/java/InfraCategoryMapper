@@ -12,9 +12,8 @@ import com.basiclab.iot.infra.controller.admin.demo.vo.*;
 /**
  * 分类 Mapper
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Mapper
 public interface InfraCategoryMapper extends BaseMapperX<InfraCategoryDO> {

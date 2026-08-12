@@ -7,7 +7,38 @@
     class="jessibuca-root"
     style="width: 100%; height: 100%; background-color: #000"
   >
-    <div ref="container" class="jessibuca-container" @dblclick="fullscreen" @mousemove="mouseenter">
+    <RtcPlayer
+      v-if="useWebRtc"
+      ref="rtcPlayer"
+      :videoUrl="webRtcUrl"
+      :hasaudio="hasAudio"
+      @stream-error="$emit('stream-error', $event)"
+      @playing="onWebRtcPlaying"
+    />
+    <video
+      v-else-if="useNativeVideo"
+      ref="nativeVideo"
+      class="native-video-player"
+      :src="nativeVideoUrl"
+      :muted="!hasAudio"
+      autoplay
+      playsinline
+      controls
+      @playing="onNativeVideoPlaying"
+      @waiting="onNativeVideoWaiting"
+      @error="onNativeVideoError"
+    />
+    <EasyPlayer
+      v-else-if="useEasyWasm"
+      ref="easyWasmPlayer"
+      :videoUrl="easyWasmUrl"
+      :hasaudio="hasAudio"
+      height="100%"
+      :decodeType="easyWasmDecodeType"
+      @playing="onEasyWasmPlaying"
+      @stream-error="onEasyWasmStreamError"
+    />
+    <div v-else ref="container" class="jessibuca-container" @dblclick="fullscreen" @mousemove="mouseenter">
       <transition name="toolBtn">
         <div
           v-if="showToolBtn"
@@ -96,8 +127,10 @@
 <script>
 
 import {Icon} from "@/components/Icon";
-import {ref} from "vue";
 import {signStreamUrl, isProtectedStreamUrl, clearTicketForUrl} from "@/views/camera/utils/streamTicket";
+import EasyPlayer from "@/components/VideoPlayer/EasyPlayer.vue";
+import RtcPlayer from "@/components/VideoPlayer/rtcPlayer.vue";
+import {detectVideoCodecFromUrl, normalizeVideoCodec, shouldUseWasmLivePlayer} from "@/views/camera/utils/livePlayer";
 import {rewriteStreamHostToPageHost, normalizeJessibucaPlayUrl, isAiStreamPlayUrl, AI_STREAM_LOAD_TIMEOUT_SEC, AI_STREAM_HEART_TIMEOUT_SEC} from "@/views/camera/utils/devicePlay";
 
 /** 实时预览超时（秒）：过短会在网络轻微抖动时频繁重连，导致卡顿黑屏 */
@@ -121,8 +154,8 @@ function isBenignPlayerError(e) {
 
 export default {
   name: "Player",
-  components: {Icon},
-  emits: ["stream-error"],
+  components: {EasyPlayer, RtcPlayer, Icon},
+  emits: ["stream-error", "playing"],
   props: {
     playUrl: {
       type: String,
@@ -131,6 +164,14 @@ export default {
     hasAudio: {
       type: Boolean,
       required: true,
+    },
+    playerEngine: {
+      type: String,
+      default: '',
+    },
+    videoCodec: {
+      type: String,
+      default: '',
     },
     /** 点播/录像文件（非实时流），需放宽超时并启用 isFlv */
     vodMode: {
@@ -152,14 +193,22 @@ export default {
       type: Boolean,
       default: false,
     },
+    seekOffsetSeconds: {
+      type: Number,
+      default: 0,
+    },
   },
   data() {
     return {
       jessibuca: null,
+      easyWasmUrl: '',
+      nativeVideoUrl: '',
+      webRtcUrl: '',
       version: '',
       wasm: false,
       vc: "ff",
       playing: false,
+      lastPlayingUrl: '',
       quieting: true,
       loaded: false, // mute
       showOperateBtns: false,
@@ -189,6 +238,30 @@ export default {
       _onUnhandledRejection: null,
     };
   },
+  computed: {
+    useWebRtc() {
+      return this.playerEngine === 'webrtc';
+    },
+    useNativeVideo() {
+      return this.playerEngine === 'native';
+    },
+    requiresJessibucaInstance() {
+      return !this.useWebRtc && !this.useEasyWasm && !this.useNativeVideo;
+    },
+    useEasyWasm() {
+      if (this.useWebRtc || this.useNativeVideo) return false;
+      return shouldUseWasmLivePlayer({
+        playerEngine: this.playerEngine,
+        videoCodec: this.videoCodec,
+        url: this.playUrl,
+      });
+    },
+    easyWasmDecodeType() {
+      const codec = normalizeVideoCodec(this.videoCodec);
+      const resolved = codec === 'unknown' ? detectVideoCodecFromUrl(this.playUrl) : codec;
+      return resolved === 'h265' ? 'soft' : 'auto';
+    },
+  },
   beforeUnmount() {
     this._unmounting = true;
     if (this._vodResizeTimer) {
@@ -202,7 +275,9 @@ export default {
     }
   },
   mounted() {
-    this.create();
+    if (this.requiresJessibucaInstance) {
+      this.create();
+    }
     window.onerror = (msg) => (this.err = msg);
     this._onUnhandledRejection = (event) => {
       if (isBenignPlayerError(event?.reason)) {
@@ -219,18 +294,39 @@ export default {
   },
   watch: {
     playUrl(url, oldUrl) {
-      this.protectedRetries = 0;
-      if (!url || !this.jessibuca) return;
-      // 同实例切流即可，勿 destroy 重建（多分屏切 /ai 时 destroy 会导致卡死黑屏）
-      if (oldUrl && url !== oldUrl) {
-        const nextFast = this.shouldAiFastFail(url);
-        const prevFast = this.shouldAiFastFail(oldUrl);
-        if (nextFast !== prevFast) {
-          this.destroy().then(() => this.$nextTick(() => this.play(true)));
-        } else {
-          this.$nextTick(() => this.play(true));
-        }
+      this.protectedRetries = 0; // 切换地址，重置续票重试计数
+      this.resetPlaybackState();
+      this.easyWasmUrl = '';
+      this.nativeVideoUrl = '';
+      this.webRtcUrl = '';
+      if (!url) return;
+      if (
+        this.requiresJessibucaInstance &&
+        this.jessibuca &&
+        oldUrl &&
+        url !== oldUrl &&
+        this.shouldAiFastFail(url) !== this.shouldAiFastFail(oldUrl)
+      ) {
+        this.destroy().then(() => this.$nextTick(() => this.play(true)));
+      } else {
+        this.switchPlayerAndPlay();
       }
+    },
+    playerEngine() {
+      this.protectedRetries = 0;
+      this.resetPlaybackState();
+      this.easyWasmUrl = '';
+      this.nativeVideoUrl = '';
+      this.webRtcUrl = '';
+      if (this.playUrl) this.switchPlayerAndPlay();
+    },
+    videoCodec() {
+      this.protectedRetries = 0;
+      this.resetPlaybackState();
+      this.easyWasmUrl = '';
+      this.nativeVideoUrl = '';
+      this.webRtcUrl = '';
+      if (this.playUrl) this.switchPlayerAndPlay();
     },
     vodMode() {
       this.handleDisplayModeChange();
@@ -240,6 +336,8 @@ export default {
     },
   },
   async unmounted() {
+    this.resetNativeVideo();
+    this.resetRtcPlayer();
     if (this.jessibuca) {
       await this.safeDestroyJessibuca();
       this.jessibuca = null;
@@ -329,7 +427,37 @@ export default {
       const target = url || this.playUrl;
       return this.aiWithFallback === true && isAiStreamPlayUrl(target);
     },
+    resetPlaybackState() {
+      this.playing = false;
+      this.loaded = false;
+      this.lastPlayingUrl = '';
+      this.performance = "";
+    },
+    markPlaying() {
+      const currentUrl = this.playUrl || '';
+      const shouldEmit = this.lastPlayingUrl !== currentUrl || !this.playing || !this.loaded;
+      this.playing = true;
+      this.loaded = true;
+      this.lastPlayingUrl = currentUrl;
+      this.performance = "";
+      this.protectedRetries = 0;
+      if (shouldEmit) {
+        this.$emit("playing", currentUrl);
+      }
+    },
+    async switchPlayerAndPlay() {
+      if (!this.requiresJessibucaInstance) {
+        if (this.jessibuca) {
+          await this.jessibuca.destroy();
+          this.jessibuca = null;
+        }
+      } else if (!this.jessibuca && this.$refs.container) {
+        this.create();
+      }
+      this.$nextTick(() => this.play());
+    },
     create(options) {
+      if (!this.requiresJessibucaInstance) return;
       options = options || {};
       const pageHttps =
         typeof window !== 'undefined' && window.location.protocol === 'https:';
@@ -392,12 +520,15 @@ export default {
         _this.playing = false;
       });
       this.jessibuca.on("play", function () {
-        _this.playing = true;
-        _this.protectedRetries = 0; // 成功起播，重置续票重试计数
+        console.log("on play");
+        _this.markPlaying();
         if (fill) {
           _this.jessibuca.setScaleMode(scaleMode);
           _this.scheduleVodResize();
         }
+      });
+      this.jessibuca.on("fullscreen", function (msg) {
+        console.log("on fullscreen", msg);
       });
       this.jessibuca.on("mute", function (msg) {
         _this.quieting = msg;
@@ -445,8 +576,7 @@ export default {
         _this.kbs = Math.round(kBps)
       });
       this.jessibuca.on("play", () => {
-        this.playing = true;
-        this.loaded = true;
+        this.markPlaying();
         this.quieting = this.jessibuca.isMute();
         if (fill) {
           this.jessibuca.setScaleMode(scaleMode);
@@ -457,10 +587,10 @@ export default {
     async play(forceRefresh = false) {
       // 模板 @click="play" 会把鼠标事件当参数传入，这里归一为布尔，避免手动点播时被误判为强制续票
       const force = forceRefresh === true;
-      if (!this.jessibuca && this.$refs.container) {
+      if (this.requiresJessibucaInstance && !this.jessibuca && this.$refs.container) {
         this.create();
       }
-      if (!this.playUrl || !this.jessibuca) return;
+      if (!this.playUrl) return;
 
       const originalPlayUrl = this.playUrl;
       // mini 容器：后端常返回宿主机 IP:8080，须改为页面 host 经 nginx 代理 /live|/ai|/rtp
@@ -477,8 +607,32 @@ export default {
           target = normalizeJessibucaPlayUrl(rewriteStreamHostToPageHost(this.playUrl));
         }
         // 防竞态：等待签发期间地址已切换/组件已销毁则放弃
-        if (this.playUrl !== originalPlayUrl || !this.jessibuca) return;
+        if (this.playUrl !== originalPlayUrl) return;
+        if (this.requiresJessibucaInstance && !this.jessibuca) return;
       }
+      if (this.useWebRtc) {
+        this.webRtcUrl = target;
+        this.playing = false;
+        this.loaded = false;
+        this.protectedRetries = 0;
+        return;
+      }
+      if (this.useNativeVideo) {
+        this.nativeVideoUrl = target;
+        this.playing = false;
+        this.loaded = false;
+        this.protectedRetries = 0;
+        this.$nextTick(() => this.playNativeVideo());
+        return;
+      }
+      if (this.useEasyWasm) {
+        this.easyWasmUrl = target;
+        this.playing = false;
+        this.loaded = false;
+        this.protectedRetries = 0;
+        return;
+      }
+      if (!this.jessibuca) return;
       this.jessibuca.play(target);
       if ((this.vodMode || this.fillVideo) && this.jessibuca) {
         this.jessibuca.setScaleMode(0);
@@ -495,25 +649,133 @@ export default {
       this.play(true);
       return true;
     },
+    playNativeVideo() {
+      const video = this.$refs.nativeVideo;
+      if (!video) return;
+      this.applyNativeSeek();
+      const promise = video.play?.();
+      if (promise?.catch) {
+        promise.catch((error) => {
+          video.muted = true;
+          const retry = video.play?.();
+          retry?.catch?.((retryError) => {
+            this.$emit("stream-error", {
+              type: "native-play-error",
+              detail: retryError?.message || error?.message || retryError || error,
+            });
+          });
+        });
+      }
+    },
+    applyNativeSeek() {
+      const video = this.$refs.nativeVideo;
+      const offset = Number(this.seekOffsetSeconds);
+      if (!video || !Number.isFinite(offset) || offset < 0) return;
+
+      const apply = () => {
+        video.currentTime = offset;
+      };
+      if (video.readyState >= 1) {
+        apply();
+        return;
+      }
+      video.addEventListener('loadedmetadata', apply, { once: true });
+    },
+    resetNativeVideo() {
+      const video = this.$refs.nativeVideo;
+      if (video) {
+        video.pause?.();
+        video.removeAttribute?.("src");
+        video.load?.();
+      }
+      this.nativeVideoUrl = '';
+    },
+    resetRtcPlayer() {
+      this.$refs.rtcPlayer?.pause?.();
+      this.webRtcUrl = '';
+    },
+    onNativeVideoPlaying() {
+      this.applyNativeSeek();
+      this.markPlaying();
+    },
+    onWebRtcPlaying() {
+      this.markPlaying();
+    },
+    onNativeVideoWaiting() {
+      this.performance = "buffering";
+    },
+    onNativeVideoError(event) {
+      if (this.maybeRenewOnError()) return;
+      this.$emit("stream-error", { type: "native-video-error", detail: event });
+    },
+    onEasyWasmPlaying() {
+      this.markPlaying();
+    },
+    onEasyWasmStreamError(event) {
+      if (this.maybeRenewOnError()) return;
+      this.$emit("stream-error", event);
+    },
     mute() {
+      if (!this.jessibuca) return;
       this.jessibuca.mute();
     },
     cancelMute() {
+      if (!this.jessibuca) return;
       this.jessibuca.cancelMute();
     },
     pause() {
+      if (this.useWebRtc) {
+        this.$refs.rtcPlayer?.pause?.();
+        this.playing = false;
+        return;
+      }
+      if (this.useNativeVideo) {
+        this.$refs.nativeVideo?.pause?.();
+        this.playing = false;
+        return;
+      }
+      if (this.useEasyWasm) {
+        this.$refs.easyWasmPlayer?.pause?.();
+        this.playing = false;
+        return;
+      }
+      if (!this.jessibuca) return;
       this.jessibuca.pause();
       this.playing = false;
       this.err = "";
       this.performance = "";
     },
     volumeChange() {
+      if (!this.jessibuca) return;
       this.jessibuca.setVolume(this.volume);
     },
     rotateChange() {
+      if (!this.jessibuca) return;
       this.jessibuca.setRotate(this.rotate);
     },
     async destroy() {
+      if (this.useWebRtc) {
+        this.resetRtcPlayer();
+        this.playing = false;
+        this.loaded = false;
+        this.performance = "";
+        return;
+      }
+      if (this.useNativeVideo) {
+        this.resetNativeVideo();
+        this.playing = false;
+        this.loaded = false;
+        this.performance = "";
+        return;
+      }
+      if (this.useEasyWasm) {
+        this.$refs.easyWasmPlayer?.pause?.();
+        this.easyWasmUrl = '';
+        this.playing = false;
+        this.loaded = false;
+        this.performance = "";
+        return;
+      }
       if (this.jessibuca) {
         await this.safeDestroyJessibuca();
         this.jessibuca = null;
@@ -527,21 +789,34 @@ export default {
       this.performance = "";
     },
     fullscreen() {
+      if (this.useWebRtc) {
+        this.$refs.rtcPlayer?.requestFullscreen?.();
+        return;
+      }
+      if (this.useNativeVideo) {
+        this.$refs.nativeVideo?.requestFullscreen?.();
+        return;
+      }
+      if (!this.jessibuca) return;
       this.jessibuca.setFullscreen(true);
     },
     clearView() {
+      if (!this.jessibuca) return;
       this.jessibuca.clearView();
     },
     startRecord() {
+      if (!this.jessibuca) return;
       this.recording = !this.recording;
       const time = new Date().getTime();
       this.jessibuca.startRecord(time, this.recordType);
     },
     stopAndSaveRecord() {
+      if (!this.jessibuca) return;
       this.recording = !this.recording;
       this.jessibuca.stopRecordAndSave();
     },
     screenShot() {
+      if (!this.jessibuca) return;
       this.jessibuca.screenshot();
     },
     mouseenter() {
@@ -561,6 +836,21 @@ export default {
       return document.fullscreenElement || false
     },
     async restartPlay(type) {
+      if (this.useWebRtc) {
+        await this.destroy();
+        setTimeout(() => this.play(), 100)
+        return
+      }
+      if (this.useNativeVideo) {
+        await this.destroy();
+        setTimeout(() => this.play(), 100)
+        return
+      }
+      if (this.useEasyWasm) {
+        await this.destroy();
+        setTimeout(() => this.play(), 100)
+        return
+      }
       if (type === 'mse') {
         this.useWCS = false;
         this.useOffscreen = false;
@@ -575,9 +865,11 @@ export default {
       }, 100)
     },
     changeBuffer() {
+      if (!this.jessibuca) return;
       this.jessibuca.setBufferTime(Number(0.2));
     },
     scaleChange() {
+      if (!this.jessibuca) return;
       this.jessibuca.setScaleMode(this.scale);
     },
   },
@@ -609,6 +901,13 @@ export default {
   cursor: pointer;
   text-align: center;
   font-size: 1rem !important;
+}
+
+.native-video-player {
+  width: 100%;
+  height: 100%;
+  background: #000c17;
+  object-fit: contain;
 }
 
 .buttons-box-right {

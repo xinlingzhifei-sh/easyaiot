@@ -1,14 +1,14 @@
-# EasyAIoT (Plateforme d'application d'algorithmes intelligents intégrée cloud-bord-périphérie)
+# yFeiEye (Plateforme d'Application d'Algorithmes Intelligents à Intégration Cloud-Bord-Périphérique)
 
-[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/stargazers)
-[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/soaring-xiongkulu/easyaiot/members)
+[![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/reese/easyaiot/stargazers)
+[![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/reese/easyaiot/members)
 
 <p style="font-size: 16px; line-height: 1.8; color: #555; font-weight: 400; margin: 20px 0;">
 Mon souhait est que ce système soit utilisé dans le monde entier, rendant l'IA véritablement accessible à tous, permettant à chacun de bénéficier des avantages de l'IA, et non pas seulement réservée à une minorité.
 </p>
 
 <div align="center">
-    <img src=".image/logo.png" width="30%" height="30%" alt="EasyAIoT">
+    <img src=".image/logo.png" width="30%" height="30%" alt="yFeiEye">
 </div>
 
 <h4 align="center" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; font-weight: bold;">
@@ -27,18 +27,18 @@ Mon souhait est que ce système soit utilisé dans le monde entier, rendant l'IA
 
 ## 🌐 Site officiel
 
-Site officiel EasyAIoT : [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
+Site officiel yFeiEye : [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
 Présentation produit, fonctionnalités, trois niveaux matériels, téléchargement des installateurs et accès à la documentation — pour comprendre rapidement la valeur de la plateforme et démarrer le déploiement.
 
 ## 📖 Présentation du projet
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>EasyAIoT</strong> (Easy AI Internet of Things) est une <strong>plateforme d'application d'algorithmes intelligents à intégration cloud-bord-périphérique</strong>, dédiée à la fusion profonde de l'intelligence artificielle et de l'Internet des objets — permettant aux caméras, capteurs et ressources de calcul en périphérie de collaborer sur le terrain. De la connexion des appareils et la collecte de données à l'analyse visuelle en temps réel, l'évaluation intelligente et l'orchestration des alertes, l'ensemble de la chaîne s'accomplit au sein d'une seule pile logicielle.
+<strong>yFeiEye</strong> est une <strong>plateforme d'application d'algorithmes intelligents à intégration cloud-bord-périphérique</strong>, dédiée à la fusion profonde de l'intelligence artificielle et de l'Internet des objets — permettant aux caméras, capteurs et ressources de calcul en périphérie de collaborer sur le terrain. De la connexion des appareils et la collecte de données à l'analyse visuelle en temps réel, l'évaluation intelligente et l'orchestration des alertes, l'ensemble de la chaîne s'accomplit au sein d'une seule pile logicielle.
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-De nombreux projets IoT intelligents se heurtent au même obstacle lors du déploiement : systèmes vidéo, plateformes d'appareils et services algorithmiques fonctionnent en silos — l'intégration est coûteuse, l'exploitation fragmentée et la montée en charge difficile. <strong>EasyAIoT résout ce problème avec une plateforme unique</strong> — le même logiciel se déploie sur une box edge de 4 Go pour l'intelligence ponctuelle, sur des caméras IA tout-en-un pour une couverture à l'échelle d'un étage, ou dans un appliance full-stack d'entreprise regroupant gestion IoT, accès vidéo massif et analyse IA — sans maintenir plusieurs versions ni réintégrer des systèmes hétérogènes.
+De nombreux projets IoT intelligents se heurtent au même obstacle lors du déploiement : systèmes vidéo, plateformes d'appareils et services algorithmiques fonctionnent en silos — l'intégration est coûteuse, l'exploitation fragmentée et la montée en charge difficile. <strong>yFeiEye résout ce problème avec une plateforme unique</strong> — le même logiciel se déploie sur une box edge de 4 Go pour l'intelligence ponctuelle, sur des caméras IA tout-en-un pour une couverture à l'échelle d'un étage, ou dans un appliance full-stack d'entreprise regroupant gestion IoT, accès vidéo massif et analyse IA — sans maintenir plusieurs versions ni réintégrer des systèmes hétérogènes.
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -46,11 +46,11 @@ La plateforme comprend notamment les modules <strong>WEB, APP, DEVICE, NODE, VID
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
-<strong>En une phrase :</strong> EasyAIoT = IA + IoT — interconnecter toutes choses tout en leur donnant une vision et un contrôle intelligents.
+<strong>En une phrase :</strong> yFeiEye = IA + IoT — interconnecter toutes choses tout en leur donnant une vision et un contrôle intelligents.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-📄 Pour une présentation illustrée plus complète, consultez <a href=".doc/项目介绍/EasyAIoT项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">Présentation du projet EasyAIoT V2.0 (PPT)</a>, ainsi que <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">Plateforme d'analyse de vidéosurveillance IA (PDF)</a>.
+📄 Pour une présentation illustrée plus complète, consultez <a href=".doc/项目介绍/yFeiEye项目介绍 V2.0.pptx" style="color: #3498db; text-decoration: none; font-weight: 600;">Présentation du projet yFeiEye V2.0 (PPT)</a>, ainsi que <a href=".doc/项目介绍/AI视频监控分析平台.pdf" style="color: #3498db; text-decoration: none; font-weight: 600;">Plateforme d'analyse de vidéosurveillance IA (PDF)</a>.
 </p>
 
 ## 🌟 Réflexions sur le projet
@@ -58,7 +58,7 @@ La plateforme comprend notamment les modules <strong>WEB, APP, DEVICE, NODE, VID
 ### 📍 Positionnement du projet
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT est une plateforme intelligente d'Internet des Objets (IoT) à intégration cloud-bord-périphérique, se concentrant sur l'intégration profonde de l'IA et de l'IoT. Grâce à des capacités fondamentales telles que la gestion des tâches algorithmiques, l'analyse de flux en temps réel et le raisonnement en cluster de services de modèles, la plateforme réalise une boucle fermée complète allant de la connexion des appareils à la collecte de données, l'analyse par IA et la prise de décision intelligente, atteignant véritablement l'interconnexion et le contrôle intelligent de toutes choses.
+yFeiEye est une plateforme intelligente d'Internet des Objets (IoT) à intégration cloud-bord-périphérique, se concentrant sur l'intégration profonde de l'IA et de l'IoT. Grâce à des capacités fondamentales telles que la gestion des tâches algorithmiques, l'analyse de flux en temps réel et le raisonnement en cluster de services de modèles, la plateforme réalise une boucle fermée complète allant de la connexion des appareils à la collecte de données, l'analyse par IA et la prise de décision intelligente, atteignant véritablement l'interconnexion et le contrôle intelligent de toutes choses.
 </p>
 
 ### 🎛️ PANEL : installer et réceptionner dès l'arrivée — permanence sans attendre le remote
@@ -86,7 +86,7 @@ Les projets IoT intelligents butent le plus souvent sur le « dernier kilomètre
 ### 📡 RTC : pont P2P caméras grand public — intégrer les appareils « sans RTSP »
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-À la maison, en magasin ou en sécurité légère, de nombreux appareils proviennent de <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro et Roborock</strong> — protocoles P2P propriétaires, <strong>sans RTSP standard</strong>. EasyAIoT ajoute le module <strong>RTC</strong> basé sur <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a>, qui <strong>unifie flux et audio bidirectionnel pour les neuf marques</strong> — enregistrement, prévisualisation, relais, tâches IA et alertes comme les caméras GB28181/ONVIF.
+À la maison, en magasin ou en sécurité légère, de nombreux appareils proviennent de <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro et Roborock</strong> — protocoles P2P propriétaires, <strong>sans RTSP standard</strong>. yFeiEye ajoute le module <strong>RTC</strong> basé sur <a href="https://github.com/AlexxIT/go2rtc" style="color: #3498db; text-decoration: none; font-weight: 600;">go2rtc</a>, qui <strong>unifie flux et audio bidirectionnel pour les neuf marques</strong> — enregistrement, prévisualisation, relais, tâches IA et alertes comme les caméras GB28181/ONVIF.
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px;">
@@ -117,7 +117,7 @@ Les projets IoT intelligents butent le plus souvent sur le « dernier kilomètre
 ### 🎯 Trois profils matériels, une plateforme
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-Beaucoup de projets IoT intelligents butent au déploiement : <strong>les fonctionnalités complètes ne tiennent pas sur de petites machines ; pour les faire tenir, on réduit les capacités, on scinde les versions et on maintient plusieurs packages de déploiement.</strong> EasyAIoT résout ce dilemme avec une seule plateforme — <strong>boîtier edge pour l'intelligence ponctuelle, caméra tout-en-un IA pour l'analyse au mur, tout-en-un full-stack AIoT pour la chaîne complète en une seule boîte</strong>. Choisissez le niveau adapté à votre matériel terrain ; le même logiciel couvre le pilote mono-site, la couverture d'un bâtiment et la livraison full-stack — sans versions séparées.
+Beaucoup de projets IoT intelligents butent au déploiement : <strong>les fonctionnalités complètes ne tiennent pas sur de petites machines ; pour les faire tenir, on réduit les capacités, on scinde les versions et on maintient plusieurs packages de déploiement.</strong> yFeiEye résout ce dilemme avec une seule plateforme — <strong>boîtier edge pour l'intelligence ponctuelle, caméra tout-en-un IA pour l'analyse au mur, tout-en-un full-stack AIoT pour la chaîne complète en une seule boîte</strong>. Choisissez le niveau adapté à votre matériel terrain ; le même logiciel couvre le pilote mono-site, la couverture d'un bâtiment et la livraison full-stack — sans versions séparées.
 </p>
 
 | Niveau | Matériel typique (exemples) | RAM recommandée | Ce que vous pouvez faire | Vérifié |
@@ -134,12 +134,21 @@ Beaucoup de projets IoT intelligents butent au déploiement : <strong>les foncti
 |:---:|:---:|:---:|
 | ![Boîtier edge mini](.image/deploy-profile-mini.png) | ![Caméra tout-en-un IA standard](.image/deploy-profile-standard.png) | ![Tout-en-un full-stack full](.image/deploy-profile-full.png) |
 
+<div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
+  <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 Mode cluster edge fédéré illimité yFeiEye</p>
+  <p style="font-size: 14px; line-height: 1.8; color: #333; margin: 0;">
+    Environ <strong>512 Mo</strong> de mémoire, <strong>occupation disque locale nulle côté edge sur Ceph</strong> (images d'alerte et objets métier écrits sur Ceph partagé, pas de disque métier local en edge) ; le compute peut être déployé en extension sur chaque site ; <strong>une seule commande</strong> suffit pour rendre intelligente une carte de développement ordinaire, tandis que les alertes et événements remontent vers le cloud.
+    Complémentaire aux trois niveaux full-stack ci-dessus — le full-stack assure le contrôle cloud-edge et l'orchestration métier, les nœuds EDGE assurent l'inférence légère sur site et l'extension horizontale illimitée : « un contrôle central, un déploiement edge à volonté ».
+  </p>
+</div>
+
 #### 🧠 Capacités d'IA
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>Couche d’exécution haute vitesse RUNTIME</strong> : Sort « regarder / calculer / pousser » des chaînes interprétées vers un <strong>binaire natif</strong> qui porte <strong>pull → décodage → inférence → callback d’alerte → push à cadres</strong>. Face aux chemins Python, il évite le GIL et le coût multi-processus — sur le même matériel : <strong>plus de canaux par boîtier, latence bout-en-bout plus basse, moins de CPU/mémoire</strong>. Temps réel / capture / patrouille et relais multi-canal brut partagent la même capacité ; défaut <code>executor=cpp</code>. En pratique : d’abord des dizaines de canaux NVR clairs, puis l’IA seulement sur les canaux critiques ; basculer aperçu brut et jugement à cadres sans qu’un chemin n’écrase l’autre ; VIDEO/WEB gardent orchestration, archivage et droits, RUNTIME se concentre sur débit et latence — monter en canaux sans changer toute la machine</li>
-  <li><strong>Relais de flux haute performance</strong> : Conçu pour « remplir d’abord le mur / l’écran partagé, sans activer l’IA sur chaque canal » — canaux NVR et points bâtiment en un clic. Chemin par défaut : <strong>RUNTIME</strong> haute performance (mode compatibilité toujours possible) pour garder le multi-canal brut à moindre coût. Vision brute et jugement IA peuvent coexister ; au démarrage/arrêt des tâches algo, la politique de relais suit automatiquement. Prévisualisation côte à côte pour comparer latence et cadres à l’acceptance</li>
-  <li><strong>Personnalisation du nom et du logo sur tous les points de contact</strong> : Une fois EasyAIoT déployé sur site, les utilisateurs doivent voir « leur » plateforme, et non un nom de produit générique. Le tableau de bord de monitoring intègre un panneau visuel « Identité de la plateforme » permettant aux administrateurs de remplacer l'image de marque depuis l'interface — nom et logo de la console d'administration (barre latérale, titre du navigateur) ; titre indépendant du tableau de commandement ; page de connexion avec nom, logo, titre du formulaire et images de fond claires/sombres. Trois points de contact unifiés, effet immédiat, sauvegarde et réinitialisation en un clic.
+  <li><strong>Exécuteur vidéo haute performance RUNTIME</strong> : Fait passer la vidéo de terrain de « on peut regarder / analyser » à « plus de canaux restent stables, la permanence suit » — une même capacité d’exécution couvre <strong>le jugement temps réel, les captures planifiées et la patrouille multi-canaux</strong>, tout en alimentant le <strong>mur d’images brutes multi-canaux</strong>. En pratique : d’abord des dizaines de canaux NVR clairs et fluides, puis l’IA seulement sur les canaux critiques ; basculer entre aperçu brut et jugement à cadres sans qu’un chemin n’écrase l’autre ; garder des annotations lisibles pour ne pas distraire les opérateurs. La plateforme conserve l’orchestration, l’archivage des alertes et les droits ; l’exécuteur se concentre sur le débit et la latence — augmenter canaux et scènes sans changer toute la machine. Voir <a href="RUNTIME/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RUNTIME/README.md</a></li>
+  <li><strong>Relais de flux haute performance</strong> : Conçu pour le besoin réel de « remplir d’abord le mur / l’écran partagé, sans activer l’IA sur chaque canal » — les canaux NVR et les points bâtiment créent des tâches de relais en un clic. Le mode haute performance est le défaut pour garder le multi-canal brut à l’écran à moindre coût ; les sites particuliers peuvent encore passer en mode compatibilité. Vision brute et jugement IA peuvent coexister sur le même appareil : voir le live non annoté ou basculer vers les résultats à cadres ; au démarrage/arrêt des tâches algo, la politique de relais suit automatiquement — moins de retouches manuelles. La prévisualisation côte à côte raccourcit l’acceptance en comparant latence et qualité des cadres</li>
+  <li><strong>Mode atomique RUNTIME (nœuds de calcul légers)</strong> : Les boîtiers edge / workers de cluster peuvent <strong>n'installer que l'exécuteur RUNTIME</strong> — pas de VIDEO/WEB/DEVICE locaux. Agrégation alertes/heartbeats vers le VIDEO central via <code>VIDEO_BASE_URL</code> ; le centre dépêche temps réel / capture / patrouille (<code>executor=cpp</code>) sur le même binaire ; le temps réel pousse toujours par défaut le flux de détection vers le SRS central/cluster. Atomique ≠ jamais de push vidéo : atomique = pas de pile métier locale. Entrée : <code>VIDEO_BASE_URL=http://&lt;centre&gt;:6000 bash .scripts/docker/install_linux.sh runtime</code> ; ou distribution WEB / SSH iot-node</li>
+  <li><strong>Personnalisation du nom et du logo sur tous les points de contact</strong> : Une fois yFeiEye déployé sur site, les utilisateurs doivent voir « leur » plateforme, et non un nom de produit générique. Le tableau de bord de monitoring intègre un panneau visuel « Identité de la plateforme » permettant aux administrateurs de remplacer l'image de marque depuis l'interface — nom et logo de la console d'administration (barre latérale, titre du navigateur) ; titre indépendant du tableau de commandement ; page de connexion avec nom, logo, titre du formulaire et images de fond claires/sombres. Trois points de contact unifiés, effet immédiat, sauvegarde et réinitialisation en un clic.
     <ul style="margin: 5px 0; padding-left: 20px;">
       <li><strong>Pour les intégrateurs système et éditeurs de solutions</strong> : suppression des coûts de reskin frontend, de développement sur mesure et de cycles de release ; bascule rapide entre démo PoC et livraison client, une même base de code pour plusieurs clients, cycles de paiement raccourcis et meilleure réutilisation des solutions</li>
       <li><strong>Pour les utilisateurs finaux (administrations, campus, hôpitaux, etc.)</strong> : page de connexion, grand écran de commandement et console quotidienne affichent le nom et l'identité de l'organisation — plus d'appropriation et de crédibilité lors des visites de direction et du déploiement interne, conforme aux exigences d'image de marque des organismes publics et grandes entreprises</li>
@@ -200,7 +209,7 @@ Beaucoup de projets IoT intelligents butent au déploiement : <strong>les foncti
 #### 🌐 Capacités IoT
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-Beaucoup de projets réduisent l'IoT à un « registre d'appareils + relais de messages » : on se connecte, mais on ne gouverne pas ; on remonte des données, mais on ne déclenche rien ; on alerte, mais on ne voit pas le terrain ; on a des chiffres, mais pas d'écran ni de synoptique de processus. EasyAIoT positionne l'IoT comme le nerf d'exécution de la boucle <strong>perception — compréhension — décision — exécution</strong> : capteurs et actionneurs fournissent les « chiffres », caméras et IA fournissent les « images », grands écrans de visualisation et synoptiques de processus Web transforment les « chiffres » en situation de commandement, règles et ombres tressent le tout en actions métier opérables — pour que la plateforme ne se contente pas de « voir », mais sache aussi « afficher en écran, comprendre le processus, gouverner, piloter juste et scaler ».
+Beaucoup de projets réduisent l'IoT à un « registre d'appareils + relais de messages » : on se connecte, mais on ne gouverne pas ; on remonte des données, mais on ne déclenche rien ; on alerte, mais on ne voit pas le terrain ; on a des chiffres, mais pas d'écran ni de synoptique de processus. yFeiEye positionne l'IoT comme le nerf d'exécution de la boucle <strong>perception — compréhension — décision — exécution</strong> : capteurs et actionneurs fournissent les « chiffres », caméras et IA fournissent les « images », grands écrans de visualisation et SCADA Web transforment les « chiffres » en situation de commandement, règles et ombres tressent le tout en actions métier opérables — pour que la plateforme ne se contente pas de « voir », mais sache aussi « afficher en écran, comprendre le processus, gouverner, piloter juste et scaler ».
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
@@ -241,7 +250,7 @@ Beaucoup de projets réduisent l'IoT à un « registre d'appareils + relais de m
   <li><strong>File d'attente hors ligne</strong> : Sur réseau faible ou brève déconnexion, les commandes perdues obligent à tout refaire. Hors ligne temporairement, les commandes écrivent l'ombre désirée ; à la reconnexion, tirage ou réception selon le protocole — l'intention de contrôle survit au jitter ; rattrapage à la reprise, une opération en moins à refaire</li>
   <li><strong>Contrôle proxy sous-appareils via passerelle</strong> : Exiger que chaque terminal edge se connecte directement à la plateforme fait exploser complexité d'accès et gestion des certificats. Le contrôle des sous-appareils passe par la passerelle parente — les terminaux edge sont télécommandés sans lien direct ; complexité d'accès réduite, la passerelle devient vraiment une face d'agrégation opérable</li>
   <li><strong>Caméras liées</strong> : Une alerte capteur sans vue du terrain force la garde à « écouter des chiffres et deviner ». Les appareils IoT peuvent lier des caméras du catalogue ; points de mesure et points vidéo se correspondent — dès l'anomalie, savoir quelle voie ouvrir ; du « un chiffre remonté » au « une image trouvée »</li>
-  <li><strong>Supervision multi-écrans et liaison IA</strong> : Différence clé d'EasyAIoT face à l'IoT pur — l'IoT pur « voit les chiffres sans le terrain », la vidéo pure « voit le terrain sans piloter les appareils ». Dans l'invocation de fonctions, basculer en aperçu 1/4/9 des caméras liées et lancer l'analyse IA — paramétrer et commander en regardant le site ; « chiffres » et « images » vérifiés et traités sur le même écran ; moins de bascules de système, moins de ratés, vraie valeur de la fusion AI + IoT</li>
+  <li><strong>Supervision multi-écrans et liaison IA</strong> : Différence clé d'yFeiEye face à l'IoT pur — l'IoT pur « voit les chiffres sans le terrain », la vidéo pure « voit le terrain sans piloter les appareils ». Dans l'invocation de fonctions, basculer en aperçu 1/4/9 des caméras liées et lancer l'analyse IA — paramétrer et commander en regardant le site ; « chiffres » et « images » vérifiés et traités sur le même écran ; moins de bascules de système, moins de ratés, vraie valeur de la fusion AI + IoT</li>
   <li><strong>Journaux d'événements</strong> : Un pop-up d'alerte disparaît, la rétrospective ne repose plus que sur la mémoire et les disputes. Info/avertissement/erreur remontés sont agrégés ; filtre par type, nom et heure — la rétrospective lit le flux d'événements bruts ; « que s'est-il passé sur site » a des preuves, pas seulement un flash</li>
   <li><strong>Journaux de commandes</strong> : Le pire de l'intégration est le « he-said-she-said » : la commande est-elle partie, l'appareil l'a-t-il acceptée ? En cours/succès/échec des réglages de propriétés et appels de services laissent une trace complète — fin de la réconciliation orale ; la chaîne de commande est vérifiable et imputable</li>
   <li><strong>Journaux d'appareils</strong> : Localiser firmware et anomalies métier en se connectant pour lire des fichiers locaux bloque l'efficacité derrière réseau et droits terrain. Les journaux multi-niveaux côté appareil remontent au cloud ; recherche par mot-clé et heure — localiser l'anomalie dans le cloud, sans se reconnecter pour fouiller les logs locaux</li>
@@ -257,7 +266,7 @@ Beaucoup de projets réduisent l'IoT à un « registre d'appareils + relais de m
   <li><strong>Envoi de messages</strong> : La détection la plus juste et l'événement le plus complet valent zéro s'ils restent bloqués dans le système à attendre qu'on les ouvre. Créer des tâches de push par canal ; tester puis démarrer — alertes et événements métier atterrissent dans les outils quotidiens des responsables ; plus bloqués dans le système</li>
   <li><strong>Historique des envois</strong> : Sans trace d'émission ni d'atteinte, audit et optimisation ne sont que des conjectures. Revoir les enregistrements de push par canal — émis ou non, atteint ou non, preuves à l'appui ; audit et optimisation de la stratégie de touch ont un socle</li>
   <li><strong>Utilisateurs et groupes de notification</strong> : Diffuser les alertes critiques à tout le monde crée de la fatigue ; ne pas atteindre les bonnes personnes crée des manques. Maintenir utilisateurs et groupes pour un ciblage précis par rôle/équipe — les bonnes personnes reçoivent ; moins de fatigue d'alerte « à tous » ; la boucle « perception — jugement — notification — disposition » se ferme vraiment jusqu'à la personne</li>
-  <li><strong>TRANSFORM — flux métier multidirectionnel</strong> : Si alertes, événements appareil et résultats métier restent enfermés dans EasyAIoT, brancher MES / ERP / CRM / WMS impose encore des API sur mesure par projet — délais et retouches explosent. TRANSFORM transforme « à qui envoyer, selon quelles règles, comment mapper les champs, est-ce arrivé » en capacité configurable : destinations, règles de transfert et modèles de mapping une fois, puis réutilisation ; la livraison est monitorable et rejouable — l'intégration multi-systèmes passe de « une API custom par partenaire » à « brancher par contrat, accepter par trace », pour que les données plateforme entrent vraiment dans la boucle métier du client</li>
+  <li><strong>TRANSFORM — flux métier multidirectionnel</strong> : Si alertes, événements appareil et résultats métier restent enfermés dans yFeiEye, brancher MES / ERP / CRM / WMS impose encore des API sur mesure par projet — délais et retouches explosent. TRANSFORM transforme « à qui envoyer, selon quelles règles, comment mapper les champs, est-ce arrivé » en capacité configurable : destinations, règles de transfert et modèles de mapping une fois, puis réutilisation ; la livraison est monitorable et rejouable — l'intégration multi-systèmes passe de « une API custom par partenaire » à « brancher par contrat, accepter par trace », pour que les données plateforme entrent vraiment dans la boucle métier du client</li>
 </ul>
 
 #### 📱 APP mobile
@@ -301,18 +310,18 @@ La plateforme est prête à l'emploi, avec plusieurs modèles pré-entraînés i
 ### 💡 Philosophie technique
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Nous pensons qu'aucun langage de programmation n'excelle en toute chose, mais grâce à une intégration profonde de cinq langages de programmation, EasyAIoT exploite leurs avantages respectifs pour construire un écosystème technique puissant.
+Nous pensons qu'aucun langage de programmation n'excelle en toute chose, mais grâce à une intégration profonde de cinq langages de programmation, yFeiEye exploite leurs avantages respectifs pour construire un écosystème technique puissant.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java excelle pour construire une architecture de plateforme stable et fiable, mais convient mal à la programmation réseau et à l'IA ; Python excelle en programmation réseau et en algorithmes d'IA, mais bute sur le GIL et le coût multi-processus dès qu’il s’agit d’exécution frame haute densité / basse latence ; C++ excelle pour l'exécution haute performance, mais convient mal à l'architecture de plateforme et à l’orchestration algorithmique — la plateforme fait donc descendre <strong>pull/décodage, inférence, push à cadres et relais multi-canal brut</strong> dans <strong>RUNTIME</strong>, tandis que WEB/VIDEO gardent orchestration et surface métier. Go excelle en réseau à haute concurrence et en implémentation de protocoles, mais convient mal au plan de contrôle plateforme et aux algorithmes d'IA ; TypeScript excelle pour des interactions front-end complexes et des interfaces industrialisées à typage sûr, mais convient mal au calcul backend haute performance et à l'inférence IA. EasyAIoT adopte une architecture hybride cinq-en-un, où chaque langage occupe son terrain de jeu — une plateforme AIoT ambitieuse à réaliser, mais extrêmement simple à utiliser.
+Java excelle pour construire une architecture de plateforme stable et fiable, mais convient mal à la programmation réseau et à l'IA ; Python excelle en programmation réseau et en algorithmes d'IA, mais bute sur l'exécution haute performance ; C++ excelle pour l'exécution de tâches haute performance, mais convient mal à l'architecture de plateforme et à la programmation IA ; Go excelle en réseau à haute concurrence et en implémentation de protocoles, mais convient mal au plan de contrôle plateforme et aux algorithmes d'IA ; TypeScript excelle pour des interactions front-end complexes et des interfaces industrialisées à typage sûr, mais convient mal au calcul backend haute performance et à l'inférence IA. yFeiEye adopte une architecture hybride cinq-en-un, où chaque langage occupe son terrain de jeu — une plateforme AIoT ambitieuse à réaliser, mais extrêmement simple à utiliser.
 </p>
 
-![Architecture de la plateforme EasyAIoT.jpg](.image/iframe2.jpg)
+![Architecture de la plateforme yFeiEye](.image/iframe2-yfeieye.png)
 
 ### 🔄 Flux de données entre modules
 
-<img src=".image/iframe3.jpg" alt="Architecture de la plateforme EasyAIoT" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe3.jpg" alt="Architecture de la plateforme yFeiEye" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🤖 Technologie d'annotation à échantillon zéro
 
@@ -320,12 +329,12 @@ Java excelle pour construire une architecture de plateforme stable et fiable, ma
 En s'appuyant de manière innovante sur les grands modèles, nous construisons un système technologique d'annotation à échantillon zéro (idéalement, éliminant complètement l'intervention humaine dans l'annotation pour automatiser le processus). Cette technologie génère des données initiales via les grands modèles et utilise des techniques d'incitation (prompt) pour réaliser l'annotation automatique. La qualité des données est ensuite assurée par une validation humaine (facultative), permettant d'entraîner un petit modèle initial. Ce petit modèle, grâce à des itérations continues et une auto-optimisation, réalise une évolution conjointe de l'efficacité d'annotation et de la précision du modèle, conduisant finalement à une amélioration constante des performances du système.
 </p>
 
-<img src=".image/iframe4.jpg" alt="Architecture de la plateforme EasyAIoT" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<img src=".image/iframe4.jpg" alt="Architecture de la plateforme yFeiEye" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
 ### 🏗️ Caractéristiques de l'architecture du projet
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-EasyAIoT n'est pas vraiment un seul projet, mais plusieurs sous-projets déployables indépendamment (WEB, DEVICE, VIDEO, RTC, AI, etc.).
+yFeiEye n'est pas vraiment un seul projet, mais plusieurs sous-projets déployables indépendamment (WEB, DEVICE, VIDEO, RTC, AI, etc.).
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -344,7 +353,7 @@ L'avantage ? Si vous êtes sur un appareil aux ressources limitées (comme un RK
 ### 🌍 Support de localisation
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT répond activement à la stratégie de localisation, prenant pleinement en charge les matériels et systèmes d'exploitation locaux, offrant aux utilisateurs des solutions AIoT sûres et contrôlables. Le déploiement et les paquets PANEL couvrent déjà des OS locaux tels que <strong>Kylin (麒麟) / openEuler (欧拉)</strong>.
+yFeiEye répond activement à la stratégie de localisation, prenant pleinement en charge les matériels et systèmes d'exploitation locaux, offrant aux utilisateurs des solutions AIoT sûres et contrôlables. Le déploiement et les paquets PANEL couvrent déjà des OS locaux tels que <strong>Kylin (麒麟) / openEuler (欧拉)</strong>.
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -388,7 +397,7 @@ EasyAIoT répond activement à la stratégie de localisation, prenant pleinement
 ## 🧩 Structure du projet
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT comprend notamment WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL et SITE, avec COMPILE pour le packaging et la livraison multiplateformes :
+yFeiEye comprend notamment WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRANSFORM, PANEL et SITE, avec COMPILE pour le packaging et la livraison multiplateformes :
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -566,7 +575,7 @@ EasyAIoT comprend notamment WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, VIS
 ## 🖥️ Avantages du déploiement multiplateforme
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-EasyAIoT prend en charge le déploiement sur les trois principaux systèmes d'exploitation : Linux, Mac et Windows, offrant aux utilisateurs des solutions de déploiement flexibles et pratiques dans différents environnements ; avec <strong>COMPILE</strong> pour produire installateurs et binaires par OS cible, et <strong>PANEL</strong> pour l'installation sur site et la permanence quotidienne :
+yFeiEye prend en charge Linux, Mac et Windows ; COMPILE produit les installateurs et binaires pour chaque cible, tandis que PANEL facilite l'installation sur site et l'exploitation quotidienne :
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -605,17 +614,17 @@ EasyAIoT prend en charge le déploiement sur les trois principaux systèmes d'ex
 
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>Expérience unifiée</strong> : Quel que soit le système d'exploitation choisi, EasyAIoT fournit des scripts d'installation et une documentation de déploiement cohérents, garantissant une expérience de déploiement multiplateforme uniforme.
+<strong>Expérience unifiée</strong> : Quel que soit le système d'exploitation choisi, yFeiEye fournit des scripts d'installation et une documentation de déploiement cohérents, garantissant une expérience de déploiement multiplateforme uniforme.
 </p>
 
-## ☁️ EasyAIoT = IA + IoT = Solution d'intégration cloud-bord-périphérique
+## ☁️ yFeiEye = IA + IoT = Solution d'intégration cloud-bord-périphérique
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 Prend en charge des milliers de scénarios verticaux, le développement sur mesure des modèles d'IA et des algorithmes d'IA, avec une intégration profonde.
 </p>
 
 <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
-<h3 style="color: #2c3e50; margin-top: 0;">Doter tous les objets d'une vision intelligente : EasyAIoT</h3>
+<h3 style="color: #2c3e50; margin-top: 0;">Doter tous les objets d'une vision intelligente : yFeiEye</h3>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
 Nous construisons un réseau efficace de connexion et de contrôle des appareils IoT (en particulier des caméras en masse). Nous intégrons profondément la technologie de transmission en temps réel des flux multimédias et l'intelligence artificielle (IA) de pointe pour créer un cœur de services unifié. Cette solution permet non seulement l'interconnexion d'appareils hétérogènes, mais intègre aussi profondément les flux vidéo haute définition avec de puissants moteurs d'analyse IA, donnant aux systèmes de surveillance des "yeux intelligents" – réalisant avec précision la reconnaissance faciale, l'analyse comportementale anormale, le contrôle des personnes à risque et la détection d'intrusion périmétrique.
 </p>
@@ -623,15 +632,15 @@ Nous construisons un réseau efficace de connexion et de contrôle des appareils
 La plateforme prend en charge les tâches algorithmiques en temps réel, de capture et de patrouille : les trois peuvent utiliser par défaut la <strong>couche d’exécution haute vitesse RUNTIME</strong> (<code>executor=cpp</code>) — binaire natif pour pull longue durée, décodage, inférence YOLO et callbacks ; temps réel avec <strong>push de flux AI à cadres par défaut</strong> ; capture Cron ; patrouille multi-flux ; le relais peut aussi emprunter le même chemin haute performance pour un mur brut économe. Face au backend Python de compatibilité, RUNTIME tient mieux la densité de canaux et la basse latence. Alertes et heartbeats reviennent à VIDEO. La gestion des tâches garde extraction/tri flexibles ; l’inférence cluster des services de modèles assure réponse millisecondes et haute disponibilité. Deux stratégies de surveillance (complète / partielle) permettent des règles précises par périodes.
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-Concernant la gestion des appareils IoT, EasyAIoT fournit des capacités complètes de gestion du cycle de vie des appareils, prenant en charge plusieurs protocoles IoT et industriels (MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA), permettant une connexion rapide, une authentification sécurisée, une surveillance en temps réel et un contrôle intelligent des appareils. Le moteur de règles permet un flux et un traitement intelligents des données des appareils. Combiné aux capacités d'IA pour une analyse approfondie des données des appareils, il réalise une automatisation complète du processus allant de la connexion des appareils, la collecte de données, l'analyse intelligente à l'exécution des décisions, atteignant véritablement l'interconnexion et le contrôle intelligent de toutes choses.
+Concernant la gestion des appareils IoT, yFeiEye fournit des capacités complètes de gestion du cycle de vie des appareils, prenant en charge plusieurs protocoles IoT et industriels (MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA), permettant une connexion rapide, une authentification sécurisée, une surveillance en temps réel et un contrôle intelligent des appareils. Le moteur de règles permet un flux et un traitement intelligents des données des appareils. Combiné aux capacités d'IA pour une analyse approfondie des données des appareils, il réalise une automatisation complète du processus allant de la connexion des appareils, la collecte de données, l'analyse intelligente à l'exécution des décisions, atteignant véritablement l'interconnexion et le contrôle intelligent de toutes choses.
 </p>
 </div>
 
-<img src=".image/iframe1.jpg" alt="Architecture de la plateforme EasyAIoT" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src=".image/iframe1.jpg" alt="Architecture de la plateforme yFeiEye" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 
 ## ⚠️ Clause de non-responsabilité
 
-EasyAIoT est un projet d'apprentissage open source, sans lien avec des activités commerciales. Les utilisateurs doivent respecter les lois et règlements lors de l'utilisation de ce projet et ne pas mener d'activités illégales. Si EasyAIoT découvre que des utilisateurs ont des comportements illégaux, il coopérera avec les autorités concernées pour enquêter et signalera aux agences gouvernementales. Toute responsabilité légale découlant d'actes illégaux des utilisateurs sera assumée par l'utilisateur lui-même. En cas de dommages causés à des tiers par l'utilisation de l'utilisateur, l'utilisateur devra les indemniser conformément à la loi. L'utilisation de toutes les ressources associées à EasyAIoT est aux risques et périls de l'utilisateur.
+yFeiEye est un projet d'apprentissage open source, sans lien avec des activités commerciales. Les utilisateurs doivent respecter les lois et règlements lors de l'utilisation de ce projet et ne pas mener d'activités illégales. Si yFeiEye découvre que des utilisateurs ont des comportements illégaux, il coopérera avec les autorités concernées pour enquêter et signalera aux agences gouvernementales. Toute responsabilité légale découlant d'actes illégaux des utilisateurs sera assumée par l'utilisateur lui-même. En cas de dommages causés à des tiers par l'utilisation de l'utilisateur, l'utilisateur devra les indemniser conformément à la loi. L'utilisation de toutes les ressources associées à yFeiEye est aux risques et périls de l'utilisateur.
 
 ## 📚 Documentation de déploiement
 
@@ -640,16 +649,10 @@ EasyAIoT est un projet d'apprentissage open source, sans lien avec des activité
 - [Déploiement image Windows](.doc/部署文档/平台Windows部署文档_fr.md) — Entrée recommandée `install_windows.ps1`
 - [Bonnes pratiques de déploiement](.doc/部署文档/部署最佳实践_fr.md) — Profils, prérequis, déploiement one-click (dont CentOS **7–9** / **CentOS ARM** / **Kylin (麒麟) / openEuler (欧拉)**), dépannage et production
 
-## 🎮 Environnement de démonstration
-
-- URL de démo : http://36.111.47.113:8888/
-- Compte : admin
-- Mot de passe : admin123
-
 ## ⚙️ Dépôts du projet
 
-- Gitee: https://gitee.com/soaring-xiongkulu/easyaiot
-- Github: https://github.com/soaring-xiongkulu/easyaiot
+- Gitee: [yFeiEye](https://gitee.com/reese/easyaiot)
+- Github: [yFeiEye](https://github.com/xinlingzhifei/easyaiot)
 
 ## 📸 Captures d'écran
 
@@ -771,6 +774,43 @@ EasyAIoT est un projet d'apprentissage open source, sans lien avec des activité
 | ![Alertes](.image/banner/app/app_1003.jpg) | ![Lecture](.image/banner/app/app_1004.jpg) | ![Appareil](.image/banner/app/app_1005.jpg) |
 | ![Messages](.image/banner/app/app_1006.jpg) | ![Profil](.image/banner/app/app_1007.jpg) |  |
 
+## 🛠️ Services et support
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+Nous offrons diverses méthodes de service pour vous aider à mieux comprendre la plateforme yFeiEye et son code. Grâce à la documentation produit, aux groupes d'échange technique, à l'enseignement payant, etc., vous bénéficierez des services suivants :
+</p>
+
+<table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<thead>
+<tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+<th style="padding: 15px; text-align: left; font-weight: 600;">Élément de service</th>
+<th style="padding: 15px; text-align: left; font-weight: 600;">Contenu du service</th>
+<th style="padding: 15px; text-align: center; font-weight: 600;">Tarification du service</th>
+<th style="padding: 15px; text-align: left; font-weight: 600;">Méthode de service</th>
+</tr>
+</thead>
+<tbody>
+<tr style="background-color: #f8f9fa;">
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">Déploiement du système</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">Réaliser le déploiement d'yFeiEye dans l'environnement réseau et matériel spécifié par le client.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">1000 RMB</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">Support de déploiement en ligne</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">Support technique</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">Fournir des réponses aux questions concernant les problèmes rencontrés lors du déploiement et de l'utilisation des fonctionnalités.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">500 RMB</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">Support à distance en ligne dans les 30 minutes</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50;">Autres services</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">Développement sur mesure de solutions pour des domaines verticaux ; services de fonctionnalités et de durée sur mesure, etc.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; text-align: center; color: #e74c3c; font-weight: 600;">À discuter</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444;">À discuter</td>
+</tr>
+</tbody>
+</table>
+
 ## 📞 Contact
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -786,12 +826,8 @@ Veuillez d'abord suivre le compte officiel ci-dessous, puis nous contacter via l
 ## 💬 Groupe d'échange technique
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Après avoir suivi le compte officiel, scannez le code QR ci-dessous avec WeChat pour rejoindre le groupe d'échange technique EasyAIoT.
+Après avoir suivi le compte officiel, scannez le code QR ci-dessous avec WeChat pour rejoindre le groupe d'échange technique yFeiEye.
 </p>
-
-<div>
-  <img src=".image/交流群3群.jpg" alt="Groupe d'échange technique EasyAIoT" width="30%">
-</div>
 
 ## 💬 Contact WeChat
 
@@ -819,7 +855,7 @@ Après avoir suivi le compte officiel, scannez le code QR ci-dessous pour nous a
 ## 🤝 Guide de contribution
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-Nous accueillons toutes les formes de contributions ! Que vous soyez développeur de code, rédacteur de documentation ou rapporteur de problèmes, votre contribution aidera à améliorer EasyAIoT. Voici les principales façons de contribuer :
+Nous accueillons toutes les formes de contributions ! Que vous soyez développeur de code, rédacteur de documentation ou rapporteur de problèmes, votre contribution aidera à améliorer yFeiEye. Voici les principales façons de contribuer :
 </p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
@@ -860,7 +896,7 @@ Nous accueillons toutes les formes de contributions ! Que vous soyez développeu
 ## 🌟 Contributeurs majeurs
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-Voici les contributeurs exceptionnels qui ont apporté une contribution significative au projet EasyAIoT. Leurs contributions ont joué un rôle clé dans la promotion du développement du projet. Nous exprimons notre gratitude la plus sincère !
+Voici les contributeurs exceptionnels qui ont apporté une contribution significative au projet yFeiEye. Leurs contributions ont joué un rôle clé dans la promotion du développement du projet. Nous exprimons notre gratitude la plus sincère !
 </p>
 
 <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin: 20px 0; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -873,81 +909,77 @@ Voici les contributeurs exceptionnels qui ont apporté une contribution signific
 <tbody>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>℡夏别</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué à la documentation de déploiement Windows pour le projet EasyAIoT, fournissant un guide de déploiement complet pour les utilisateurs de la plateforme Windows, réduisant considérablement la difficulté de déploiement dans les environnements Windows et permettant à plus d'utilisateurs d'utiliser facilement la plateforme EasyAIoT.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué à la documentation de déploiement Windows pour le projet yFeiEye, fournissant un guide de déploiement complet pour les utilisateurs de la plateforme Windows, réduisant considérablement la difficulté de déploiement dans les environnements Windows et permettant à plus d'utilisateurs d'utiliser facilement la plateforme yFeiEye.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>YiYaYiYaho</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement en un clic de conteneurs Mac pour le projet EasyAIoT, fournissant une solution de déploiement automatisé pour les utilisateurs de la plateforme Mac, simplifiant considérablement le processus de déploiement dans les environnements Mac et améliorant l'expérience de déploiement pour les développeurs et les utilisateurs.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement en un clic de conteneurs Mac pour le projet yFeiEye, fournissant une solution de déploiement automatisé pour les utilisateurs de la plateforme Mac, simplifiant considérablement le processus de déploiement dans les environnements Mac et améliorant l'expérience de déploiement pour les développeurs et les utilisateurs.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>山寒</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement de conteneurs Linux pour le projet EasyAIoT, fournissant une solution de déploiement conteneurisé pour les utilisateurs de la plateforme Linux, réalisant un déploiement de conteneurs rapide et fiable, et fournissant des garanties importantes pour un fonctionnement stable dans les environnements de production.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement de conteneurs Linux pour le projet yFeiEye, fournissant une solution de déploiement conteneurisé pour les utilisateurs de la plateforme Linux, réalisant un déploiement de conteneurs rapide et fiable, et fournissant des garanties importantes pour un fonctionnement stable dans les environnements de production.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>玖零。</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement de conteneurs Linux pour le projet EasyAIoT, améliorant davantage la solution de déploiement conteneurisé pour les plateformes Linux, fournissant plus d'options pour les utilisateurs de différentes distributions Linux et promouvant les capacités de déploiement multiplateforme du projet.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au script de déploiement de conteneurs Linux pour le projet yFeiEye, améliorant davantage la solution de déploiement conteneurisé pour les plateformes Linux, fournissant plus d'options pour les utilisateurs de différentes distributions Linux et promouvant les capacités de déploiement multiplateforme du projet.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>爱吃小柚子</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT vers un entraînement qui démarre vraiment, reste stable et reste simple à piloter, a systématiquement livré l'entraînement multi-GPU, la reprise sur point de contrôle et le déploiement côté nœud, afin que la puissance de calcul sur site soit pleinement utilisable et que les tâches d'entraînement restent maîtrisables : les serveurs détectent et utilisent automatiquement tous les GPU, et l'utilisateur peut choisir une ou plusieurs cartes sur la page d'entraînement au lieu d'être limité à une seule GPU visible ; formats et structures de jeux de données courants pris en charge, upload de grands jeux locaux, conservation des données d'origine après un échec pour réessayer rapidement — ce qui réduit fortement le coût de préparation et des allers-retours ; progression visible, tâches arrêtables et reprenables, évitant la perte de résultats après interruption ou un « stop » qui laisse encore tourner des processus en arrière-plan, avec repli et retour d'information clairs en cas d'échec d'ordonnancement local ou distant ; a aussi amélioré la sélection GPU, la reprise et l'affichage de l'état d'arrêt côté frontend, et corrigé les faux échecs de publication, l'écrasement des images d'aperçu personnalisées, la recherche de modèles par nom/version inopérante, ainsi que les timeouts et conflits de synchronisation des jeux de données — pour un cycle entraîner–publier–utiliser plus fluide et fiable. Auparavant, a également dirigé les tests d'intégration bout en bout GB28181 et flux métier IA ainsi que l'évaluation dédiée de la netteté d'image, fournissant une base solide pour un accès norme nationale fiable et une meilleure expérience visuelle.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye vers un entraînement qui démarre vraiment, reste stable et reste simple à piloter, a systématiquement livré l'entraînement multi-GPU, la reprise sur point de contrôle et le déploiement côté nœud, afin que la puissance de calcul sur site soit pleinement utilisable et que les tâches d'entraînement restent maîtrisables : les serveurs détectent et utilisent automatiquement tous les GPU, et l'utilisateur peut choisir une ou plusieurs cartes sur la page d'entraînement au lieu d'être limité à une seule GPU visible ; formats et structures de jeux de données courants pris en charge, upload de grands jeux locaux, conservation des données d'origine après un échec pour réessayer rapidement — ce qui réduit fortement le coût de préparation et des allers-retours ; progression visible, tâches arrêtables et reprenables, évitant la perte de résultats après interruption ou un « stop » qui laisse encore tourner des processus en arrière-plan, avec repli et retour d'information clairs en cas d'échec d'ordonnancement local ou distant ; a aussi amélioré la sélection GPU, la reprise et l'affichage de l'état d'arrêt côté frontend, et corrigé les faux échecs de publication, l'écrasement des images d'aperçu personnalisées, la recherche de modèles par nom/version inopérante, ainsi que les timeouts et conflits de synchronisation des jeux de données — pour un cycle entraîner–publier–utiliser plus fluide et fiable. Auparavant, a également dirigé les tests d'intégration bout en bout GB28181 et flux métier IA ainsi que l'évaluation dédiée de la netteté d'image, fournissant une base solide pour un accès norme nationale fiable et une meilleure expérience visuelle.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Dark</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué à l'intégration de bout en bout de GB28181 pour EasyAIoT en vidéosurveillance selon la norme nationale, avec lecture vidéo et commande PTZ (panoramique / inclinaison), rendant l'accès des équipements réellement exploitable pour la prévisualisation en direct et le pilotage à distance.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué à l'intégration de bout en bout de GB28181 pour yFeiEye en vidéosurveillance selon la norme nationale, avec lecture vidéo et commande PTZ (panoramique / inclinaison), rendant l'accès des équipements réellement exploitable pour la prévisualisation en direct et le pilotage à distance.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>machh</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au projet EasyAIoT-Edge en menant à bien la validation de bout en bout de l'intégration des caméras et des fonctions IA, et en reliant ces capacités pour former une chaîne fonctionnelle sur l'edge.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au projet yFeiEye-Edge en menant à bien la validation de bout en bout de l'intégration des caméras et des fonctions IA, et en reliant ces capacités pour former une chaîne fonctionnelle sur l'edge.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>遗忘的星空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au développement de l'intégration directe des appareils EasyAIoT en fournissant un inventaire multi-marques des caméras IP et un scanner de sous-réseaux, avec découverte en masse des IPC et NVR Hikvision ; amélioration de la recherche en masse et de l'enregistrement en un clic pour les appareils connectés directement, sur le même sous-réseau ou entre sous-réseaux. L'accès s'effectue via les protocoles natifs des appareils, contournant le SDK Hikvision et réduisant la dépendance à la plateforme Hikvision — posant les bases d'une intégration ouverte et maîtrisée des caméras à grande échelle.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">A contribué au développement de l'intégration directe des appareils yFeiEye en fournissant un inventaire multi-marques des caméras IP et un scanner de sous-réseaux, avec découverte en masse des IPC et NVR Hikvision ; amélioration de la recherche en masse et de l'enregistrement en un clic pour les appareils connectés directement, sur le même sous-réseau ou entre sous-réseaux. L'accès s'effectue via les protocoles natifs des appareils, contournant le SDK Hikvision et réduisant la dépendance à la plateforme Hikvision — posant les bases d'une intégration ouverte et maîtrisée des caméras à grande échelle.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>阿龙</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans la visualisation cartographique et l'analyse spatiale, a contribué de manière indépendante à l'implémentation complète des capacités de visualisation spatiale Tianditu, couvrant l'intégration de la carte de base Tianditu nationale, le positionnement des caméras et des dispositifs d'alarme, les vues de répartition cartographique, la recherche de lieux et l'importation par lot de coordonnées, la cartographie automatique des événements d'alarme, la recherche de trajectoires par personne/véhicule et la relecture des trajectoires des appareils mobiles — faisant passer la capacité « visualisation spatiale Tianditu et analyse par carte » de la conception à une forme exploitable en production.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans la visualisation cartographique et l'analyse spatiale, a contribué de manière indépendante à l'implémentation complète des capacités de visualisation spatiale Tianditu, couvrant l'intégration de la carte de base Tianditu nationale, le positionnement des caméras et des dispositifs d'alarme, les vues de répartition cartographique, la recherche de lieux et l'importation par lot de coordonnées, la cartographie automatique des événements d'alarme, la recherche de trajectoires par personne/véhicule et la relecture des trajectoires des appareils mobiles — faisant passer la capacité « visualisation spatiale Tianditu et analyse par carte » de la conception à une forme exploitable en production.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>雨落流殇</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans la diffusion multimédia à très grande échelle, a contribué aux idées de déploiement et d'ordonnancement de clusters de serveurs multimédia hétérogènes, proposant des solutions évolutives incluant la coordination multi-pools de nœuds, le découplage du plan de contrôle multimédia et de la couche métier, ainsi que l'enregistrement et l'ordonnancement des nœuds — posant des bases architecturales importantes pour permettre à la plateforme de prendre en charge l'accès concurrent à des dizaines de milliers de flux caméra avec une diffusion stable et une montée en charge élastique.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans la diffusion multimédia à très grande échelle, a contribué à l'architecture de déploiement et à l'approche d'ordonnancement des clusters de serveurs multimédia hétérogènes SRS et ZLMediaKit, proposant des solutions évolutives incluant la coordination multi-pools de nœuds, le découplage du plan de contrôle multimédia et de la couche métier, les pipelines de stockage et de téléchargement, ainsi que l'enregistrement et l'ordonnancement des nœuds — posant des bases architecturales importantes pour permettre à la plateforme de prendre en charge l'accès concurrent à des dizaines de milliers de flux caméra avec une diffusion stable et une montée en charge élastique.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>常康</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans le transport intelligent et la gestion des véhicules, a contribué de manière indépendante à l'algorithme de reconnaissance de plaques d'immatriculation et à son implémentation complète, couvrant la détection et la localisation de plaques, la reconnaissance du numéro et de la couleur, la fusion de plaques à double rangée et la correction d'inclinaison/perspective, la gestion de bases de plaques et le matching séquentiel multi-bases, l'intégration en un clic aux tâches algorithmiques et la comparaison asynchrone — avec prise en charge des plaques bleues, jaunes, vertes, blanches et des véhicules à énergie nouvelle — faisant passer la capacité « reconnaissance de plaques et gestion de bases » de la planification à une application de production en boucle fermée.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans le transport intelligent et la gestion des véhicules, a contribué de manière indépendante à l'algorithme de reconnaissance de plaques d'immatriculation et à son implémentation complète, couvrant la détection et localisation ONNX, la reconnaissance du numéro et de la couleur, la fusion de plaques à double rangée et la correction d'inclinaison/perspective, la gestion de bases de plaques et le matching séquentiel multi-bases, l'intégration en un clic aux tâches algorithmiques et la comparaison asynchrone via Kafka — avec prise en charge des plaques bleues, jaunes, vertes, blanches et des véhicules à énergie nouvelle — faisant passer la capacité « reconnaissance de plaques et gestion de bases » de la planification à une application de production en boucle fermée.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>Li</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans la construction de la communauté de jeunes développeurs et l'écosystème collaboratif, a fait preuve d'un remarquable leadership organisationnel et d'un grand pouvoir de mobilisation en conduisant l'ensemble des étudiants du campus à participer activement à la co-construction du projet, rassemblant les talents de la jeunesse et la force collective du groupe pour insuffler à EasyAIoT un élan de développement continu et durable ; a également apporté une contribution majeure et irremplaçable à la promotion du projet, à sa mise en œuvre concrète et à la formation des futures générations de contributeurs.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans la construction de la communauté de jeunes développeurs et l'écosystème collaboratif, a fait preuve d'un remarquable leadership organisationnel et d'un grand pouvoir de mobilisation en conduisant l'ensemble des étudiants du campus à participer activement à la co-construction du projet, rassemblant les talents de la jeunesse et la force collective du groupe pour insuffler à yFeiEye un élan de développement continu et durable ; a également apporté une contribution majeure et irremplaçable à la promotion du projet, à sa mise en œuvre concrète et à la formation des futures générations de contributeurs.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>陈家林</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans l’interopérabilité IoT, l’accès aux protocoles industriels et la fusion vidéo air–sol, a rendu possible la boucle fermée commandes/état afin que la plateforme puisse réellement « envoyer, voir et contrôler » ; a contribué de façon systémique à l’accès Modbus-TCP, Modbus-RTU et OPC UA — acquisition unifiée des équipements industriels Ethernet et série et des nœuds OPC UA, lecture/écriture registres/points et mapping modèle d’objet — permettant d’agréger, surveiller et lier compteurs, capteurs, PLC, contrôleurs ; a également contribué à l’intégration dock/drone DJI FlightHub, intégrant l’inspection aérienne au système unifié vidéo/alarmes, élargissant la valeur pour l’acquisition industrielle, le pilotage de ligne, la patrouille large zone, la reconnaissance d’urgence et la perception ciel–terre.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans l’interopérabilité des équipements IoT et la fusion vidéo air–sol, a rendu possible la boucle fermée commandes/état des appareils, permettant à la plateforme de réellement « envoyer, voir et contrôler » ; a également contribué à l’intégration des docks et flux drone DJI FlightHub, intégrant la vision d’inspection aérienne au système unifié de vidéo et d’alarmes, et élargissant nettement la valeur terrain pour la patrouille large zone, la reconnaissance d’urgence et la perception collaborative ciel–terre.</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>NULL</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans l’accès aux équipements industriels de terrain, a rendu possible l’acquisition montante du protocole Modbus, permettant aux compteurs, capteurs, contrôleurs et autres équipements industriels d’être agrégés, surveillés et liés de manière unifiée — complétant la pièce manquante « voir le site et entendre les appareils », et offrant une base solide pour l’acquisition industrielle, le pilotage intelligent de ligne et les scénarios de liaison sécurité.</td>
 </tr>
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>空空</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans la connexion directe des caméras, de « détectable » à « déployable en production », a comblé les lacunes critiques en authentification, synchronisation des canaux, modification de configuration et flux multi-marques, rendant la plateforme livrable sur des sites NVR / multi-fabricants réels : authentification fiable pour que les appareils en connexion directe puissent vraiment « se connecter et rester gérés » ; modèle de tirage de flux amélioré après synchronisation NVR pour que les flux synchronisés en masse soient lisibles et scalables ; paramètres d'accès maintenables dans la durée ; bibliothèque de règles d'URL pour les marques de vidéosurveillance courantes et règles de marque personnalisées ouvertes, permettant aux appareils hétérogènes d'assembler les flux en un clic sans essais manuels — faisant passer la connexion directe de « on peut scanner les appareils » à « on se connecte, la sync est exacte, on peut reconfigurer, et les flux multi-marques passent », posant une base solide pour les contrôles PTZ et zoom ultérieurs.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye dans la connexion directe des caméras, de « détectable » à « déployable en production », a comblé les lacunes critiques en authentification, synchronisation des canaux, modification de configuration et flux multi-marques, rendant la plateforme livrable sur des sites NVR / multi-fabricants réels : a rendu fiables les identifiants de connexion afin que l’authentification par compte/mot de passe fonctionne et que les appareils en connexion directe puissent vraiment « se connecter et rester gérés » ; a reconstruit le modèle de tirage de flux après synchronisation NVR — auparavant la synchronisation écrivait l’IP de chaque caméra de canal comme hôte RTSP, en contradiction avec la topologie réelle « tirage centralisé via NVR », d’où une sync apparemment réussie mais un live impossible ; après correction, les URL RTSP des canaux sont générées à partir de l’IP hôte du NVR, rendant les flux synchronisés en masse lisibles et scalables ; a corrigé les échecs d’enregistrement à l’édition d’appareil pour que les paramètres d’accès restent maintenables au lieu d’être « écrits une fois, jamais modifiables » ; a construit une bibliothèque de règles d’URL RTSP pour les marques de vidéosurveillance courantes en Chine et ouvert des règles de marque personnalisées, permettant aux appareils hétérogènes d’assembler les flux en un clic sans essais manuels d’adresses ni modification du code plateforme pour chaque nouvelle marque — faisant passer la connexion directe de « on peut scanner les appareils » à « on se connecte, la sync est exacte, on peut reconfigurer, et les flux multi-marques passent », posant une base solide pour les contrôles PTZ et zoom ultérieurs.</td>
 </tr>
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT vers « des données IoT affichables en écran », a proposé en amont l'idée produit d'un module Board (tableau glisser-déposer) : les grands écrans traditionnels exigent souvent du SQL écrit à la main pour chaque écran et composant — livraison lente, modification coûteuse, quasi impossible pour le métier en autonomie. Le schéma Board confie graphiques, indicateurs et mise en page à un canevas glisser-déposer, avec variables de composants raccordées directement aux points IoT — valeurs temps réel et historiques depuis les appareils sans requête dédiée par tableau. Situation de campus, KPI de ligne, exploitation d'équipements, etc. passent de « l'écran nécessite du SQL développeur » à « choisir un point, glisser un composant, écran prêt » — cycle de livraison visualisation raccourci, « des chiffres en coulisse » devient « un écran en façade » opérable. Auparavant, a aussi contribué à la prédiction de données flottantes des capteurs, aux seuils haut/bas des attributs d'état, aux alertes et règles de seuil, et à l'affichage sur un écran de l'état des sous-appareils liés à l'équipement central — boucle « prédire — borner — alerter — régler — maîtriser sur un écran », pour que le côté équipements puisse « voir les chiffres, gouverner les bornes, lever les alertes et saisir le global ».</td>
-</tr>
-<tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>大老刘</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT dans la communication externe et la présentation de solutions, a contribué au support illustré <em>Plateforme d'analyse de vidéosurveillance IA</em>, structurant de façon systématique le panorama des capacités et la valeur terrain de la plateforme en scénarios d'analyse vidéo IA, afin que utilisateurs, intégrateurs et partenaires comprennent rapidement le positionnement et les points clés — améliorant nettement l'efficacité de la diffusion et des échanges commerciaux.</td>
-</tr>
-<tr style="background-color: #f8f9fa;">
-<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>刘兆中ᯤ⁵ᴳ</nobr></td>
-<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser EasyAIoT vers le déploiement en un clic sur macOS, a été parmi les premiers à contribuer une partie des scripts de déploiement Mac en un clic, ouvrant pour l'essentiel le chemin principal — tirage d'images, orchestration de conteneurs et contrôles préalables d'environnement — de sorte que le travail suivant n'avait plus qu'à combler le « dernier kilomètre ». Son exploration a clarifié pour l'équipe les nœuds critiques et les risques de la chaîne de déploiement Mac, raccourcissant nettement la voie vers la finalisation d'ingénierie ; contribution fondatrice indispensable pour faire passer le déploiement macOS de zéro à un état utilisable.</td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">Pour faire progresser yFeiEye vers « des données IoT affichables en écran », a proposé en amont l'idée produit d'un module Board (tableau glisser-déposer) basé sur GoView open source : les grands écrans traditionnels exigent souvent du SQL écrit à la main pour chaque écran et composant — livraison lente, modification coûteuse, quasi impossible pour le métier en autonomie. Le schéma Board confie graphiques, indicateurs et mise en page à un canevas glisser-déposer, avec variables de composants raccordées directement aux points IoT — valeurs temps réel et historiques depuis les appareils sans requête dédiée par tableau. Situation de campus, KPI de ligne, exploitation d'équipements, etc. passent de « l'écran nécessite du SQL développeur » à « choisir un point, glisser un composant, écran prêt » — cycle de livraison visualisation raccourci, « des chiffres en coulisse » devient « un écran en façade » opérable. Auparavant, a aussi contribué à la prédiction de données flottantes des capteurs, aux seuils haut/bas des attributs d'état, aux alertes et règles de seuil, et à l'affichage sur un écran de l'état des sous-appareils liés à l'équipement central — boucle « prédire — borner — alerter — régler — maîtriser sur un écran », pour que le côté équipements puisse « voir les chiffres, gouverner les bornes, lever les alertes et saisir le global ».</td>
 </tr>
 </tbody>
 </table>
 
 <p style="font-size: 14px; line-height: 1.8; color: #2c3e50; font-weight: 500; margin: 20px 0; padding: 15px; background-color: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-<strong>Remerciements spéciaux</strong> : Les contributeurs ci-dessus ont fait avancer EasyAIoT sur la documentation et les scripts de déploiement multiplateforme, les fondations et l'exploration du déploiement en un clic sur macOS, la mise en œuvre vidéo norme nationale et les tests d'intégration IA, l'utilisabilité de l'entraînement multi-GPU et la reprise sur point de contrôle, la découverte directe multi-marques et l'intégration en masse des caméras, la visualisation spatiale Tianditu complète, le déploiement et l'ordonnancement de clusters multimédia hétérogènes, la reconnaissance de plaques et son implémentation complète, l'intégration EasyAIoT-Edge de bout en bout, l'organisation de la communauté de jeunes développeurs, la boucle fermée IoT montante/descendante et l'accès vue aérienne DJI FlightHub, Modbus-TCP / Modbus-RTU / OPC UA, la connexion directe caméra de la découverte à la connexion/synchronisation/configuration/flux multi-marques, la conception Board avec intégration directe des points IoT temps réel/historique, la prédiction flottante des capteurs avec alertes de seuil et l'affichage sur un écran des sous-appareils, ainsi que les supports illustrés de présentation de la plateforme d'analyse de vidéosurveillance IA — leur professionnalisme et leur dévouement méritent respect et reconnaissance. Encore une fois, notre gratitude la plus sincère à ces contributeurs exceptionnels ! 🙏</p>
+<strong>Remerciements spéciaux</strong> : Les contributeurs ci-dessus ont fait avancer yFeiEye sur la documentation et les scripts de déploiement multiplateforme, la mise en œuvre vidéo norme nationale et les tests d'intégration IA, l'utilisabilité de l'entraînement multi-GPU et la reprise sur point de contrôle, la découverte directe multi-marques et l'intégration en masse des caméras, la visualisation spatiale Tianditu complète, l'architecture de cluster multimédia hétérogène SRS/ZLMediaKit, la reconnaissance de plaques et son implémentation complète, l'intégration yFeiEye-Edge de bout en bout, l'organisation de la communauté de jeunes développeurs, la boucle fermée IoT montante/descendante et l'accès vue aérienne DJI FlightHub, Modbus-TCP / Modbus-RTU / OPC UA, la connexion directe caméra de la découverte à la connexion/synchronisation/configuration/flux multi-marques, la conception Board GoView avec intégration directe des points IoT temps réel/historique, la prédiction flottante des capteurs avec alertes de seuil et l'affichage sur un écran des sous-appareils — leur professionnalisme et leur dévouement méritent respect et reconnaissance. Encore une fois, notre gratitude la plus sincère à ces contributeurs exceptionnels ! 🙏</p>
 
 ## 💝 Gardiens de l'open source
 
-Le maintien d'un projet open source ne repose pas uniquement sur le code et la documentation. Dans les moments où les ressources de calcul d'EasyAIoT étaient les plus tendues et où le projet frôlait l'impasse, les personnes ci-dessous sont intervenues avec un soutien financier concret qui a permis au projet de garder le cap. Vous n'avez peut-être jamais soumis une seule ligne de code, mais chaque geste de confiance et de soutien a aidé EasyAIoT à franchir ses obstacles les plus difficiles et à continuer d'évoluer. Tant qu'il y aura des utilisateurs et des soutiens, l'écosystème open source mérite d'aller plus loin ; ce qu'EasyAIoT a accompli aujourd'hui n'aurait pas été possible sans ces compagnons de route venus en aide aux moments critiques. Nous leur adressons notre respect et notre gratitude les plus sincères ! Le classement suivant est établi sans ordre particulier :
+Le maintien d'un projet open source ne repose pas uniquement sur le code et la documentation. Dans les moments où les ressources de calcul d'yFeiEye étaient les plus tendues et où le projet frôlait l'impasse, les personnes ci-dessous sont intervenues avec un soutien financier concret qui a permis au projet de garder le cap. Vous n'avez peut-être jamais soumis une seule ligne de code, mais chaque geste de confiance et de soutien a aidé yFeiEye à franchir ses obstacles les plus difficiles et à continuer d'évoluer. Tant qu'il y aura des utilisateurs et des soutiens, l'écosystème open source mérite d'aller plus loin ; ce qu'yFeiEye a accompli aujourd'hui n'aurait pas été possible sans ces compagnons de route venus en aide aux moments critiques. Nous leur adressons notre respect et notre gratitude les plus sincères ! Le classement suivant est établi sans ordre particulier :
 
 <table>
   <tbody>
@@ -1140,7 +1172,7 @@ Le maintien d'un projet open source ne repose pas uniquement sur le code et la d
 
 ## 🏆 Meilleurs praticiens
 
-Ce sont les pionniers qui font passer EasyAIoT de « utilisable » à « facile à utiliser et bien utilisé » — les personnes suivantes ont déployé le projet EasyAIoT ou mis en œuvre des scénarios métier. Leurs explorations et réalisations constituent des références reproductibles pour la communauté. Nous leur adressons notre plus profond respect et nos félicitations les plus sincères ! L'ordre ci-dessous n'est pas hiérarchique :
+Ce sont les pionniers qui font passer yFeiEye de « utilisable » à « facile à utiliser et bien utilisé » — les personnes suivantes ont déployé le projet yFeiEye ou mis en œuvre des scénarios métier. Leurs explorations et réalisations constituent des références reproductibles pour la communauté. Nous leur adressons notre plus profond respect et nos félicitations les plus sincères ! L'ordre ci-dessous n'est pas hiérarchique :
 
 <table>
   <tbody>
@@ -1354,15 +1386,15 @@ Nous remercions les personnes suivantes pour leur soutien à ce projet, sous for
 ## 💡 Attentes
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-Vos suggestions pour améliorer EasyAIoT sont les bienvenues.
+Vos suggestions pour améliorer yFeiEye sont les bienvenues.
 </p>
 
 ## 📄 Licence
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-翱翔的雄库鲁/easyaiot est publié sous la licence open source <a href="https://gitee.com/soaring-xiongkulu/easyaiot/blob/main/LICENSE" style="color: #3498db; text-decoration: none; font-weight: 600;">MIT LICENSE</a>. Nous nous engageons à promouvoir la diffusion et le développement de la technologie IA, afin que davantage de personnes puissent utiliser librement et bénéficier de cette technologie.
+<strong>Licence d'utilisation</strong> : Les particuliers et les entreprises peuvent l'utiliser gratuitement à 100%, sans avoir besoin de conserver les informations sur l'auteur ou le droit d'auteur. Nous croyons que la valeur de la technologie réside dans son utilisation généralisée et son innovation continue, et non dans les contraintes du droit d'auteur. Nous espérons que vous pourrez librement utiliser, modifier et distribuer ce projet, rendant la technologie IA vraiment bénéfique pour tous.
 </p>
 
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>Licence d'utilisation</strong> : Particuliers et entreprises peuvent l'utiliser gratuitement à 100 %, sans obligation de conserver les informations sur l'auteur ou le copyright. Nous croyons que la valeur de la technologie réside dans son usage large et son innovation continue, et non dans les contraintes du droit d'auteur. Nous espérons que vous pourrez librement utiliser, modifier et distribuer ce projet, pour que la technologie IA profite réellement à chacun.
-</p>
+## 🌟 Tendance de croissance des Stars
+
+[![Stargazers over time](https://starchart.cc/xinlingzhifei/easyaiot.svg?variant=adaptive)](https://starchart.cc/xinlingzhifei/easyaiot)

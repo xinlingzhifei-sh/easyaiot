@@ -1,5 +1,5 @@
 import basicModal from './src/BasicModal.vue'
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 import './src/index.less'
 
 export const BasicModal = withInstall(basicModal)

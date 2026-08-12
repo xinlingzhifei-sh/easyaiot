@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 统一安装脚本 (麒麟系统版本)
+# yFeiEye 统一安装脚本 (麒麟系统版本)
 # ============================================
 # 使用方法：
 #   ./install_linux_kylin.sh              # 无参数：打开两层交互引导（部署 / 分析）
@@ -44,7 +44,7 @@ NC='\033[0m' # No Color
 # 脚本所在目录（必须在 cd 之前计算：相对路径调用时，cd 后 dirname 会解析错位，
 # 曾导致日志目录落到项目根 /logs 而非 .scripts/docker/logs）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (麒麟 ARM)}"
+EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (麒麟 ARM)}"
 
 # 项目根目录（从.scripts/docker回到项目根目录）
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -80,7 +80,7 @@ LOG_FILE="${LOG_DIR}/install_linux_kylin_$(date +%Y%m%d_%H%M%S).log"
 
 # 初始化日志文件
 echo "=========================================" >> "$LOG_FILE"
-echo "EasyAIoT 统一安装脚本日志 (麒麟系统)" >> "$LOG_FILE"
+echo "yFeiEye 统一安装脚本日志 (麒麟系统)" >> "$LOG_FILE"
 echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
 echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
@@ -645,11 +645,11 @@ ensure_docker_buildx_plugin() {
 # 删网重建——把常规启动变成破坏性操作。宿主机 IP 变更等罕见场景需重建时显式执行：
 #   FORCE_NETWORK_RECREATE=true ./install_linux.sh start
 create_network() {
-    print_info "检查统一网络 easyaiot-network..."
+    print_info "检查统一网络 yfeieye-network..."
 
-    if docker network inspect easyaiot-network > /dev/null 2>&1; then
+    if docker network inspect yfeieye-network > /dev/null 2>&1; then
         if [ "${FORCE_NETWORK_RECREATE:-false}" != "true" ]; then
-            print_info "网络 easyaiot-network 已存在"
+            print_info "网络 yfeieye-network 已存在"
             return 0
         fi
         print_warning "FORCE_NETWORK_RECREATE=true：断开容器并重建网络..."
@@ -667,18 +667,18 @@ create_network() {
         print_success "旧网络已删除"
     fi
 
-    print_info "正在创建网络 easyaiot-network..."
+    print_info "正在创建网络 yfeieye-network..."
     local create_output
-    if create_output=$(docker network create easyaiot-network 2>&1); then
-        print_success "网络 easyaiot-network 已创建"
+    if create_output=$(docker network create yfeieye-network 2>&1); then
+        print_success "网络 yfeieye-network 已创建"
     elif echo "$create_output" | grep -qi "already exists"; then
-        print_info "网络 easyaiot-network 已存在（并发创建），继续使用"
+        print_info "网络 yfeieye-network 已存在（并发创建），继续使用"
     elif echo "$create_output" | grep -qi "permission denied"; then
         print_error "没有权限创建 Docker 网络"
         print_info "请确保当前用户在 docker 组中，或使用 sudo 运行脚本"
         return 1
     else
-        print_error "无法创建网络 easyaiot-network: $create_output"
+        print_error "无法创建网络 yfeieye-network: $create_output"
         print_info "诊断建议："
         print_info "  1. 检查 Docker 服务: sudo systemctl status docker"
         print_info "  2. 检查权限: docker network ls"
@@ -1263,7 +1263,7 @@ clean_all() {
         
         # 清理网络
         print_info "清理网络..."
-        docker network rm easyaiot-network 2>/dev/null || true
+        docker network rm yfeieye-network 2>/dev/null || true
         
         print_success "清理完成"
     else
@@ -1467,7 +1467,7 @@ check_environment() {
 
 # 显示帮助信息
 show_help() {
-    echo "EasyAIoT 统一安装脚本 (麒麟系统版本)"
+    echo "yFeiEye 统一安装脚本 (麒麟系统版本)"
     echo ""
     echo "使用方法:"
     echo "  ./install_linux_kylin.sh                 - 打开交互式引导（推荐新手）"

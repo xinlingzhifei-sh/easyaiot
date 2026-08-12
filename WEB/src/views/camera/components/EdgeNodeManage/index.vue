@@ -2,7 +2,7 @@
   <div id="edge-node-manage">
     <div class="edge-feature-banner">
       <div class="edge-feature-banner__copy">
-        <div class="edge-feature-banner__eyebrow">EasyAIoT 无限联邦边缘集群模式</div>
+        <div class="edge-feature-banner__eyebrow">yFeiEye 无限联邦边缘集群模式</div>
         <div class="edge-feature-banner__title">内存约 512MB · Ceph 边缘 0 硬盘 · 一行命令智能化 · 汇聚上云</div>
         <div class="edge-feature-banner__desc">
           把普通开发板接入联邦边缘集群：现场跑推理，业务对象写共享 Ceph（边缘 0 硬盘占用），告警与事件自动汇聚上云，节点可无限横向扩容。

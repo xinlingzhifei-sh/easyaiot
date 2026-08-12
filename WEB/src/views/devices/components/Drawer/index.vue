@@ -11,7 +11,7 @@
           <SubDevice
             v-if="activeKey === 'SubDevice'"
             :center-device-identification="description.deviceIdentification"
-            :center-device-id="route.params.id || description.id"
+            :center-device-id="String(route.params.id || description.id || '')"
             :center-device-name="description.deviceName"
             :center-connect-status="description.connectStatus"
           />
@@ -78,7 +78,7 @@
         <TabPane key="RelatedCameras" tab="关联摄像头">
           <RelatedCameras
             v-if="activeKey === 'RelatedCameras'"
-            :iot-device-id="route.params.id"
+            :iot-device-id="String(route.params.id ?? '')"
             :device-name="description.deviceName"
           />
         </TabPane>

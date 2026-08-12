@@ -1,4 +1,4 @@
-# EasyAIoT COMPILE — Ubuntu (glibc / bookworm) 单文件 PANEL
+# yFeiEye COMPILE — Ubuntu (glibc / bookworm) 单文件 PANEL
 # 产出: /out/easyaiot-panel
 #
 # 由 build.sh 准备精简上下文：已包含宿主机构建好的 PANEL/ui/dist。

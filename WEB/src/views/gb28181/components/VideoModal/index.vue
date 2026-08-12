@@ -178,19 +178,19 @@ const rulesRef = reactive({
 const useForm = Form.useForm;
 const {validate, resetFields, validateInfos} = useForm(modelRef, rulesRef);
 
-function handleAppCLickChange(value) {
+function handleAppCLickChange() {
   //console.log('handleCLickChange', value)
 }
 
-function handleOsCLickChange(value) {
+function handleOsCLickChange() {
   //console.log('handleCLickChange', value)
 }
 
-function handleProductCLickChange(value) {
+function handleProductCLickChange() {
   //console.log('handleCLickChange', value)
 }
 
-function handleMethodCLickChange(value) {
+function handleMethodCLickChange() {
   //console.log('handleCLickChange', value)
 }
 

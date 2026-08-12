@@ -1,8 +1,7 @@
 """
 推流转发任务管理服务
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import os
@@ -250,10 +249,10 @@ def update_stream_forward_task(task_id: int, auto_rebalance: bool = True, **kwar
         if auto_rebalance and was_enabled and task.is_enabled and (device_ids_changed or schedule_changed):
             sync_action = 'full_restart' if schedule_changed else 'rebalance'
             _trigger_deploy_sync(task_id, full_restart=schedule_changed)
-        
+
         logger.info(f"更新推流转发任务成功: task_id={task_id}")
         return task, sync_action
-        
+
     except Exception as e:
         db.session.rollback()
         logger.error(f"更新推流转发任务失败: {str(e)}", exc_info=True)
@@ -577,4 +576,3 @@ def ensure_device_stream_forward_task(device_id: str) -> Optional[StreamForwardT
     except Exception as e:
         logger.error(f"为设备 {device_id} 确保推流转发任务失败: {str(e)}", exc_info=True)
         return None
-

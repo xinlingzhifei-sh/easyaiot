@@ -27,7 +27,7 @@ export interface MenuGroup {
 const menuGroupsData: MenuGroup[] = [
   {
     key: 'easyaiot',
-    name: 'EasyAIoT',
+    name: 'yFeiEye',
     menus: [
       {
         key: 'device',

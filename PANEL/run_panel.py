@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EasyAIoT PANEL Agent
+yFeiEye PANEL Agent
 - 界面化封装统一安装脚本（Linux / macOS / Windows）
 - Docker 容器管理 / 拓扑 / 资源概览
 默认监听 :9200
@@ -53,7 +53,7 @@ def main() -> None:
 
     from panel_server import PANEL_LISTEN_HOST, PANEL_LISTEN_PORT, PROJECT_ROOT, app
 
-    logger.info('EasyAIoT PANEL 启动于 http://%s:%s', PANEL_LISTEN_HOST, PANEL_LISTEN_PORT)
+    logger.info('yFeiEye PANEL 启动于 http://%s:%s', PANEL_LISTEN_HOST, PANEL_LISTEN_PORT)
     logger.info('环境文件: %s', env_file if os.path.isfile(env_file) else '(未找到，使用默认)')
     logger.info('仓库根: %s', PROJECT_ROOT)
     app.run(host=PANEL_LISTEN_HOST, port=PANEL_LISTEN_PORT, threaded=True)

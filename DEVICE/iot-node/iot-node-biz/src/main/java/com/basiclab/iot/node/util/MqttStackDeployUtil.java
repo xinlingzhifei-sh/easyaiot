@@ -14,9 +14,7 @@ import java.util.Map;
 public final class MqttStackDeployUtil {
 
     private static final String REMOTE_ROOT = "/opt/easyaiot/mqtt-cluster";
-    public static final String DEFAULT_COOKIE = "emqxsecretcookie";
     public static final String DEFAULT_DASHBOARD_USER = "admin";
-    public static final String DEFAULT_DASHBOARD_PASSWORD = "basiclab@iot6874125784";
 
     private MqttStackDeployUtil() {
     }
@@ -84,11 +82,17 @@ public final class MqttStackDeployUtil {
         int mqttWs = tagInt(tags, "mqtt_ws_port", 8083);
         int mqttWss = tagInt(tags, "mqtt_wss_port", 8084);
         int dashboard = tagInt(tags, "emqx_dashboard_port", 18083);
-        String cookie = tagString(tags, "emqx_cookie", DEFAULT_COOKIE);
+        String cookie = tagString(tags, "emqx_cookie", "");
+        if (StrUtil.isBlank(cookie)) {
+            cookie = requiredSecretEnvironmentVariable("EMQX_NODE_COOKIE", 24);
+        }
         String seeds = tagString(tags, "emqx_cluster_seeds", "");
         String authPath = tagString(tags, "mqtt_auth_path", "/mqtt/auth");
         int resolvedAuthPort = tagInt(tags, "mqtt_auth_port", authPort);
         String resolvedAuthHost = tagString(tags, "mqtt_auth_host", authHost);
+        String dashboardUser = StrUtil.blankToDefault(
+                System.getenv("EMQX_DASHBOARD_USER"), DEFAULT_DASHBOARD_USER);
+        String dashboardPassword = requiredSecretEnvironmentVariable("EMQX_DASHBOARD_PASSWORD", 16);
 
         Map<String, String> env = new LinkedHashMap<>();
         env.put("MQTT_CLUSTER_ROOT", REMOTE_ROOT);
@@ -104,9 +108,19 @@ public final class MqttStackDeployUtil {
         env.put("EMQX_DASHBOARD_PORT", String.valueOf(dashboard));
         env.put("EMQX_NODE_COOKIE", cookie);
         env.put("EMQX_CLUSTER_SEEDS", seeds);
-        env.put("EMQX_DASHBOARD_USER", DEFAULT_DASHBOARD_USER);
-        env.put("EMQX_DASHBOARD_PASSWORD", DEFAULT_DASHBOARD_PASSWORD);
+        env.put("EMQX_DASHBOARD_USER", dashboardUser);
+        env.put("EMQX_DASHBOARD_PASSWORD", dashboardPassword);
         return env;
+    }
+
+    private static String requiredSecretEnvironmentVariable(String name, int minLength) {
+        String value = System.getenv(name);
+        if (StrUtil.isBlank(value) || value.length() < minLength
+                || !value.matches("[A-Za-z0-9._~-]+")) {
+            throw new IllegalStateException(
+                    name + " 未配置为至少 " + minLength + " 位 URL-safe 随机值，拒绝部署");
+        }
+        return value;
     }
 
     private static String buildDeployEnvScript(ComputeNodeDO node, String authHost, int authPort) {

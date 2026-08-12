@@ -2,7 +2,7 @@
   <div class="ffmpeg-batch-panel">
     <Alert type="warning" show-icon class="mb-3" :message="WORKLOAD_BUNDLE_COPY.ffmpegHint" />
     <div class="path-hints mb-3">
-      <span class="label">安装路径：</span><code>{{ WORKLOAD_BUNDLE_COPY.ffmpegPath }}</code>
+      <span class="label">安装位置：</span><code>yFeiEye 默认 FFmpeg 工具目录</code>
     </div>
     <Space wrap class="mb-3">
       <Button :loading="loading === 'check'" :disabled="!canOperate" @click="run('check')">
@@ -86,7 +86,7 @@ async function run(action: 'check' | 'deploy' | 'remove') {
 function confirmRemove() {
   Modal.confirm({
     title: '确认删除 FFmpeg？',
-    content: `将对 ${props.nodeIds.length} 个节点卸载 /opt/easyaiot/tools/ffmpeg`,
+    content: `将对 ${props.nodeIds.length} 个节点卸载 yFeiEye 默认 FFmpeg 工具目录`,
     okType: 'danger',
     onOk: () => run('remove'),
   });

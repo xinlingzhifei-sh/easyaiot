@@ -39,6 +39,9 @@ export interface DeviceDetectionRegion {
   is_enabled: boolean;
   sort_order: number;
   model_ids?: number[]; // 关联的算法模型ID列表
+  minStaySeconds?: number;
+  inertiaFrames?: number;
+  loiteringSeconds?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -66,6 +69,9 @@ export const createDeviceRegion = (device_id: string, data: {
   is_enabled?: boolean;
   sort_order?: number;
   model_ids?: number[];
+  minStaySeconds?: number;
+  inertiaFrames?: number;
+  loiteringSeconds?: number;
 }) => {
   return commonApi<{ code: number; msg: string; data: DeviceDetectionRegion }>(
     'post',
@@ -119,6 +125,23 @@ export const captureDeviceSnapshot = (device_id: string) => {
   );
 };
 
+/** Load a protected snapshot with the authenticated HTTP client. */
+export const loadProtectedSnapshotObjectUrl = async (url: string): Promise<string> => {
+  const response = await defHttp.get<Blob>(
+    {
+      url,
+      responseType: 'blob',
+      headers: {
+        'X-Authorization': `Bearer ${localStorage.getItem('jwt_token') || ''}`,
+      },
+    },
+    { isTransformResponse: false },
+  ) as any;
+  const value = response?.data ?? response;
+  const blob = value instanceof Blob ? value : new Blob([value], { type: 'image/jpeg' });
+  return window.URL.createObjectURL(blob);
+};
+
 /**
  * 抓拍并更新设备封面图
  */
@@ -141,4 +164,3 @@ export const updateDeviceCoverImage = (device_id: string) => {
     false,
   );
 };
-

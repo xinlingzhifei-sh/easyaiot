@@ -121,7 +121,7 @@ function fillForm(record: PlateLibrary) {
   });
 }
 
-const [register, { setDrawerProps, closeDrawer }] = useDrawerInner(async (data) => {
+const [register, { closeDrawer }] = useDrawerInner(async (data) => {
   resetFields();
   modalData.value = data || {};
   if (data?.record) {

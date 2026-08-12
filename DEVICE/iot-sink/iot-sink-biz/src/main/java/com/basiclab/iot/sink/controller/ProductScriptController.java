@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -43,6 +44,7 @@ import java.util.Map;
 @RequestMapping("/product-script")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("@ss.hasRole('super_admin')")
 public class ProductScriptController {
 
     private final ProductScriptService productScriptService;

@@ -16,10 +16,10 @@
           <span v-if="!record.business_tags?.length">-</span>
         </template>
         <template v-else-if="column.dataIndex === 'is_enabled'">
-          <a-switch :checked="record.is_enabled" @change="handleToggleEnabled(record)" />
+          <a-switch :checked="record.is_enabled" @change="handleToggleEnabled(record as ScenarioPoseLibrary)" />
         </template>
         <template v-else-if="column.dataIndex === 'action'">
-          <TableAction :actions="getTableActions(record)" />
+          <TableAction :actions="getTableActions(record as ScenarioPoseLibrary)" />
         </template>
       </template>
     </BasicTable>
@@ -83,7 +83,7 @@ import { useRouter } from 'vue-router';
 import { PlusOutlined, SwapOutlined } from '@ant-design/icons-vue';
 import { List, Popconfirm, Spin } from 'ant-design-vue';
 import { BasicForm, useForm } from '@/components/Form';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { useDrawer } from '@/components/Drawer';
 import { useMessage } from '@/hooks/web/useMessage';
 import { Icon } from '@/components/Icon';
@@ -203,7 +203,7 @@ async function handleToggleEnabled(record: ScenarioPoseLibrary) {
   }
 }
 
-function getTableActions(record: ScenarioPoseLibrary) {
+function getTableActions(record: ScenarioPoseLibrary): ActionItem[] {
   return [
     { label: '管理', onClick: () => handleManage(record) },
     { label: '编辑', onClick: () => handleEdit(record) },

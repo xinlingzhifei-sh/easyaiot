@@ -1,6 +1,5 @@
 .env
 .env.*
-!.env.docker
 
 # install 脚本自动生成的架构配置（与 AI/VIDEO 一致）
 .env.arch

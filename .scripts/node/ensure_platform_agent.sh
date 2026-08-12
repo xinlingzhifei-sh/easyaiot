@@ -29,6 +29,17 @@ AGENT_PORT="${EASYAIOT_AGENT_PORT:-9100}"
 PYTHON="${EASYAIOT_AGENT_LOCAL_PYTHON:-python3}"
 AGENT_BOOTSTRAP_WAIT_SECONDS="${AGENT_BOOTSTRAP_WAIT_SECONDS:-180}"
 AGENT_BOOTSTRAP_RETRY_INTERVAL="${AGENT_BOOTSTRAP_RETRY_INTERVAL:-3}"
+PLATFORM_AGENT_BOOTSTRAP_TOKEN="${EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN:-${PLATFORM_AGENT_BOOTSTRAP_TOKEN:-}}"
+AGENT_RUNTIME_FILES=(
+  run_agent.py
+  agent_server.py
+  env_security.py
+  media_manager.py
+  mqtt_manager.py
+  workload_manager.py
+  agent_commands.py
+  stream_forward_executor.py
+)
 
 is_port_listening() {
   local port="$1"
@@ -110,7 +121,12 @@ read_env_credentials() {
 }
 
 fetch_platform_node_credentials() {
+  if [[ -z "$PLATFORM_AGENT_BOOTSTRAP_TOKEN" ]]; then
+    echo "[platform-agent] 缺少 EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN，拒绝调用 bootstrap" >&2
+    return 1
+  fi
   curl -fsS \
+    -H "X-Bootstrap-Token: ${PLATFORM_AGENT_BOOTSTRAP_TOKEN}" \
     "${GATEWAY_URL}/admin-api/node/platform-agent-bootstrap" 2>/dev/null \
     | PYTHONPATH= python3 -c "
 import json, sys
@@ -133,6 +149,7 @@ write_agent_env() {
   local cp_url="${EASYAIOT_AGENT_CONTROL_PLANE_URL:-${GATEWAY_URL%/}/admin-api/node/agent}"
   cat >"${work_dir}/agent.env" <<EOF
 PLATFORM_AGENT=1
+PLATFORM_AGENT_BOOTSTRAP_TOKEN=${PLATFORM_AGENT_BOOTSTRAP_TOKEN}
 NODE_ID=${node_id}
 AGENT_TOKEN=${agent_token}
 CONTROL_PLANE_URL=${cp_url}
@@ -144,10 +161,11 @@ AGENT_LISTEN_PORT=${port}
 AI_ROOT=${EASYAIOT_AI_ROOT:-$ROOT/AI}
 VIDEO_ROOT=${EASYAIOT_VIDEO_ROOT:-$ROOT/VIDEO}
 MEDIA_CLUSTER_ROOT=/opt/easyaiot/media-cluster
-MINIO_ENDPOINT=http://localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=your-secret
+MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://localhost:9000}
+MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-}
+MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-}
 EOF
+  chmod 600 "${work_dir}/agent.env"
 }
 
 fetch_platform_node_credentials_with_wait() {
@@ -242,7 +260,7 @@ sync_agent_runtime_files() {
     return 0
   fi
   local f
-  for f in run_agent.py agent_server.py media_manager.py mqtt_manager.py workload_manager.py; do
+  for f in "${AGENT_RUNTIME_FILES[@]}"; do
     if [[ ! -f "${SOURCE_DIR}/${f}" ]]; then
       continue
     fi
@@ -257,8 +275,35 @@ sync_agent_runtime_files() {
 }
 
 agent_code_stale() {
-  [[ -f "${SOURCE_DIR}/run_agent.py" && -f "${INSTALL_DIR}/run_agent.py" ]] || return 1
-  ! cmp -s "${SOURCE_DIR}/run_agent.py" "${INSTALL_DIR}/run_agent.py"
+  local f
+  for f in "${AGENT_RUNTIME_FILES[@]}"; do
+    [[ -f "${SOURCE_DIR}/${f}" ]] || continue
+    if [[ ! -f "${INSTALL_DIR}/${f}" ]] \
+      || ! cmp -s "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+install_agent_runtime_if_needed() {
+  local work_dir="$1"
+  if [[ "$work_dir" == "$INSTALL_DIR" || -f "${INSTALL_DIR}/run_agent.py" ]]; then
+    echo "$INSTALL_DIR"
+    return 0
+  fi
+  if [[ ! -f "${SOURCE_DIR}/install.sh" ]]; then
+    echo "$work_dir"
+    return 0
+  fi
+
+  echo "[platform-agent] 安装目录不存在，使用 NODE/install.sh 初始化 Agent 运行时" >&2
+  EASYAIOT_AGENT_ALLOW_ONLINE_PIP="${EASYAIOT_AGENT_ALLOW_ONLINE_PIP:-1}" \
+    INSTALL_DIR="$INSTALL_DIR" \
+    PYTHON="$PYTHON" \
+    sudo -E bash "${SOURCE_DIR}/install.sh" install >&2
+  work_dir="$INSTALL_DIR"
+  echo "$work_dir"
 }
 
 restart_agent_service() {
@@ -393,6 +438,8 @@ main() {
     write_agent_env "$work_dir" "$node_id" "$agent_token" "${port:-$AGENT_PORT}"
     echo "[platform-agent] 已写入 ${work_dir}/agent.env (nodeId=${node_id})"
   fi
+
+  work_dir="$(install_agent_runtime_if_needed "$work_dir")"
 
   if [[ "$needs_env_write" -eq 1 ]] || [[ "$code_stale" -eq 1 ]] || [[ "$agent_running" -eq 0 ]]; then
     restart_agent_service "$work_dir"

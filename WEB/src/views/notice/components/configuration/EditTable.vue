@@ -21,14 +21,14 @@
               'appKey',
               'domain',
               'path',
-            ].includes(column.dataIndex)
+            ].includes(getDataIndex(column.dataIndex))
           "
         >
-          <Input v-model:value="record[column.dataIndex]" />
+          <Input v-model:value="record[getDataIndex(column.dataIndex)]" />
         </template>
         <template v-else-if="column.dataIndex === 'time'">
           <DatePicker
-            v-model:value="record[column.dataIndex]"
+            v-model:value="record[getDataIndex(column.dataIndex)]"
             allowClear
             showTime
             valueFormat="x"
@@ -88,6 +88,13 @@
     );
     return { x: width };
   });
+
+  const getDataIndex = (dataIndex: any): string => {
+    if (Array.isArray(dataIndex)) {
+      return String(dataIndex[0] ?? '');
+    }
+    return String(dataIndex ?? '');
+  };
 
   const handleDelete = (id: number) => {
     const idx = dataSource.value.findIndex((f) => f.id === id);

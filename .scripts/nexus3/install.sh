@@ -33,7 +33,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
-NETWORK_NAME="easyaiot-network"
+NETWORK_NAME="yfeieye-network"
 CONTAINER_NAME="nexus-server"
 NEXUS_PORT="18081"
 
@@ -225,7 +225,7 @@ install_nexus() {
     if [ -f "$password_file" ]; then
         local admin_password=$(cat "$password_file" | tr -d '\n\r ')
         if [ -n "$admin_password" ]; then
-            print_success "默认管理员密码: ${GREEN}$admin_password${NC}"
+            print_success "默认管理员密码已生成（凭据值不输出）"
             echo ""
             print_warning "重要提示：首次登录后请立即修改默认密码！"
         else
@@ -338,7 +338,7 @@ show_status() {
             if [ -f "$password_file" ]; then
                 local admin_password=$(cat "$password_file" | tr -d '\n\r ' 2>/dev/null)
                 if [ -n "$admin_password" ]; then
-                    print_success "默认管理员密码: ${GREEN}$admin_password${NC}"
+                    print_success "默认管理员密码已生成（凭据值不输出）"
                 else
                     print_warning "密码文件存在但为空，请执行以下命令获取："
                     echo "  docker exec $CONTAINER_NAME cat /nexus-data/admin.password"

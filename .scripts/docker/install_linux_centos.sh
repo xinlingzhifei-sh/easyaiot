@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 统一安装脚本 (CentOS / RHEL 系)
+# yFeiEye 统一安装脚本 (CentOS / RHEL 系)
 # ============================================
 # 针对 CentOS 7/8/Stream、Rocky、Alma、RHEL 的一键部署入口：
 #   1) 检测发行版 / SELinux / firewalld
@@ -74,7 +74,7 @@ print_section() {
 
 show_centos_help() {
     cat <<'EOF'
-EasyAIoT 统一安装脚本 (CentOS / RHEL 系)
+yFeiEye 统一安装脚本 (CentOS / RHEL 系)
 
 用法:
   sudo ./install_linux_centos.sh [CentOS选项...] [命令] [参数...]
@@ -508,7 +508,7 @@ delegate_to_install_linux() {
     fi
     chmod +x "$INSTALL_LINUX" 2>/dev/null || true
 
-    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (CentOS / RHEL)}"
+    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (CentOS / RHEL)}"
     export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_centos.sh"
     export DOCKER_MIRROR
 

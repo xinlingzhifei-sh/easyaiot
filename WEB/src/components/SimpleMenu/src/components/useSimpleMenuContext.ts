@@ -2,7 +2,7 @@ import type { ComponentInternalInstance, InjectionKey, Ref } from 'vue'
 import type { Emitter } from '@/utils/mitt'
 import { createContext, useContext } from '@/hooks/core/useContext'
 
-export interface MenuEmitterEvents {
+export type MenuEmitterEvents = {
   'on-update-opened':
   | (string | number)[]
   | {

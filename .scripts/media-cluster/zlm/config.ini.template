@@ -23,6 +23,7 @@ port=${ZLM_RTMP_PORT}
 handshakeSecond=15
 keepAliveSecond=15
 directProxy=1
+enhanced=0
 sslport=0
 
 [rtsp]
@@ -38,9 +39,9 @@ udpTTL=64
 
 [hook]
 enable=1
-on_publish=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_publish
-on_stream_changed=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/srs/on_unpublish
-on_record_mp4=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/sink/media/hook/zlm/on_record_mp4
+on_publish=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/zlm/on_publish?hook_token=${YFEIEYE_SRS_HOOK_TOKEN}
+on_stream_changed=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/zlm/on_stream_changed?hook_token=${YFEIEYE_SRS_HOOK_TOKEN}
+on_record_mp4=http://${MEDIA_HOOK_HOST}:${MEDIA_HOOK_PORT}${MEDIA_HOOK_PATH_PREFIX}/video/media/hook/zlm/on_record_mp4?hook_token=${YFEIEYE_SRS_HOOK_TOKEN}
 timeoutSec=10
 alive_interval=30.0
 

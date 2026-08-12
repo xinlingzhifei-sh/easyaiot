@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateSmsTemplate(values)
+      await updateSmsTemplate(values as any)
     else
-      await createSmsTemplate(values)
+      await createSmsTemplate(values as any)
 
     closeModal()
     emit('success')

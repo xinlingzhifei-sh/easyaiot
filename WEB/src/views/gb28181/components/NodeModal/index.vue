@@ -117,13 +117,11 @@ import {reactive, ref, unref} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import { Col, Form, FormItem, Input, Row, Spin } from 'ant-design-vue';
 import {useMessage} from '@/hooks/web/useMessage';
-import {useRoute} from "vue-router";
 import {checkMediaServer, saveOrUpdateMediaServer} from "@/api/device/gb28181";
 import { Button } from '@/components/Button'
 defineOptions({name: 'PullProxyModal'})
 
 const {createMessage} = useMessage();
-const route = useRoute()
 
 const state = reactive({
   isTestAccess: false,
@@ -170,8 +168,6 @@ const modelRef = reactive({
   transcodeSuffix: null
 });
 
-const checkedKeys = ref<Array<string | number>>([]);
-
 const operateType = ref('add');
 
 const [register, { closeModal, setModalProps }] = useModalInner((data) => {
@@ -194,10 +190,6 @@ const editMedia = (record) => {
 };
 
 const emits = defineEmits(['success']);
-
-function handleCLickChange(value) {
-  //console.log('handleCLickChange', value)
-}
 
 const rulesRef = reactive({
   ip: [{required: true, message: '请输入IP', trigger: ['change']}],

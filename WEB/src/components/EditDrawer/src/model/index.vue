@@ -105,7 +105,10 @@ function getMethod(m: any) {
 
 //详情刷新事件
 const handleRefresh = () => {
-  reload();
+  if (state.isTableMode)
+    reload();
+  else
+    cardListReload();
   createMessage.success('刷新成功');
 };
 

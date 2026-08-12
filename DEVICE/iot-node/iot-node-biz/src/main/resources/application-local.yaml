@@ -31,13 +31,13 @@ spring:
         master:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/iot-node20?autoReconnect=true&useUnicode=true&characterEncoding=utf8&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
   redis:
     host: localhost
     port: 6379
     database: 0
-    password: basiclab@iot975248395
+    password: ${REDIS_PASSWORD}
 
 management:
   endpoints:

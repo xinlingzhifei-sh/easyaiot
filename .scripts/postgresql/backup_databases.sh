@@ -9,7 +9,11 @@
 # 配置信息
 POSTGRES_CONTAINER="postgres-server"
 POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="iot45722414822"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
+if [ -z "$POSTGRES_PASSWORD" ] || [ "$POSTGRES_PASSWORD" = "CHANGE_ME" ]; then
+    echo "ERROR: POSTGRES_PASSWORD is required and must not be CHANGE_ME" >&2
+    exit 1
+fi
 POSTGRES_HOST="localhost"
 POSTGRES_PORT="5432"
 
@@ -202,4 +206,3 @@ main() {
 
 # 执行主函数
 main
-

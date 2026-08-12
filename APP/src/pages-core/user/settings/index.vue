@@ -13,7 +13,7 @@
     <!-- Logo 区域 -->
     <view class="flex flex-col items-center py-60rpx">
       <wd-img class="mb-24rpx" src="/static/logo.png" width="150rpx" height="150rpx" mode="aspectFit" round />
-      <text class="text-40rpx text-gray-800 font-medium">EasyAIoT移动端</text>
+      <text class="text-40rpx text-gray-800 font-medium">yFeiEye移动端</text>
     </view>
 
     <!-- 设置列表 -->
@@ -50,10 +50,10 @@
         <text class="text-[#1890ff]" @click="handleGoPrivacy">《隐私协议》</text>
       </view>
       <text class="mb-10rpx text-24rpx text-gray-400">
-        Copyright © 2026 EasyAIoT All Rights Reserved.
+        Copyright © 2026 yFeiEye All Rights Reserved.
       </text>
       <text class="text-24rpx text-gray-400">
-        EasyAIoT
+        yFeiEye
       </text>
     </view>
   </view>

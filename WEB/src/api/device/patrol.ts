@@ -110,9 +110,10 @@ export function createPatrolProgressEventSource(sessionId: number): EventSource 
 
 export function patchPatrolSession(sessionId: number, data: Partial<CreatePatrolSessionParams>) {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
-  return defHttp.patch(
+  return defHttp.request(
     {
       url: `${PATROL_PREFIX}/session/${sessionId}`,
+      method: 'PATCH',
       data,
       headers: { ignoreCancelToken: true } as any,
     },

@@ -12,9 +12,8 @@ import java.time.LocalDateTime;
 /**
  * Demo03StudentRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 学生 Response VO")
 @Data
@@ -25,7 +24,7 @@ public class Demo03StudentRespVO {
     @ExcelProperty("编号")
     private Long id;
 
-    @Schema(description = "名字", example = "BasicLab")
+    @Schema(description = "名字", example = "yFeiEye")
     @ExcelProperty("名字")
     private String name;
 

@@ -38,6 +38,7 @@ load_video_env(override=True)
 import app.utils.nvidia_lib_path  # noqa: F401
 
 from models import Device, PatrolSession, AlgorithmTask
+from app.utils.algo_mqtt_bus import publish_alert
 from app.utils.gb28181_source import resolve_gb28181_source
 from app.utils.decode.stream_adapter import is_async_stream, open_device_stream, stream_mode_label
 from app.utils.onnx_inference import ONNXInference
@@ -482,14 +483,8 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         'image_path': image_path,
     }
     try:
-        try:
-            from app.utils.algo_mqtt_bus import publish_alert
-        except ImportError:
-            from algo_mqtt_bus import publish_alert  # type: ignore
-
-        ok = publish_alert(alert_data, snapshot=False)
-        if ok:
-            logger.info('设备 %s 巡检告警(MQTT): %s', device_id, counts)
+        if publish_alert(alert_data):
+            logger.info('设备 %s 巡检告警: %s', device_id, counts)
         else:
             logger.warning('发送巡检告警到 MQTT 失败 device=%s', device_id)
     except Exception as exc:

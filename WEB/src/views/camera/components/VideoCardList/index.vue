@@ -24,6 +24,18 @@
               <div class="camera-info">
                 <div class="status">{{ item.online ? '在线' : '离线' }}</div>
                 <div class="title o2">{{ formatCameraDeviceLabel(item) }}</div>
+                <div class="access-state-row" :title="accessStateReason(item)">
+                  <Tag :color="accessStateColor(item.access_state?.state)">
+                    {{ renderCardAccessState(item) }}
+                  </Tag>
+                  <Tag :color="item.access_state?.play_ready ? 'green' : 'default'">
+                    {{ item.access_state?.play_ready ? '播放就绪' : '未就绪' }}
+                  </Tag>
+                  <Tag v-if="item.access_state?.ai_ready" color="cyan">AI就绪</Tag>
+                  <span v-if="accessStateReason(item)" class="access-state-reason">
+                    {{ accessStateReason(item) }}
+                  </span>
+                </div>
                 <div class="props">
                   <div class="flex" style="justify-content: space-between;">
                     <div class="prop">
@@ -134,8 +146,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {onMounted, reactive, ref, watch} from 'vue';
-import {List, Popconfirm, Spin, Tag} from 'ant-design-vue';
+import {onMounted, reactive, ref} from 'vue';
+import {List, Popconfirm, Spin} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
@@ -175,6 +187,39 @@ const data = ref<DeviceInfo[]>([]);
 const state = reactive({
   loading: true,
 });
+
+const accessStateLabel: Record<string, string> = {
+  pending_config: '待配置',
+  registering: '注册中',
+  registered: '已注册',
+  stream_online: '流在线',
+  play_ready: '可播放',
+  ai_ready: 'AI就绪',
+  error: '异常',
+};
+
+const accessStateColorMap: Record<string, string> = {
+  pending_config: 'default',
+  registering: 'processing',
+  registered: 'blue',
+  stream_online: 'cyan',
+  play_ready: 'green',
+  ai_ready: 'success',
+  error: 'red',
+};
+
+function renderCardAccessState(device: DeviceInfo) {
+  const state = device.access_state?.state || 'pending_config';
+  return accessStateLabel[state] || state;
+}
+
+function accessStateColor(state?: string | null) {
+  return accessStateColorMap[state || 'pending_config'] || 'default';
+}
+
+function accessStateReason(device: DeviceInfo) {
+  return device.access_state?.reason_message || device.access_state?.reason_code || '';
+}
 
 //表单
 const [registerForm, {validate}] = useForm({
@@ -301,6 +346,10 @@ onMounted(() => {
   emit('getMethod', fetch);
 });
 
+void getStreamStatusText;
+void getStreamStatusColor;
+void checkAllDevicesStreamStatus;
+
 // 监听数据变化，自动检查流状态
 // 已禁用自动检查流状态
 // watch(() => data.value, (newData) => {
@@ -309,7 +358,7 @@ onMounted(() => {
 //   }
 // }, { immediate: true });
 
-async function fetch(p = {}) {
+async function fetch(p: Record<string, any> = {}) {
   const {api, params} = props;
   if (api && isFunction(api)) {
     try {
@@ -533,6 +582,27 @@ defineExpose({
         line-height: 20px;
         height: 40px;
         padding-right: 90px;
+      }
+
+      .access-state-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        min-height: 24px;
+        margin-top: 6px;
+        padding-right: 8px;
+
+        .access-state-reason {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          color: rgba(0, 0, 0, 0.45);
+          font-size: 12px;
+          line-height: 20px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .props {

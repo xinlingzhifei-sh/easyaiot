@@ -4,9 +4,12 @@
 import json
 import logging
 import os  # noqa: F401 — used by build_event_from_srs_hook
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+
+from app.services.record_cache_flush_event_service import record_cache_flush_failure
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +19,19 @@ TOPIC_SNAP_COMPLETED = os.getenv('MEDIA_KAFKA_SNAP_TOPIC', 'media.snap.completed
 TOPIC_SNAP_DLQ = os.getenv('MEDIA_KAFKA_SNAP_DLQ_TOPIC', 'media.snap.dlq')
 
 _producer = None
+_TENANT_ID_PATTERN = re.compile(r'^[1-9][0-9]*$')
+
+
+def _event_tenant_id(data: Dict[str, Any], env_name: str) -> Optional[str]:
+    value = str(
+        (data or {}).get('tenant_id')
+        or (data or {}).get('tenantId')
+        or os.environ.get(env_name)
+        or ''
+    ).strip()
+    if value and not _TENANT_ID_PATTERN.fullmatch(value):
+        raise ValueError('media event tenant id must be a positive integer')
+    return value or None
 
 
 def is_kafka_upload_mode() -> bool:
@@ -37,9 +53,9 @@ def is_snap_kafka_mode() -> bool:
 
 
 def _bootstrap_servers() -> str:
-    servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+    servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
     if 'Kafka' in servers or 'kafka-server' in servers:
-        return 'localhost:9092'
+        return 'localhost:9094'
     return servers
 
 
@@ -71,7 +87,7 @@ def build_event_from_srs_hook(data: Dict[str, Any], device_id: Optional[str] = N
     stem, _ = os.path.splitext(filename)
     if stem.isdigit():
         segment_start_ms = int(stem)
-    return {
+    event = {
         'event_id': str(uuid.uuid4()),
         'device_id': device_id or stream,
         'app': data.get('app', 'live'),
@@ -83,12 +99,16 @@ def build_event_from_srs_hook(data: Dict[str, Any], device_id: Optional[str] = N
         'segment_start_ms': segment_start_ms,
         'created_at': datetime.now(timezone.utc).isoformat(),
     }
+    tenant_id = _event_tenant_id(data, 'YFEIEYE_DVR_TENANT_ID')
+    if tenant_id:
+        event['tenant_id'] = tenant_id
+    return event
 
 
 def build_event_from_zlm_hook(data: Dict[str, Any], device_id: Optional[str] = None) -> Dict[str, Any]:
     stream = data.get('stream', '') or ''
     file_path = data.get('file_path', '') or data.get('file_name', '') or ''
-    return {
+    event = {
         'event_id': str(uuid.uuid4()),
         'device_id': device_id or stream,
         'app': data.get('app', 'record'),
@@ -100,6 +120,10 @@ def build_event_from_zlm_hook(data: Dict[str, Any], device_id: Optional[str] = N
         'segment_start_ms': data.get('start_time'),
         'created_at': datetime.now(timezone.utc).isoformat(),
     }
+    tenant_id = _event_tenant_id(data, 'YFEIEYE_DVR_TENANT_ID')
+    if tenant_id:
+        event['tenant_id'] = tenant_id
+    return event
 
 
 def publish_dvr_event(event: Dict[str, Any]) -> bool:
@@ -113,6 +137,10 @@ def publish_dvr_event(event: Dict[str, Any]) -> bool:
         return True
     except Exception as e:
         logger.error('DVR 事件入队失败 device_id=%s error=%s', device_id, e)
+        try:
+            record_cache_flush_failure(event, f'kafka_enqueue_failed: {e}')
+        except Exception:
+            logger.exception('failed to persist DVR enqueue failure event')
         return False
 
 

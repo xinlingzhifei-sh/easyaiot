@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT 媒体节点 — 非交互安装 Docker Engine + Compose 插件
+# yFeiEye 媒体节点 — 非交互安装 Docker Engine + Compose 插件
 # 供 iot-node 远程自动部署调用；使用华为云镜像源，无需人工确认。
 set -euo pipefail
 

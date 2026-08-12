@@ -15,9 +15,8 @@ import java.util.List;
  * Device Command Request Wrapper Data Structure
  * -----------------------------------------------------------------------------
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @version 1.0
  * -----------------------------------------------------------------------------
  * Revision History:
@@ -25,7 +24,7 @@ import java.util.List;
  * --------      --------     -------   --------------------
  * <p>
  * -----------------------------------------------------------------------------
- * @email andywebjava@163.com
+ * @email reese
  * @date 2023-11-11 14:55
  */
 @Data

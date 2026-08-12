@@ -85,7 +85,6 @@ import {useRoute, useRouter} from "vue-router";
 import ChannelModal from "@/views/gb28181/components/ChannelModal/index.vue";
 import {batchDeleteGbChannels, deleteGbChannel, queryChannelList, snapshot} from "@/api/device/gb28181";
 import DialogPlayer from "@/components/VideoPlayer/DialogPlayer.vue";
-import {downloadByA} from "@/utils";
 import {
   buildGbChannelLocationDevice,
   normalizeWvpChannelItem,
@@ -147,7 +146,6 @@ const [
 ] = useTable({
   canResize: true,
   showIndexColumn: false,
-  actionColOptions: {span: 4},
   title: '通道列表',
   api: queryChannelList,
   beforeFetch: (data) => {
@@ -180,7 +178,7 @@ const [
   onChange,
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -191,7 +189,7 @@ const [
       }
     },
   },
-  onColumnsChange: (data) => {
+  onColumnsChange: () => {
     //console.log('ColumnsChanged', data);
   },
 });
@@ -214,7 +212,7 @@ function onSelect(record, selected) {
   }
 }
 
-function onSelectAll(selected, selectedRows, changeRows) {
+function onSelectAll(selected, _selectedRows, changeRows) {
   const changeIds = changeRows.map((item) => item.id);
   if (selected) {
     checkedKeys.value = [...checkedKeys.value, ...changeIds];
@@ -356,18 +354,21 @@ function handleSnapshot(record) {
 
 //图片编码
 const getUrlBase64 = (url) => {
-  return new Promise((resolve) => {
-    let canvas = document.createElement("canvas");
-    let ctx = canvas.getContext("2d");
-    let img = new Image();
+  return new Promise<string>((resolve) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
     img.crossOrigin = "Anonymous"; //允许跨域
     img.src = url;
     img.onload = function () {
+      if (!ctx) {
+        resolve('');
+        return;
+      }
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0, img.width, img.height);
       let dataURL = canvas.toDataURL("image/png");
-      canvas = null;
       resolve(dataURL);
     };
   });

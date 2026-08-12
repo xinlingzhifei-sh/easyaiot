@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 /**
  * DictDataRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 字典数据信息 Response VO")
 @Data
@@ -30,7 +29,7 @@ public class DictDataRespVO {
     @ExcelProperty("字典排序")
     private Integer sort;
 
-    @Schema(description = "字典标签", example = "BasicLab")
+    @Schema(description = "字典标签", example = "yFeiEye")
     @ExcelProperty("字典标签")
     private String label;
 

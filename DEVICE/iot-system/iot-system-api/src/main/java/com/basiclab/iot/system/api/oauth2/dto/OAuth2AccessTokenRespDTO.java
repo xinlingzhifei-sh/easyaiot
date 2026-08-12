@@ -10,9 +10,8 @@ import java.time.LocalDateTime;
 /**
  * OAuth2AccessTokenRespDTO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "RPC 服务 - OAuth2 访问令牌的信息 Response DTO")
 @Data

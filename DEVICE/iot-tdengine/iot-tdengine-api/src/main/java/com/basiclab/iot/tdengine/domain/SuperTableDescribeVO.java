@@ -10,12 +10,11 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * @program: EasyAIoT
+ * @program: yFeiEye
  * @description: 超级表结构VO
  * @packagename: com.basiclab.iot.tds.vo.result
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date: 2023-09-17 21:12
  **/
 @Data

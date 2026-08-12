@@ -80,17 +80,15 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from 'vue';
+import {onMounted, reactive} from 'vue';
 import {BasicModal, useModalInner} from '@/components/Modal';
 import {Form, FormItem, Input, Select, Spin,} from 'ant-design-vue';
 import {useMessage} from '@/hooks/web/useMessage';
-import {useRoute} from "vue-router";
 import {getMediaServerList, savePullProxy} from "@/api/device/gb28181";
 
 defineOptions({name: 'PullProxyModal'})
 
 const {createMessage} = useMessage();
-const route = useRoute()
 
 const state = reactive({
   editLoading: false,
@@ -109,8 +107,8 @@ const state = reactive({
     {label: '移除', value: '2'},
   ],
   enableList: [
-    {label: '启用', value: true},
-    {label: '禁用', value: false},
+    {label: '启用', value: 'true'},
+    {label: '禁用', value: 'false'},
   ],
 });
 
@@ -124,12 +122,10 @@ const modelRef = reactive({
   gbId: '',
   rtpType: '1',
   noneReader: '0',
-  enable: true,
+  enable: 'true',
   enableRemoveNoneReader: false,
   enableDisableNoneReader: false,
 });
-
-const checkedKeys = ref<Array<string | number>>([]);
 
 const [register, {closeModal}] = useModalInner(() => {
 
@@ -137,7 +133,7 @@ const [register, {closeModal}] = useModalInner(() => {
 
 const emits = defineEmits(['success']);
 
-function handleCLickChange(value) {
+function handleCLickChange() {
   //console.log('handleCLickChange', value)
 }
 
@@ -160,7 +156,8 @@ function handleCancel() {
 onMounted(() => {
   state.mediaServerList = [];
   getMediaServerList().then((res) => {
-    for (const item of res) {
+    const list = Array.isArray(res) ? res : res?.data || [];
+    for (const item of list) {
       state.mediaServerList.push(
         {label: item.id, value: item.id}
       )
@@ -172,7 +169,10 @@ function handleOk() {
   validate().then(async () => {
     let api = savePullProxy;
     state.editLoading = true;
-    api(modelRef)
+    api({
+      ...modelRef,
+      enable: modelRef.enable === 'true',
+    })
       .then(() => {
         createMessage.success('操作成功');
         closeModal();

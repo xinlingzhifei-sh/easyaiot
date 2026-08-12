@@ -96,7 +96,7 @@ KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://Kafka:9092,PLAINTEXT://localhost:9092
 
 ```bash
 # 检查 VIDEO 服务的环境变量
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 grep KAFKA_BOOTSTRAP_SERVERS .env .env.prod .env.docker
 
 # 应该显示：

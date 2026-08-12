@@ -60,7 +60,7 @@
               <button type="button" class="folder-item__action" :title="openLabel" @click="handleOpen(node)">
                 <Icon :icon="openIcon" :size="15" />
               </button>
-              <button type="button" class="folder-item__action" title="存储策略" @click="emit('policy', node)">
+              <button type="button" class="folder-item__action" title="存储策略" @click="handlePolicy(node)">
                 <Icon icon="ant-design:setting-outlined" :size="15" />
               </button>
             </template>
@@ -194,6 +194,11 @@ function handleOpen(node: SpaceFolderNode) {
     return;
   }
   emit('open', node);
+}
+
+function handlePolicy(node: SpaceFolderNode) {
+  if (!isSpaceLeafNode(node)) return;
+  emit('policy', node);
 }
 
 function handleContextMenu(event: MouseEvent, node: SpaceFolderNode) {

@@ -116,7 +116,7 @@
     { deep: true },
   );
 
-  const handleTypeChange = (record: IVariable) => {
+  const handleTypeChange = (record: any) => {
     switch (record.type) {
       case 'string':
         record.format = '%s';

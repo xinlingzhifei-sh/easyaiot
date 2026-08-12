@@ -8,12 +8,16 @@ import java.time.OffsetDateTime;
 /**
  * Alert实体类（对应VIDEO数据库中的alert表）
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Data
 public class AlertDO {
+
+    /**
+     * 所属租户ID。
+     */
+    private Long tenantId;
 
     /**
      * 告警ID（主键，自增）

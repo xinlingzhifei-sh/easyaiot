@@ -104,7 +104,7 @@ python test_services_pipeline.py --video /path/to/your/video.mp4
 ### 使用Docker Compose启动
 
 ```bash
-cd /opt/projects/easyaiot/.scripts/docker
+cd /opt/projects/yfeieye/.scripts/docker
 docker-compose up -d SRS
 ```
 
@@ -129,13 +129,13 @@ curl http://localhost:1985/api/v1/versions
 ### 示例1：使用默认视频
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python test_services_pipeline.py
 ```
 
 输出示例：
 ```
-[2024-01-01 10:00:00] [__main__] [INFO] 📹 使用视频文件: /opt/projects/easyaiot/VIDEO/video/video2.mp4
+[2024-01-01 10:00:00] [__main__] [INFO] 📹 使用视频文件: /opt/projects/yfeieye/VIDEO/video/video2.mp4
 [2024-01-01 10:00:00] [__main__] [INFO] ============================================================
 [2024-01-01 10:00:00] [__main__] [INFO] 🚀 服务管道测试脚本启动
 [2024-01-01 10:00:00] [__main__] [INFO] ============================================================
@@ -145,7 +145,7 @@ python test_services_pipeline.py
 ### 示例2：指定自定义视频文件
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python test_services_pipeline.py -v video/custom_video.mp4
 ```
 

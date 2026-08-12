@@ -1,8 +1,7 @@
 """
 自动抽帧服务 - 定时从所有在线摄像头的RTSP/RTMP流中抽帧并保存到抓拍空间
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import threading
@@ -131,8 +130,9 @@ def extract_frame_from_rtsp(device, snap_space):
         # 生成文件名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_filename = f"{uuid.uuid4().hex[:8]}_{timestamp}.jpg"
-        device_folder = f"{device.id}/"
-        object_name = f"{device_folder}{unique_filename}"
+        tenant_id = int(snap_space.tenant_id)
+        object_name = (
+            f"tenants/{tenant_id}/cameras/{device.id}/{unique_filename}")
         
         # 编码图片
         logger.debug(f"设备 {device.id} 开始编码图片")
@@ -155,6 +155,7 @@ def extract_frame_from_rtsp(device, snap_space):
             try:
                 from app.services.space_file_metadata_service import upsert_snap_image
                 upsert_snap_image(
+                    tenant_id=tenant_id,
                     space_id=snap_space.id,
                     device_id=device.id,
                     object_name=object_name,
@@ -358,4 +359,3 @@ def stop_auto_frame_extraction():
     _extraction_stop_event.set()
     _extraction_thread.join(timeout=5.0)
     logger.info("自动抽帧线程已停止")
-

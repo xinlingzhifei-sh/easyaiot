@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 统一安装脚本
+# yFeiEye 统一安装脚本
 # ============================================
 # 使用方法：
 #   ./install_linux.sh              # 无参数：打开两层交互引导（部署 / 分析）
@@ -50,7 +50,7 @@ NC='\033[0m' # No Color
 # 脚本所在目录（必须在 cd 之前计算：相对路径调用时，cd 后 dirname 会解析错位，
 # 曾导致日志目录落到项目根 /logs 而非 .scripts/docker/logs）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-EasyAIoT 统一安装脚本 (AMD64/x86_64)}"
+EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (AMD64/x86_64)}"
 
 # 项目根目录（从.scripts/docker回到项目根目录）
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -155,7 +155,7 @@ LOG_FILE="${LOG_DIR}/install_linux_$(date +%Y%m%d_%H%M%S).log"
 
 # 初始化日志文件
 echo "=========================================" >> "$LOG_FILE"
-echo "EasyAIoT 统一安装脚本日志" >> "$LOG_FILE"
+echo "yFeiEye 统一安装脚本日志" >> "$LOG_FILE"
 echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
 echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
@@ -740,30 +740,43 @@ PYEOF
 
 # 创建统一网络（已存在则跳过；FORCE_NETWORK_RECREATE=true 可强制重建）
 create_network() {
-    print_info "检查网络 easyaiot-network..."
+    print_info "检查统一网络 yfeieye-network..."
 
-    if docker network inspect easyaiot-network > /dev/null 2>&1; then
+    if docker network inspect yfeieye-network > /dev/null 2>&1; then
         if [ "${FORCE_NETWORK_RECREATE:-false}" != "true" ]; then
+            print_info "网络 yfeieye-network 已存在"
             return 0
         fi
-        print_warning "FORCE_NETWORK_RECREATE=true：重建网络..."
-        local containers
-        containers=$(docker network inspect easyaiot-network --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
+        print_warning "FORCE_NETWORK_RECREATE=true：断开容器并重建网络..."
+        local containers container
+        containers=$(docker network inspect yfeieye-network --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
         for container in $containers; do
-            docker network disconnect -f easyaiot-network "$container" 2>/dev/null || true
+            print_info "断开容器 $container 与网络的连接..."
+            docker network disconnect -f yfeieye-network "$container" 2>/dev/null || true
         done
-        if ! docker network rm easyaiot-network 2>/dev/null; then
-            print_error "旧网络删除失败，请确认无容器占用: docker network inspect easyaiot-network"
+        # disconnect 为同步调用，全部断开后即可删除，无需 sleep
+        if ! docker network rm yfeieye-network 2>/dev/null; then
+            print_error "旧网络删除失败，请确认无容器占用后重试: docker network inspect yfeieye-network"
             return 1
         fi
     fi
 
+    print_info "正在创建网络 yfeieye-network..."
     local create_output
-    if create_output=$(docker network create easyaiot-network 2>&1); then
-        print_success "网络 easyaiot-network 已创建"
+    if create_output=$(docker network create yfeieye-network 2>&1); then
+        print_success "网络 yfeieye-network 已创建"
+    elif echo "$create_output" | grep -qi "already exists"; then
+        print_info "网络 yfeieye-network 已存在（并发创建），继续使用"
+    elif echo "$create_output" | grep -qi "permission denied"; then
+        print_error "没有权限创建 Docker 网络"
+        print_info "请确保当前用户在 docker 组中，或使用 sudo 运行脚本"
+        return 1
     else
-        echo "$create_output" | grep -qi "already exists" && return 0
-        print_error "创建网络失败: $create_output"
+        print_error "无法创建网络 yfeieye-network: $create_output"
+        print_info "诊断建议："
+        print_info "  1. 检查 Docker 服务: sudo systemctl status docker"
+        print_info "  2. 检查权限: docker network ls"
+        print_info "  3. 查看日志: sudo journalctl -u docker.service"
         return 1
     fi
 }
@@ -1034,7 +1047,7 @@ install_linux() {
     if [ ${#failed_modules[@]} -gt 0 ]; then
         echo "  已失败: ${failed_modules[*]}"
     fi
-    
+
     if [ $success_count -eq $total_count ]; then
         print_success "所有模块安装成功！"
         ensure_platform_agent_after_stack
@@ -1612,7 +1625,7 @@ clean_all() {
         
         # 清理网络
         print_info "清理网络..."
-        docker network rm easyaiot-network 2>/dev/null || true
+        docker network rm yfeieye-network 2>/dev/null || true
         
         print_success "清理完成"
     else
@@ -1885,7 +1898,7 @@ check_environment() {
 
 # 显示帮助信息
 show_help() {
-    echo "EasyAIoT 统一安装脚本"
+    echo "yFeiEye 统一安装脚本"
     echo ""
     echo "使用方法:"
     echo "  ./install_linux.sh                 - 打开交互式引导（推荐新手）"
@@ -1940,7 +1953,7 @@ show_help() {
     echo "  EASYAIOT_DEPLOY_PROFILE      - 部署形态: mini(1) | standard(2) | full(3，默认 full)"
     echo "  PARALLEL_MODULES=true|false  - 业务模块并行开关：start 默认并行；update 默认串行(可能含重建镜像)"
     echo "  PARALLEL_BUILD=true          - build 时并行构建各模块（默认串行，防小内存并行 OOM）"
-    echo "  FORCE_NETWORK_RECREATE=true  - 启动时强制重建 easyaiot-network（宿主机 IP 变更后使用）"
+    echo "  FORCE_NETWORK_RECREATE=true  - 启动时强制重建 yfeieye-network（宿主机 IP 变更后使用）"
     echo "  HOST_IP=<ip>                 - 跳过自动探测，强制指定宿主机 IP"
     echo "  EASYAIOT_ENABLE_INDUSTRIAL_DEMO=0 - full 形态下跳过工业协议演示（Modbus/OPC UA）自动启动"
     echo "  EASYAIOT_APPLY_INDUSTRIAL_SEED=0   - 启动演示时不写入/刷新工业协议演示设备种子"

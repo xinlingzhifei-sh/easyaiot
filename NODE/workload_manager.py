@@ -21,6 +21,62 @@ for _p in (_lib_root,):
 
 logger = logging.getLogger('easyaiot-node-agent.workload')
 
+_WORKLOAD_POLICIES = {
+    'ai_service': (
+        'AI_ROOT',
+        {'services/ai_service/run_deploy.py'},
+        {'ai_service'},
+    ),
+    'llm_service': (
+        'AI_ROOT',
+        {'services/llm_service/run_deploy.py'},
+        {'llm_service'},
+    ),
+    'auto_label': (
+        'AI_ROOT',
+        {'services/auto_label_worker/run_worker.py'},
+        {'auto_label'},
+    ),
+    'model_train': (
+        'AI_ROOT',
+        {'services/train_worker/run_worker.py'},
+        {'model_train'},
+    ),
+    'algorithm_task': (
+        'VIDEO_ROOT',
+        {
+            'services/realtime_algorithm_service/run_deploy.py',
+            'services/snapshot_algorithm_service/run_deploy.py',
+            'services/patrol_algorithm_service/run_deploy.py',
+        },
+        {'algorithm_realtime', 'algorithm_snap', 'algorithm_patrol'},
+    ),
+    'stream_forward': (
+        'VIDEO_ROOT',
+        {'services/stream_forward_service/run_deploy.py'},
+        {'stream_forward'},
+    ),
+    'post_process': (
+        'VIDEO_ROOT',
+        {'services/post_process_worker/run_worker.py'},
+        {'post_process'},
+    ),
+}
+
+_BLOCKED_ENV_KEYS = {
+    'BASH_ENV',
+    'ENV',
+    'GCONV_PATH',
+    'IFS',
+    'LOCPATH',
+    'NODE_OPTIONS',
+    'PATH',
+    'RUBYOPT',
+    'SHELLOPTS',
+    'SSLKEYLOGFILE',
+    'VIRTUAL_ENV',
+}
+
 
 @dataclass
 class WorkloadRecord:
@@ -72,13 +128,10 @@ class WorkloadManager:
             return n
 
     def deploy(self, spec: Dict[str, Any]) -> Dict[str, Any]:
-        workload_type = spec['workloadType']
-        workload_id = spec['workloadId']
-        command = spec.get('command') or []
-        work_dir = spec.get('workDir') or os.getcwd()
-        log_dir = spec.get('logDir')
+        workload_type, workload_id, command, work_dir, log_dir, env_extra = (
+            _validate_workload_spec(spec)
+        )
         gpu_ids = spec.get('gpuIds')
-        env_extra = spec.get('env') or {}
         runtime = (spec.get('runtime') or env_extra.get('RUNTIME') or 'process').lower()
 
         key = self._key(workload_type, workload_id)
@@ -115,21 +168,26 @@ class WorkloadManager:
         if model_path:
             local_path = _ensure_model_local(model_path, env.get('MODEL_ID', '0'))
             if local_path:
+                if workload_type == 'ai_service':
+                    _require_onnx_model_reference(local_path)
                 env['MODEL_PATH'] = local_path
 
-        os.makedirs(work_dir, exist_ok=True)
         log_file = None
         if log_dir:
             log_file = open(os.path.join(log_dir, 'workload.log'), 'a', encoding='utf-8')
 
-        proc = subprocess.Popen(
-            command,
-            cwd=work_dir,
-            env=env,
-            stdout=log_file or subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
+        try:
+            proc = subprocess.Popen(
+                command,
+                cwd=work_dir,
+                env=env,
+                stdout=log_file or subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        finally:
+            if log_file:
+                log_file.close()
         record = WorkloadRecord(
             workload_type=workload_type,
             workload_id=workload_id,
@@ -315,6 +373,124 @@ def _docker_find_by_env(env_key: str, env_value: str) -> List[str]:
         return []
 
 
+def _validate_workload_spec(spec: Dict[str, Any]):
+    workload_type = str(spec.get('workloadType') or '').strip().lower()
+    workload_id = str(spec.get('workloadId') or '').strip()
+    policy = _WORKLOAD_POLICIES.get(workload_type)
+    if policy is None:
+        raise ValueError(f'不允许的 workloadType: {workload_type or "<empty>"}')
+    if not workload_id:
+        raise ValueError('workloadId 不能为空')
+
+    root_env, allowed_scripts, allowed_bundles = policy
+    default_root = '/opt/easyaiot/AI' if root_env == 'AI_ROOT' else '/opt/easyaiot/VIDEO'
+    root = os.path.realpath(os.environ.get(root_env, default_root))
+    if not os.path.isdir(root):
+        raise ValueError(f'{root_env} 不存在: {root}')
+
+    command = spec.get('command') or []
+    if not isinstance(command, (list, tuple)) or len(command) != 2:
+        raise ValueError('启动命令必须是固定 Python 启动器与单个 worker 脚本')
+    executable = os.path.realpath(str(command[0]))
+    script = os.path.realpath(str(command[1]))
+
+    relative_script = _relative_path_within(root, script, 'worker 脚本')
+    if relative_script not in allowed_scripts:
+        raise ValueError(f'workloadType={workload_type} 不允许脚本: {relative_script}')
+    if not os.path.isfile(script):
+        raise ValueError(f'worker 脚本不存在: {script}')
+
+    allowed_executables = {os.path.realpath(sys.executable)}
+    for bundle in allowed_bundles:
+        allowed_executables.add(
+            os.path.realpath(os.path.join(root, '.bundles', bundle, 'run-python.sh'))
+        )
+    configured_executables = os.environ.get('NODE_ALLOWED_PYTHON_EXECUTABLES', '')
+    for candidate in configured_executables.split(os.pathsep):
+        if candidate.strip():
+            allowed_executables.add(os.path.realpath(candidate.strip()))
+    if executable not in allowed_executables or not os.path.isfile(executable):
+        raise ValueError(f'不允许的 Python 启动器: {executable}')
+
+    work_dir = os.path.realpath(str(spec.get('workDir') or ''))
+    if work_dir != os.path.dirname(script) or not os.path.isdir(work_dir):
+        raise ValueError('workDir 必须是受信 worker 脚本所在目录')
+
+    log_dir_value = str(spec.get('logDir') or '').strip()
+    log_dir = None
+    if log_dir_value:
+        log_dir = os.path.realpath(log_dir_value)
+        logs_root = os.path.realpath(os.path.join(root, 'logs'))
+        _relative_path_within(logs_root, log_dir, 'logDir')
+        os.makedirs(log_dir, exist_ok=True)
+
+    env_extra = {}
+    for raw_key, value in (spec.get('env') or {}).items():
+        key = str(raw_key).strip().upper()
+        if not key:
+            raise ValueError('环境变量名不能为空')
+        if (
+            key in _BLOCKED_ENV_KEYS
+            or key.startswith('LD_')
+            or key.startswith('DYLD_')
+            or key.startswith('PYTHON')
+        ):
+            raise ValueError(f'不允许覆盖进程启动环境变量: {key}')
+        if key in {'AI_ROOT', 'VIDEO_ROOT'}:
+            if os.path.realpath(str(value)) != root:
+                raise ValueError(f'不允许覆盖 {key}')
+        env_extra[key] = str(value)
+
+    if workload_type == 'ai_service':
+        model_path = env_extra.get('MODEL_PATH', '')
+        if not model_path:
+            raise ValueError('ai_service 必须提供 ONNX MODEL_PATH')
+        _require_onnx_model_reference(model_path)
+        env_extra['MODEL_ID'] = _normalize_model_id(env_extra.get('MODEL_ID', '0'))
+
+    return (
+        workload_type,
+        workload_id,
+        [executable, script],
+        work_dir,
+        log_dir,
+        env_extra,
+    )
+
+
+def _relative_path_within(root: str, path: str, label: str) -> str:
+    try:
+        if os.path.commonpath((root, path)) != root:
+            raise ValueError
+    except ValueError:
+        raise ValueError(f'{label} 必须位于 {root} 内')
+    return os.path.relpath(path, root).replace(os.sep, '/')
+
+
+def _normalize_model_id(value: Any) -> str:
+    text = str(value if value is not None else '0').strip()
+    if not text or not text.isascii() or not text.isdigit():
+        raise ValueError('MODEL_ID 必须是非负十进制整数')
+    number = int(text)
+    if number > 9_223_372_036_854_775_807:
+        raise ValueError('MODEL_ID 超出支持范围')
+    return str(number)
+
+
+def _require_onnx_model_reference(model_path: str) -> str:
+    value = str(model_path or '').strip()
+    parsed = urllib.parse.urlparse(value)
+    object_path = urllib.parse.parse_qs(parsed.query).get('prefix', [parsed.path])[0]
+    for _ in range(3):
+        decoded = urllib.parse.unquote(object_path)
+        if decoded == object_path:
+            break
+        object_path = decoded
+    if os.path.splitext(object_path)[1].lower() != '.onnx':
+        raise ValueError('ai_service 仅允许加载 ONNX 模型，不允许 pickle-backed 模型')
+    return value
+
+
 def _terminate_process_tree(pid: int):
     try:
         parent = psutil.Process(pid)
@@ -360,6 +536,7 @@ def _materialize_files(files) -> None:
 
 def _ensure_model_local(model_path: str, model_id: str) -> Optional[str]:
     """若 MODEL_PATH 为 MinIO URL 则下载到本地；集群模式优先读 CephFS 共享缓存。"""
+    model_id = _normalize_model_id(model_id)
     try:
         mid = int(model_id)
         if mid > 0:
@@ -397,16 +574,23 @@ def _ensure_model_local(model_path: str, model_id: str) -> Optional[str]:
                 models_base = get_ai_models_dir()
             except ImportError:
                 models_base = os.path.join(ai_root, 'data', 'models')
-        storage_dir = os.path.join(models_base, str(model_id))
+        models_base = os.path.realpath(models_base)
+        storage_dir = os.path.realpath(os.path.join(models_base, model_id))
+        _relative_path_within(models_base, storage_dir, '模型缓存目录')
         os.makedirs(storage_dir, exist_ok=True)
-        filename = os.path.basename(object_key) or f'model_{model_id}'
-        local_path = os.path.join(storage_dir, filename)
+        filename = os.path.basename(object_key)
+        if filename in {'', '.', '..'}:
+            raise ValueError('模型对象名无效')
+        local_path = os.path.realpath(os.path.join(storage_dir, filename))
+        _relative_path_within(storage_dir, local_path, '模型缓存文件')
         if os.path.exists(local_path):
             return local_path
 
         endpoint = os.environ.get('MINIO_ENDPOINT', 'http://localhost:9000').rstrip('/')
-        access_key = os.environ.get('MINIO_ACCESS_KEY', 'minioadmin')
+        access_key = os.environ.get('MINIO_ACCESS_KEY', '').strip()
         secret_key = os.environ.get('MINIO_SECRET_KEY', '')
+        if not access_key or not secret_key:
+            raise ValueError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
         from minio import Minio
         secure = endpoint.startswith('https')
         host = endpoint.replace('https://', '').replace('http://', '')
@@ -415,8 +599,7 @@ def _ensure_model_local(model_path: str, model_id: str) -> Optional[str]:
         logger.info('模型已下载到 %s', local_path)
         return local_path
     except Exception as e:
-        logger.warning('模型下载失败，使用原始路径: %s', e)
-        return model_path
+        raise ValueError(f'模型下载失败: {e}') from e
 
 
 def find_available_port(start_port: int = 8000, max_attempts: int = 100) -> Optional[int]:

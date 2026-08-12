@@ -6,9 +6,8 @@ import java.nio.ByteOrder;
 /**
  * ReadBuffer
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 public class ReadBuffer {
@@ -117,6 +116,7 @@ public class ReadBuffer {
      * @param count 跳过的字节数
      */
     public void skip(int count) {
+        requireReadableCount(count);
         buffer.position(buffer.position() + count);
     }
 
@@ -141,6 +141,7 @@ public class ReadBuffer {
      * @return byte array
      */
     public byte[] readBytes(int count) {
+        requireReadableCount(count);
         byte[] bytes = new byte[count];
         buffer.get(bytes);
         return bytes;
@@ -153,9 +154,7 @@ public class ReadBuffer {
      * @return 文本
      */
     public String readString(int count) {
-        byte[] bytes = new byte[count];
-        buffer.get(bytes);
-        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+        return new String(readBytes(count), java.nio.charset.StandardCharsets.UTF_8);
     }
 
     /**
@@ -166,9 +165,7 @@ public class ReadBuffer {
      * @return 文本
      */
     public String readString(int count, String charSet) {
-        byte[] bytes = new byte[count];
-        buffer.get(bytes);
-        return new String(bytes, java.nio.charset.Charset.forName(charSet));
+        return new String(readBytes(count), java.nio.charset.Charset.forName(charSet));
     }
 
     /**
@@ -194,5 +191,13 @@ public class ReadBuffer {
         }
         return sb.toString();
     }
-}
 
+    private void requireReadableCount(int count) {
+        if (count < 0
+                || count > JsScriptManager.MAX_OUTPUT_BYTES
+                || count > buffer.remaining()) {
+            throw new IllegalArgumentException(
+                    "读取长度超出脚本缓冲区限制: " + count);
+        }
+    }
+}

@@ -80,16 +80,14 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { DatePicker as AntButton } from 'ant-design-vue'
 import { Icon } from '@/components/Icon'
-import dayjs, { Dayjs } from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue'
 import { useModal } from '@/components/Modal'
 import { useMessage } from '@/hooks/web/useMessage'
 import { resolveAlertVideoUrl } from '@/utils/alertRecord'
 import { playAlertRecordInModal, prepareAlertRecordModalShell } from '@/utils/alertRecordPlayback'
 import { Button } from '@/components/Button'
-const { RangePicker } = DatePicker
 const { createMessage } = useMessage()
 
 // 播放器弹窗
@@ -144,25 +142,6 @@ const formatTime = (time: string) => {
 // 格式化小时
 const formatHour = (hour: number) => {
   return `${String(hour).padStart(2, '0')}:00`
-}
-
-// 获取录像播放地址（参考录像空间的处理方式）
-const getVideoUrl = (videoUrl: string): string => {
-  if (!videoUrl) return ''
-  // 如果是完整URL，直接返回
-  if (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')) {
-    return videoUrl
-  }
-  // 如果是相对路径（以/api/v1/buckets开头），添加前端启动地址前缀
-  if (videoUrl.startsWith('/api/v1/buckets')) {
-    return `${window.location.origin}${videoUrl}`
-  }
-  // 其他相对路径，拼接API前缀
-  if (videoUrl.startsWith('/')) {
-    return `${import.meta.env.VITE_GLOB_API_URL || ''}${videoUrl}`
-  }
-  // 其他情况直接返回
-  return videoUrl
 }
 
 // 防重复提示函数：3秒内相同错误只提示一次

@@ -1,6 +1,6 @@
-# EasyAIoT APP Module
+# yFeiEye APP Module
 
-EasyAIoT APP is a cross-platform mobile management console built with uni-app 3. A single codebase compiles to H5, WeChat Mini Program, and native App, sharing the same backend API (`/admin-api`) as the PC (WEB) module to enable on-the-go control for operations and management staff.
+yFeiEye APP is a cross-platform mobile management console built with uni-app 3. A single codebase compiles to H5, WeChat Mini Program, and native App, sharing the same backend API (`/admin-api`) as the PC (WEB) module to enable on-the-go control for operations and management staff.
 
 ## Features
 

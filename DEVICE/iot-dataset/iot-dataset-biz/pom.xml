@@ -117,10 +117,6 @@
             <version>1.9.4</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

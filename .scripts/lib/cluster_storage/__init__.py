@@ -1,5 +1,5 @@
 """
-EasyAIoT 集群模式共享存储配置。
+yFeiEye 集群模式共享存储配置。
 
 CLUSTER_MODE=true 时，各服务统一使用 CephFS 挂载根目录（默认 /mnt/easyaiot-media）
 作为跨节点热缓冲；MinIO 仍为权威归档。

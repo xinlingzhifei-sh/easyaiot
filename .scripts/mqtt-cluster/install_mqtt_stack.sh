@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT MQTT 网关节点 — EMQX 一键部署
+# yFeiEye MQTT 网关节点 — EMQX 一键部署
 # 若服务已在运行且健康检查通过则自动跳过。
 #
 # 用法（在目标 MQTT 网关节点上）:
@@ -18,10 +18,10 @@ MQTT_SSL_PORT="${MQTT_SSL_PORT:-8883}"
 MQTT_WS_PORT="${MQTT_WS_PORT:-8083}"
 MQTT_WSS_PORT="${MQTT_WSS_PORT:-8084}"
 EMQX_DASHBOARD_PORT="${EMQX_DASHBOARD_PORT:-18083}"
-EMQX_NODE_COOKIE="${EMQX_NODE_COOKIE:-emqxsecretcookie}"
+EMQX_NODE_COOKIE="${EMQX_NODE_COOKIE:-}"
 EMQX_CLUSTER_SEEDS="${EMQX_CLUSTER_SEEDS:-}"
 EMQX_DASHBOARD_USER="${EMQX_DASHBOARD_USER:-admin}"
-EMQX_DASHBOARD_PASSWORD="${EMQX_DASHBOARD_PASSWORD:-basiclab@iot6874125784}"
+EMQX_DASHBOARD_PASSWORD="${EMQX_DASHBOARD_PASSWORD:-}"
 EMQX_IMAGE="${EMQX_IMAGE:-emqx/emqx:5.8.7}"
 EMQX_IMAGE_TAR="${EMQX_IMAGE_TAR:-emqx-emqx-5.8.7.tar}"
 
@@ -29,6 +29,21 @@ print_step() { echo ">>> $*"; }
 print_ok() { echo "[OK] $*"; }
 print_skip() { echo "[SKIP] $*"; }
 print_err() { echo "[ERROR] $*" >&2; }
+
+require_secret() {
+  local name="$1" value="$2" min_length="$3"
+  if [[ ${#value} -lt ${min_length} ]]; then
+    print_err "${name} must contain at least ${min_length} characters"
+    exit 1
+  fi
+  if [[ ! "${value}" =~ ^[A-Za-z0-9._~-]+$ ]]; then
+    print_err "${name} must contain only URL-safe characters"
+    exit 1
+  fi
+}
+
+require_secret "EMQX_NODE_COOKIE" "${EMQX_NODE_COOKIE}" 24
+require_secret "EMQX_DASHBOARD_PASSWORD" "${EMQX_DASHBOARD_PASSWORD}" 16
 
 load_offline_image() {
   local canonical="$1"
@@ -197,7 +212,7 @@ deploy_emqx() {
 
 main() {
   echo "========================================"
-  echo " EasyAIoT MQTT 网关部署 — ${MQTT_NODE_NAME} @ ${MQTT_NODE_HOST}"
+  echo " yFeiEye MQTT 网关部署 — ${MQTT_NODE_NAME} @ ${MQTT_NODE_HOST}"
   echo "========================================"
   require_docker
   resolve_compose_cmd

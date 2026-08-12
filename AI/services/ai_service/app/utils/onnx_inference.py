@@ -2,9 +2,8 @@
 ONNX推理模块
 基于yolov8_detect_onnx.py的ONNX推理逻辑
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 # 在导入onnxruntime之前设置环境变量，强制使用CPU执行提供者
@@ -381,7 +380,7 @@ def _parse_names_metadata(raw: str) -> Optional[Dict[int, str]]:
 
 def get_classes_from_onnx_model(onnx_model_path: str) -> Optional[Dict[int, str]]:
     """
-    尝试从ONNX模型或对应的YOLO模型中获取类别信息
+    仅从ONNX模型元数据中获取类别信息。
     """
     try:
         if ort is not None:
@@ -395,37 +394,6 @@ def get_classes_from_onnx_model(onnx_model_path: str) -> Optional[Dict[int, str]
                         return parsed
     except Exception as e:
         logging.debug(f"无法从ONNX模型元数据获取类别信息: {str(e)}")
-
-    try:
-        model_dir = os.path.dirname(onnx_model_path)
-        model_basename = os.path.splitext(os.path.basename(onnx_model_path))[0]
-        pt_file = os.path.join(model_dir, f"{model_basename}.pt")
-        if os.path.exists(pt_file):
-            try:
-                from ultralytics import YOLO
-                yolo_model = YOLO(pt_file)
-                if hasattr(yolo_model, 'names') and yolo_model.names:
-                    classes_dict = {int(k): str(v) for k, v in yolo_model.names.items()}
-                    logging.info(f"从对应的YOLO模型文件中获取到 {len(classes_dict)} 个类别")
-                    return classes_dict
-            except Exception as e:
-                logging.debug(f"无法从YOLO模型文件获取类别信息: {str(e)}")
-
-        if os.path.isdir(model_dir):
-            for file in os.listdir(model_dir):
-                if file.endswith('.pt'):
-                    try:
-                        from ultralytics import YOLO
-                        pt_path = os.path.join(model_dir, file)
-                        yolo_model = YOLO(pt_path)
-                        if hasattr(yolo_model, 'names') and yolo_model.names:
-                            classes_dict = {int(k): str(v) for k, v in yolo_model.names.items()}
-                            logging.info(f"从同目录下的YOLO模型文件 {file} 中获取到 {len(classes_dict)} 个类别")
-                            return classes_dict
-                    except Exception:
-                        continue
-    except Exception as e:
-        logging.debug(f"无法从YOLO模型文件获取类别信息: {str(e)}")
 
     return None
 

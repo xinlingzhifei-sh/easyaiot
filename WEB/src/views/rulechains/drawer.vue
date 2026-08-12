@@ -25,7 +25,6 @@ import { Button } from '@/components/Button'
   import { defineComponent, ref } from 'vue';
   import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
   import { Tabs, TabPane } from 'ant-design-vue';
-  import DetailsInfo from './components/details.vue';
   import { Attribute, } from '@/components/EditDrawer';
 
   import { getFlows } from '@/api/device/rule-chains';

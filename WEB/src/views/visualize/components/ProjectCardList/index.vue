@@ -124,7 +124,7 @@ import {
 import { BasicForm, useForm } from '@/components/Form'
 import { propTypes } from '@/utils/propTypes'
 import { isFunction } from '@/utils/is'
-import { getProjectTypeLabel, isFuxaDemoProject, isScadaProject } from '@/utils/visualizeEditor'
+import { isFuxaDemoProject, isScadaProject } from '@/utils/visualizeEditor'
 
 defineOptions({ name: 'VisualizeProjectCardList' })
 
@@ -250,16 +250,6 @@ function getMetaText(item: any): string {
 function getRemarkText(item: any): string {
   const desc = String(item?.remarks || '').trim()
   return desc
-}
-
-/** @deprecated 保留给列表视图等复用 */
-function getTagsText(item: any): string {
-  const type = getProjectTypeLabel(item.projectType)
-  const parts = [`${type} · ${getMetaText(item)}`]
-  const remark = getRemarkText(item)
-  if (remark) parts.push(remark)
-  else parts.push(`ID: ${item.id}`)
-  return parts.join(' · ')
 }
 
 function prefetchCover(item: any) {

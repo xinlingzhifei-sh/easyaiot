@@ -13,9 +13,8 @@ import java.util.List;
 /**
  * AdminUserMapper
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Mapper
 public interface AdminUserMapper extends BaseMapperX<AdminUserDO> {

@@ -11,7 +11,7 @@ const year = new Date().getFullYear()
       <div>
         <div class="footer-brand">
           <img src="/logo.png" alt="" class="footer-logo" />
-          <span>EasyAIoT</span>
+          <span>yFeiEye</span>
         </div>
         <p class="footer-copy">云边端一体化智能算法应用平台。AI + IoT，万物智视、万物智控。</p>
       </div>
@@ -37,7 +37,7 @@ const year = new Date().getFullYear()
       </div>
     </div>
     <div class="container footer-bottom">
-      <span>© {{ year }} EasyAIoT. Open source for learning.</span>
+      <span>© {{ year }} yFeiEye. Open source for learning.</span>
     </div>
   </footer>
 </template>

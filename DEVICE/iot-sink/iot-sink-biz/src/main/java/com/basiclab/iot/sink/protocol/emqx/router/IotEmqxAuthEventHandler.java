@@ -14,9 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * IotEmqxAuthEventHandler
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Slf4j

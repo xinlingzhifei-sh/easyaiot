@@ -15,7 +15,7 @@ import {cloneDeep, throttle} from 'lodash'
 
 import {useMessage} from "@/hooks/web/useMessage";
 
-const {createMessage, createConfirm} = useMessage()
+const {createMessage} = useMessage()
 const chartEditStore = useChartEditStore()
 const {onClickOutSide} = useContextMenu()
 
@@ -59,7 +59,7 @@ export const dragoverHandle = (e: DragEvent) => {
 }
 
 // * 不拦截默认行为点击
-export const mousedownHandleUnStop = (e: MouseEvent, item?: CreateComponentType | CreateComponentGroupType) => {
+export const mousedownHandleUnStop = (_e: MouseEvent, item?: CreateComponentType | CreateComponentGroupType) => {
   if (item) {
     chartEditStore.setTargetSelectChart(item.id)
     return
@@ -68,7 +68,7 @@ export const mousedownHandleUnStop = (e: MouseEvent, item?: CreateComponentType 
 }
 
 // * 框选
-export const mousedownBoxSelect = (e: MouseEvent, item?: CreateComponentType | CreateComponentGroupType) => {
+export const mousedownBoxSelect = (e: MouseEvent, _item?: CreateComponentType | CreateComponentGroupType) => {
   if (e.which == 2) return
   if (window.$KeyboardActive?.space) return
 
@@ -135,7 +135,6 @@ export const mousedownBoxSelect = (e: MouseEvent, item?: CreateComponentType | C
     chartEditStore.getComponentList.forEach(item => {
       if (!chartEditStore.getTargetChart.selectId.includes(item.id)) {
         // 处理左上角
-        let isSelect = false
         const {x, y, w, h} = item.attr
         const targetAttr = {
           // 左上角
@@ -154,7 +153,6 @@ export const mousedownBoxSelect = (e: MouseEvent, item?: CreateComponentType | C
           !item.status.lock &&
           !item.status.hide
         ) {
-          isSelect = true
           chartEditStore.setTargetSelectChart(item.id, true)
         }
       }
@@ -330,7 +328,7 @@ export const useMouseHandle = () => {
   }
 
   // * 移出事件
-  const mouseleaveHandle = (e: MouseEvent, item: CreateComponentType | CreateComponentGroupType) => {
+  const mouseleaveHandle = (e: MouseEvent, _item: CreateComponentType | CreateComponentGroupType) => {
     e.preventDefault()
     e.stopPropagation()
     chartEditStore.setEditCanvas(EditCanvasTypeEnum.IS_DRAG, false)

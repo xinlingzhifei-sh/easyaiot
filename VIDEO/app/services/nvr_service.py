@@ -462,7 +462,7 @@ def _upsert_nvr_channel_device(
 
     nvr_ip = nvr.ip or ''
     ch_vendor = ch.get('vendor') or vendor or nvr.vendor
-    mfr = (vendor_label(ch_vendor) or ch_vendor or 'EasyAIoT').strip()
+    mfr = (vendor_label(ch_vendor) or ch_vendor or 'yFeiEye').strip()
     model = (ch.get('model') or 'NVR-Channel').strip() or 'NVR-Channel'
     cam_ip = (ch.get('camera_ip') or ch.get('ip') or '').strip()
     name = _resolve_channel_display_name(ch.get('name'), channel_id, nvr_ip, cam_ip)

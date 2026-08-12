@@ -61,8 +61,8 @@ importers:
         specifier: 3.0.0-4070620250821001
         version: 3.0.0-4070620250821001(postcss@8.5.6)(rollup@4.50.0)(vue@3.4.21(typescript@5.8.3))
       '@wot-ui/ui':
-        specifier: ^2.0.8
-        version: 2.0.8(vue@3.4.21(typescript@5.8.3))
+        specifier: ^2.1.0
+        version: 2.1.0(vue@3.4.21(typescript@5.8.3))
       abortcontroller-polyfill:
         specifier: ^1.7.8
         version: 1.7.8
@@ -78,9 +78,6 @@ importers:
       flv.js:
         specifier: 1.6.2
         version: 1.6.2
-      jsencrypt:
-        specifier: ^3.5.4
-        version: 3.5.4
       pinia:
         specifier: 2.0.36
         version: 2.0.36(typescript@5.8.3)(vue@3.4.21(typescript@5.8.3))
@@ -3436,8 +3433,8 @@ packages:
       '@types/node':
         optional: true
 
-  '@wot-ui/ui@2.0.8':
-    resolution: {integrity: sha512-JeC9rNlxG75zMplQNjBuJDRZhnTzMcY/D2FVdg+5DyZGAJdwc5RX0wtkZMGxRHSSQ8aq9cnjKrpZ45ZQv4Y6EQ==}
+  '@wot-ui/ui@2.1.0':
+    resolution: {integrity: sha512-wWyVL2h9zUouxwY2sNvWrod5s+yGbRGxFNZ9b4g/bZAxhPwjj0jlvFbKCBUbtOHV/A4kVABA3+v6BXl9HMVWig==}
     engines: {HBuilderX: ^3.8.7}
     peerDependencies:
       vue: '>=3.2.47'
@@ -5974,9 +5971,6 @@ packages:
     peerDependenciesMeta:
       canvas:
         optional: true
-
-  jsencrypt@3.5.4:
-    resolution: {integrity: sha512-kNjfYEMNASxrDGsmcSQh/rUTmcoRfSUkxnAz+MMywM8jtGu+fFEZ3nJjHM58zscVnwR0fYmG9sGkTDjqUdpiwA==}
 
   jsesc@0.5.0:
     resolution: {integrity: sha512-uZz5UnB7u4T9LvwmFqXii7pZSouaRPorGs5who1Ip7VO0wxanFvBL7GkM6dTHlgX+jhBApRetaWpnDabOeTcnA==}
@@ -13437,7 +13431,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.11
 
-  '@wot-ui/ui@2.0.8(vue@3.4.21(typescript@5.8.3))':
+  '@wot-ui/ui@2.1.0(vue@3.4.21(typescript@5.8.3))':
     dependencies:
       vue: 3.4.21(typescript@5.8.3)
 
@@ -16698,8 +16692,6 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
-
-  jsencrypt@3.5.4: {}
 
   jsesc@0.5.0: {}
 

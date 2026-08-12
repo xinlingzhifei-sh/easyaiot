@@ -17,6 +17,7 @@ services:
     volumes:
       # Nginx配置文件（mini 形态由 install_linux.sh 写入 NGINX_CONF=./conf/nginx.mini.conf）
       - ${NGINX_CONF:-./conf/nginx.conf}:/etc/nginx/nginx.conf:ro
+      - ${YFEIEYE_NGINX_SECRET_DIR:-/etc/nginx/yfeieye-secrets}:/etc/nginx/yfeieye-secrets:ro
       # SITE 官网静态产物（可选）：先 pnpm --dir SITE build，再挂载
       # - ${SITE_HTML:-../SITE/dist}:/usr/share/nginx/html/SITE:ro
       # WEB前端构建/运行日志目录（非nginx access/error日志）
@@ -67,7 +68,7 @@ services:
 
     # 网络配置（连接到统一网络，以便访问AI和VIDEO服务）
     networks:
-      - easyaiot-network
+      - yfeieye-network
 
     # 日志配置
     logging:
@@ -77,7 +78,6 @@ services:
         max-file: "3"
 
 networks:
-  easyaiot-network:
-    name: easyaiot-network
+  yfeieye-network:
+    name: yfeieye-network
     external: true
-

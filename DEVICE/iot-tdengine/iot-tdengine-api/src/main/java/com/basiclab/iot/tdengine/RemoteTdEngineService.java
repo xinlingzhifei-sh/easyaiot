@@ -184,9 +184,8 @@ public interface RemoteTdEngineService {
      * @param selectDto 查询数据需要的入参的实体类
      * @return R
      * @MethodDescription 根据时间戳查询数据
-     * @author 翱翔的雄库鲁
-     * @email andywebjava@163.com
-     * @wechat EasyAIoT2025
+     * @author reese
+     * @email reese
      * @date 2025/1/10 14:44
      */
     @PostMapping("/getDataByTimestamp")

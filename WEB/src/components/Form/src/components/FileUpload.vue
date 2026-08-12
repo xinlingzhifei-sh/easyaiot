@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { computed, reactive, ref, unref, watch } from 'vue'
 import { Icon } from '@/components/Icon'
@@ -45,7 +46,7 @@ const { prefixCls } = useDesign('upload')
 const attrs = useAttrs()
 const headers = reactive({
   'Authorization': `Bearer ${getAccessToken()}`,
-  'tenant-id': getTenantId(),
+  'tenant-id': String(getTenantId() ?? ''),
 })
 const fileList = ref<any[]>([])
 const uploadGoOn = ref<boolean>(true)
@@ -128,10 +129,10 @@ function parseArrayValue(array) {
 }
 
 // 文件上传之前的操作
-function onBeforeUpload(file) {
+function onBeforeUpload(file: UploadFile) {
   uploadGoOn.value = true
   if (isImageMode.value) {
-    if (!file.type.includes('image')) {
+    if (!(file.type || '').includes('image')) {
       createMessage.warning('请上传图片')
       uploadGoOn.value = false
       return false
@@ -145,9 +146,9 @@ function onBeforeUpload(file) {
 }
 
 // 删除处理事件
-function onRemove() {
+function onRemove(): boolean | Promise<boolean> {
   if (props.removeConfirm) {
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
       createConfirm({
         title: '删除',
         content: `确定要删除这${isImageMode.value ? '张图片' : '个文件'}吗？`,

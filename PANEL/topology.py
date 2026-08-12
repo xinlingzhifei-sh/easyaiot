@@ -1,4 +1,4 @@
-"""EasyAIoT 平台拓扑：静态调用关系 + 实时容器状态/流量。"""
+"""yFeiEye 平台拓扑：静态调用关系 + 实时容器状态/流量。"""
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple

@@ -50,7 +50,11 @@ print_section() {
 DB_HOST="127.0.0.1"
 DB_PORT="5432"
 DB_USER="postgres"
-DB_PASSWORD="iot45722414822"
+DB_PASSWORD="${POSTGRES_PASSWORD:-}"
+if [ -z "$DB_PASSWORD" ] || [ "$DB_PASSWORD" = "CHANGE_ME" ]; then
+    print_error "POSTGRES_PASSWORD is required and must not be CHANGE_ME"
+    exit 1
+fi
 DB_NAME="postgres"
 
 print_section "PostgreSQL 连接测试工具"
@@ -341,4 +345,3 @@ print_info "  1. 容器是否正常运行: docker ps | grep postgres"
 print_info "  2. 端口是否正确映射: docker port postgres-server"
 print_info "  3. 密码是否正确: 运行 ./fix_postgresql_password.sh"
 print_info "  4. pg_hba.conf 配置: docker exec postgres-server cat /var/lib/postgresql/data/pg_hba.conf"
-

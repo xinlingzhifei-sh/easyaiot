@@ -92,6 +92,22 @@ const ROLE_LABELS: Record<string, string> = {
   relay: '中继',
 }
 
+interface OverviewCard {
+  key: string
+  label: string
+  value: number
+  filter: string | null
+  icon: string
+  bg: string
+  color: string
+  sub?: string
+  warn?: boolean
+  isText?: boolean
+  textDisplay?: string
+  decimals?: number
+  suffix?: string
+}
+
 const { createMessage, createConfirm } = useMessage()
 
 const rawList = ref<Recordable[]>([])
@@ -126,6 +142,8 @@ const allList = computed(() => {
   )
 })
 
+const onlineContainerCount = computed(() => allList.value.filter((item) => item.online).length)
+const offlineContainerCount = computed(() => allList.value.length - onlineContainerCount.value)
 const machineList = computed(() => groupMachines(allList.value))
 const onlineCount = computed(() => machineList.value.filter((item) => item.online).length)
 const offlineCount = computed(() => machineList.value.length - onlineCount.value)
@@ -188,7 +206,7 @@ const onlineRate = computed(() => {
   return Math.round((onlineCount.value / machineList.value.length) * 100)
 })
 
-const overviewCards = computed(() => [
+const overviewCards = computed<OverviewCard[]>(() => [
   {
     key: 'total',
     label: '机器数',
@@ -487,40 +505,6 @@ function metricVal(item: Recordable, key: string) {
   if (!m || typeof m !== 'object') return '—'
   const v = m[key]
   return v == null ? '—' : v
-}
-
-function splitGroups(groups?: string) {
-  if (!groups) return []
-  return String(groups)
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
-function shortGroup(g: string) {
-  if (g.length <= 24) return g
-  return `${g.slice(0, 10)}…${g.slice(-8)}`
-}
-
-function hasMetrics(item: Recordable) {
-  return item?.metrics && typeof item.metrics === 'object' && Object.keys(item.metrics).length > 0
-}
-
-function pickMetrics(item: Recordable) {
-  const m = item.metrics || {}
-  const prefer = ['accepted', 'delivered', 'failed', 'dlq', 'published', 'relayed']
-  const out: Recordable = {}
-  prefer.forEach((k) => {
-    if (m[k] != null) out[k] = m[k]
-  })
-  if (!Object.keys(out).length) {
-    Object.keys(m)
-      .slice(0, 4)
-      .forEach((k) => {
-        out[k] = m[k]
-      })
-  }
-  return out
 }
 
 function relativeHeartbeat(value: any) {

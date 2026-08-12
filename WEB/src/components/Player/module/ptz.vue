@@ -46,12 +46,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {reactive, ref} from 'vue'
+import {ref} from 'vue'
 import {Icon} from "@/components/Icon";
-
-const state = reactive({
-  numberValue: 0,
-})
 
 const emit = defineEmits(['ptzCamera'])
 const speed = ref<number>(30)

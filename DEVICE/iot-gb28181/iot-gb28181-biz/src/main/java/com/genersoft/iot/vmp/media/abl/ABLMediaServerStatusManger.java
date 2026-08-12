@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.abl;
 import com.alibaba.fastjson2.JSONArray;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.framework.security.MediaHookTokenSupport;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.abl.bean.ABLResult;
 import com.genersoft.iot.vmp.media.abl.bean.AblServerConfig;
@@ -50,6 +51,9 @@ public class ABLMediaServerStatusManger {
 
     @Value("${server.port}")
     private Integer serverPort;
+
+    @Value("${media.hook-token:}")
+    private String mediaHookToken;
 
     @Autowired
     private UserSetting userSetting;
@@ -273,7 +277,9 @@ public class ABLMediaServerStatusManger {
                     ConfigKeyId configKeyId = field.getAnnotation(ConfigKeyId.class);
                     for (String hook : hookUrlArray) {
                         if (configKeyId.value().equals(hook)) {
-                            String hookUrl =  String.format("%s/%s", hookPrefix, hook);
+                            String hookUrl = MediaHookTokenSupport.appendToUrl(
+                                    String.format("%s/%s", hookPrefix, hook),
+                                    mediaHookToken);
                             field.setAccessible(true);
                             // 利用反射获取值后对比是否与配置中相同，不同则进行设置
                             if (!hookUrl.equals(field.get(config))) {

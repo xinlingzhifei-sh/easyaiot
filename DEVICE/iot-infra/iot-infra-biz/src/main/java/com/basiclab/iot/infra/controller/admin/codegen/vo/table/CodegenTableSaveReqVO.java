@@ -13,9 +13,8 @@ import javax.validation.constraints.NotNull;
 /**
  * CodegenTableSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 代码生成表定义创建/修改 ResponseVO")
 @Data
@@ -32,7 +31,7 @@ public class CodegenTableSaveReqVO {
     @NotNull(message = "表名称不能为空")
     private String tableName;
 
-    @Schema(description = "表描述", example = "BasicLab")
+    @Schema(description = "表描述", example = "yFeiEye")
     @NotNull(message = "表描述不能为空")
     private String tableComment;
 
@@ -55,7 +54,7 @@ public class CodegenTableSaveReqVO {
     @NotNull(message = "类描述不能为空")
     private String classComment;
 
-    @Schema(description = "作者", example = "BasicLab源码")
+    @Schema(description = "作者", example = "yFeiEye")
     @NotNull(message = "作者不能为空")
     private String author;
 

@@ -147,11 +147,11 @@
 import { ref, onMounted, computed } from 'vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { useModal } from '@/components/Modal';
-import { BasicTable, TableAction, useTable } from '@/components/Table';
+import { BasicTable, TableAction, useTable, type ActionItem } from '@/components/Table';
 import { BasicTree, type TreeItem } from '@/components/Tree';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
-import { Tag as ATag, Input as AInput, Space } from 'ant-design-vue';
+import { Tag as ATag, Space } from 'ant-design-vue';
 import {
   deleteDirectory,
   getStreamStatus,
@@ -504,7 +504,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
         
         if (params.online !== undefined && params.online !== '') {
           filteredData = filteredData.filter((device: DeviceInfo) => 
-            device.online === params.online
+            (device as any).online === params.online
           );
         }
         
@@ -547,7 +547,7 @@ const [registerTable, { reload: reloadDeviceTable }] = useTable({
     listField: 'data',
     totalField: 'total',
   },
-  columns: getDeviceColumns(),
+  columns: getDeviceColumns() as any,
   useSearchForm: true,
   formConfig: {
     labelWidth: 80,
@@ -681,6 +681,11 @@ const checkAllDevicesStreamStatus = async (devices: DeviceInfo[]) => {
   }
 };
 
+void getStreamStatusText;
+void getStreamStatusColor;
+void getDeviceStreamStatus;
+void checkAllDevicesStreamStatus;
+
 const openMoveDevicesModal = (devices: DeviceInfo[]) => {
   if (!devices.length) {
     createMessage.warning('请先选择摄像头');
@@ -719,9 +724,10 @@ const handleMoveDevicesSuccess = () => {
 };
 
 // 获取表格操作按钮
-const getTableActions = (record: DeviceInfo & { _isNvrGroup?: boolean; children?: DeviceInfo[] }) => {
-  if (record._isNvrGroup) {
-    const channels = record.children || [];
+const getTableActions = (record: Record<string, any>): ActionItem[] => {
+  const deviceRecord = record as DeviceInfo & { _isNvrGroup?: boolean; children?: DeviceInfo[] };
+  if (deviceRecord._isNvrGroup) {
+    const channels = deviceRecord.children || [];
     if (!channels.length) return [];
     return [
       {
@@ -740,29 +746,29 @@ const getTableActions = (record: DeviceInfo & { _isNvrGroup?: boolean; children?
     ];
   }
 
-  const actions: Array<Record<string, unknown>> = [];
+  const actions: ActionItem[] = [];
 
   if (!props.embedded) {
     actions.push({
       icon: 'octicon:play-16',
       tooltip: '播放RTMP流',
-      onClick: () => handlePlay(record),
+      onClick: () => handlePlay(deviceRecord),
     });
   }
 
-  if (!isNvrChannelDevice(record) && !isGb28181SipListRow(record)) {
+  if (!isNvrChannelDevice(deviceRecord) && !isGb28181SipListRow(deviceRecord)) {
     actions.push(
       {
         icon: 'ant-design:folder-open-outlined',
         tooltip: '移动到目录',
-        onClick: () => handleMoveToDirectory(record),
+        onClick: () => handleMoveToDirectory(deviceRecord),
       },
       {
         icon: 'ant-design:rollback-outlined',
         tooltip: '移回默认分组',
         popConfirm: {
           title: '确定将此设备移回默认分组？',
-          confirm: () => handleUnbindDirectory(record),
+          confirm: () => handleUnbindDirectory(deviceRecord),
         },
       },
     );

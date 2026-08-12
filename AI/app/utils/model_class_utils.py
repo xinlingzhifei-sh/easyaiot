@@ -1,9 +1,8 @@
 """
 从 YOLO / ONNX 模型中提取类别标签，并在推理时解析所选标签。
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import logging
@@ -38,28 +37,24 @@ def dump_class_names_json(names: Optional[List[str]]) -> Optional[str]:
 
 def extract_class_names_from_model(model_path: str) -> List[str]:
     """
-    从 .pt / .onnx 模型文件中提取类别名称列表（按 class id 顺序）。
+    从 ONNX 模型中提取类别名称列表（按 class id 顺序）。
+
+    Web 请求链不得加载 .pt/.pth，避免触发 pickle 反序列化。
     """
     if not model_path or not os.path.exists(model_path):
         return []
 
     ext = os.path.splitext(model_path)[1].lower()
-    try:
-        if ext == '.onnx':
-            from app.utils.onnx_inference import get_classes_from_onnx_model
-            classes_dict = get_classes_from_onnx_model(model_path) or {}
-            if not classes_dict:
-                return []
-            return [classes_dict[i] for i in sorted(classes_dict.keys())]
+    if ext != '.onnx':
+        logger.warning('拒绝在 Web 进程解析非 ONNX 模型类别: %s', model_path)
+        return []
 
-        from ultralytics import YOLO
-        model = YOLO(model_path)
-        if hasattr(model, 'names') and model.names:
-            names = model.names
-            if isinstance(names, dict):
-                return [str(names[i]) for i in sorted(names.keys())]
-            if isinstance(names, list):
-                return [str(name) for name in names]
+    try:
+        from app.utils.onnx_inference import get_classes_from_onnx_model
+        classes_dict = get_classes_from_onnx_model(model_path) or {}
+        if not classes_dict:
+            return []
+        return [classes_dict[i] for i in sorted(classes_dict.keys())]
     except Exception as exc:
         logger.warning('提取模型类别失败: %s, error=%s', model_path, exc)
     return []

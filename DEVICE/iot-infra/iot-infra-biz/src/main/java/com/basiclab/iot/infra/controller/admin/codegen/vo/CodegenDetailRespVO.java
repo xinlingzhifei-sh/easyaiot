@@ -10,9 +10,8 @@ import java.util.List;
 /**
  * CodegenDetailRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 代码生成表和字段的明细 Response VO")
 @Data

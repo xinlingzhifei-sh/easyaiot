@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import zipfile
@@ -19,8 +18,10 @@ class ModelService:
     def get_minio_client():
         """创建并返回Minio客户端（从.env加载配置）"""
         minio_endpoint = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
-        access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-        secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+        access_key = os.getenv('MINIO_ACCESS_KEY', '')
+        secret_key = os.getenv('MINIO_SECRET_KEY', '')
+        if not access_key or not secret_key:
+            raise RuntimeError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
         secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
 
         return Minio(

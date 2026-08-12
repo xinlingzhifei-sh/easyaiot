@@ -41,7 +41,7 @@ function mergeDefinedNodeFields(base: ComputeNodeVO, patch: ComputeNodeVO): Comp
   (Object.keys(patch) as Array<keyof ComputeNodeVO>).forEach((key) => {
     const value = patch[key];
     if (value !== undefined && value !== null) {
-      (merged as Record<string, unknown>)[key as string] = value;
+      (merged as unknown as Record<string, unknown>)[key as string] = value;
     }
   });
   return merged;

@@ -201,7 +201,7 @@ PY
 install -m 0644 "${DEB_SRC}/copyright" "${STAGE}/usr/share/doc/${PKG_NAME}/copyright"
 
 cat > "${STAGE}/usr/share/doc/${PKG_NAME}/README" <<EOF
-EasyAIoT PANEL ${DEB_VERSION}
+yFeiEye PANEL ${DEB_VERSION}
 
 安装后:
   1. 默认使用包内 runtime: /opt/easyaiot-panel/runtime（无需依赖源码仓库）

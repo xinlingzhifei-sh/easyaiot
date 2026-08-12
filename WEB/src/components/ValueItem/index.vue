@@ -11,7 +11,7 @@
     />
     <TimePicker
       v-else-if="typeMap.get(itemType) === 'time'"
-      v-model:value="myValue"
+      v-model:value="dateTimeValue"
       allowClear
       valueFormat="HH:mm:ss"
       style="width: 100%"
@@ -19,7 +19,7 @@
     />
     <DatePicker
       v-else-if="typeMap.get(itemType) === 'date'"
-      v-model:value="myValue"
+      v-model:value="dateTimeValue"
       allowClear
       showTime
       valueFormat="YYYY-MM-DD HH:mm:ss"
@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts" name="ValueItem">
-  import { PropType, ref, watch } from 'vue';
+  import { computed, PropType, ref, watch } from 'vue';
   import {
     UploadChangeParam,
     UploadFile,
@@ -126,8 +126,9 @@
   import { BasicUpload } from '../Upload';
   import { BasicModal, useModal } from '/@/components/Modal/index';
   import { CodeEditor } from '/@/components/CodeEditor';
+  import { useGlobSetting } from '@/hooks/setting';
 
-  //   import { FILE_UPLOAD } from '@/api/comm';
+  const FILE_UPLOAD = useGlobSetting().uploadUrl;
   //   import { Upload } from 'jetlinks-ui-components';
 
   type Emits = {
@@ -196,6 +197,12 @@
   // });
 
   const myValue = ref(props.modelValue);
+  const dateTimeValue = computed<string | undefined>({
+    get: () => myValue.value == null ? undefined : String(myValue.value),
+    set: (value) => {
+      myValue.value = value || '';
+    },
+  });
 
   const objectValue = ref<string>('');
   const handleItemModalSubmit = () => {

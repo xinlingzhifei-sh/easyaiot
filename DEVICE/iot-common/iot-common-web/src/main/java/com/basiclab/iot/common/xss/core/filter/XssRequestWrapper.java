@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Xss 请求 Wrapper
  *
- * @author 翱翔的雄库鲁
+ * @author reese
  */
 public class XssRequestWrapper extends HttpServletRequestWrapper {
 

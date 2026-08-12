@@ -1,9 +1,9 @@
 {
-  "name": "云边端一体化智能算法应用平台",
+  "name": "yfeieye-web",
   "version": "2.1.0-snapshot",
   "packageManager": "pnpm@11.3.0",
   "author": {
-    "name": "basiclab",
+    "name": "yfeieye-web",
     "email": "basiclab@qq.com",
     "url": "https://gitee.com/vegetable-chicken-blog/basiclab-iot"
   },
@@ -31,7 +31,13 @@
     "build:static": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode public/static && esno ./build/script/postBuild.ts",
     "build:no-cache": "pnpm store prune && pnpm build",
     "report": "cross-env REPORT=true pnpm build",
-    "type:check": "vue-tsc --noEmit --skipLibCheck",
+    "type:check": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vue-tsc --noEmit --skipLibCheck",
+    "test:alert-review-workbench": "node scripts/alert-review-workbench-e2e-check.mjs",
+    "test:alert-review-workbench:contract": "node scripts/alert-review-workbench-e2e-check.mjs --mode=contract",
+    "test:alert-review-workbench:dev-api-mock": "node scripts/alert-review-workbench-e2e-check.mjs --mode=dev-api-mock",
+    "test:alert-review-workbench:dev-api-real-drawer": "node scripts/alert-review-workbench-e2e-check.mjs --mode=dev-api-real-drawer",
+    "test:alert-review-workbench:runner": "node scripts/alert-review-workbench-e2e-check.test.mjs",
+    "test:alert-review-playback": "node scripts/alert-review-playback-contract.test.mjs",
     "preview": "pnpm build && vite preview",
     "preview:dist": "vite preview",
     "clean:cache": "rimraf node_modules/.cache/ && rimraf node_modules/.vite",

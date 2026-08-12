@@ -1,4 +1,4 @@
-# EasyAIoT 平台部署文档
+# yFeiEye 平台部署文档
 
 > 首次部署请参阅 [快速开始](#快速开始)；进阶运维、GPU、数据库与故障排查见 [部署最佳实践.md](./部署最佳实践.md)。
 
@@ -21,7 +21,7 @@
 
 ## 概述
 
-EasyAIoT 采用 **Docker 容器化 + 统一安装脚本** 部署，平台由基础中间件与 DEVICE / AI / VIDEO / WEB / APP / RUNTIME 等业务模块组成。
+yFeiEye 采用 **Docker 容器化 + 统一安装脚本** 部署，平台由基础中间件与 DEVICE / AI / VIDEO / WEB / APP / RUNTIME 等业务模块组成。
 
 | 模块 | 目录 | 说明 |
 |------|------|------|
@@ -575,6 +575,6 @@ sudo usermod -aG docker $USER && newgrp docker
 
 ---
 
-**文档版本**：3.4  
-**最后更新**：2026-08-05  
+**文档版本**：3.4<br>
+**最后更新**：2026-08-05<br>
 **脚本入口**：Linux `.scripts/docker/install_linux.sh`；CentOS x86 `install_linux_centos.sh`；CentOS ARM `install_linux_centos_arm.sh`；openEuler `install_linux_openeuler.sh`；ARM `install_linux_arm.sh`；macOS `install_mac.sh`；Windows `install_windows.ps1` / `install_windows.sh`（无参数 = 交互引导；`<命令>` = 直接执行）。桌面另支持 `bootstrap` / `mirrors` / `resources`。PANEL 编译见 `COMPILE/README.md`。

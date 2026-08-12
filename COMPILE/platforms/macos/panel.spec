@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# macOS PyInstaller spec for EasyAIoT PANEL
+# macOS PyInstaller spec for yFeiEye PANEL
 
 import os
 

@@ -214,12 +214,12 @@ const fetchShadowData = async () => {
     }
     defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
 
-    const response = await defHttp.get(
+    const response = (await defHttp.get(
       { url: `/shadow/${deviceId.value}` },
       { isTransformResponse: true },
-    );
+    )) as unknown as Record<string, any> | Array<Record<string, any>>;
 
-    let data = null;
+    let data: Record<string, any> | null = null;
     if (Array.isArray(response)) {
       const obj: any = {};
       response.forEach((item: any) => {

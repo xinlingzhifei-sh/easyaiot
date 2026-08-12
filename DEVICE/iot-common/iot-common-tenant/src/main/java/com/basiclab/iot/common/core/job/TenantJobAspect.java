@@ -21,9 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * 注意，需要保证 JobHandler 的幂等性。因为 Job 因为某个租户执行失败重试时，之前执行成功的租户也会再次执行。
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Aspect
 @RequiredArgsConstructor
@@ -43,7 +42,7 @@ public class TenantJobAspect {
         // 逐个租户，执行 Job
         Map<Long, String> results = new ConcurrentHashMap<>();
         tenantIds.parallelStream().forEach(tenantId -> {
-            // TODO BasicLab：先通过 parallel 实现并行；1）多个租户，是一条执行日志；2）异常的情况
+            // TODO yFeiEye：先通过 parallel 实现并行；1）多个租户，是一条执行日志；2）异常的情况
             TenantUtils.execute(tenantId, () -> {
                 try {
                     joinPoint.proceed();
@@ -52,6 +51,9 @@ public class TenantJobAspect {
                 }
             });
         });
+        if (!results.isEmpty()) {
+            throw new IllegalStateException("tenant job failed: " + JsonUtils.toJsonString(results));
+        }
         return JsonUtils.toJsonString(results);
     }
 

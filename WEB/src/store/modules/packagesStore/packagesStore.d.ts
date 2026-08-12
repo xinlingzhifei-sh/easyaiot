@@ -1,4 +1,4 @@
-import { PackagesType, ConfigType } from '@/packages/index.d'
+import { PackagesType, ConfigType } from '@/design/packages/index.d'
 
 export { ConfigType }
 

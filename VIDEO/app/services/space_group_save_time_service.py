@@ -153,16 +153,42 @@ def collect_group_device_ids(group_type, group_key):
     return ids
 
 
-def propagate_group_save_time(group_type, group_key, space_kind, save_time, commit=False):
+def list_group_record_space_authorization_scopes(group_type, group_key):
+    """Resolve every persisted record-space owner inside a storage group."""
+    device_ids = collect_group_device_ids(group_type, group_key)
+    if not device_ids:
+        return []
+    spaces = RecordSpace.query.filter(RecordSpace.device_id.in_(device_ids)).all()
+    scopes = []
+    for space in spaces:
+        camera_id = str(getattr(space, 'device_id', '') or '').strip()
+        tenant_id = str(getattr(space, 'tenant_id', '') or '').strip()
+        scopes.append({
+            'tenant_id': int(tenant_id) if tenant_id.isdigit() else tenant_id,
+            'camera_id': camera_id or None,
+            'space_id': getattr(space, 'id', None),
+        })
+    return sorted(scopes, key=lambda value: (
+        str(value['tenant_id']), value['camera_id'] or '', value['space_id'] or 0))
+
+
+def propagate_group_save_time(group_type, group_key, space_kind, save_time,
+                              commit=False, tenant_id=None, camera_ids=None):
     """分组默认保存时间变更时，联动更新组内非自定义设备空间。"""
     save_time = validate_save_time(save_time)
     device_ids = collect_group_device_ids(group_type, group_key)
+    if camera_ids is not None:
+        allowed = set(camera_ids)
+        device_ids = [device_id for device_id in device_ids if device_id in allowed]
     if not device_ids:
         return 0
     SpaceModel = _space_model(space_kind)
     updated = 0
     for device_id in device_ids:
-        space = SpaceModel.query.filter_by(device_id=device_id).first()
+        filters = {'device_id': device_id}
+        if tenant_id is not None:
+            filters['tenant_id'] = int(tenant_id)
+        space = SpaceModel.query.filter_by(**filters).first()
         if space and not space.save_time_custom:
             space.save_time = save_time
             updated += 1
@@ -175,7 +201,8 @@ def propagate_group_save_time(group_type, group_key, space_kind, save_time, comm
     return updated
 
 
-def update_group_save_time(group_type, group_key, space_kind, save_time, commit=True):
+def update_group_save_time(group_type, group_key, space_kind, save_time,
+                           commit=True, tenant_id=None, camera_ids=None):
     """更新分组默认保存时间并联动非自定义子设备。"""
     group_type = (group_type or '').strip().lower()
     group_key = str(group_key or '').strip()
@@ -190,11 +217,47 @@ def update_group_save_time(group_type, group_key, space_kind, save_time, commit=
             raise ValueError(f'无效的 NVR 分组标识: {group_key}') from exc
 
     save_time = validate_save_time(save_time)
+    if camera_ids is not None:
+        tenant_text = str(tenant_id or '').strip()
+        normalized_cameras = list(dict.fromkeys(
+            str(value or '').strip()
+            for value in camera_ids
+            if str(value or '').strip()
+        ))
+        if not tenant_text.isdigit() or int(tenant_text) <= 0:
+            raise ValueError('group policy requires an authorized tenant scope')
+        if not normalized_cameras:
+            raise ValueError('group policy requires an authorized camera scope')
+        group_devices = set(collect_group_device_ids(group_type, group_key))
+        if not set(normalized_cameras).issubset(group_devices):
+            raise ValueError('group policy camera scope does not match the group')
+        SpaceModel = _space_model(space_kind)
+        group_spaces = SpaceModel.query.filter(
+            SpaceModel.device_id.in_(group_devices)).all()
+        persisted_scopes = {
+            (int(getattr(space, 'tenant_id')), str(getattr(space, 'device_id')))
+            for space in group_spaces
+        }
+        requested_scopes = {
+            (int(tenant_text), camera_id) for camera_id in normalized_cameras
+        }
+        if persisted_scopes != requested_scopes:
+            raise ValueError('group policy requires authorization for every persisted camera')
+        tenant_id = int(tenant_text)
+        camera_ids = normalized_cameras
     policy = get_or_create_group_policy(group_type, group_key)
     if space_kind == SPACE_KIND_SNAP:
         policy.snap_save_time = save_time
     else:
         policy.record_save_time = save_time
     db.session.flush()
-    updated = propagate_group_save_time(group_type, group_key, space_kind, save_time, commit=commit)
+    updated = propagate_group_save_time(
+        group_type,
+        group_key,
+        space_kind,
+        save_time,
+        commit=commit,
+        tenant_id=tenant_id,
+        camera_ids=camera_ids,
+    )
     return policy, updated

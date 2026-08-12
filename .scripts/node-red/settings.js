@@ -1,6 +1,6 @@
 /**
- * EasyAIoT Node-RED settings
- * - 页面标题：EasyAIoT
+ * yFeiEye Node-RED settings
+ * - 页面标题：yFeiEye
  * - 内置 4 条演示规则链只读保护（禁止 PUT/DELETE，POST /flows 时强制回填锁定副本）
  *
  * 由 docker-compose 挂载到容器 /data/settings.js
@@ -79,7 +79,7 @@ function demoGuardMiddleware(req, res, next) {
         if (isDemoTabId(id) || DEMO_LABELS.has(id)) {
             res.status(403).json({
                 error: 'forbidden',
-                message: 'EasyAIoT 演示规则链为只读，禁止修改或删除',
+                message: 'yFeiEye 演示规则链为只读，禁止修改或删除',
                 id: id,
             });
             return;
@@ -110,14 +110,14 @@ module.exports = {
     /** 静态资源：演示只读脚本 */
     httpStatic: path.join(__dirname, 'public'),
 
-    /** 页面 / 顶栏标题改为 EasyAIoT */
+    /** 页面 / 顶栏标题改为 yFeiEye */
     editorTheme: {
         page: {
-            title: 'EasyAIoT',
+            title: 'yFeiEye',
             scripts: ['/easyaiot-demo-guard.js'],
         },
         header: {
-            title: 'EasyAIoT',
+            title: 'yFeiEye',
         },
         tours: false,
         projects: {

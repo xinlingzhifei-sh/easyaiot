@@ -1,7 +1,6 @@
 """
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import logging
 import multiprocessing
@@ -28,6 +27,10 @@ from ultralytics import YOLO
 from app.services.minio_service import ModelService
 from db_models import Model, InferenceTask, db
 from app.utils.onnx_inference import ONNXInference
+from app.utils.model_upload_security import (
+    require_official_pretrained_model,
+    require_web_safe_model_reference,
+)
 from app.utils.yolo_chinese_font import ensure_ultralytics_chinese_plot_font
 from app.utils.model_class_utils import parse_class_names_json, resolve_class_ids_from_names
 from app.utils.algorithm_detection_draw import (
@@ -524,12 +527,18 @@ class InferenceService:
         return 'cpu'
 
 
-    def _load_model(self, model_path: str):
+    def _load_model(
+        self,
+        model_path: str,
+        *,
+        allow_official_pretrained: bool = False,
+    ):
         """优化模型加载，支持混合精度和缓存，支持ONNX模型"""
         # 检查是否为ONNX模型
         is_onnx = model_path.lower().endswith('.onnx')
         
         if is_onnx:
+            require_web_safe_model_reference(model_path)
             # ONNX模型使用新的ONNX推理模块
             if model_path in self.onnx_cache:
                 return self.onnx_cache[model_path]
@@ -543,7 +552,12 @@ class InferenceService:
                 logging.error(f"ONNX模型加载失败: {str(e)}")
                 raise
         else:
-            # PyTorch模型使用YOLO
+            if not allow_official_pretrained:
+                raise ValueError(
+                    '用户推理仅允许 ONNX 模型；PyTorch 权重必须在隔离环境转换'
+                )
+            require_official_pretrained_model(os.path.basename(model_path))
+            # 仅内置官方基础模型允许使用YOLO加载。
             if model_path in self.model_cache:
                 return self.model_cache[model_path]
             
@@ -606,19 +620,27 @@ class InferenceService:
         for model_path in default_models:
             if os.path.exists(model_path):
                 logging.info(f"使用AI目录下的默认模型: {model_path}")
-                return self._load_model(model_path)
+                return self._load_model(
+                    model_path,
+                    allow_official_pretrained=True,
+                )
 
         # 3.2 使用其他默认模型路径
         default_model = os.path.join('model', 'yolov8n.pt')
         if os.path.exists(default_model):
-            return self._load_model(default_model)
+            return self._load_model(
+                default_model,
+                allow_official_pretrained=True,
+            )
 
         raise Exception("未找到可用的模型文件")
 
     def set_model_path(self, model_path: str):
         """设置指定的模型文件路径"""
         if model_path and os.path.exists(model_path):
-            self.specified_model_path = os.path.abspath(model_path)
+            self.specified_model_path = os.path.abspath(
+                require_web_safe_model_reference(model_path)
+            )
             logging.info(f"已设置模型文件路径: {self.specified_model_path}")
         else:
             logging.warning(f"指定的模型文件不存在: {model_path}")
@@ -726,25 +748,11 @@ class InferenceService:
             if not model:
                 return None
 
-            # 获取模型路径：优先使用model_path，其次使用onnx_model_path，最后从TrainTask获取minio_model_path
-            minio_path = None
-            if model.model_path:
-                minio_path = model.model_path
-            elif model.onnx_model_path:
-                minio_path = model.onnx_model_path
-            else:
-                # 从TrainTask中获取最新的minio_model_path
-                from db_models import TrainTask
-                train_task = TrainTask.query.filter_by(
-                    model_id=self.model_id,
-                    status='completed'
-                ).order_by(TrainTask.end_time.desc()).first()
-                
-                if train_task and train_task.minio_model_path:
-                    minio_path = train_task.minio_model_path
+            minio_path = model.onnx_model_path
 
             if not minio_path:
                 return None
+            require_web_safe_model_reference(minio_path)
 
             # 如果是本地路径（不以 /api/v1/buckets/ 开头），直接提取文件名
             if not minio_path.startswith('/api/v1/buckets/'):
@@ -768,7 +776,7 @@ class InferenceService:
 
     def _find_local_model(self) -> Optional[str]:
         """在本地目录查找模型文件，并检查文件名是否与数据库中的模型文件匹配"""
-        model_exts = ('.pt', '.onnx', '.engine')
+        model_exts = ('.onnx',)
         if not os.path.exists(self.model_dir):
             return None
 
@@ -821,25 +829,11 @@ class InferenceService:
             if not model:
                 return None
 
-            # 获取模型路径：优先使用model_path，其次使用onnx_model_path，最后从TrainTask获取minio_model_path
-            minio_path = None
-            if model.model_path:
-                minio_path = model.model_path
-            elif model.onnx_model_path:
-                minio_path = model.onnx_model_path
-            else:
-                # 从TrainTask中获取最新的minio_model_path
-                from db_models import TrainTask
-                train_task = TrainTask.query.filter_by(
-                    model_id=self.model_id,
-                    status='completed'
-                ).order_by(TrainTask.end_time.desc()).first()
-                
-                if train_task and train_task.minio_model_path:
-                    minio_path = train_task.minio_model_path
+            minio_path = model.onnx_model_path
 
             if not minio_path:
                 return None
+            minio_path = require_web_safe_model_reference(minio_path)
 
             # 检查是否是本地路径且文件存在
             # 如果是本地路径（不以 /api/v1/buckets/ 开头，且是绝对路径或相对于static的路径）

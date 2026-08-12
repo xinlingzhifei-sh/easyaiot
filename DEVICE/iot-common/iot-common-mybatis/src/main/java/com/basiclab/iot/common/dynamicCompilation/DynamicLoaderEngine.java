@@ -10,9 +10,8 @@ import java.util.List;
  * 动态加载引擎，负责动态编译、加载类
  *
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date 2025-07-04
  *
  */

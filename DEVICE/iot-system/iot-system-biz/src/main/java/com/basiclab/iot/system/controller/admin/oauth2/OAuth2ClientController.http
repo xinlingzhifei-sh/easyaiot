@@ -7,7 +7,7 @@ tenant-id: {{adminTenentId}}
 {
   "id": "1",
   "secret": "admin123",
-  "name": "BasicLab源码",
+  "name": "yFeiEye",
   "logo": "https://www.iocoder.cn/images/favicon.ico",
   "description": "我是描述",
   "status": 0,

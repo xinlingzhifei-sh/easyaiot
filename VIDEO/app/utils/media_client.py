@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 from app.utils.node_client import JAVA_BACKEND_URL
 
 MEDIA_API_BASE = f'{JAVA_BACKEND_URL}/admin-api/node/media'
+AGENT_COMMAND_API_BASE = f'{JAVA_BACKEND_URL}/admin-api/node/agent/commands'
 REQUEST_TIMEOUT = 30
 
 
@@ -67,6 +68,38 @@ def get_device_media_binding(device_id: str) -> Dict[str, Any]:
     data = resp.json()
     if data.get('code') != 0:
         raise RuntimeError(data.get('msg') or f'查询媒体绑定失败: {url}')
+    return data.get('data') or {}
+
+
+def enqueue_agent_command(
+    *,
+    node_id: int,
+    command_type: str,
+    command_key: str,
+    payload: Dict[str, Any],
+) -> Dict[str, Any]:
+    body = {
+        'nodeId': node_id,
+        'commandType': command_type,
+        'commandKey': command_key,
+        'payload': payload,
+    }
+    url = f'{AGENT_COMMAND_API_BASE}/enqueue'
+    resp = requests.post(url, json=body, headers=_headers(), timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    if data.get('code') != 0:
+        raise RuntimeError(data.get('msg') or f'Agent command enqueue failed: {url}')
+    return data.get('data') or {}
+
+
+def get_agent_command_by_key(command_key: str) -> Dict[str, Any]:
+    url = f'{AGENT_COMMAND_API_BASE}/by-key'
+    resp = requests.get(url, params={'commandKey': command_key}, headers=_headers(), timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    if data.get('code') != 0:
+        raise RuntimeError(data.get('msg') or f'Agent command lookup failed: {url}')
     return data.get('data') or {}
 
 

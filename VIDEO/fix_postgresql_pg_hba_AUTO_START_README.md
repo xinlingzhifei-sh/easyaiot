@@ -10,7 +10,7 @@
 
 ```bash
 # 进入 VIDEO 目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 使用 sudo 运行安装脚本
 sudo bash install_fix_postgresql_service.sh
@@ -27,7 +27,7 @@ sudo bash install_fix_postgresql_service.sh
 
 ```bash
 # 1. 进入 VIDEO 目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 2. 复制服务文件到 systemd 目录
 sudo cp fix_postgresql_pg_hba.service /etc/systemd/system/
@@ -94,17 +94,17 @@ sudo journalctl -u fix_postgresql_pg_hba.service --since today
 
 ```bash
 # 查看日志目录
-ls -lh /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
+ls -lh /opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
 
 # 查看最新日志
-tail -f /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_$(date +%Y%m%d).log
+tail -f /opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_$(date +%Y%m%d).log
 ```
 
 ## ⚙️ 服务配置说明
 
 ### 服务文件位置
 
-- **源文件**: `/opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba.service`
+- **源文件**: `/opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba.service`
 - **系统文件**: `/etc/systemd/system/fix_postgresql_pg_hba.service`
 
 ### 服务配置参数
@@ -119,8 +119,8 @@ Requires=docker.service        # 需要 Docker 服务
 Type=oneshot                  # 一次性服务（执行完即退出）
 User=basiclab                 # 运行用户（根据实际情况修改）
 Group=basiclab                # 运行组（根据实际情况修改）
-WorkingDirectory=/opt/projects/easyaiot/VIDEO
-ExecStart=/opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba_auto.sh
+WorkingDirectory=/opt/projects/yfeieye/VIDEO
+ExecStart=/opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba_auto.sh
 TimeoutStartSec=600           # 超时时间（10分钟）
 
 [Install]
@@ -196,7 +196,7 @@ sudo journalctl -u fix_postgresql_pg_hba.service -n 50
 sudo journalctl -u fix_postgresql_pg_hba.service -n 100
 
 # 查看脚本日志
-tail -100 /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
+tail -100 /opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
 ```
 
 **可能原因**:
@@ -207,7 +207,7 @@ tail -100 /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
 **解决方法**:
 ```bash
 # 手动执行修复脚本测试
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 bash fix_postgresql_pg_hba.sh
 
 # 如果手动执行成功，检查服务配置中的路径是否正确
@@ -240,12 +240,12 @@ Permission denied
 **解决方法**:
 ```bash
 # 检查脚本权限
-ls -l /opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba_auto.sh
-ls -l /opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba.sh
+ls -l /opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba_auto.sh
+ls -l /opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba.sh
 
 # 确保脚本有执行权限
-chmod +x /opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba_auto.sh
-chmod +x /opt/projects/easyaiot/VIDEO/fix_postgresql_pg_hba.sh
+chmod +x /opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba_auto.sh
+chmod +x /opt/projects/yfeieye/VIDEO/fix_postgresql_pg_hba.sh
 
 # 检查服务文件中的用户配置
 sudo cat /etc/systemd/system/fix_postgresql_pg_hba.service | grep -E "User|Group"
@@ -270,7 +270,7 @@ sudo systemctl status fix_postgresql_pg_hba.service
 sudo journalctl -u fix_postgresql_pg_hba.service --since "1 hour ago"
 
 # 查看脚本日志
-tail -50 /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
+tail -50 /opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log
 ```
 
 应该看到：
@@ -292,7 +292,7 @@ host    all             all             ::/0                    md5
 ### 方法 4: 测试数据库连接
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 bash fix_postgresql_pg_hba.sh --check-only
 ```
 
@@ -338,7 +338,7 @@ sudo systemctl status fix_postgresql_pg_hba.service
    - 如果 PostgreSQL 容器需要手动启动，服务会等待容器启动（最多5分钟）
 
 3. **日志文件**: 日志文件会按日期创建，不会无限增长
-   - 日志位置: `/opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_YYYYMMDD.log`
+   - 日志位置: `/opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_YYYYMMDD.log`
 
 4. **服务类型**: 这是 `oneshot` 类型服务，执行完即退出
    - 不会持续运行，只在系统启动时执行一次
@@ -351,7 +351,7 @@ sudo systemctl status fix_postgresql_pg_hba.service
 如果遇到问题，请：
 
 1. 查看服务日志：`sudo journalctl -u fix_postgresql_pg_hba.service -n 100`
-2. 查看脚本日志：`tail -100 /opt/projects/easyaiot/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log`
+2. 查看脚本日志：`tail -100 /opt/projects/yfeieye/VIDEO/logs/fix_postgresql_pg_hba_auto_*.log`
 3. 手动执行修复脚本测试：`bash fix_postgresql_pg_hba.sh`
 4. 查看本文档的故障排查部分
 

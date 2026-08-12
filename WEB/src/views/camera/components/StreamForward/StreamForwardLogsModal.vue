@@ -157,7 +157,7 @@ const loadLogs = async (taskId: number) => {
         }
       } else if ('logs' in logsResponse) {
         // 转换后的 data.data 对象，直接包含 logs 字段
-        logs.value = logsResponse.logs || '';
+        logs.value = (logsResponse as { logs?: string }).logs || '';
       } else {
         logs.value = '获取日志失败: 响应数据格式错误';
       }

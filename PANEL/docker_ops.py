@@ -335,7 +335,7 @@ def prune_images(dangling_only: bool = True) -> Dict[str, Any]:
     }
 
 
-# EasyAIoT 运行时镜像目录（与 .scripts/docker/runtime_image_common.sh 对齐）
+# yFeiEye 运行时镜像目录（与 .scripts/docker/runtime_image_common.sh 对齐）
 _DEVICE_IMAGES = [
     ('aiot-gateway', 'iot-gateway', 'iot-gateway'),
     ('aiot-system', 'iot-module-system-biz', 'iot-system'),
@@ -429,7 +429,7 @@ def _containers_using_image(local_name: str, containers: List[Dict[str, Any]]) -
 
 
 def image_catalog(profile: str = 'full') -> Dict[str, Any]:
-    """按 EasyAIoT 模块列出期望镜像与本机就绪情况。"""
+    """按 yFeiEye 模块列出期望镜像与本机就绪情况。"""
     profile = (profile or 'full').strip().lower()
     if profile not in ('mini', 'standard', 'full'):
         profile = 'full'

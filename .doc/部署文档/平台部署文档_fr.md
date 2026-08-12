@@ -1,4 +1,4 @@
-# Guide de déploiement de la plateforme EasyAIoT
+# Guide de déploiement de la plateforme yFeiEye
 
 > Pour un premier déploiement, consultez [Démarrage rapide](#démarrage-rapide). Pour les opérations avancées, le GPU, les bases de données et le dépannage, voir [Bonnes pratiques de déploiement](./部署最佳实践_fr.md).
 
@@ -19,7 +19,7 @@
 
 ## Aperçu
 
-EasyAIoT est déployé via **des conteneurs Docker et un script d'installation unifié**. La plateforme comprend le middleware de base et les modules métier : DEVICE, AI, VIDEO, WEB et APP.
+yFeiEye est déployé via **des conteneurs Docker et un script d'installation unifié**. La plateforme comprend le middleware de base et les modules métier : DEVICE, AI, VIDEO, WEB et APP.
 
 | Module | Répertoire | Description |
 |--------|-----------|-------------|

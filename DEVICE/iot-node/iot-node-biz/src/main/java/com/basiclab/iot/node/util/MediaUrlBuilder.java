@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
 import lombok.Data;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -31,16 +32,16 @@ public final class MediaUrlBuilder {
         if (srsLiveNode != null) {
             int rtmpPort = tagInt(srsLiveNode, "srs_rtmp_port", 1935);
             int httpPort = tagInt(srsLiveNode, "srs_http_port", 8080);
-            String playHost = StrUtil.blankToDefault(httpPlayHost, srsLiveNode.getHost());
             urls.setRtmpStream(String.format("rtmp://%s:%d/live/%s", srsLiveNode.getHost(), rtmpPort, deviceId));
-            urls.setHttpStream(String.format("http://%s:%d/live/%s.flv", playHost, httpPort, deviceId));
+            urls.setHttpStream(buildHttpFlvUrl(httpPlayHost, srsLiveNode.getHost(), httpPort,
+                    String.format("live/%s.flv", deviceId)));
         }
         if (srsAiNode != null) {
             int rtmpPort = tagInt(srsAiNode, "srs_rtmp_port", 1935);
             int httpPort = tagInt(srsAiNode, "srs_http_port", 8080);
-            String playHost = StrUtil.blankToDefault(httpPlayHost, srsAiNode.getHost());
             urls.setAiRtmpStream(String.format("rtmp://%s:%d/ai/%s", srsAiNode.getHost(), rtmpPort, deviceId));
-            urls.setAiHttpStream(String.format("http://%s:%d/ai/%s.flv", playHost, httpPort, deviceId));
+            urls.setAiHttpStream(buildHttpFlvUrl(httpPlayHost, srsAiNode.getHost(), httpPort,
+                    String.format("ai/%s.flv", deviceId)));
         }
         if (zlmNode != null) {
             urls.setZlmHost(zlmNode.getHost());
@@ -48,6 +49,17 @@ public final class MediaUrlBuilder {
             urls.setZlmRtmpPort(tagInt(zlmNode, "zlm_rtmp_port", 10935));
         }
         return urls;
+    }
+
+    private static String buildHttpFlvUrl(String httpPlayHost, String nodeHost, int httpPort, String path) {
+        String publicOrigin = StrUtil.trimToEmpty(httpPlayHost);
+        String lowerOrigin = publicOrigin.toLowerCase(Locale.ROOT);
+        if (lowerOrigin.startsWith("http://") || lowerOrigin.startsWith("https://")) {
+            return StrUtil.removeSuffix(publicOrigin, "/") + "/" + path;
+        }
+
+        String playHost = StrUtil.blankToDefault(publicOrigin, nodeHost);
+        return String.format("http://%s:%d/%s", playHost, httpPort, path);
     }
 
     private static int tagInt(ComputeNodeDO node, String key, int defaultValue) {

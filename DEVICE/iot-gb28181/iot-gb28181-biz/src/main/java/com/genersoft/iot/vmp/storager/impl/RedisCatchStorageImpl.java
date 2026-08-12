@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -242,6 +243,24 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             result.add((StreamAuthorityInfo)value);
         }
         return result;
+    }
+
+    @Override
+    public void registerAudioBroadcastAuthority(String app, String stream, String token) {
+        String key = VideoManagerConstants.AUDIO_BROADCAST_AUTHORITY_PREFIX + app + ":" + stream;
+        stringRedisTemplate.opsForValue().set(key, token, Duration.ofMinutes(2));
+    }
+
+    @Override
+    public boolean consumeAudioBroadcastAuthority(String app, String stream, String token) {
+        String key = VideoManagerConstants.AUDIO_BROADCAST_AUTHORITY_PREFIX + app + ":" + stream;
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>(
+                "if redis.call('GET', KEYS[1]) == ARGV[1] then "
+                        + "redis.call('DEL', KEYS[1]); return 1 else return 0 end",
+                Long.class
+        );
+        Long result = stringRedisTemplate.execute(script, Collections.singletonList(key), token);
+        return Long.valueOf(1L).equals(result);
     }
 
 

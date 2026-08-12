@@ -1,7 +1,7 @@
 import {defHttp} from '@/utils/http/axios';
+import type { ResponseType } from 'axios';
 import { dedupeRequest } from '@/utils/requestDedupe';
 import { getDeviceList } from '@/api/device/camera';
-import { getJwtToken } from '@/utils/auth';
 
 enum Api {
   Alarm = '/video/alert',
@@ -20,15 +20,13 @@ const commonApi = (
   params = {},
   headers = {},
   isTransformResponse = true,
-  responseType = 'json',
+  responseType: ResponseType = 'json',
   requestOptions: {
     errorMessageMode?: 'none' | 'message' | 'modal';
     timeout?: number;
     retryRequest?: { isOpenRetry: boolean; count: number; waitTime: number };
   } = {},
 ) => {
-  defHttp.setHeader({'X-Authorization': 'Bearer ' + getJwtToken()});
-
   return defHttp[method](
     {
       url,
@@ -175,11 +173,11 @@ export const clearAllAlerts = () => {
 };
 
 // 获取仪表板统计信息（统一接口，带请求去重）
-export const getDashboardStatistics = async () => {
+export const getDashboardStatistics = async (params: { device_id: string }) => {
   const url = Api.Alarm + '/statistics';
   return dedupeRequest(
     async () => {
-      const res = await commonApi('get', url, {}, {}, false, 'json', DASHBOARD_POLL_REQUEST_OPTIONS);
+      const res = await commonApi('get', url, { params }, {}, false, 'json', DASHBOARD_POLL_REQUEST_OPTIONS);
       // 后端返回格式: { code: 0, data: { alarm_count, today_alarm_count, ... } }
       if (res && res.data && res.data.data) {
         return res.data.data;
@@ -191,7 +189,7 @@ export const getDashboardStatistics = async () => {
       return res;
     },
     url,
-    undefined, // 统计接口无参数
+    params,
     4500, // 与大屏 5s 轮询对齐，Sidebar/index 错峰请求可复用
   );
 };

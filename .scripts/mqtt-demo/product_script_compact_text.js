@@ -1,5 +1,5 @@
 /**
- * 紧凑文本私有协议（EasyAIoT EA 协议）
+ * 紧凑文本私有协议（yFeiEye EA 协议）
  * 复制到「产品管理 → 协议脚本」或通过 API 保存；须启用后热加载。
  *
  * 上行设备 → 平台（rawDataToProtocol）:

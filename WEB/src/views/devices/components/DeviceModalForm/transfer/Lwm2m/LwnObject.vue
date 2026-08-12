@@ -36,7 +36,7 @@
     lwmList.value = [...lwmList.value, ...tempList];
   }
   const modelRef = reactive({
-    objectLwm2m: null,
+    objectLwm2m: undefined as string | number | undefined,
   });
   useForm(modelRef);
 </script>

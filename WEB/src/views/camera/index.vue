@@ -17,8 +17,17 @@
             :initial-mode="splitScreenInitialMode"
             @play="handleCardPlay"
           />
-        </TabPane>
-        <TabPane key="3" tab="设备列表">
+      </TabPane>
+      <TabPane key="3" tab="设备列表">
+          <GpuStackMonitorTip class="page-monitor-tip" />
+          <Alert
+            v-if="accessHealth && accessHealth.alert_count > 0"
+            class="access-health-banner"
+            type="warning"
+            show-icon
+            :message="`设备接入状态有 ${accessHealth.alert_count} 条告警`"
+            :description="accessHealth.alerts?.[0]?.reason_message || accessHealth.alerts?.[0]?.reason_code || '请检查设备接入状态中心'"
+          />
           <DeviceCreate
             v-if="deviceCreateVisible"
             :initial-kind="deviceCreateInitial.kind"
@@ -90,11 +99,11 @@
                 <template v-if="column.dataIndex === 'name'">
                   <span
                     class="device-list-table__copyable"
-                    :title="formatCameraDeviceLabel(record)"
-                    @click="handleCopy(formatCameraDeviceLabel(record))"
+                    :title="formatDeviceTableLabel(record)"
+                    @click="handleCopy(formatDeviceTableLabel(record))"
                   >
                     <Icon icon="tdesign:copy-filled" color="#4287FCFF" />
-                    {{ formatCameraDeviceLabel(record) }}
+                    {{ formatDeviceTableLabel(record) }}
                   </span>
                 </template>
                 <template v-else-if="column.dataIndex === 'stream_status'">
@@ -204,15 +213,49 @@
       </Tabs>
     </div>
     <DeviceLocationDrawer @register="registerLocationDrawer" @success="handleLocationDrawerSuccess" />
+    <a-modal
+      v-model:open="accessEventHistoryVisible"
+      :title="accessEventHistoryTitle"
+      :footer="null"
+      width="820px"
+    >
+      <a-spin :spinning="accessEventHistoryLoading">
+        <div class="access-event-history">
+          <div v-if="accessEventHistoryRows.length === 0" class="access-event-history__empty">
+            暂无接入事件
+          </div>
+          <div
+            v-for="event in accessEventHistoryRows"
+            :key="event.id || `${event.protocol}_${event.event_time}_${event.reason_code}`"
+            class="access-event-history__row"
+          >
+            <div class="access-event-history__header">
+              <a-tag :color="accessEventStateColor(event.state)">
+                {{ accessEventStateLabel(event.state) }}
+              </a-tag>
+              <span class="access-event-history__protocol">{{ event.protocol || '-' }}</span>
+              <span class="access-event-history__time">{{ event.event_time || '-' }}</span>
+            </div>
+            <div class="access-event-history__reason">
+              {{ event.reason_message || event.reason_code || '-' }}
+            </div>
+            <div class="access-event-history__meta">
+              <span>source_event: {{ event.source_event || '-' }}</span>
+              <span>stream: {{ event.stream_id || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </a-spin>
+    </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {nextTick, onMounted, onUnmounted, reactive, ref, watch, computed} from 'vue';
-import {useRoute} from 'vue-router';
-import {TabPane, Tabs, Checkbox} from 'ant-design-vue';
+import {useRoute, useRouter} from 'vue-router';
+import {Alert, TabPane, Tabs, Checkbox} from 'ant-design-vue';
 import { SwapOutlined } from '@ant-design/icons-vue';
-import {BasicTable, TableAction, useTable} from '@/components/Table';
+import {BasicTable, TableAction, useTable, type ActionItem} from '@/components/Table';
 import {useMessage} from '@/hooks/web/useMessage';
 import {getBasicColumns, getFormConfig} from "./Data";
 import {useModal} from "@/components/Modal";
@@ -226,10 +269,13 @@ import {
   batchDeleteDevices,
   batchDeleteNvrs,
   DeviceInfo,
-  getDeviceList,
+  getDeviceAccessEvents,
+  getDeviceAccessHealth,
   getStreamStatus,
   refreshDjiSkylinkLiveByDevice,
   StreamStatusResponse,
+  type DeviceAccessHealthSnapshot,
+  type DeviceAccessStateEvent,
 } from '@/api/device/camera';
 import DialogPlayer from "@/components/VideoPlayer/DialogPlayer.vue";
 import { Button, PopConfirmButton } from '@/components/Button';
@@ -264,6 +310,7 @@ import {
   supportsRtspForward,
 } from './utils/devicePlay';
 import Gb28181Node from "@/views/gb28181/components/Node/index.vue";
+import GpuStackMonitorTip from '@/components/GpuStackMonitorTip/index.vue';
 import BatchLocationImportModal from './components/BatchLocationImportModal/index.vue';
 import DeviceLocationDrawer from './components/DeviceLocationDrawer/index.vue';
 import {
@@ -292,6 +339,11 @@ const facePlateLibraryEnabled = isFacePlateLibraryEnabled();
 const scenarioPoseLibraryEnabled = isScenarioPoseLibraryEnabled();
 
 const route = useRoute();
+const router = useRouter();
+
+function formatDeviceTableLabel(record: Record<string, any>) {
+  return formatCameraDeviceLabel(record as DeviceInfo);
+}
 
 const {createMessage} = useMessage();
 const [registerAddModel, {openModal}] = useModal();
@@ -310,10 +362,52 @@ const state = reactive({
 
 // 视图模式（默认卡片模式）
 const viewMode = ref<'table' | 'card'>('card');
+const accessHealth = ref<DeviceAccessHealthSnapshot | null>(null);
+const accessEventHistoryVisible = ref(false);
+const accessEventHistoryLoading = ref(false);
+const accessEventHistoryRows = ref<DeviceAccessStateEvent[]>([]);
+const accessEventHistoryTitle = ref('接入事件');
+
+const accessEventStateLabels: Record<string, string> = {
+  pending_config: '待配置',
+  registering: '注册中',
+  registered: '已注册',
+  stream_online: '流在线',
+  play_ready: '可播放',
+  ai_ready: 'AI就绪',
+  error: '异常',
+};
+
+const accessEventStateColors: Record<string, string> = {
+  pending_config: 'default',
+  registering: 'processing',
+  registered: 'blue',
+  stream_online: 'cyan',
+  play_ready: 'green',
+  ai_ready: 'success',
+  error: 'red',
+};
+
+function accessEventStateLabel(state?: string | null) {
+  return accessEventStateLabels[state || 'pending_config'] || state || '待配置';
+}
+
+function accessEventStateColor(state?: string | null) {
+  return accessEventStateColors[state || 'pending_config'] || 'default';
+}
+
+async function loadDeviceAccessHealth() {
+  try {
+    accessHealth.value = await getDeviceAccessHealth({ stale_after_seconds: 180 });
+  } catch (error) {
+    console.warn('load device access health failed', error);
+    accessHealth.value = null;
+  }
+}
 
 /** 表格多选 */
-const checkedKeys = ref<Array<string | number>>([]);
-const selectedRecordMap = ref<Map<string | number, DeviceInfo>>(new Map());
+const checkedKeys = ref<string[]>([]);
+const selectedRecordMap = ref<Map<string, DeviceInfo>>(new Map());
 
 function clearDeviceSelection() {
   checkedKeys.value = [];
@@ -460,6 +554,7 @@ const handleTabClick = (activeKey: string) => {
   // 切换到设备列表标签页时，刷新直连设备数据
   if (activeKey === CAMERA_TAB_KEYS.DEVICE_LIST) {
     handleSuccess();
+    void loadDeviceAccessHealth();
   }
   // 切换到存储空间标签页时，刷新数据（TabPane destroyInactiveTabPane 下需 nextTick 等待挂载）
   if (activeKey === CAMERA_TAB_KEYS.STORAGE) {
@@ -616,7 +711,7 @@ function handleEditGbDevice(item: Gb28181CardItem) {
   openGbDeviceInfoModal('edit', { sipDeviceId: item.deviceIdentification });
 }
 
-async function handleDeleteGbDevice(item: Gb28181CardItem | { sip_device_id?: string; deviceIdentification?: string }) {
+async function handleDeleteGbDevice(item: Gb28181CardItem | Record<string, any>) {
   const sipId =
     'deviceIdentification' in item && item.deviceIdentification
       ? item.deviceIdentification
@@ -634,11 +729,11 @@ async function handleDeleteGbDevice(item: Gb28181CardItem | { sip_device_id?: st
   }
 }
 
-function handleTableViewGbDevice(record: DeviceInfo & { sip_device_id?: string }) {
+function handleTableViewGbDevice(record: Record<string, any>) {
   openGbDeviceInfoModal('view', { sipDeviceId: gbSipIdFromRecord(record) });
 }
 
-function handleTableEditGbDevice(record: DeviceInfo & { sip_device_id?: string }) {
+function handleTableEditGbDevice(record: Record<string, any>) {
   openGbDeviceInfoModal('edit', { sipDeviceId: gbSipIdFromRecord(record) });
 }
 
@@ -708,6 +803,27 @@ function getRecordStreamStatus(deviceId: string) {
   return (deviceStreamStatuses.value && deviceStreamStatuses.value[deviceId]) || 'unknown';
 }
 
+async function openAccessEventHistory(record: DeviceInfo) {
+  const deviceId = String(record.id || '').trim();
+  if (!deviceId) {
+    createMessage.warning('缺少设备 ID');
+    return;
+  }
+  accessEventHistoryTitle.value = `${formatCameraDeviceLabel(record)} - 接入事件`;
+  accessEventHistoryVisible.value = true;
+  accessEventHistoryLoading.value = true;
+  accessEventHistoryRows.value = [];
+  try {
+    const result = await getDeviceAccessEvents(deviceId, { limit: 30 });
+    accessEventHistoryRows.value = result.events || [];
+  } catch (error) {
+    console.error('load access-state events failed', error);
+    createMessage.error('接入事件加载失败');
+  } finally {
+    accessEventHistoryLoading.value = false;
+  }
+}
+
 const [registerTable, {reload}] = useTable({
   canResize: true,
   showIndexColumn: false,
@@ -729,12 +845,12 @@ const [registerTable, {reload}] = useTable({
     search: params.search ?? params.deviceName,
     deviceName: params.deviceName ?? params.search,
   }),
-  rowSelection: {
+  rowSelection: computed(() => ({
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelectDevice,
     onSelectAll: onSelectAllDevices,
-  },
+  })),
   // 添加成功回调，获取设备流状态
   onSuccess: (data) => {
     if (data && data.data) {
@@ -771,7 +887,10 @@ const startStatusCheckTimer = () => {
 };
 
 // 获取表格操作按钮
-const getTableActions = (record) => {
+void checkAllDevicesStreamStatus;
+void startStatusCheckTimer;
+
+const getTableActions = (record: Record<string, any>): ActionItem[] => {
   if (isNvrListRow(record)) {
     const nvrId = record.nvr_id_num ?? Number(String(record.id).replace(/^nvr_/, ''));
     const nvrCard = {
@@ -857,21 +976,29 @@ const getTableActions = (record) => {
     ];
   }
 
-  const actions = [];
+  const deviceRecord = record as DeviceInfo;
+  const actions: ActionItem[] = [];
+
+  actions.push({
+    icon: 'ant-design:history-outlined',
+    tooltip: '接入事件',
+    onClick: () => openAccessEventHistory(deviceRecord),
+  });
 
   if (hasPlayableStream(record)) {
     actions.push({
       icon: 'octicon:play-16',
       tooltip: enableAi.value ? '播放（优先 AI 流）' : supportsRtspForward(record) ? '播放视频流' : '播放国标通道',
-      onClick: () => handlePlayStream(record),
+      onClick: () => handlePlayStream(deviceRecord),
     });
   }
 
-  if (canSetDeviceLocation(record)) {
+  if (canSetDeviceLocation(deviceRecord)) {
     actions.unshift({
       icon: 'ant-design:environment-outlined',
       tooltip: '设置坐标',
-      onClick: () => openDeviceLocationDrawer(record),
+      label: '坐标',
+      onClick: () => openDeviceLocationDrawer(deviceRecord),
     });
   }
 
@@ -881,7 +1008,7 @@ const getTableActions = (record) => {
       icon: 'ant-design:eye-filled',
       tooltip: '详情',
       onClick: () => {
-        if (isDjiLiveRecord(record)) {
+        if (isDjiLiveRecord(deviceRecord)) {
           openDjiLiveDrawer(true, { record, isView: true, type: 'view' });
           return;
         }
@@ -892,7 +1019,7 @@ const getTableActions = (record) => {
       icon: 'ant-design:edit-filled',
       tooltip: '编辑',
       onClick: () => {
-        if (isDjiLiveRecord(record)) {
+        if (isDjiLiveRecord(deviceRecord)) {
           openDjiLiveDrawer(true, { record, isEdit: true, type: 'edit' });
           return;
         }
@@ -993,7 +1120,7 @@ async function handleCopy(text: string) {
 }
 
 // 打开模态框
-const openAddModal = (type, record = null) => {
+const openAddModal = (type: string, record: Record<string, any> | null = null) => {
   openModal(true, {
     type,
     record,
@@ -1028,7 +1155,7 @@ function handleLocationImportSuccess() {
   handleLocationDrawerSuccess();
 }
 
-function openDeviceLocationDrawer(record: DeviceInfo | { id: string; name?: string }) {
+function openDeviceLocationDrawer(record: DeviceInfo | Record<string, any> | { id: string; name?: string }) {
   if (!canSetDeviceLocation(record)) return;
   openLocationModal(true, { deviceId: record.id, record });
 }
@@ -1051,10 +1178,11 @@ function handleSuccess() {
   if (nvrDetailVisible.value) {
     nvrDeviceDetailRef.value?.load?.();
   }
+  void loadDeviceAccessHealth();
 }
 
 // 删除设备
-const handleDelete = async (record) => {
+const handleDelete = async (record: Record<string, any>) => {
   try {
     await deleteDevice(record.id);
     createMessage.success('删除成功');
@@ -1136,31 +1264,31 @@ async function handleBatchDelete() {
 }
 
 // 卡片视图事件处理
-const handleCardView = (record) => {
+const handleCardView = (record: Record<string, any>) => {
   if (isGb28181SipListRow(record)) {
     handleTableViewGbDevice(record);
     return;
   }
-  if (isDjiLiveRecord(record)) {
+  if (isDjiLiveRecord(record as DeviceInfo)) {
     openDjiLiveDrawer(true, { record, isView: true, type: 'view' });
     return;
   }
   openAddModal('view', record);
 };
 
-const handleCardEdit = (record) => {
+const handleCardEdit = (record: Record<string, any>) => {
   if (isGb28181SipListRow(record)) {
     handleTableEditGbDevice(record);
     return;
   }
-  if (isDjiLiveRecord(record)) {
+  if (isDjiLiveRecord(record as DeviceInfo)) {
     openDjiLiveDrawer(true, { record, isEdit: true, type: 'edit' });
     return;
   }
   openAddModal('edit', record);
 };
 
-const handleCardDelete = async (record) => {
+const handleCardDelete = async (record: Record<string, any>) => {
   if (isGb28181SipListRow(record)) {
     await handleDeleteGbDevice(record);
     return;
@@ -1175,8 +1303,8 @@ async function handleNvrChannelDelete(record: DeviceInfo) {
   }
 }
 
-const handleCardPlay = (record) => {
-  handlePlayStream(record);
+const handleCardPlay = (record: Record<string, any>) => {
+  handlePlayStream(record as DeviceInfo);
 };
 
 /** 根据路由 query 切换 Camera 一级 Tab（子 Tab 如 storage 由 StorageSpace 自行同步，不触发整页刷新） */
@@ -1230,6 +1358,7 @@ watch(
 // 组件挂载时启动状态检查定时器
 onMounted(() => {
   applyCameraRouteQuery();
+  void loadDeviceAccessHealth();
 });
 
 // 组件卸载时清除定时器
@@ -1278,6 +1407,56 @@ onUnmounted(() => {
       width: auto;
       margin-left: 0;
     }
+  }
+
+  .access-health-banner {
+    margin: 0 12px 12px;
+  }
+
+  .access-event-history {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 520px;
+    overflow-y: auto;
+  }
+
+  .access-event-history__empty {
+    padding: 24px 0;
+    color: rgba(0, 0, 0, 0.45);
+    text-align: center;
+  }
+
+  .access-event-history__row {
+    border: 1px solid rgba(5, 5, 5, 0.08);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .access-event-history__header,
+  .access-event-history__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .access-event-history__protocol {
+    color: rgba(0, 0, 0, 0.65);
+    font-weight: 500;
+  }
+
+  .access-event-history__time,
+  .access-event-history__meta {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 12px;
+  }
+
+  .access-event-history__reason {
+    margin: 8px 0 4px;
+    color: rgba(0, 0, 0, 0.88);
+    line-height: 20px;
+    word-break: break-word;
   }
 
   .device-list-table-wrap {

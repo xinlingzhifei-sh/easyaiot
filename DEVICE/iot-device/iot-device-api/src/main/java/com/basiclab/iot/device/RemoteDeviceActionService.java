@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 /**
  * 设备动作服务
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com * @author 翱翔的雄库鲁
- *  * @email andywebjava@163.com
- *  * @wechat EasyAIoT2025
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese * @author reese
+ *  * @email reese
  */
 @FeignClient(contextId = "remoteDeviceActionService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteDeviceActionFallbackFactory.class)
 public interface RemoteDeviceActionService {

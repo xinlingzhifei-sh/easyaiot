@@ -4,7 +4,6 @@
 -->
 <script lang="ts" setup>
 import draggable from 'vuedraggable'
-import { computed } from 'vue'
 import { cloneDeep } from 'lodash-es'
 import { Empty, Form } from 'ant-design-vue'
 import { useFormDesignState } from '../../../hooks/useFormDesignState'
@@ -35,12 +34,6 @@ function handleDragStart(e: any) {
   emit('handleSetSelectItem', formConfig.value.schemas[e.oldIndex])
 }
 
-// 获取祖先组件传递的currentItem
-
-// 计算布局元素，水平模式下为ACol，非水平模式下为div
-const layoutTag = computed(() => {
-  return formConfig.value.layout === 'horizontal' ? 'Col' : 'div'
-})
 </script>
 
 <template>

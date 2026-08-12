@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <chrono>
 #include <glog/logging.h>
-#include <opencv2/geometry.hpp>
 
 #include "YoloThreadPool.h"
 

@@ -10,7 +10,6 @@ const chartEditStore = useChartEditStore()
 
 const winCtrlMerge = (e: string) => `${WinKeyboard.CTRL}+${e}`
 const winShiftMerge = (e: string) => `${WinKeyboard.SHIFT}+${e}`
-const winAltMerge = (e: string) => `${WinKeyboard.ALT}+${e}`
 
 export const winKeyboardValue = {
   [MenuEnum.ARROW_UP]: winCtrlMerge('up'),
@@ -34,7 +33,6 @@ export const winKeyboardValue = {
 // 这个 Ctrl 后面还是换成了 ⌘
 const macCtrlMerge = (e: string) => `${MacKeyboard.CTRL}+${e}`
 const macShiftMerge = (e: string) => `${MacKeyboard.SHIFT}+${e}`
-const macAltMerge = (e: string) => `${MacKeyboard.ALT}+${e}`
 
 // 没有测试 macOS 系统，因为我没有😤👻
 export const macKeyboardValue = {

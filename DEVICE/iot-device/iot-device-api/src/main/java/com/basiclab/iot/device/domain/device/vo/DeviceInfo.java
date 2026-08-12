@@ -15,11 +15,10 @@ import java.time.LocalDateTime;
 
 /**
 * @Description: 子设备档案表
-* @author 翱翔的雄库鲁
-* @email andywebjava@163.com
-* @wechat EasyAIoT2025
-* @E-mail: andywebjava@163.com
-* @Website: https://gitee.com/soaring-xiongkulu/easyaiot
+* @author reese
+* @email reese
+* @E-mail: reese
+* @Website: https://gitee.com/reese/yfeieye
 * @CreateDate: 2024/4/25$ 12:48$
 * @UpdateDate: 2024/4/25$ 12:48$
 * @UpdateRemark: 修改内容

@@ -58,7 +58,7 @@ mybatis-plus:
     banner: false # 关闭控制台的 Banner 打印
   type-aliases-package: ${iot.info.base-package}.dal.dataobject
   encryptor:
-    password: XDV71a+xqStEA3WH # 加解密的秘钥，可使用 https://www.imaegoo.com/2020/aes-key-generator/ 网站生成
+    password: ${MYBATIS_ENCRYPTOR_PASSWORD:} # 加解密的秘钥，可使用 https://www.imaegoo.com/2020/aes-key-generator/ 网站生成
 
 mybatis-plus-join:
   banner: false # 关闭控制台的 Banner 打印
@@ -118,7 +118,7 @@ xxl:
     executor:
       appname: ${spring.application.name} # 执行器 AppName
       logpath: ${user.home}/logs/xxl-job/${spring.application.name} # 执行器运行日志文件存储磁盘路径
-    accessToken: default_token # 执行器通讯TOKEN
+    accessToken: ${XXL_JOB_ACCESS_TOKEN:} # 执行器通讯TOKEN
 
 --- #################### 验证码相关配置 ####################
 
@@ -130,7 +130,7 @@ aj:
     cache-number: 1000 # local 缓存的阈值,达到这个值，清除缓存
     timing-clear: 180 # local定时清除过期缓存(单位秒),设置为0代表不执行
     type: blockPuzzle # 验证码类型 default两种都实例化。 blockPuzzle 滑块拼图 clickWord 文字点选
-    water-mark: BasicLab源码 # 右下角水印文字(我的水印)，可使用 https://tool.chinaz.com/tools/unicode.aspx 中文转 Unicode，Linux 可能需要转 unicode
+    water-mark: yFeiEye # 右下角水印文字(我的水印)，可使用 https://tool.chinaz.com/tools/unicode.aspx 中文转 Unicode，Linux 可能需要转 unicode
     interference-options: 0 # 滑动干扰项(0/1/2)
     req-frequency-limit-enable: false # 接口请求次数一分钟限制是否开启 true|false
     req-get-lock-limit: 5 # 验证失败5次，get接口锁定
@@ -139,7 +139,7 @@ aj:
     req-check-minute-limit: 60 # check 接口一分钟内请求数限制
     req-verify-minute-limit: 60 # verify 接口一分钟内请求数限制
 
---- #################### BasicLab相关配置 ####################
+--- #################### yFeiEye相关配置 ####################
 
 iot:
   info:
@@ -155,15 +155,6 @@ iot:
     base-package: ${iot.info.base-package}
   captcha:
     enable: true # 验证码的开关，默认为 true；
-  security:
-    permit-all-urls:
-      # VIDEO 告警通知链路内网读取（模板 / 用户组 / 用户），无需 Token
-      - /admin-api/message/template/get
-      - /admin-api/message/preview/user/group/query
-      - /admin-api/message/preview/user/query
-      - /message/template/get
-      - /message/preview/user/group/query
-      - /message/preview/user/query
   tenant: # 多租户相关配置项
     enable: true
     ignore-urls:
@@ -176,7 +167,7 @@ iot:
       - /rpc-api/system/tenant/valid # 防止递归。避免调用 /rpc-api/system/tenant/valid 接口时，又去触发 /rpc-api/system/tenant/valid 去校验
       - /rpc-api/system/tenant/id-list # 获得租户列表的时候，无需传递租户编号
       - /rpc-api/system/oauth2/token/check # 访问令牌校验时，无需传递租户编号；主要解决上传文件的场景，前端不会传递 tenant-id！
-      # VIDEO 告警通知链路内网调用（经网关或直连 message 服务）
+      # VIDEO / iot-device 服务令牌调用（经网关或直连 message 服务）
       - /admin-api/message/template/get
       - /admin-api/message/preview/user/group/query
       - /admin-api/message/preview/user/query

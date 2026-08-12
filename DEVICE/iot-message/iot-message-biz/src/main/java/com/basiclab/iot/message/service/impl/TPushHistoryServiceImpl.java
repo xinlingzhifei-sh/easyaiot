@@ -13,9 +13,8 @@ import java.util.UUID;
 /**
  * 推送历史实现层Impl
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @since 2024-07-18
  */
 @Component

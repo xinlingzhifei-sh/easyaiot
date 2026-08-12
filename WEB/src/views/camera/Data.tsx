@@ -1,5 +1,5 @@
 import { BasicColumn, FormProps } from '@/components/Table';
-import { Tag } from 'ant-design-vue';
+import { Tag, Tooltip } from 'ant-design-vue';
 import { formatLocationSummary, hasDeviceLocation } from './utils/deviceLocation';
 import { isNvrListRow } from './utils/deviceLabel';
 import { isGb28181SipListRow } from './utils/gb28181DeviceGroup';
@@ -14,8 +14,58 @@ function renderDeviceType(record: Record<string, unknown>) {
   return <Tag color="default">直连摄像头</Tag>;
 }
 
+const accessStateLabel: Record<string, string> = {
+  pending_config: '待配置',
+  registering: '注册中',
+  registered: '已注册',
+  stream_online: '流在线',
+  play_ready: '可播放',
+  ai_ready: 'AI就绪',
+  error: '异常',
+};
+
+const accessStateColor: Record<string, string> = {
+  pending_config: 'default',
+  registering: 'processing',
+  registered: 'blue',
+  stream_online: 'cyan',
+  play_ready: 'green',
+  ai_ready: 'success',
+  error: 'red',
+};
+
+function renderAccessState(record: Record<string, any>) {
+  const accessState = record.access_state || {};
+  const state = accessState.state || 'pending_config';
+  const reason = accessState.reason_message || accessState.reason_code || '';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+        <Tag color={accessStateColor[state] || 'default'}>{accessStateLabel[state] || state}</Tag>
+        <Tag color={accessState.play_ready ? 'green' : 'default'}>
+          {accessState.play_ready ? '播放就绪' : '未就绪'}
+        </Tag>
+        {accessState.ai_ready ? <Tag color="cyan">AI就绪</Tag> : null}
+      </div>
+      {reason ? (
+        <Tooltip title={reason}>
+          <span style={{ color: 'rgba(0,0,0,0.45)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {reason}
+          </span>
+        </Tooltip>
+      ) : null}
+    </div>
+  );
+}
+
 export function getBasicColumns(): BasicColumn[] {
   return [
+    {
+      title: '接入状态',
+      dataIndex: 'access_state',
+      width: 220,
+      customRender: ({ record }) => renderAccessState(record),
+    },
     {
       title: '设备名称',
       dataIndex: 'name',
@@ -61,6 +111,18 @@ export function getBasicColumns(): BasicColumn[] {
       width: 100,
       ellipsis: true,
       customRender: ({ text }) => text || '—',
+    },
+    {
+      title: '位置',
+      dataIndex: 'has_location',
+      width: 140,
+      defaultHidden: true,
+      customRender: ({ record }) => {
+        if (hasDeviceLocation(record)) {
+          return formatLocationSummary(record);
+        }
+        return '未设置';
+      },
     },
     {
       title: '所属NVR',

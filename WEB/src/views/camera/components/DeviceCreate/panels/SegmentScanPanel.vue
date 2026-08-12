@@ -115,7 +115,6 @@ import {
   registerNvrWithChannels,
   scanSegmentDevices,
   type CredentialPair,
-  type NvrInfo,
   type SegmentScanDeviceRow,
 } from '@/api/device/camera';
 import { getCameraScanColumns, getNvrScanColumns } from '@/views/camera/components/SegmentScanModal/Data';
@@ -170,14 +169,14 @@ const [registerForm, { validate, getFieldsValue, setFieldsValue, updateSchema }]
       component: 'InputTextArea',
       slot: 'targets',
       required: true,
-      colProps: { ...DEVICE_CREATE_COL_LINE, class: 'segment-scan-targets' },
+      colProps: { ...DEVICE_CREATE_COL_LINE, class: 'segment-scan-targets' } as any,
       componentProps: {
         autoSize: { minRows: 3, maxRows: 8 },
         placeholder: SEGMENT_SCAN_TARGETS_PLACEHOLDER,
       },
       rules: [
         segmentScanTargetsFormRule(() => String(getFieldsValue().ports || '').trim() || undefined),
-      ],
+      ] as any,
     },
     {
       field: 'ports',
@@ -189,7 +188,7 @@ const [registerForm, { validate, getFieldsValue, setFieldsValue, updateSchema }]
       field: '_credentials',
       label: '登录凭证',
       component: 'Input',
-      colProps: { ...DEVICE_CREATE_COL_LINE, class: 'segment-scan-credentials' },
+      colProps: { ...DEVICE_CREATE_COL_LINE, class: 'segment-scan-credentials' } as any,
       slot: 'credentials',
       itemProps: { autoLink: false },
       rules: [],
@@ -387,9 +386,10 @@ function isRecordRegistrable(record: SegmentScanDeviceRow): boolean {
   return hasRegisterPayload(record);
 }
 
-function canRegisterRecord(record: SegmentScanDeviceRow): boolean {
+function canRegisterRecord(record: Record<string, any>): boolean {
+  const row = record as SegmentScanDeviceRow;
   if (state.batchRegistering || state.registering) return false;
-  return isRecordRegistrable(record);
+  return isRecordRegistrable(row);
 }
 
 function warnCannotRegisterNvr(record: SegmentScanDeviceRow) {
@@ -420,14 +420,15 @@ const batchRegisterButtonText = computed(() => {
   return n > 0 ? `批量注册（${n}）` : '批量注册';
 });
 
-function registerStatusLabel(ip: string, record: SegmentScanDeviceRow): string {
+function registerStatusLabel(ip: string, record: Record<string, any>): string {
+  const row = record as SegmentScanDeviceRow;
   const st = state.registerStatusMap[ip];
   if (st === 'success') return '已注册';
   if (st === 'failed') return '注册失败';
-  if (!isCredentialAccessible(record)) {
+  if (!isCredentialAccessible(row)) {
     return state.mode === 'nvr' && hasFormCredentials() ? '待凭证探测' : '未认证';
   }
-  if (!hasRegisterPayload(record)) return state.mode === 'nvr' ? '不可登记' : '无 RTSP';
+  if (!hasRegisterPayload(row)) return state.mode === 'nvr' ? '不可登记' : '无 RTSP';
   return state.mode === 'nvr' ? '可登记' : '可注册';
 }
 
@@ -562,7 +563,7 @@ async function registerOneNvr(record: SegmentScanDeviceRow, credentials: Credent
   }
 }
 
-async function registerOneCamera(record: SegmentScanDeviceRow, credentials: CredentialPair[], timeout: number, silent = false): Promise<boolean> {
+async function registerOneCamera(record: SegmentScanDeviceRow, credentials: CredentialPair[], _timeout: number, silent = false): Promise<boolean> {
   if (!isRecordRegistrable(record)) {
     if (!silent) {
       if (!isCredentialAccessible(record)) {
@@ -595,7 +596,7 @@ async function registerOneCamera(record: SegmentScanDeviceRow, credentials: Cred
       manufacturer: record.vendor_label,
       model: record.model,
       serial_number: record.serial,
-    });
+    } as any);
     state.registerStatusMap[record.ip] = 'success';
     if (!silent) createMessage.success(`摄像头 ${record.ip} 注册成功`);
     return true;
@@ -612,16 +613,16 @@ async function registerOneCamera(record: SegmentScanDeviceRow, credentials: Cred
   }
 }
 
-async function handleRegisterNvr(record: SegmentScanDeviceRow) {
+async function handleRegisterNvr(record: Record<string, any>) {
   const values = getFieldsValue();
   const creds = getValidCredentials();
-  if (await registerOneNvr(record, creds, Number(values.timeout) || 3)) emit('success');
+  if (await registerOneNvr(record as SegmentScanDeviceRow, creds, Number(values.timeout) || 3)) emit('success');
 }
 
-async function handleRegisterCamera(record: SegmentScanDeviceRow) {
+async function handleRegisterCamera(record: Record<string, any>) {
   const values = getFieldsValue();
   const creds = getValidCredentials();
-  if (await registerOneCamera(record, creds, Number(values.timeout) || 3)) emit('success');
+  if (await registerOneCamera(record as SegmentScanDeviceRow, creds, Number(values.timeout) || 3)) emit('success');
 }
 
 async function handleBatchRegister() {

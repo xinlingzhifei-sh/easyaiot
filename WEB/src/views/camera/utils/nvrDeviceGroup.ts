@@ -1,5 +1,5 @@
 import type { DeviceInfo, NvrInfo } from '@/api/device/camera';
-import { getDeviceList, getNvrList } from '@/api/device/camera';
+import { getNvrList } from '@/api/device/camera';
 import { formatNvrDisplayName, isNvrChannelDevice, isNvrListRow } from './deviceLabel';
 
 export type { NvrInfo };
@@ -53,12 +53,12 @@ export function nvrToTableRow(nvr: NvrInfo): DeviceInfo & { _isNvr: boolean; nvr
     online: true,
     channel_count: nvr.camera_count ?? 0,
     _isNvr: true,
-  } as DeviceInfo & { _isNvr: boolean; nvr_id_num: number };
+  } as unknown as DeviceInfo & { _isNvr: boolean; nvr_id_num: number };
 }
 
-export type DeviceListDisplayItem =
+export type DeviceListDisplayItem<TGbItem = Record<string, unknown>> =
   | { kind: 'direct'; device: DeviceInfo }
-  | { kind: 'gb_sip'; gbItem: Record<string, unknown> }
+  | { kind: 'gb_sip'; gbItem: TGbItem }
   | { kind: 'nvr'; nvrItem: NvrCardItem };
 
 /** @param includeCameras 为 true 时拉取每路挂载通道（较重，仅 NVR 详情等场景使用） */
@@ -113,17 +113,17 @@ export function buildDirectoryDeviceTableRows(
       channel_count: channels.length,
       children: channels,
       _isNvrGroup: true,
-    } as DeviceInfo & { _isNvrGroup: boolean; children: DeviceInfo[] });
+    } as unknown as DeviceInfo & { _isNvrGroup: boolean; children: DeviceInfo[] });
   }
   return result;
 }
 
-export function buildCardRowsWithNvr(
+export function buildCardRowsWithNvr<TGbItem = Record<string, unknown>>(
   devices: DeviceInfo[],
   nvrs: NvrInfo[],
-  gbItems: DeviceListDisplayItem[] = [],
-): DeviceListDisplayItem[] {
-  const items: DeviceListDisplayItem[] = filterStandaloneDirectDevices(devices, nvrs).map((device) => ({
+  gbItems: DeviceListDisplayItem<TGbItem>[] = [],
+): DeviceListDisplayItem<TGbItem>[] {
+  const items: DeviceListDisplayItem<TGbItem>[] = filterStandaloneDirectDevices(devices, nvrs).map((device) => ({
     kind: 'direct' as const,
     device,
   }));

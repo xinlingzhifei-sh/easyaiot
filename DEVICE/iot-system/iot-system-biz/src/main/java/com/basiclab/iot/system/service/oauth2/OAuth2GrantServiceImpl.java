@@ -19,9 +19,8 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.except
 /**
  * OAuth2 授予 Service 实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Service
 public class OAuth2GrantServiceImpl implements OAuth2GrantService {
@@ -88,7 +87,7 @@ public class OAuth2GrantServiceImpl implements OAuth2GrantService {
 
     @Override
     public OAuth2AccessTokenDO grantClientCredentials(String clientId, List<String> scopes) {
-        // TODO BasicLab：项目中使用 OAuth2 解决的是三方应用的授权，内部的 SSO 等问题，所以暂时不考虑 client_credentials 这个场景
+        // TODO yFeiEye：项目中使用 OAuth2 解决的是三方应用的授权，内部的 SSO 等问题，所以暂时不考虑 client_credentials 这个场景
         throw new UnsupportedOperationException("暂时不支持 client_credentials 授权模式");
     }
 

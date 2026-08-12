@@ -24,9 +24,8 @@ import static com.basiclab.iot.system.enums.ErrorCodeConstants.*;
 /**
  * 短信验证码 Service 实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Service
 @Validated
@@ -64,8 +63,8 @@ public class SmsCodeServiceImpl implements SmsCodeService {
                     lastSmsCode.getTodayIndex() >= smsCodeProperties.getSendMaximumQuantityPerDay()) { // 超过当天发送的上限。
                 throw exception(SMS_CODE_EXCEED_SEND_MAXIMUM_QUANTITY_PER_DAY);
             }
-            // TODO BasicLab：提升，每个 IP 每天可发送数量
-            // TODO BasicLab：提升，每个 IP 每小时可发送数量
+            // TODO yFeiEye：提升，每个 IP 每天可发送数量
+            // TODO yFeiEye：提升，每个 IP 每小时可发送数量
         }
 
         // 创建验证码记录

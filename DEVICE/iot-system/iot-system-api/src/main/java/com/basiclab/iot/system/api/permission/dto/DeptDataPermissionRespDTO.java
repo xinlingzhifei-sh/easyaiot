@@ -9,9 +9,8 @@ import java.util.Set;
 /**
  * DeptDataPermissionRespDTO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "RPC 服务 - 部门的数据权限 Response DTO")
 @Data

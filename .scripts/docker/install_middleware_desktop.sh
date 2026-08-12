@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# EasyAIoT 中间件一键脚本（macOS / Windows · Docker Desktop · 仅镜像部署）
+# yFeiEye 中间件一键脚本（macOS / Windows · Docker Desktop · 仅镜像部署）
 # 不执行本地 docker build，只拉取官方/预置中间件镜像并 compose up。
 # ---------------------------------------------------------------------------
 set -euo pipefail
@@ -700,7 +700,7 @@ cmd_verify() {
 
 usage() {
   cat <<'USAGE'
-EasyAIoT 中间件脚本（macOS / Windows · 仅镜像部署）
+yFeiEye 中间件脚本（macOS / Windows · 仅镜像部署）
   install   拉取镜像并启动全部中间件
   start     启动服务
   stop      停止服务

@@ -24,15 +24,20 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.Resource;
 import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotEmpty;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +46,23 @@ import java.util.stream.Collectors;
 /**
  * DeviceController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "设备管理")
 @RestController
 @RequestMapping("/device")
 @Slf4j
 public class DeviceController extends BaseController {
+
+    static final String EMQX_WEBHOOK_TOKEN_HEADER = "X-Emqx-Webhook-Token";
+
     @Resource
     private DeviceService deviceService;
     @Resource
     private ProductService productService;
+    @Value("${EMQX_WEBHOOK_TOKEN:}")
+    private String emqxWebhookToken;
 
     @PostMapping("/isExist")
     @ApiOperation("判断设备是否存在")
@@ -101,7 +110,10 @@ public class DeviceController extends BaseController {
     @ApiOperation("EMQX钩子回调")
     @PostMapping("/webHook")
     @PermitAll
-    public void webHook(@RequestBody Map<String, Object> params) {
+    public void webHook(
+            @RequestHeader(value = EMQX_WEBHOOK_TOKEN_HEADER, required = false) String suppliedToken,
+            @RequestBody Map<String, Object> params) {
+        requireValidEmqxWebhookToken(suppliedToken);
         log.info("EMQX钩子回调, params=" + params);
         String action = (String) params.get("event");
         if (StringUtils.isEmpty(action)) return;
@@ -111,6 +123,19 @@ public class DeviceController extends BaseController {
             deviceService.handleDisConnected(params);
         } else if (DeviceStatusConstant.SESSION_SUBSCRIBED.equals(action)) {
             deviceService.handleSubscribe(params);
+        }
+    }
+
+    private void requireValidEmqxWebhookToken(String suppliedToken) {
+        if (emqxWebhookToken == null || emqxWebhookToken.length() < 32) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "EMQX_WEBHOOK_TOKEN 未安全配置");
+        }
+        if (suppliedToken == null || !MessageDigest.isEqual(
+                emqxWebhookToken.getBytes(StandardCharsets.UTF_8),
+                suppliedToken.getBytes(StandardCharsets.UTF_8))) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "EMQX WebHook token 无效");
         }
     }
 

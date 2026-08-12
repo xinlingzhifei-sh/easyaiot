@@ -45,7 +45,7 @@ const props = defineProps({
 const emit = defineEmits(['change', 'update:value'])
 const headers = reactive({
   'Authorization': `Bearer ${getAccessToken()}`,
-  'tenant-id': getTenantId(),
+  'tenant-id': String(getTenantId() ?? ''),
 })
 const attrs = useAttrs()
 const { t } = useI18n()
@@ -124,11 +124,11 @@ function handleCancel() {
   previewOpen.value = false
 }
 /** 查看图片 */
-async function handlePreview(file: UploadProps['fileList'][number]) {
-  if (!file.url && !file.preview)
+async function handlePreview(file: UploadFile) {
+  if (!file.url && !file.preview && file.originFileObj)
     file.preview = (await getBase64(file.originFileObj)) as string
 
-  previewImage.value = file.url || file.preview
+  previewImage.value = (file.url || file.preview || '') as string
   previewOpen.value = true
 }
 /** 上传前校验 */

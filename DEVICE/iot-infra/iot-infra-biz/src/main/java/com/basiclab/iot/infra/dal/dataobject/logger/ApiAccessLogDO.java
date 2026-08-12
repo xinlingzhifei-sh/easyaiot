@@ -13,9 +13,8 @@ import java.time.LocalDateTime;
 /**
  * API 访问日志
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @TableName("infra_api_access_log")
 @KeySequence(value = "infra_api_access_log_seq")

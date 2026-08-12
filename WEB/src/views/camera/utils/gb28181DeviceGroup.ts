@@ -9,7 +9,18 @@ import {
   nvrToTableRow,
 } from './nvrDeviceGroup';
 import { formatGb28181DeviceDisplayName } from './gb28181DeviceLabel';
-import type { Gb28181CardItem } from '@/views/camera/components/Gb28181DeviceCard/index.vue';
+import { filterValidWvpDevices, resolveWvpSipDeviceId } from './gb28181DeviceId';
+
+export interface Gb28181CardItem {
+  onLine: boolean;
+  name: string;
+  deviceIdentification: string;
+  ip?: string;
+  mediaServerId?: string;
+  manufacturer?: string;
+  _summary: GbSipDeviceSummary;
+  _wvpRaw: Record<string, any>;
+}
 
 /** 国标 SIP 设备（WVP 或本地聚合） */
 export interface GbSipDeviceSummary {
@@ -41,12 +52,6 @@ export function filterDirectDevices(devices: DeviceInfo[]): DeviceInfo[] {
 
 /** WVP 国标设备 → 卡片数据（与 gb28181/VideoCardList 字段一致） */
 /** 从 WVP 设备记录解析 SIP 国标编号（兼容多种字段名） */
-export function resolveWvpSipDeviceId(wvp: Record<string, any>): string {
-  return String(
-    wvp.deviceIdentification ?? wvp.deviceId ?? wvp.id ?? wvp.gbId ?? '',
-  ).trim();
-}
-
 export function wvpDeviceToSummary(wvp: Record<string, any>): GbSipDeviceSummary {
   const sipDeviceId = resolveWvpSipDeviceId(wvp);
   return {
@@ -89,7 +94,7 @@ export function wvpDeviceToTableRow(wvp: Record<string, any>): DeviceInfo & {
     ip: wvp.ip || wvp.localIp || '',
     source: '',
     _isGbSip: true,
-  } as DeviceInfo & { _isGbSip: boolean; sip_device_id: string };
+  } as unknown as DeviceInfo & { _isGbSip: boolean; sip_device_id: string };
 }
 
 /** 合并直连（device 表）+ 国标（WVP）列表 */
@@ -97,12 +102,11 @@ export async function fetchMergedDeviceList(params: Record<string, any> = {}) {
   const search = params.search ?? params.deviceName;
   const online = params.online;
 
-  const [devRes, gbRes, nvrs] = await Promise.all([
+  const [devResult, gbResult, nvrResult] = await Promise.allSettled([
     getDeviceList({
       pageNo: 1,
       pageSize: 10000,
       search: search || undefined,
-      online: online !== undefined && online !== '' ? online : undefined,
     }),
     queryAllVideoList({
       query: search || undefined,
@@ -111,12 +115,21 @@ export async function fetchMergedDeviceList(params: Record<string, any> = {}) {
     fetchNvrListBrief(),
   ]);
 
+  const devRes = devResult.status === 'fulfilled' ? devResult.value : undefined;
+  const gbRes = gbResult.status === 'fulfilled' ? gbResult.value : undefined;
+  const nvrs = nvrResult.status === 'fulfilled' ? nvrResult.value : [];
+
   const allDevices = devRes?.data ?? [];
+  const onlineFilter = online === true || online === 'true' ? true : online === false || online === 'false' ? false : undefined;
   const direct = filterStandaloneDirectDevices(
-    allDevices.filter((d) => !isGb28181ChannelRecord(d) && !isGb28181SipListRow(d)),
+    allDevices.filter((d) =>
+      !isGb28181ChannelRecord(d) &&
+      !isGb28181SipListRow(d) &&
+      (onlineFilter === undefined || !!d.online === onlineFilter),
+    ),
     nvrs,
   );
-  const gbRows = (gbRes?.data ?? []).map((wvp) => wvpDeviceToTableRow(wvp));
+  const gbRows = filterValidWvpDevices(gbRes?.data ?? []).map((wvp) => wvpDeviceToTableRow(wvp));
   const nvrRows = nvrs.map((n) => nvrToTableRow(n));
 
   return {
@@ -140,7 +153,7 @@ export function buildMergedCardRows(
 ): DeviceListDisplayItem[] {
   const gbItems: DeviceListDisplayItem[] = [];
   const seenSip = new Set<string>();
-  for (const wvp of wvpDevices || []) {
+  for (const wvp of filterValidWvpDevices(wvpDevices)) {
     const sipId = resolveWvpSipDeviceId(wvp);
     if (!sipId || seenSip.has(sipId)) continue;
     seenSip.add(sipId);

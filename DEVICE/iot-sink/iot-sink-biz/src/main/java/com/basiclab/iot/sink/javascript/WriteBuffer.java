@@ -6,9 +6,8 @@ import java.nio.ByteOrder;
 /**
  * WriteBuffer
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 public class WriteBuffer {
@@ -20,6 +19,9 @@ public class WriteBuffer {
     }
 
     public WriteBuffer(int initialSize) {
+        if (initialSize < 0 || initialSize > JsScriptManager.MAX_OUTPUT_BYTES) {
+            throw new IllegalArgumentException("初始缓冲区大小超出脚本输出限制: " + initialSize);
+        }
         this.outputStream = new java.io.ByteArrayOutputStream(initialSize);
         this.buffer = ByteBuffer.allocate(initialSize);
         this.buffer.order(ByteOrder.BIG_ENDIAN);
@@ -113,8 +115,16 @@ public class WriteBuffer {
      * @param needed 需要的字节数
      */
     private void ensureCapacity(int needed) {
+        long required = (long) buffer.position() + needed;
+        if (needed < 0 || required > JsScriptManager.MAX_OUTPUT_BYTES) {
+            throw new IllegalArgumentException(
+                    "脚本输出超过 " + JsScriptManager.MAX_OUTPUT_BYTES + " 字节限制");
+        }
         if (buffer.remaining() < needed) {
-            int newSize = Math.max(buffer.capacity() * 2, buffer.position() + needed);
+            int doubled = buffer.capacity() > JsScriptManager.MAX_OUTPUT_BYTES / 2
+                    ? JsScriptManager.MAX_OUTPUT_BYTES
+                    : buffer.capacity() * 2;
+            int newSize = Math.max(doubled, (int) required);
             ByteBuffer newBuffer = ByteBuffer.allocate(newSize);
             newBuffer.order(ByteOrder.BIG_ENDIAN);
             buffer.flip();
@@ -123,4 +133,3 @@ public class WriteBuffer {
         }
     }
 }
-

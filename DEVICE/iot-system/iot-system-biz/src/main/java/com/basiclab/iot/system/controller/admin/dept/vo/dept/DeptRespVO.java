@@ -8,9 +8,8 @@ import java.time.LocalDateTime;
 /**
  * DeptRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 部门信息 Response VO")
 @Data
@@ -19,7 +18,7 @@ public class DeptRespVO {
     @Schema(description = "部门编号", example = "1024")
     private Long id;
 
-    @Schema(description = "部门名称", example = "BasicLab")
+    @Schema(description = "部门名称", example = "yFeiEye")
     private String name;
 
     @Schema(description = "父部门 ID", example = "1024")

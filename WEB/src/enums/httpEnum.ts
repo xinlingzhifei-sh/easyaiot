@@ -23,11 +23,12 @@ export enum ResultEnum {
   TIMEOUT = 400,
   UNAUTHORIZED = 401,
   INTERNAL_SERVER_ERROR = 500,
-  TYPE = 'success',
   SERVER_ERROR = 500,
   SERVER_FORBIDDEN = 403,
   NOT_FOUND = 404,
 }
+
+export type RequestParamsObjType = Record<string, any>
 
 /**
  * @description: request method
@@ -45,6 +46,8 @@ export enum RequestEnum {
 export enum ContentTypeEnum {
   // json
   JSON = 'application/json;charset=UTF-8',
+  // xml
+  XML = 'application/xml;charset=UTF-8',
   // form-data qs
   FORM_URLENCODED = 'application/x-www-form-urlencoded;charset=UTF-8',
   // form-data  upload

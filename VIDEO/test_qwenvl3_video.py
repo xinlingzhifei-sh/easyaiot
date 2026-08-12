@@ -6,9 +6,8 @@
 API 文档参考：
 https://bailian.console.aliyun.com/?spm=5176.29597918.J_C-NDPSQ8SFKWB4aef8i6I.1.298d7b08IRr02o&tab=doc#/doc/?type=model&url=2877996
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -46,25 +45,25 @@ def parse_script_args():
         epilog="""
 示例:
   # 使用默认设置测试视频（提取多帧作为图片列表）
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4
 
   # 指定提取的帧数
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 --num-frames 8
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 --num-frames 8
 
   # 使用自定义提示词
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --prompt "请详细描述这个视频中的人物、动作和场景"
 
   # 使用视频文件直接上传（Base64编码，适用于小文件）
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --use-video-file
 
   # 指定模型
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --model qwen-vl-plus
 
   # 保存提取的帧到文件
-  python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \\
+  python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \\
       --save-frames
         """
     )

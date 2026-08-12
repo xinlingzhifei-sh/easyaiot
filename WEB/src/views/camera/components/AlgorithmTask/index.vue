@@ -20,7 +20,7 @@
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'action'">
-          <TableAction :actions="getTableActions(record)" />
+          <TableAction :actions="getTableActions(record as AlgorithmTask)" />
         </template>
       </template>
     </BasicTable>
@@ -220,12 +220,6 @@
 import { ref, onMounted, nextTick } from 'vue';
 import {
   PlusOutlined,
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  MoreOutlined,
-  PlayCircleOutlined,
-  StopOutlined,
   SwapOutlined,
   CopyOutlined,
 } from '@ant-design/icons-vue';
@@ -331,10 +325,9 @@ const [registerTable, { reload }] = useTable({
   api: listAlgorithmTasks,
   beforeFetch: (params) => {
     // 转换参数格式
-    let is_enabled = undefined;
+    let is_enabled: boolean | undefined = undefined;
     if (params.is_enabled !== '' && params.is_enabled !== undefined) {
-      // 将布尔值转换为整数：true -> 1, false -> 0
-      is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
+      is_enabled = params.is_enabled === true || params.is_enabled === 'true';
     }
     return {
       pageNo: params.page,
@@ -454,16 +447,14 @@ const getTableActions = (record: AlgorithmTask) => {
   if (record.is_enabled) {
     actions.push({
       // pending 时隐藏静态图标，改用 a-button 自带 loading 转圈，避免出现双图标
-      icon: isTaskPending(record.id) ? undefined : 'ant-design:pause-circle-outlined',
-      loading: isTaskPending(record.id),
+      icon: isTaskPending(record.id) ? 'ant-design:loading-outlined' : 'ant-design:pause-circle-outlined',
       tooltip: isTaskPending(record.id) ? '处理中…' : '停止',
       disabled: isTaskPending(record.id),
       onClick: () => handleStop(record),
     });
   } else {
     actions.push({
-      icon: isTaskPending(record.id) ? undefined : 'ant-design:play-circle-outlined',
-      loading: isTaskPending(record.id),
+      icon: isTaskPending(record.id) ? 'ant-design:loading-outlined' : 'ant-design:play-circle-outlined',
       tooltip: isTaskPending(record.id) ? '处理中…' : '启动',
       disabled: isTaskPending(record.id),
       onClick: () => handleStart(record),
@@ -478,7 +469,7 @@ const getTableActions = (record: AlgorithmTask) => {
       title: '确定删除此算法任务？',
       confirm: () => handleDelete(record),
     },
-  });
+  } as any);
 
   return actions;
 };
@@ -502,7 +493,7 @@ const loadTasks = async () => {
       ...searchParams.value
     };
     if (params.is_enabled !== undefined && params.is_enabled !== '') {
-      params.is_enabled = params.is_enabled === true || params.is_enabled === 'true' ? 1 : 0;
+      params.is_enabled = params.is_enabled === true || params.is_enabled === 'true';
     }
     const response = await listAlgorithmTasks(params);
     if (response.code === 0) {
@@ -683,7 +674,7 @@ const handleOpenPostProcess = async (record: AlgorithmTask) => {
         ...(folder ? { folder } : {}),
         title: record.task_name || String(record.id),
       },
-    });
+    } as any);
   } catch (error) {
     console.error('打开后处理 IDE 失败', error);
     createMessage.error('打开后处理 IDE 失败');
@@ -778,8 +769,7 @@ const handleStop = async (record: AlgorithmTask) => {
 
 const handleToggleEnabled = async (record: AlgorithmTask) => {
   try {
-    // 将布尔值转换为整数：true -> 1, false -> 0
-    const newValue = record.is_enabled ? 0 : 1;
+    const newValue = !record.is_enabled;
     const response = await updateAlgorithmTask(record.id, {
       is_enabled: newValue,
     });
@@ -794,6 +784,7 @@ const handleToggleEnabled = async (record: AlgorithmTask) => {
     createMessage.error('更新失败');
   }
 };
+void handleToggleEnabled;
 
 const handleSuccess = async () => {
   if (viewMode.value === 'table') {
@@ -876,6 +867,7 @@ const handlePlayStream = async (record: AlgorithmTask) => {
     createMessage.error('获取推流地址失败');
   }
 };
+void handlePlayStream;
 
 // 将RTMP地址转换为HTTP FLV地址
 const convertRtmpToHttp = (rtmpUrl: string): string | null => {
@@ -887,7 +879,6 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     // 解析RTMP地址：rtmp://server:port/path
     const url = new URL(rtmpUrl);
     const server = url.hostname;
-    const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
     // 如果路径为空，使用默认路径

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Desktop launcher for EasyAIoT PANEL
+# Desktop launcher for yFeiEye PANEL
 set -euo pipefail
 
 URL="${EASYAIOT_PANEL_URL:-http://127.0.0.1:9200/}"
@@ -38,7 +38,7 @@ open_url() {
 start_service
 if ! is_active; then
   if command -v notify-send >/dev/null 2>&1; then
-    notify-send "EasyAIoT Panel" "服务未启动，请执行: sudo systemctl start easyaiot-panel" || true
+    notify-send "yFeiEye Panel" "服务未启动，请执行: sudo systemctl start easyaiot-panel" || true
   fi
 fi
 open_url || exit 1

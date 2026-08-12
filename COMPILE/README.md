@@ -1,4 +1,4 @@
-# EasyAIoT COMPILE
+# yFeiEye COMPILE
 
 把 `PANEL`（及其他模块，后续扩展）编译打包为各平台可执行文件 / 安装包。
 
@@ -219,7 +219,7 @@ sudo apt install ./COMPILE/dist/ubuntu/easyaiot-panel_*_amd64.deb
 # sudo apt install ./COMPILE/dist/ubuntu-arm/easyaiot-panel_*_arm_arm64.deb
 # sudo apt install ./COMPILE/dist/ubuntu-kylin/easyaiot-panel_*_kylin_arm64.deb
 
-# 配置 EasyAIoT 仓库根目录（非常关键）
+# 配置 yFeiEye 仓库根目录（非常关键）
 sudoedit /etc/easyaiot-panel/panel.env
 # 设置：
 # EASYAIOT_ROOT=/path/to/easyaiot
@@ -329,7 +329,7 @@ sudo apt install ./COMPILE/dist/ubuntu/easyaiot-panel_*_amd64.deb
 sudo systemctl restart easyaiot-panel
 ```
 
-安装后会在应用菜单出现 `EasyAIoT Panel`，点击会尝试启动服务并打开浏览器。
+安装后会在应用菜单出现 `yFeiEye Panel`，点击会尝试启动服务并打开浏览器。
 
 ### 直接跑二进制
 
@@ -366,7 +366,7 @@ export EASYAIOT_ROOT=/path/to/easyaiot
 >
 > 国内源：`COMPILE_CN_MIRROR=huawei`（默认）/`aliyun`/`tuna`。可选 `COMPILE_CN_REGISTRY=docker.1panel.live` 加速拉基础镜像。
 >
-> RPM **不打入**内置 runtime：安装后必须把 `EASYAIOT_ROOT` 指到本机仓库根，部署用 `.scripts/docker/install_linux_centos.sh`。
+> RPM **不打入**内置 runtime：安装后必须把 `EASYAIOT_ROOT` 指到本机 yFeiEye 仓库根，部署用 `.scripts/docker/install_linux_centos.sh`。
 
 ```bash
 bash COMPILE/build.sh centos-el9    # 同 centos
@@ -390,7 +390,7 @@ bash COMPILE/install_linux.sh install centos-el9
 
 ### 6.0) CentOS/RHEL ARM 打包与安装（el7 / el8 / el9）
 
-> 与 x86 相同按 EL 区分；默认 Docker `--platform linux/arm64` 交叉构建。  
+> 与 x86 相同按 EL 区分；默认 Docker `--platform linux/arm64` 交叉构建。
 > `panel.env` 默认 `INSTALL_SCRIPT=.scripts/docker/install_linux_centos_arm.sh`。
 
 ```bash
@@ -478,7 +478,7 @@ sudo bash COMPILE/force_upgrade_panel.sh
 | 源文件 | `COMPILE/assets/panel-logo.png`（可用 `COMPILE_PANEL_LOGO=` 覆盖） |
 | 算法 | `COMPILE/lib/make_circle_icon.py`：**圆形白底、外圈透明**（与 Ubuntu `pack_deb.sh` / Windows `build.sh` 同源） |
 | 中间产物 | `COMPILE/dist/macos/panel-icon-circle.png` |
-| App 图标 | `EasyAIoT Panel.app/Contents/Resources/panel.icns`（由圆形 PNG 经 `sips` + `iconutil` 生成） |
+| App 图标 | `yFeiEye Panel.app/Contents/Resources/panel.icns`（由圆形 PNG 经 `sips` + `iconutil` 生成） |
 
 ```bash
 # 仅预览圆形图标
@@ -511,11 +511,11 @@ bash COMPILE/build.sh macos --dmg
 | `COMPILE/dist/macos/runtime/` | 内置部署树（含 `.scripts/docker/install_mac.sh`） |
 | `COMPILE/dist/macos/panel.env` | 面板配置（`INSTALL_SCRIPT=install_mac.sh`） |
 | `COMPILE/dist/macos/run.command` | 双击启动包装 |
-| `COMPILE/dist/macos/EasyAIoT Panel.app` | macOS 应用包 |
+| `COMPILE/dist/macos/yFeiEye Panel.app` | macOS 应用包 |
 | `COMPILE/dist/macos/easyaiot-panel-<VERSION>-arm64.dmg` | Apple Silicon（M 系列）安装包 |
 | `COMPILE/dist/macos/easyaiot-panel-<VERSION>-amd64.dmg` | Intel Mac 安装包 |
 
-安装：打开 dmg → 将 **EasyAIoT Panel** 拖到 **Applications** → 启动后访问 `http://127.0.0.1:9200/`，在面板「应用部署」中执行 `install`（需本机 Docker Desktop 已就绪）。
+安装：打开 dmg → 将 **yFeiEye Panel** 拖到 **Applications** → 启动后访问 `http://127.0.0.1:9200/`，在面板「应用部署」中执行 `install`（需本机 Docker Desktop 已就绪）。
 
 ### 前置（macOS）
 
@@ -615,7 +615,7 @@ COMPILE/
 可执行文件已内嵌 Python 运行时、Flask 依赖与 `ui/dist` 前端，但业务能力仍依赖宿主机：
 
 - **Docker CLI**（`docker` / `docker compose`）与 Docker Engine（Linux sock / Desktop）
-- **EasyAIoT runtime 根**（`EASYAIOT_ROOT`）
+- **yFeiEye runtime 根**（`EASYAIOT_ROOT`）
   - Ubuntu deb 默认：`/opt/easyaiot-panel/runtime` → 按包变体使用 `install_linux.sh` / `install_linux_arm.sh` / `install_linux_kylin.sh`
   - Windows / macOS 安装包：与二进制同级的 `runtime/` → `install_windows.sh` / `install_mac.sh`
   - CentOS rpm：默认 `/opt/easyaiot`（占位），**须改为**本机仓库根 → 使用 `.scripts/docker/install_linux_centos.sh`

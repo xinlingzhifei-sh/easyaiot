@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateTenant(values)
+      await updateTenant(values as any)
     else
-      await createTenant(values)
+      await createTenant(values as any)
 
     closeModal()
     emit('success')

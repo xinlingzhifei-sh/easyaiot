@@ -20,9 +20,8 @@ import java.util.Map;
 /**
  * TdEngineMapper
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Mapper
 @InterceptorIgnore(tenantLine = "true")

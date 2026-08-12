@@ -712,9 +712,39 @@ export const STORAGE_TAG_DEFAULTS = {
   mediaMountPath: '/mnt/easyaiot-media',
 } as const;
 
+export const STORAGE_TAG_DISPLAY_DEFAULTS = {
+  cephPool: 'yFeiEye-playbacks',
+  cephfsName: 'yFeiEye',
+  mediaMountPath: '/mnt/yFeiEye-media',
+} as const;
+
+const STORAGE_RUNTIME_TO_DISPLAY: Record<string, string> = {
+  easyaiot: STORAGE_TAG_DISPLAY_DEFAULTS.cephfsName,
+  'easyaiot-playbacks': STORAGE_TAG_DISPLAY_DEFAULTS.cephPool,
+  'easyaiot-snaps': 'yFeiEye-snaps',
+  '/mnt/easyaiot-media': STORAGE_TAG_DISPLAY_DEFAULTS.mediaMountPath,
+};
+
+const STORAGE_DISPLAY_TO_RUNTIME: Record<string, string> = {
+  yFeiEye: 'easyaiot',
+  'yFeiEye-playbacks': 'easyaiot-playbacks',
+  'yFeiEye-snaps': 'easyaiot-snaps',
+  '/mnt/yFeiEye-media': '/mnt/easyaiot-media',
+};
+
+function toStorageRuntimeValue(value: unknown, fallback: string): string {
+  const raw = String(value ?? fallback);
+  return STORAGE_DISPLAY_TO_RUNTIME[raw] ?? raw;
+}
+
+export function formatStorageDisplayValue(value: unknown): string {
+  const raw = String(value ?? '');
+  return STORAGE_RUNTIME_TO_DISPLAY[raw] ?? raw;
+}
+
 export const CEPH_POOL_OPTIONS = [
-  { label: 'easyaiot-playbacks（录像缓冲池）', value: 'easyaiot-playbacks' },
-  { label: 'easyaiot-snaps（抓拍池）', value: 'easyaiot-snaps' },
+  { label: 'yFeiEye-playbacks（录像缓冲池）', value: 'easyaiot-playbacks' },
+  { label: 'yFeiEye-snaps（抓拍池）', value: 'easyaiot-snaps' },
 ] as const;
 
 export interface StorageTagFields {
@@ -784,11 +814,11 @@ export function readCephMountFromTags(tags?: Record<string, string | undefined>)
 export function buildStorageTags(values: Record<string, unknown>): Record<string, string> {
   const d = STORAGE_TAG_DEFAULTS;
   return {
-    ceph_pool: String(values.cephPool ?? d.cephPool),
+    ceph_pool: toStorageRuntimeValue(values.cephPool, d.cephPool),
     ceph_osd_path: String(values.cephOsdPath ?? d.cephOsdPath),
-    cephfs_name: String(values.cephfsName ?? d.cephfsName),
+    cephfs_name: toStorageRuntimeValue(values.cephfsName, d.cephfsName),
     ceph_mon_host: String(values.cephMonHost ?? d.cephMonHost),
-    media_mount_path: String(values.mediaMountPath ?? d.mediaMountPath),
+    media_mount_path: toStorageRuntimeValue(values.mediaMountPath, d.mediaMountPath),
   };
 }
 
@@ -846,10 +876,13 @@ export function getStorageStackGuideState(params?: StorageStackScriptParams): St
   const isReady = isStorageStackScriptReady(params);
   let readySummary = '';
   if (isReady && params?.host) {
+    const displayCephFs = formatStorageDisplayValue(params.cephfsName);
+    const displayMountPath = formatStorageDisplayValue(params.mediaMountPath);
+    const displayPool = formatStorageDisplayValue(params.cephPool || STORAGE_TAG_DEFAULTS.cephPool);
     readySummary =
       `目标机 ${params.host}：MON ${params.cephMonHost}，` +
-      `CephFS ${params.cephfsName} 挂载至 ${params.mediaMountPath}，` +
-      `OSD 路径 ${params.cephOsdPath}，存储池 ${params.cephPool || STORAGE_TAG_DEFAULTS.cephPool}`;
+      `CephFS ${displayCephFs} 挂载至 ${displayMountPath}，` +
+      `OSD 路径 ${params.cephOsdPath}，存储池 ${displayPool}`;
   }
   return { isStorageRole, isReady, pendingItems, readySummary };
 }
@@ -857,8 +890,8 @@ export function getStorageStackGuideState(params?: StorageStackScriptParams): St
 export function buildStorageManualContent(params: StorageStackScriptParams = {}): string {
   const host = params.host?.trim() || '<目标服务器>';
   const mon = params.cephMonHost?.trim() || STORAGE_TAG_DEFAULTS.cephMonHost;
-  const fs = params.cephfsName?.trim() || STORAGE_TAG_DEFAULTS.cephfsName;
-  const mount = params.mediaMountPath?.trim() || STORAGE_TAG_DEFAULTS.mediaMountPath;
+  const fs = toStorageRuntimeValue(params.cephfsName?.trim(), STORAGE_TAG_DEFAULTS.cephfsName);
+  const mount = toStorageRuntimeValue(params.mediaMountPath?.trim(), STORAGE_TAG_DEFAULTS.mediaMountPath);
   return `# ========== 步骤 1：在 Ceph MON 节点创建存储池与 CephFS ==========
 bash .scripts/media-cluster/ceph/pool-create.sh
 
@@ -1232,7 +1265,7 @@ export function buildMqttStackInstallScript(params: MqttStackScriptParams = {}):
   const seeds = params.emqxClusterSeeds || '';
 
   return `#!/usr/bin/env bash
-# EasyAIoT MQTT 网关节点 — EMQX 一键部署
+# yFeiEye MQTT 网关节点 — EMQX 一键部署
 set -euo pipefail
 
 export MQTT_CLUSTER_ROOT="/opt/easyaiot/mqtt-cluster"
@@ -1312,7 +1345,7 @@ export function buildMediaStackInstallScript(params: MediaStackScriptParams = {}
   const zlmRtpMax = params.zlmRtpPortMax ?? 30500;
 
   return `#!/usr/bin/env bash
-# EasyAIoT 媒体节点 — SRS + ZLMediaKit 一键部署
+# yFeiEye 媒体节点 — SRS + ZLMediaKit 一键部署
 # 在目标服务器 ${host} 上执行；若 SRS/ZLM 已在运行则自动跳过。
 set -euo pipefail
 
@@ -1335,7 +1368,9 @@ export ZLM_RTP_PORT_MIN=${zlmRtpMin}
 export ZLM_RTP_PORT_MAX=${zlmRtpMax}
 export ZLM_RTC_PORT=${zlmRtc}
 export ZLM_RTC_EXTERN_IP="${host}"
-export ZLM_SECRET="EasyAIoT_Media_Secret"
+# 请在执行前通过安全渠道注入，不得把密钥写入脚本或前端资源
+: "\${ZLM_SECRET:?请先设置 ZLM_SECRET}"
+export ZLM_SECRET
 
 # ---------- 2. 前置检查 ----------
 if ! command -v docker >/dev/null 2>&1; then
@@ -1440,7 +1475,7 @@ export function buildAgentEnvContent(node: {
 }): string {
   const port = node.agentPort ?? 9100;
   const controlPlane = node.controlPlaneUrl?.trim() || getControlPlaneAgentUrl();
-  return `# EasyAIoT Node Agent 配置
+  return `# yFeiEye Node Agent 配置
 NODE_ID=${node.id ?? ''}
 AGENT_TOKEN=${node.agentToken ?? 'your-agent-token-here'}
 CONTROL_PLANE_URL=${controlPlane}
@@ -1452,8 +1487,8 @@ VIDEO_ROOT=/opt/easyaiot/VIDEO
 MEDIA_CLUSTER_ROOT=/opt/easyaiot/media-cluster
 MQTT_CLUSTER_ROOT=/opt/easyaiot/mqtt-cluster
 MINIO_ENDPOINT=http://localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=your-secret
+MINIO_ACCESS_KEY=
+MINIO_SECRET_KEY=
 `;
 }
 
@@ -1539,6 +1574,8 @@ export const SETUP_COPY = {
   verifyDiagnosticHint: `${NODE_TERM.agent}启动后会向平台上报心跳；若长时间未上线，通常是 CONTROL_PLANE_URL 配置错误或网络不通。`,
   verifyIntro: `进入本步骤后将自动轮询平台节点状态（最多 15 次，约 1 分钟）；也可随时运行 ${NODE_TERM.accessDiagnostic} 排查问题。`,
   remoteDeploy: NODE_TERM.remoteDeploy,
+  deployCheck: NODE_TERM.deployCheck,
+  ops: NODE_TERM.ops,
   deployMediaBtn: `部署${NODE_TERM.mediaService}`,
   deployMqttBtn: `部署${NODE_TERM.mqttService}`,
   mediaDeployCheck: NODE_TERM.deployCheck,

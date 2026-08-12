@@ -17,9 +17,8 @@ import lombok.experimental.Accessors;
  * This class is used to encapsulate encryption and decryption details  , for message processing, providing necessary information without
  * -----------------------------------------------------------------------------
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @version 1.0
  * -----------------------------------------------------------------------------
  * Revision History:
@@ -27,7 +26,7 @@ import lombok.experimental.Accessors;
  * --------      --------     -------   --------------------
  * <p>
  * -----------------------------------------------------------------------------
- * @email andywebjava@163.com
+ * @email reese
  * @date 2023-11-12 01:48
  */
 @Data

@@ -4,8 +4,9 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { ref, defineComponent, h, onMounted, watch, reactive } from 'vue';
+  import { onMounted, reactive } from 'vue';
   import { Table } from 'ant-design-vue';
+  import type { ColumnProps } from 'ant-design-vue/lib/table';
   const props = defineProps({
     detail: {
       type: Object,
@@ -14,7 +15,7 @@
     },
   });
 
-  const state = reactive({
+  const state = reactive<{ tableData: Recordable[] }>({
     tableData: [],
   });
 
@@ -25,7 +26,7 @@
     },
   ];
 
-  function setTableData(detail) {
+  function setTableData(detail: Recordable) {
     state.tableData.push({
       transportType: detail.transportType,
     });

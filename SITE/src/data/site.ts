@@ -1,6 +1,6 @@
 export const LINKS = {
   gitee: 'https://gitee.com/volara/easyaiot',
-  github: 'https://github.com/soaring-xiongkulu/easyaiot',
+  github: 'https://github.com/xinlingzhifei/easyaiot',
   releases: 'https://gitee.com/volara/easyaiot/releases',
   compileReadme:
     'https://gitee.com/volara/easyaiot/blob/main/COMPILE/README.md',

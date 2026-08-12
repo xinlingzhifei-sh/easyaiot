@@ -12,9 +12,8 @@ import static java.util.Collections.singleton;
  * <p>
  * 提供用户-角色、角色-菜单、角色-部门的关联权限处理
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 public interface PermissionService {
 

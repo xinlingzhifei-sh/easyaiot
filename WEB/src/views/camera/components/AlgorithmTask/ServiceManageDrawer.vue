@@ -201,7 +201,6 @@ import {
   FolderOutlined,
 } from '@ant-design/icons-vue';
 import { Tag, Empty, Spin } from 'ant-design-vue';
-import {Icon} from '@/components/Icon';
 import {useMessage} from '@/hooks/web/useMessage';
 import {rewriteStreamHostToPageHost} from '@/views/camera/utils/devicePlay';
 import {
@@ -330,7 +329,7 @@ const serviceList = computed(() => {
     if (snapServiceInfo.value) {
       // 有服务状态信息
       const serviceItem = {
-            id: `snap_${taskInfo.value.id}_${deviceId}`,
+            id: `snap_${taskInfo.value!.id}_${deviceId}`,
         service_type: 'snap',
             service_name: `抓拍算法服务 - ${deviceName}`,
             device_id: deviceId,
@@ -349,7 +348,7 @@ const serviceList = computed(() => {
     } else {
       // 没有服务状态信息，显示默认项（服务未启动）
           const defaultItem = {
-            id: `snap_${taskInfo.value.id}_${deviceId}`,
+            id: `snap_${taskInfo.value!.id}_${deviceId}`,
             service_type: 'snap',
             service_name: `抓拍算法服务 - ${deviceName}`,
             device_id: deviceId,
@@ -537,21 +536,9 @@ const getColumns = () => [
   },
 ];
 
-const columns = getColumns();
+const columns = getColumns() as any[];
 
 // 获取服务图标
-const getServiceIcon = (serviceType: string) => {
-  const iconMap: Record<string, string> = {
-    realtime: 'ant-design:thunderbolt-outlined',
-    snap: 'ant-design:camera-outlined',
-    algorithm: 'ant-design:robot-outlined',
-    extractor: 'ant-design:file-image-outlined',
-    sorter: 'ant-design:sort-ascending-outlined',
-    pusher: 'ant-design:send-outlined',
-  };
-  return iconMap[serviceType] || 'ant-design:appstore-outlined';
-};
-
 // 获取状态颜色
 const getStatusColor = (status: string) => {
   const colorMap: Record<string, string> = {
@@ -837,7 +824,7 @@ const handleViewSnapSpaces = async (record: any) => {
           : (response as SnapSpace | null);
         
         // 获取设备名称
-        const deviceName = taskInfo.value?.device_names?.find((name: string, index: number) => 
+        const deviceName = taskInfo.value?.device_names?.find((_name: string, index: number) =>
           taskInfo.value?.device_ids?.[index] === deviceId
         ) || deviceId;
 
@@ -850,7 +837,7 @@ const handleViewSnapSpaces = async (record: any) => {
         console.error(`获取设备 ${deviceId} 的抓拍空间失败:`, error);
         return {
           device_id: deviceId,
-          device_name: taskInfo.value?.device_names?.find((name: string, index: number) => 
+          device_name: taskInfo.value?.device_names?.find((_name: string, index: number) =>
             taskInfo.value?.device_ids?.[index] === deviceId
           ) || deviceId,
           space: null,
@@ -1096,7 +1083,6 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     // 解析RTMP地址：rtmp://server:port/path
     const url = new URL(rtmpUrl);
     const server = url.hostname;
-    const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
     // 如果路径为空，使用默认路径

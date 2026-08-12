@@ -4,6 +4,7 @@ import com.basiclab.iot.common.domain.AjaxResult;
 import com.basiclab.iot.common.domain.TableDataInfo;
 import com.basiclab.iot.common.web.controller.BaseController;
 import com.basiclab.iot.message.domain.model.vo.MessagePrepareVO;
+import com.basiclab.iot.message.security.MessageInternalAccessVerifier;
 import com.basiclab.iot.message.service.MessageTemplateService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +16,10 @@ import java.util.Map;
 
 /**
  * 消息模板管理（与消息推送分离，record_type=0）
+ *
+ * @author reese
+ * @email reese
+ * @since 2024-07-18
  */
 @RestController
 @RequestMapping("/message/template")
@@ -23,6 +28,8 @@ public class MessageTemplateController extends BaseController {
 
     @Autowired
     private MessageTemplateService messageTemplateService;
+    @Autowired
+    private MessageInternalAccessVerifier messageInternalAccessVerifier;
 
     @PostMapping("/add")
     @ApiOperation("新增消息模板")
@@ -74,7 +81,16 @@ public class MessageTemplateController extends BaseController {
 
     @GetMapping("/get")
     @ApiOperation("根据ID和消息类型获取模板详情")
-    public AjaxResult get(@RequestParam("id") String id, @RequestParam("msgType") Integer msgType) {
+    public AjaxResult get(
+            @RequestHeader(value = MessageInternalAccessVerifier.TOKEN_HEADER, required = false)
+            String internalToken,
+            @RequestParam("id") String id,
+            @RequestParam("msgType") Integer msgType) {
+        messageInternalAccessVerifier.verify(internalToken);
+        return getTemplate(id, msgType);
+    }
+
+    private AjaxResult getTemplate(String id, Integer msgType) {
         if (id == null || id.trim().isEmpty()) {
             return AjaxResult.error("模板ID不能为空");
         }
@@ -95,6 +111,6 @@ public class MessageTemplateController extends BaseController {
     @GetMapping("/queryById")
     @ApiOperation("根据ID和消息类型获取模板详情（兼容旧接口）")
     public AjaxResult queryById(@RequestParam("id") String id, @RequestParam("msgType") Integer msgType) {
-        return get(id, msgType);
+        return getTemplate(id, msgType);
     }
 }

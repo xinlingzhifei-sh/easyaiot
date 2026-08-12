@@ -31,7 +31,7 @@
 ### 基本用法
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 python test_stream_forward.py
 ```
 
@@ -77,14 +77,14 @@ python test_stream_forward.py
 ============================================================
 推流转发服务畅通性测试
 ============================================================
-视频文件: /opt/projects/easyaiot/VIDEO/video/video2.mp4
+视频文件: /opt/projects/yfeieye/VIDEO/video/video2.mp4
 RTSP 地址: rtsp://127.0.0.1:8554/test_stream
 RTMP 地址: rtmp://127.0.0.1:1935/live/test_stream
 测试时长: 60 秒
 ============================================================
 ✅ FFmpeg 已安装: ffmpeg version 4.4.2
 ✅ 视频文件信息:
-   文件路径: /opt/projects/easyaiot/VIDEO/video/video2.mp4
+   文件路径: /opt/projects/yfeieye/VIDEO/video/video2.mp4
    分辨率: 1920x1080
    帧率: 25.00 FPS
    总帧数: 2500
@@ -198,6 +198,5 @@ sudo yum install ffmpeg
 
 ## 作者信息
 
-- **作者**: 翱翔的雄库鲁
-- **邮箱**: andywebjava@163.com
-- **微信**: EasyAIoT2025
+- **作者**: reese
+- **邮箱**: reese

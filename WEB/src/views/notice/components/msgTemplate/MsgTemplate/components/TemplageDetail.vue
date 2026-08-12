@@ -15,7 +15,7 @@
     dingDetailSchemas,
     httpDetailSchemas,
     feishuDetailSchemas,
-  } from '../Data.tsx';
+  } from '../Data';
   import { Spin } from 'ant-design-vue';
 
   const props = defineProps({
@@ -35,7 +35,7 @@
     layout: 'vertical',
   });
 
-  const setDetail = (record) => {
+  const setDetail = (record: Record<string, any>) => {
     const { msgType, ...ret } = record;
     const config = {
       1: smsDetailSchemas,
@@ -47,7 +47,7 @@
       7: feishuDetailSchemas,
     };
     const descSchema = config[msgType] || commonDetailSchema;
-    const descData = {};
+    const descData: Record<string, any> = {};
     descSchema.forEach((element) => {
       descData[element.field] = ret[element.field];
     });

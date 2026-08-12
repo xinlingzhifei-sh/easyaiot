@@ -22,9 +22,8 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * AppAreaController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @RestController
 @RequestMapping("/system/area")

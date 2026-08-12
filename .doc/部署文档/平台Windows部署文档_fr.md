@@ -1,4 +1,4 @@
-# Guide de déploiement local de la plateforme EasyAIoT pour Windows
+# Guide de déploiement local de la plateforme yFeiEye pour Windows
 
 > Version du document : 2.1  
 > Date de mise à jour : 2026-08-01  
@@ -139,7 +139,7 @@ Après installation : `http://localhost:8888` (Gateway `:48080`, Nacos `:8848/na
 
 ### 1.1 Description du projet
 
-EasyAIoT est une plateforme d'analyse vidéo IoT + IA qui prend en charge la connexion de caméras, la redirection de flux vidéo et l'analyse d'algorithmes IA.
+yFeiEye est une plateforme d'analyse vidéo IoT + IA qui prend en charge la connexion de caméras, la redirection de flux vidéo et l'analyse d'algorithmes IA.
 
 ### 1.2 Architecture du système
 
@@ -224,8 +224,8 @@ Adresse de téléchargement : https://www.anaconda.com/
 
 Création d'un environnement virtuel :
 ```powershell
-conda create -n easyaiot python=3.10
-conda activate easyaiot
+conda create -n yfeieye python=3.10
+conda activate yfeieye
 ```
 
 #### 2.2.4 FFmpeg
@@ -252,7 +252,7 @@ Utilisé pour exécuter le serveur de streaming SRS. Docker est uniquement utili
 
 Ce document suppose que le chemin du projet est :
 ```
-F:\EASYLOT\easyaiot-V4.0.0\
+F:\EASYLOT\yfeieye-V4.0.0\
 ```
 
 Chemins d'installation des middleware :
@@ -274,7 +274,7 @@ F:\EASYLOT\TDengine\  ####自行下载
 - Version : 16.x
 - Port : 5432
 - Nom d'utilisateur : postgres
-- Mot de passe : `iot45722414822`
+- Mot de passe : `<POSTGRES_PASSWORD>`
 
 #### Commandes de démarrage
 ```powershell
@@ -287,14 +287,14 @@ net start postgresql-x64-16
 
 #### Création de la base de données
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-system\";"
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "CREATE DATABASE \"iot-video20\";"
 ```
 
 #### Vérification de la connexion
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
 ```
 
@@ -304,7 +304,7 @@ $env:PGPASSWORD='iot45722414822'
 #### Informations d'installation
 - Version : 7.x
 - Port : 6379
-- Mot de passe : `basiclab@iot975248395`
+- Mot de passe : `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Commande de démarrage
 ```powershell
@@ -315,7 +315,7 @@ cd F:\EASYLOT\Redis
 #### Vérification de la connexion
 ```powershell
 cd F:\EASYLOT\Redis
-.\redis-cli.exe -a "basiclab@iot975248395" ping
+.\redis-cli.exe -a "<REDIS_OR_MINIO_PASSWORD>" ping
 # Devrait retourner PONG
 ```
 
@@ -326,7 +326,7 @@ cd F:\EASYLOT\Redis
 - Version : 2.x
 - Port : 8848
 - Nom d'utilisateur : nacos
-- Mot de passe : `basiclab@iot78475418754`
+- Mot de passe : `<NACOS_PASSWORD>`
 - Espace de noms : local
 
 #### Commande de démarrage
@@ -353,7 +353,7 @@ http://localhost:8848/nacos
 - Port API : 9000
 - Port console : 9001
 - Nom d'utilisateur : minioadmin
-- Mot de passe : `basiclab@iot975248395`
+- Mot de passe : `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Commande de démarrage
 ```powershell
@@ -456,7 +456,7 @@ docker run -d --name srs-server `
   -p 8080:8080 `
   -p 1985:1985 `
   -p 8000:8000/udp `
-  -v "F:\EASYLOT\easyaiot-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
+  -v "F:\EASYLOT\yfeieye-V4.0.0\.scripts\srs\conf\simple.conf:/usr/local/srs/conf/docker.conf" `
   ossrs/srs:5 ./objs/srs -c conf/docker.conf
 ```
 
@@ -504,20 +504,20 @@ Il y a plusieurs microservices Spring Boot dans le répertoire DEVICE qui doiven
 
 #### 4.2.1 Démarrer le service de passerelle
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-gateway
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-gateway
 mvn spring-boot:run
 # Ou utiliser l'IDE pour démarrer
 ```
 
 #### 4.2.2 Démarrer le service système
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-system\iot-system-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-system\iot-system-biz
 mvn spring-boot:run
 ```
 
 #### 4.2.3 Démarrer le service d'infrastructure
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\DEVICE\iot-infra\iot-infra-biz
+cd F:\EASYLOT\yfeieye-V4.0.0\DEVICE\iot-infra\iot-infra-biz
 mvn spring-boot:run
 ```
 
@@ -531,8 +531,8 @@ mvn spring-boot:run
 
 #### 4.3.1 Installation des dépendances
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
@@ -541,18 +541,18 @@ pip install -r requirements.txt
 Modifiez le fichier `VIDEO/.env`, assurez-vous que les configurations suivantes sont correctes :
 ```properties
 # Base de données
-DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-video20
+DATABASE_URL=postgresql://postgres:<POSTGRES_PASSWORD>@localhost:5432/iot-video20
 
 # Nacos
 NACOS_SERVER=localhost:8848
 NACOS_NAMESPACE=local
 NACOS_USERNAME=nacos
-NACOS_PASSWORD=basiclab@iot78475418754
+NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # MinIO
 MINIO_ENDPOINT=localhost:9000
 MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=basiclab@iot975248395
+MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # Chemin FFmpeg (Windows doit configurer le chemin complet)
 FFMPEG_PATH=G:/ffmpeg-7.0.2-essentials_build/bin/ffmpeg.exe
@@ -563,8 +563,8 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 
 #### 4.3.3 Démarrer le service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 ```
 
@@ -575,15 +575,15 @@ Le service écoute sur le port : 6000 après le démarrage
 
 #### 4.4.1 Installation des dépendances
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 pip install -r requirements.txt
 ```
 
 #### 4.4.2 Démarrer le service
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 ```
 
@@ -594,7 +594,7 @@ Le service écoute sur le port : 8100 après le démarrage
 
 #### 4.5.1 Installation des dépendances
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm install
 # Ou utiliser pnpm
 pnpm install
@@ -602,7 +602,7 @@ pnpm install
 
 #### 4.5.2 Démarrer le serveur de développement
 ```powershell
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -700,7 +700,7 @@ http_stream = f"http://127.0.0.1:8080/live/{short_stream_name}.flv"
 
 #### Correction manuelle des données existantes
 ```powershell
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20" -c "UPDATE device SET rtmp_stream = 'rtmp://127.0.0.1:1935/live/cam_' || SUBSTRING(id, 1, 8), http_stream = 'http://127.0.0.1:8080/live/cam_' || SUBSTRING(id, 1, 8) || '.flv';"
 ```
 
@@ -800,7 +800,7 @@ Lors du démarrage du service VIDEO, une erreur de connexion à la base de donn�
 #### Étapes de diagnostic
 1. Vérifiez que le service PostgreSQL est démarré :
    ```powershell
-   $env:PGPASSWORD='iot45722414822'
+   $env:PGPASSWORD='<POSTGRES_PASSWORD>'
    & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -c "\l"
    ```
 
@@ -845,7 +845,7 @@ Cela se produit généralement parce que le service de passerelle n'est pas dém
 
 ```powershell
 # Définir la variable d'environnement du mot de passe
-$env:PGPASSWORD='iot45722414822'
+$env:PGPASSWORD='<POSTGRES_PASSWORD>'
 
 # Se connecter à la base de données
 & "F:\EASYLOT\PostgreSQL16\bin\psql.exe" -h localhost -U postgres -d "iot-video20"
@@ -907,17 +907,17 @@ Invoke-RestMethod -Uri "http://127.0.0.1:1985/api/v1/versions"
 
 ```powershell
 # Service VIDEO
-cd F:\EASYLOT\easyaiot-V4.0.0\VIDEO
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\VIDEO
+conda activate yfeieye
 python run.py
 
 # Service AI
-cd F:\EASYLOT\easyaiot-V4.0.0\AI
-conda activate easyaiot
+cd F:\EASYLOT\yfeieye-V4.0.0\AI
+conda activate yfeieye
 python run.py
 
 # Frontend WEB
-cd F:\EASYLOT\easyaiot-V4.0.0\WEB
+cd F:\EASYLOT\yfeieye-V4.0.0\WEB
 npm run dev
 ```
 
@@ -950,10 +950,10 @@ npm run dev
 
 | Service | Nom d'utilisateur | Mot de passe |
 |---------|-------------------|--------------|
-| PostgreSQL | postgres | iot45722414822 |
-| Redis | - | basiclab@iot975248395 |
-| Nacos | nacos | basiclab@iot78475418754 |
-| MinIO | minioadmin | basiclab@iot975248395 |
+| PostgreSQL | postgres | <POSTGRES_PASSWORD> |
+| Redis | - | <REDIS_OR_MINIO_PASSWORD> |
+| Nacos | nacos | <NACOS_PASSWORD> |
+| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | Frontend WEB | admin | admin123 |
 | Caméra de test | admin | sr336699 |

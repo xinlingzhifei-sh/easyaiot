@@ -14,11 +14,11 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import {} from 'vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
+  import type { FormSchema } from '/@/components/Form';
   import { BasicForm, useForm } from '/@/components/Form';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import { formSchemas } from '../Data.tsx';
+  import { formSchemas } from '../Data';
 
   const emits = defineEmits(['success']);
   const { createMessage } = useMessage();
@@ -45,7 +45,7 @@
       // setProps,
     },
   ] = useForm({
-    schemas: formSchemas(),
+    schemas: formSchemas() as FormSchema[],
     labelWidth: '280px',
     layout: 'vertical',
     baseColProps: { span: 24 },

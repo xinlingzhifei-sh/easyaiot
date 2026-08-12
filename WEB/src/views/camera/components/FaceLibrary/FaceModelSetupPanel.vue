@@ -89,14 +89,14 @@
                   :key="step.key"
                   class="setup-step"
                   :class="{
-                    'setup-step--done': finished || idx < currentStep,
-                    'setup-step--active': !finished && idx === currentStep,
-                    'setup-step--pending': !finished && idx > currentStep,
+                    'setup-step--done': finished || idx < safeCurrentStep,
+                    'setup-step--active': !finished && idx === safeCurrentStep,
+                    'setup-step--pending': !finished && idx > safeCurrentStep,
                   }"
                 >
                   <div class="setup-step-node">
-                    <CheckOutlined v-if="finished || idx < currentStep" />
-                    <LoadingOutlined v-else-if="idx === currentStep" spin />
+                    <CheckOutlined v-if="finished || idx < safeCurrentStep" />
+                    <LoadingOutlined v-else-if="idx === safeCurrentStep" spin />
                     <span v-else>{{ idx + 1 }}</span>
                   </div>
                   <div class="setup-step-text">
@@ -259,6 +259,8 @@ const showBytes = computed(() => {
   const total = props.modelStatus?.total_bytes ?? 0;
   return total > 0 && props.showProgress;
 });
+
+const safeCurrentStep = computed(() => props.currentStep ?? 0);
 
 function formatSize(bytes?: number) {
   if (!bytes || bytes <= 0) return '--';

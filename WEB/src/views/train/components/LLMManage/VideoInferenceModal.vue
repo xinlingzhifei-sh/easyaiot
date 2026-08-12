@@ -99,9 +99,7 @@ import { ref, computed } from 'vue';
 import { BasicModal, useModalInner } from '@/components/Modal';
 import { useMessage } from '@/hooks/web/useMessage';
 import { UploadOutlined } from '@ant-design/icons-vue';
-import { Upload,
-  Modal,
-  Form,
+import {
   FormItem,
   Input,
   Textarea,
@@ -110,7 +108,7 @@ import { Upload,
   Divider,
   Spin,
   Tabs,
-  TabPane as AntButton, } from 'ant-design-vue';
+  TabPane, } from 'ant-design-vue';
 import type { UploadFile, UploadProps } from 'ant-design-vue';
 import { videoInference, videoUnderstanding } from '@/api/device/llm';
 import { Button } from '@/components/Button'
@@ -119,7 +117,7 @@ defineOptions({ name: 'VideoInferenceModal' });
 const emit = defineEmits(['success', 'register']);
 
 const { createMessage } = useMessage();
-const [register, { setModalProps, closeModal }] = useModalInner(() => {
+const [register, { setModalProps }] = useModalInner(() => {
   // 初始化
   fileList.value = [];
   videoUrl.value = '';

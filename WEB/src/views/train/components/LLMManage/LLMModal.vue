@@ -202,13 +202,13 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
       resetFields();
       const response = await getLLMDetail(record.id);
       // 处理不同的响应格式
-      let detailData = null;
+      let detailData: Partial<LLMModel> | null = null;
       if (response && typeof response === 'object') {
         if ('code' in response && response.code === 0 && response.data) {
-          detailData = response.data;
+          detailData = response.data as Partial<LLMModel>;
         } else if (!('code' in response)) {
           // 响应转换器已处理，直接使用 response
-          detailData = response;
+          detailData = response as Partial<LLMModel>;
         }
       }
       

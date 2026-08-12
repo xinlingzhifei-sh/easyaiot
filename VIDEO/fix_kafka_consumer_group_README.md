@@ -19,7 +19,7 @@ Preparing to rebalance group video-alert-consumer in state PreparingRebalance
 
 ```bash
 # 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 运行一键修复脚本（会自动检查、停止服务、等待、修复）
 bash fix_kafka_quick.sh
@@ -35,7 +35,7 @@ bash fix_kafka_quick.sh
 
 ```bash
 # 1. 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 2. 先检查问题（不执行修复）
 bash fix_kafka_consumer_group.sh --check-only
@@ -48,7 +48,7 @@ bash fix_kafka_consumer_group.sh --reset
 
 ```bash
 # 1. 进入VIDEO目录
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 
 # 2. 先检查问题（不执行修复）
 python3 fix_kafka_consumer_group.py --check-only
@@ -128,7 +128,7 @@ sleep 30
 ### 步骤3：检查问题
 
 ```bash
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 bash fix_kafka_consumer_group.sh --check-only
 ```
 
@@ -169,7 +169,7 @@ cd /opt/kafka/bin
 ./kafka-consumer-groups.sh --bootstrap-server localhost:9092 --delete --group video-alert-consumer
 
 # 2. 或者在宿主机上指定Kafka地址
-cd /opt/projects/easyaiot/VIDEO
+cd /opt/projects/yfeieye/VIDEO
 bash fix_kafka_consumer_group.sh --bootstrap-servers <kafka容器IP>:9092 --reset
 ```
 
@@ -214,7 +214,6 @@ bash fix_kafka_consumer_group.sh --check-only
 
 ## 📞 技术支持
 
-- 作者：翱翔的雄库鲁
-- 邮箱：andywebjava@163.com
-- 微信：EasyAIoT2025
+- 作者：reese
+- 邮箱：reese
 

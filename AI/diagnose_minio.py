@@ -18,8 +18,11 @@ def check_minio_config():
     
     # 读取配置
     minio_endpoint = os.getenv('MINIO_ENDPOINT', 'MinIO:9000')
-    access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-    secret_key = os.getenv('MINIO_SECRET_KEY', 'basiclab@iot975248395')
+    access_key = os.getenv('MINIO_ACCESS_KEY', '')
+    secret_key = os.getenv('MINIO_SECRET_KEY', '')
+    if not access_key or not secret_key:
+        print("❌ MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置")
+        return False
     secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
     
     print(f"\n1. 环境变量配置:")
@@ -137,4 +140,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

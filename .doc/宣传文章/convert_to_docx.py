@@ -38,7 +38,7 @@ def convert_markdown_to_docx(md_content, output_path):
         "核心优势": "⭐",
         "多语言混编架构": "🔤",
         "零样本标注技术": "🎯",
-        "云边端灵活部署": "🌍",
+        "灵活部署": "🌍",
         "丰富生态支持": "🌳",
         "持续迭代优化": "🔄",
         "应用场景": "🎬",
@@ -296,11 +296,11 @@ def add_formatted_text(paragraph, text, is_new=True):
 
 if __name__ == '__main__':
     # 读取markdown文件
-    with open('/projects/easyaiot/.doc/宣传文章/项目宣传2.md', 'r', encoding='utf-8') as f:
+    with open('/projects/yfeieye/.doc/宣传文章/项目宣传2.md', 'r', encoding='utf-8') as f:
         md_content = f.read()
     
     # 转换为DOCX
-    output_path = '/projects/easyaiot/.doc/宣传文章/doc/项目宣传2_公众号版.docx'
+    output_path = '/projects/yfeieye/.doc/宣传文章/doc/项目宣传2_公众号版.docx'
     convert_markdown_to_docx(md_content, output_path)
     
     print(f"转换完成！DOCX文件已保存到: {output_path}")

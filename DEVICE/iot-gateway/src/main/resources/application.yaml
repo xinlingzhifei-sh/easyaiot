@@ -215,7 +215,7 @@ knife4j:
         service-name: visualize-server
         url: /admin-api/visualize/v3/api-docs
 
---- #################### BasicLab相关配置 ####################
+--- #################### yFeiEye相关配置 ####################
 
 iot:
   info:

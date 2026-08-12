@@ -179,9 +179,11 @@ def download_from_minio(bucket_name: str, object_key: str, destination_path: str
         return False, f'minio 库不可用: {e}'
 
     endpoint = os.getenv('MINIO_ENDPOINT', 'MinIO:9000')
-    access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-    secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+    access_key = os.getenv('MINIO_ACCESS_KEY', '')
+    secret_key = os.getenv('MINIO_SECRET_KEY', '')
     secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
+    if not access_key or not secret_key:
+        return False, 'MINIO_ACCESS_KEY and MINIO_SECRET_KEY are required'
 
     os.makedirs(os.path.dirname(destination_path) or '.', exist_ok=True)
     tmp_path = destination_path + '.tmp'

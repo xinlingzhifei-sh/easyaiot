@@ -9,7 +9,7 @@
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
   import { Description, useDescription } from '/@/components/Description/index';
   import { formatToDateTime } from '/@/utils/dateUtil';
-  import { getHistoryDetailSchema, getMsgTypeLabel } from './Data.tsx';
+  import { getHistoryDetailSchema, getMsgTypeLabel } from './Data';
 
   const record = ref<Record<string, any>>({});
 

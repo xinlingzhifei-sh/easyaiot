@@ -37,9 +37,9 @@ async function handleSubmit() {
     const values = await validate()
     setModalProps({ confirmLoading: true })
     if (unref(isUpdate))
-      await updateDictType(values)
+      await updateDictType(values as any)
     else
-      await createDictType(values)
+      await createDictType(values as any)
 
     closeModal()
     emit('success')

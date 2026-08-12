@@ -2,9 +2,8 @@
 YOLO模型版本验证工具
 使用ultralytics库判断YOLO模型是版本8还是版本11
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 from typing import Optional, Tuple
@@ -14,30 +13,16 @@ try:
 except ImportError:
     YOLO = None
 
-try:
-    import torch
-except ImportError:
-    torch = None
-
 _YOLOV5_INCOMPATIBLE_MSG = (
     "检测到 YOLOv5 或基于 YOLOv5 训练框架（models.yolo）导出的权重，"
     "与平台要求的 YOLOv8/YOLOv11/YOLOv26 不兼容。\n"
     "请使用 ultralytics 重新训练/导出 .pt，或先转为 ONNX 后再上传。"
 )
 
-
-def _infer_version_from_names(*names: str) -> Optional[Tuple[str, str]]:
-    for name in names:
-        if not name:
-            continue
-        lower = str(name).lower()
-        if 'yolo26' in lower or 'yolov26' in lower:
-            return 'yolov26', '文件名'
-        if 'yolo11' in lower or 'yolov11' in lower:
-            return 'yolov11', '文件名'
-        if 'yolo8' in lower or 'yolov8' in lower:
-            return 'yolov8', '文件名'
-    return None
+_UNTRUSTED_PT_REJECTION_MSG = (
+    "Web 进程禁止加载 .pt/.pth 模型，因为该格式可能触发 Python pickle 反序列化。"
+    "请在无网络、低权限、资源受限的隔离环境转换为 ONNX 后再导入。"
+)
 
 
 def _is_yolov5_style_checkpoint(text: str) -> bool:
@@ -62,23 +47,8 @@ def _infer_version_from_checkpoint_blob(text: str) -> Optional[str]:
 
 
 def _load_torch_checkpoint(model_path: str):
-    if torch is None:
-        return None
-    loaders = (
-        lambda: torch.load(model_path, map_location='cpu', weights_only=False),
-        lambda: torch.load(model_path, map_location='cpu', weights_only=True),
-        lambda: torch.load(model_path, map_location='cpu'),
-    )
-    for loader in loaders:
-        try:
-            return loader()
-        except TypeError:
-            continue
-        except Exception as exc:
-            if _is_yolov5_style_checkpoint(str(exc)):
-                _raise_yolov5_incompatible()
-            continue
-    return None
+    del model_path
+    raise ValueError(_UNTRUSTED_PT_REJECTION_MSG)
 
 
 def _inspect_checkpoint(checkpoint) -> Tuple[Optional[str], Optional[str], Optional[str]]:
@@ -154,7 +124,7 @@ def validate_yolo_model(
 
     Args:
         model_path: 模型文件路径
-        original_filename: 上传时的原始文件名（用于版本推断）
+        original_filename: 上传时的原始文件名（仅用于拒绝不可信扩展名）
 
     Returns:
         (版本字符串, 检测方法) - 如果版本为 yolov8、yolov11 或 yolov26，返回版本字符串；否则返回 None
@@ -167,20 +137,13 @@ def validate_yolo_model(
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"模型文件不存在: {model_path}")
 
+    model_extension = os.path.splitext(model_path)[1].lower()
+    original_extension = os.path.splitext(original_filename or '')[1].lower()
+    if model_extension in {'.pt', '.pth'} or original_extension in {'.pt', '.pth'}:
+        raise ValueError(_UNTRUSTED_PT_REJECTION_MSG)
+
     if YOLO is None:
         raise ImportError("未安装ultralytics库，请先安装: pip install ultralytics")
-
-    inferred = _infer_version_from_names(original_filename, model_path)
-    if inferred:
-        return inferred
-
-    checkpoint = _load_torch_checkpoint(model_path)
-    if checkpoint is not None:
-        version, method, reject = _inspect_checkpoint(checkpoint)
-        if reject == 'yolov5':
-            _raise_yolov5_incompatible()
-        if version:
-            return version, method or 'torch模型元数据'
 
     try:
         model = YOLO(model_path)
@@ -243,14 +206,6 @@ def validate_yolo_model(
         except Exception:
             pass
 
-        model_path_lower = model_path.lower()
-        if 'yolo26' in model_path_lower:
-            return 'yolov26', 'ultralytics库（文件名）'
-        if 'yolo11' in model_path_lower:
-            return 'yolov11', 'ultralytics库（文件名）'
-        if 'yolo8' in model_path_lower or 'yolov8' in model_path_lower:
-            return 'yolov8', 'ultralytics库（文件名）'
-
         try:
             task = getattr(model, 'task', None)
             if task:
@@ -275,7 +230,7 @@ def validate_yolo_model(
         except Exception:
             pass
 
-        return 'yolov8', 'ultralytics库（默认推断：模型成功加载）'
+        return None, 'ultralytics库（模型成功加载但版本无法确定）'
 
     except Exception as e:
         _raise_from_yolo_load_error(e)

@@ -146,7 +146,6 @@ const [
 ] = useTable({
   canResize: true,
   showIndexColumn: false,
-  actionColOptions: {span: 4},
   title: '产品模型列表',
   api: getDeviceProfiles,
   beforeFetch: (data) => {
@@ -183,7 +182,7 @@ const [
   onChange,
   rowSelection: {
     type: 'checkbox',
-    selectedRowKeys: checkedKeys,
+    selectedRowKeys: checkedKeys.value,
     onSelect: onSelect,
     onSelectAll: onSelectAll,
     getCheckboxProps(record) {
@@ -194,7 +193,7 @@ const [
       }
     },
   },
-  onColumnsChange: (data) => {
+  onColumnsChange: (_data) => {
     //console.log('ColumnsChanged', data);
   },
 });
@@ -223,7 +222,7 @@ function onSelect(record, selected) {
   }
 }
 
-function onSelectAll(selected, selectedRows, changeRows) {
+function onSelectAll(selected, _selectedRows, changeRows) {
   const changeIds = changeRows.map((item) => item.id);
   if (selected) {
     checkedKeys.value = [...checkedKeys.value, ...changeIds];
@@ -239,7 +238,7 @@ async function handleDeleteAll() {
   try {
     await Promise.all([deleteDeviceProfile(checkedKeys.value)]);
     createMessage.success('删除成功');
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
     //console.log(error);
     // createMessage.error('删除失败');
@@ -255,7 +254,7 @@ async function handleDeleteProduct(record) {
     reloadList();
     //console.log('ret ...', ret);
     createMessage.success('删除成功');
-  } catch (error) {
+  } catch (error: any) {
     console.error(error)
     createMessage.error(error.response.data.message);
     //console.log('handleDeleteProduct ...', error);

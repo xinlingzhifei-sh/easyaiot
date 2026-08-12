@@ -6,6 +6,7 @@ import com.basiclab.iot.common.domain.TableDataInfo;
 import com.basiclab.iot.message.factory.RemoteMessageNotifyQueryFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -17,13 +18,22 @@ import org.springframework.web.bind.annotation.RequestParam;
         fallbackFactory = RemoteMessageNotifyQueryFactory.class)
 public interface RemoteMessageNotifyQueryService {
 
+    String INTERNAL_TOKEN_HEADER = "X-Iot-Message-Token";
+
     @GetMapping("/message/template/get")
-    AjaxResult getTemplate(@RequestParam("id") String id, @RequestParam("msgType") Integer msgType);
+    AjaxResult getTemplate(
+            @RequestHeader(INTERNAL_TOKEN_HEADER) String internalToken,
+            @RequestParam("id") String id,
+            @RequestParam("msgType") Integer msgType);
 
     @GetMapping("/message/preview/user/group/query")
-    TableDataInfo queryUserGroup(@RequestParam("id") String id);
+    TableDataInfo queryUserGroup(
+            @RequestHeader(INTERNAL_TOKEN_HEADER) String internalToken,
+            @RequestParam("id") String id);
 
     @GetMapping("/message/preview/user/query")
-    TableDataInfo queryPreviewUser(@RequestParam("id") String id,
-                                   @RequestParam(value = "msgType", required = false) Integer msgType);
+    TableDataInfo queryPreviewUser(
+            @RequestHeader(INTERNAL_TOKEN_HEADER) String internalToken,
+            @RequestParam("id") String id,
+            @RequestParam(value = "msgType", required = false) Integer msgType);
 }

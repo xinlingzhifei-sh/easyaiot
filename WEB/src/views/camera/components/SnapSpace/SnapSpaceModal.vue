@@ -215,7 +215,7 @@ const handleSubmit = async () => {
     }
     confirmLoading.value = true;
     setDrawerProps({ confirmLoading: true });
-    const payload = { ...values, save_time: saveTime.value };
+    const payload = { ...values, save_time: saveTime.value } as any;
 
     if (modalData.value.type === 'edit' && modalData.value.record) {
       const response = await updateSnapSpace(modalData.value.record.id, payload);
@@ -413,4 +413,3 @@ const handleReset = () => {
   }
 }
 </style>
-

@@ -64,13 +64,13 @@ const state = reactive({
 });
 
 const modelRef = reactive({
-  id: null,
+  id: null as number | null,
   shortcut: 1,
   name: '',
   color: '',
   description: '',
-  datasetId: null,
-  warehouseId: null,
+  datasetId: null as number | null,
+  warehouseId: null as number | null,
 });
 
 const getTitle = computed(() => (state.isEdit ? '编辑数据集标签' : state.isView ? '查看数据集标签' : '新增数据集标签'));

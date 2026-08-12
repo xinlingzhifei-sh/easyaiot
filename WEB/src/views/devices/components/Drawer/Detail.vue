@@ -7,13 +7,11 @@
 import {onMounted, reactive} from 'vue';
 import {Description} from '@/components/Description/index';
 import {getDevicesInfo} from '@/api/device/devices';
-import {useMessage} from '@/hooks/web/useMessage';
 import moment from 'moment';
 import {useRoute} from "vue-router";
 
 const route = useRoute()
 
-const { createMessage } = useMessage();
 const description = reactive({
   id:'',
   clientId:'',
@@ -106,16 +104,6 @@ const schema = [
     label: '设备描述',
   },
 ];
-
-function copy(key) {
-  const input = document.createElement('input');
-  input.value = key;
-  document.body.appendChild(input);
-  input.select();
-  document.execCommand('copy');
-  document.body.removeChild(input);
-  createMessage.success('复制成功');
-}
 
 const initDeviceDetail = async (record) => {
   const info = await getDevicesInfo(record?.id);

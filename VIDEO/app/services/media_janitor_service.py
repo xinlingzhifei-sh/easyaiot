@@ -50,6 +50,13 @@ def _env_float(name: str, default: float) -> float:
         return default
 
 
+def _required_tenant_id(env_name: str) -> int:
+    value = str(os.getenv(env_name, '')).strip()
+    if not value.isdigit() or int(value) <= 0:
+        raise ValueError(f'{env_name} must be a positive tenant id')
+    return int(value)
+
+
 def iter_jpg_files(root: str) -> List[JpgEntry]:
     if not os.path.isdir(root):
         return []
@@ -93,20 +100,41 @@ def _parse_device_from_snap_path(file_path: str) -> str:
     return ''
 
 
-def _is_dvr_already_uploaded(device_id: str, absolute_path: str) -> bool:
+def _is_dvr_already_uploaded(tenant_id: int, device_id: str,
+                             absolute_path: str) -> bool:
     from models import RecordFile
     date_dir, _ = parse_srs_dvr_path_date(absolute_path)
     filename = os.path.basename(absolute_path)
     if not date_dir:
         date_dir = datetime.fromtimestamp(os.path.getmtime(absolute_path)).strftime('%Y/%m/%d')
-    object_name = f'{device_id}/{date_dir}/{filename}'
-    return RecordFile.query.filter_by(device_id=device_id, object_name=object_name).first() is not None
+    object_names = [f'tenants/{tenant_id}/{device_id}/{date_dir}/{filename}']
+    if tenant_id == 1:
+        object_names.append(f'{device_id}/{date_dir}/{filename}')
+    return any(
+        RecordFile.query.filter_by(
+            tenant_id=tenant_id,
+            device_id=device_id,
+            object_name=object_name,
+        ).first() is not None
+        for object_name in object_names
+    )
 
 
-def _is_snap_already_uploaded(device_id: str, absolute_path: str) -> bool:
+def _is_snap_already_uploaded(tenant_id: int, device_id: str,
+                              absolute_path: str) -> bool:
     from models import SnapImage
-    object_name = f'{device_id}/{os.path.basename(absolute_path)}'
-    return SnapImage.query.filter_by(device_id=device_id, object_name=object_name).first() is not None
+    filename = os.path.basename(absolute_path)
+    object_names = [f'tenants/{tenant_id}/cameras/{device_id}/{filename}']
+    if tenant_id == 1:
+        object_names.append(f'{device_id}/{filename}')
+    return any(
+        SnapImage.query.filter_by(
+            tenant_id=tenant_id,
+            device_id=device_id,
+            object_name=object_name,
+        ).first() is not None
+        for object_name in object_names
+    )
 
 
 def _device_exists(device_id: str) -> bool:
@@ -115,6 +143,7 @@ def _device_exists(device_id: str) -> bool:
 
 
 def scan_orphan_dvr_files() -> List[Dict]:
+    tenant_id = _required_tenant_id('YFEIEYE_DVR_TENANT_ID')
     min_age_min = _env_int('JANITOR_ORPHAN_MIN_AGE_MINUTES', 10)
     cutoff = time.time() - min_age_min * 60
     orphans = []
@@ -125,13 +154,14 @@ def scan_orphan_dvr_files() -> List[Dict]:
         device_id = _parse_device_from_playback_path(abs_path)
         if not device_id:
             continue
-        if _is_dvr_already_uploaded(device_id, abs_path):
+        if _is_dvr_already_uploaded(tenant_id, device_id, abs_path):
             remove_playback_file(abs_path, reason='Janitor-已上传')
             continue
         if not _device_exists(device_id):
             remove_playback_file(abs_path, reason='Janitor-设备已删除')
             continue
         orphans.append({
+            'tenant_id': tenant_id,
             'device_id': device_id,
             'file_path': abs_path,
             'mtime': mtime,
@@ -141,6 +171,7 @@ def scan_orphan_dvr_files() -> List[Dict]:
 
 
 def scan_orphan_snap_files() -> List[Dict]:
+    tenant_id = _required_tenant_id('YFEIEYE_SNAPSHOT_TENANT_ID')
     min_age_min = _env_int('JANITOR_ORPHAN_MIN_AGE_MINUTES', 10)
     cutoff = time.time() - min_age_min * 60
     orphans = []
@@ -151,13 +182,14 @@ def scan_orphan_snap_files() -> List[Dict]:
         device_id = _parse_device_from_snap_path(abs_path)
         if not device_id:
             continue
-        if _is_snap_already_uploaded(device_id, abs_path):
+        if _is_snap_already_uploaded(tenant_id, device_id, abs_path):
             remove_playback_file(abs_path, reason='Janitor-抓拍已上传')
             continue
         if not _device_exists(device_id):
             remove_playback_file(abs_path, reason='Janitor-设备已删除')
             continue
         orphans.append({
+            'tenant_id': tenant_id,
             'device_id': device_id,
             'file_path': abs_path,
             'mtime': mtime,
@@ -172,6 +204,7 @@ def requeue_orphan_dvr(orphan: Dict) -> bool:
             'stream': orphan['device_id'],
             'file': orphan['file_path'],
             'app': 'live',
+            'tenant_id': orphan['tenant_id'],
         }
         event = build_event_from_srs_hook(hook, device_id=orphan['device_id'])
         event['event_id'] = str(uuid.uuid4())
@@ -181,7 +214,11 @@ def requeue_orphan_dvr(orphan: Dict) -> bool:
 
     from app.services.dvr_upload_service import process_dvr_event
     event = build_event_from_srs_hook(
-        {'stream': orphan['device_id'], 'file': orphan['file_path']},
+        {
+            'stream': orphan['device_id'],
+            'file': orphan['file_path'],
+            'tenant_id': orphan['tenant_id'],
+        },
         device_id=orphan['device_id'],
     )
     return process_dvr_event(event)
@@ -189,7 +226,12 @@ def requeue_orphan_dvr(orphan: Dict) -> bool:
 
 def requeue_orphan_snap(orphan: Dict) -> bool:
     from app.services.snap_upload_service import build_snap_event
-    event = build_snap_event(orphan['device_id'], orphan['file_path'], source='janitor')
+    event = build_snap_event(
+        orphan['device_id'],
+        orphan['file_path'],
+        source='janitor',
+        tenant_id=orphan['tenant_id'],
+    )
     if is_snap_kafka_mode():
         return publish_snap_event(event)
     from app.services.snap_upload_service import process_snap_event

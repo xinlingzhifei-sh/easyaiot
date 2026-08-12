@@ -1,4 +1,4 @@
-import {BasicColumn, FormProps} from "@/components/Table";
+import {BasicColumn, FormProps, FormSchema} from "@/components/Table";
 import { Tag } from "ant-design-vue";
 import {queryAlertCameras} from "@/api/device/calculate";
 import { ALERT_EVENT_OPTIONS, formatAlertEvent, getAlertEventTagColor, getAlertMatchedPersonName, getAlertSourceEvent } from "@/views/alert/alertDisplay";
@@ -199,20 +199,22 @@ export function getFormConfig(): Partial<FormProps> {
 }
 
 /** 窄栏内下拉/日期面板挂到 body，避免被 overflow 裁切 */
-function withMapPopupContainer<T extends { component?: string; componentProps?: Record<string, unknown> | ((...args: unknown[]) => unknown) }>(
+function withMapPopupContainer<T extends FormSchema>(
   schema: T,
 ): T {
   const popupComponents = new Set(['ApiSelect', 'Select', 'RangePicker']);
-  if (!schema.component || !popupComponents.has(schema.component)) {
+  const component = 'component' in schema ? schema.component : undefined;
+  if (!component || !popupComponents.has(component)) {
     return schema;
   }
-  if (typeof schema.componentProps === 'function') {
+  const componentProps = 'componentProps' in schema ? schema.componentProps : undefined;
+  if (typeof componentProps === 'function') {
     return schema;
   }
   return {
     ...schema,
     componentProps: {
-      ...(schema.componentProps || {}),
+      ...(componentProps || {}),
       getPopupContainer: () => document.body,
     },
   };

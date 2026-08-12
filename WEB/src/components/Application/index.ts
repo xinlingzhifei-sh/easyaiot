@@ -4,7 +4,7 @@ import appSearch from './src/search/AppSearch.vue'
 import appSizePicker from './src/AppSizePicker.vue'
 import appLocalePicker from './src/AppLocalePicker.vue'
 import appDarkModeToggle from './src/AppDarkModeToggle.vue'
-import { withInstall } from '@/utils'
+import { withInstall } from '@/utils/withInstall'
 
 export { useAppProviderContext } from './src/useAppContext'
 

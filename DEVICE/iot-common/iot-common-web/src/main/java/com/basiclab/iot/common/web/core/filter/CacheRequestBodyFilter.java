@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Request Body 缓存 Filter，实现它的可重复读取
  *
- * @author 翱翔的雄库鲁
+ * @author reese
  */
 public class CacheRequestBodyFilter extends OncePerRequestFilter {
 

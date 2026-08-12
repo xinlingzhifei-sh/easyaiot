@@ -451,7 +451,7 @@ const handlePageChange = (page: number) => {
   pagination.value.current = page;
 };
 
-const handlePageSizeChange = (current: number, size: number) => {
+const handlePageSizeChange = (_current: number, size: number) => {
   pagination.value.current = 1;
   pagination.value.pageSize = size;
 };
@@ -501,6 +501,9 @@ const formatTime = (time: string) => {
   if (!time) return '--';
   return moment(time).format('YYYY-MM-DD HH:mm:ss');
 };
+void getPermissionLabel;
+void getPermissionColor;
+void formatTime;
 
 // 初始化
 onMounted(() => {

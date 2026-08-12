@@ -11,9 +11,8 @@ import java.util.Properties;
 /**
  * RedisMonitorRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - Redis 监控信息 Response VO")
 @Data

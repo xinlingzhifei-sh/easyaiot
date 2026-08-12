@@ -29,7 +29,7 @@ public class DesensitizeTest {
     public void test() {
         // 准备参数
         DesensitizeDemo desensitizeDemo = new DesensitizeDemo();
-        desensitizeDemo.setNickname("BasicLab源码");
+        desensitizeDemo.setNickname("yFeiEye");
         desensitizeDemo.setBankCard("9988002866797031");
         desensitizeDemo.setCarLicense("粤A66666");
         desensitizeDemo.setFixedPhone("01086551122");
@@ -40,15 +40,15 @@ public class DesensitizeTest {
         desensitizeDemo.setSlider2("ABCDEFG");
         desensitizeDemo.setSlider3("ABCDEFG");
         desensitizeDemo.setEmail("1@email.com");
-        desensitizeDemo.setRegex("你好，我是BasicLab源码");
+        desensitizeDemo.setRegex("你好，我是yFeiEye");
         desensitizeDemo.setAddress("北京市海淀区上地十街10号");
-        desensitizeDemo.setOrigin("BasicLab源码");
+        desensitizeDemo.setOrigin("yFeiEye");
 
         // 调用
         DesensitizeDemo d = JsonUtils.parseObject(JsonUtils.toJsonString(desensitizeDemo), DesensitizeDemo.class);
         // 断言
         assertNotNull(d);
-        assertEquals("芋***", d.getNickname());
+        assertEquals("y******", d.getNickname());
         assertEquals("998800********31", d.getBankCard());
         assertEquals("粤A6***6", d.getCarLicense());
         assertEquals("0108*****22", d.getFixedPhone());
@@ -61,7 +61,7 @@ public class DesensitizeTest {
         assertEquals("1****@email.com", d.getEmail());
         assertEquals("你好，我是*", d.getRegex());
         assertEquals("北京市海淀区上地十街10号*", d.getAddress());
-        assertEquals("BasicLab源码", d.getOrigin());
+        assertEquals("yFeiEye", d.getOrigin());
     }
 
     @Data
@@ -89,7 +89,7 @@ public class DesensitizeTest {
         private String slider3;
         @EmailDesensitize
         private String email;
-        @RegexDesensitize(regex = "BasicLab源码", replacer = "*")
+        @RegexDesensitize(regex = "yFeiEye", replacer = "*")
         private String regex;
         @Address
         private String address;

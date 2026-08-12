@@ -1,10 +1,10 @@
-# EasyAIoT Device Module
+# yFeiEye Device Module
 
 [中文文档](README.md) | English
 
 ## Project Introduction
 
-The DEVICE module is one of the core components of the EasyAIoT system, providing the following main functions:
+The DEVICE module is one of the core components of the yFeiEye system, providing the following main functions:
 
 ## 📱 Device Management
 - Add new devices

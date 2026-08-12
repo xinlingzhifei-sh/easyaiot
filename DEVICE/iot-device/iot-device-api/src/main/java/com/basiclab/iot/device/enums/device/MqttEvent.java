@@ -4,12 +4,11 @@ package com.basiclab.iot.device.enums.device;
 import com.basiclab.iot.common.utils.StringUtils;
 
 /**
- * @program: EasyAIoT
+ * @program: yFeiEye
  * @description: MQTT事件枚举
  * @packagename: com.basiclab.iot.common.core.enums
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @date: 2025-12-16 19:42
  **/
 public enum MqttEvent {

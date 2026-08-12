@@ -81,7 +81,6 @@ public class NodeMediaServiceImpl implements NodeMediaService {
             "srs/cluster.conf.template",
             "zlm/config.ini.template",
     };
-    private static final String DEFAULT_ZLM_SECRET = "EasyAIoT_Media_Secret";
     private static final Pattern MEDIA_API_SUCCESS_CODE = Pattern.compile("\"code\"\\s*:\\s*0\\b");
     private static final String REMOTE_COMPOSE_BIN = "/usr/local/bin/docker-compose";
     private static final String[] LOCAL_COMPOSE_CANDIDATES = {
@@ -719,14 +718,14 @@ public class NodeMediaServiceImpl implements NodeMediaService {
         SshSessionHelper.SshExecResult result = ssh.exec(
                 "zlm_secret=$(grep -E '^[[:space:]]*secret=' \"" + remoteRoot + "/zlm/config.ini\" 2>/dev/null "
                         + "| head -1 | sed 's/^[[:space:]]*secret=//'); "
-                        + "zlm_secret=${zlm_secret:-" + DEFAULT_ZLM_SECRET + "}; "
+                        + "if [ -z \"$zlm_secret\" ]; then echo ZLM_SECRET_MISSING; echo ZLM_STOPPED; else "
                         + "body=$(curl -s --connect-timeout 5 --max-time 10 "
                         + "\"http://127.0.0.1:" + zlmHttp + "/index/api/getServerConfig?secret=${zlm_secret}\" "
                         + "2>/dev/null || true); "
                         + "if [ -n \"$body\" ] && echo \"$body\" | grep -qE '\"code\"[[:space:]]*:[[:space:]]*0'; then "
                         + "echo \"$body\" | head -c 280; echo; echo ZLM_RUNNING; "
                         + "elif [ -n \"$body\" ]; then echo \"$body\" | head -c 280; echo; echo ZLM_STOPPED; "
-                        + "else echo ZLM_STOPPED; fi",
+                        + "else echo ZLM_STOPPED; fi; fi",
                 15000);
         return buildMediaServiceProbeStep("ZLMediaKit", result.combinedOutput(), "ZLM_RUNNING", zlmHttp, "HTTP");
     }
@@ -1338,7 +1337,7 @@ public class NodeMediaServiceImpl implements NodeMediaService {
             step.setStatus("failed");
             step.setOutput("目标机未安装 Docker Compose，且控制面未找到可同步的 docker-compose 二进制。"
                     + "请在本机安装 docker-compose-plugin 或 docker-compose，"
-                    + "或通过 easyaiot.media.docker-compose-path 指定路径后重试");
+                    + "或通过媒体 docker-compose 路径配置指定路径后重试");
             return step;
         }
 

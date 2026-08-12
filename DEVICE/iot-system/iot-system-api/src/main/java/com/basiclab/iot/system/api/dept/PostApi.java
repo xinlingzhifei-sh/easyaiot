@@ -24,12 +24,11 @@ import java.util.Map;
 /**
  * PostApi
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
-= ApiConstants.NAME) // TODO BasicLab：fallbackFactory =
+= ApiConstants.NAME) // TODO yFeiEye：fallbackFactory =
 @Tag(name = "RPC 服务 - 岗位")
 public interface PostApi {
 

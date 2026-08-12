@@ -59,7 +59,7 @@ install -m 0644 "${RPM_SRC}/easyaiot-panel.desktop" "${BUILDROOT}/usr/share/appl
 install -m 0644 "${RPM_SRC}/easyaiot-panel.service" "${BUILDROOT}/usr/lib/systemd/system/easyaiot-panel.service"
 
 cat > "${BUILDROOT}/usr/share/doc/${PKG_NAME}/README" <<EOF
-EasyAIoT PANEL ${VERSION} (openEuler)
+yFeiEye PANEL ${VERSION} (openEuler)
 
 1) 修改 /etc/easyaiot-panel/panel.env 中 EASYAIOT_ROOT 为本机仓库根
 2) systemctl enable --now easyaiot-panel
@@ -94,17 +94,17 @@ cat > "$SPEC_PATH" <<EOF
 Name:           ${PKG_NAME}
 Version:        ${VERSION}
 Release:        ${RELEASE}.${DIST_TAG}
-Summary:        EasyAIoT platform ops console (PANEL) for openEuler
+Summary:        yFeiEye platform ops console (PANEL) for openEuler
 License:        Apache-2.0
-URL:            https://github.com/soaring-xiongkulu/easyaiot
+URL:            https://github.com/xinlingzhifei/easyaiot
 BuildArch:      ${ARCH}
 Requires:       systemd
 
 %description
-Independent ops panel for EasyAIoT on openEuler: container management,
+Independent ops panel for yFeiEye on openEuler: container management,
 install script UI, topology and host overview.
 Deploy platform with .scripts/docker/install_linux_openeuler.sh after
-setting EASYAIOT_ROOT to the EasyAIoT repository root.
+setting EASYAIOT_ROOT to the yFeiEye repository root.
 
 %prep
 

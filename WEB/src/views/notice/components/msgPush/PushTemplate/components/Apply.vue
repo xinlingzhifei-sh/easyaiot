@@ -22,8 +22,8 @@
     },
   });
 
-  const dataSource = ref([]);
-  const columns = ref([]);
+  const dataSource = ref<any[]>([]);
+  const columns = ref<any[]>([]);
   const common = [
     {
       title: 'Name',
@@ -113,17 +113,17 @@
     },
   ];
 
-  const analysis = (strList) => {
+  const analysis = (strList: string) => {
     if (strList) {
       return JSON.parse(strList);
     }
     return [];
   };
 
-  const msgConfig = (record) => {
+  const msgConfig = (record: any) => {
     const msgType = +record?.msgType;
     let c = common;
-    let d = [];
+    let d: any[] = [];
     if ([4].includes(msgType)) {
       c = weixinConfig;
       d = record?.configurationMap?.wxCpApp ?? [];
@@ -135,10 +135,10 @@
     dataSource.value = d;
   };
 
-  const msgPush = (record) => {
+  const msgPush = (record: any) => {
     const msgType = +record?.msgType;
     let c = common;
-    let d = [];
+    let d: any[] = [];
     if ([1, 2].includes(msgType)) {
       c = dxMsgPush;
       d = record?.templateDataList ?? [];
@@ -167,7 +167,7 @@
     dataSource.value = d;
   };
 
-  function setTable(record) {
+  function setTable(record: any) {
     if (props.page == 'config') {
       msgConfig(record);
     } else {

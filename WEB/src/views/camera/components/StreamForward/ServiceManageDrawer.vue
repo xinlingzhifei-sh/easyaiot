@@ -136,7 +136,7 @@
 <script lang="ts" setup>
 import {computed, ref, nextTick} from 'vue';
 import {BasicDrawer, useDrawerInner} from '@/components/Drawer';
-import {BasicTable, useTable} from '@/components/Table';
+import {BasicTable, useTable, type BasicColumn} from '@/components/Table';
 import {
   FileTextOutlined,
   PauseCircleOutlined,
@@ -249,7 +249,7 @@ const serviceList = computed(() => {
 });
 
 // 表格列定义
-const getColumns = () => [
+const getColumns = (): BasicColumn[] => [
   {
     title: '服务名称',
     dataIndex: 'service_name',
@@ -630,7 +630,6 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
     // 解析RTMP地址：rtmp://server:port/path
     const url = new URL(rtmpUrl);
     const server = url.hostname;
-    const port = url.port || '1935';
     let path = url.pathname.substring(1); // 去掉开头的 /
     
     // 如果路径为空，使用默认路径

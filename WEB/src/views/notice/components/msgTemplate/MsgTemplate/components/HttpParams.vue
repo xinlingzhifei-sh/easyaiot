@@ -27,6 +27,10 @@
   const emit = defineEmits<Emits>();
 
   const props = defineProps({
+    value: {
+      type: String,
+      default: 'params',
+    },
     requestType: {
       type: String,
       default: '',

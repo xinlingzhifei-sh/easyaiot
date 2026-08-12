@@ -129,7 +129,7 @@ import {
   defaultRpcRequestSchema,
   defaultRpcResponseSchema,
   defaultTelemetrySchema,
-} from './protoSchema.ts';
+} from './protoSchema';
 import {Checkbox, Form} from 'ant-design-vue';
 // import { CommonCard } from '@/components/Card';
 
@@ -153,6 +153,7 @@ const payloadList = reactive([
   {label: 'Json', value: PayloadType.JSON},
   {label: 'Protobuf', value: PayloadType.PROTOBUF},
 ]);
+void payloadList;
 
 const modelRef = reactive({
   type: props.type,

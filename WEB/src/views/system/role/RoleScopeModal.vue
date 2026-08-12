@@ -43,7 +43,7 @@ async function handleSubmit() {
   try {
     const values = await validate()
     setModalProps({ confirmLoading: true })
-    await assignRoleDataScope(values)
+    await assignRoleDataScope(values as any)
     closeModal()
     emit('success')
     createMessage.success(t('common.saveSuccessText'))

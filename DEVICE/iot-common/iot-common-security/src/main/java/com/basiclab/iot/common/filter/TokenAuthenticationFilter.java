@@ -7,16 +7,12 @@ import com.basiclab.iot.common.domain.CommonResult;
 import com.basiclab.iot.common.domain.LoginUser;
 import com.basiclab.iot.common.exception.ServiceException;
 import com.basiclab.iot.common.utils.SecurityFrameworkUtils;
-import com.basiclab.iot.common.utils.json.JsonUtils;
 import com.basiclab.iot.common.utils.servlet.ServletUtils;
 import com.basiclab.iot.common.web.core.handler.GlobalExceptionHandler;
 import com.basiclab.iot.common.web.core.util.WebFrameworkUtils;
 import com.basiclab.iot.system.api.oauth2.OAuth2TokenApi;
 import com.basiclab.iot.system.api.oauth2.dto.OAuth2AccessTokenCheckRespDTO;
-import com.basiclab.iot.system.enums.ApiConstants;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import javax.servlet.FilterChain;
@@ -24,22 +20,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Token 过滤器，验证 token 的有效性
  * 验证通过后，获得 {@link LoginUser} 信息，并加入到 Spring Security 上下文
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @RequiredArgsConstructor
-@Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String OAUTH2_TOKEN_CHECK_URI = ApiConstants.PREFIX + "/oauth2/token/check";
+    private static final String TOKEN_CHECK_RPC_PATH = OAuth2TokenApi.PREFIX + "/check";
 
     private final SecurityProperties securityProperties;
 
@@ -49,35 +41,32 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return OAUTH2_TOKEN_CHECK_URI.equals(request.getRequestURI());
+        return (request.getContextPath() + TOKEN_CHECK_RPC_PATH).equals(request.getRequestURI());
     }
 
     @Override
     @SuppressWarnings("NullableProblems")
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        // 情况一，基于 header[login-user] 获得用户，例如说来自 Gateway 或者其它服务透传
-        LoginUser loginUser = buildLoginUserByHeader(request);
-
-        // 情况二，基于 Token 获得用户
-        // 注意，这里主要满足直接使用 Nginx 直接转发到 Spring Cloud 服务的场景。
-        if (loginUser == null) {
-            String token = SecurityFrameworkUtils.obtainAuthorization(request,
-                    securityProperties.getTokenHeader(), securityProperties.getTokenParameter());
-            if (StrUtil.isNotEmpty(token)) {
-                Integer userType = WebFrameworkUtils.getLoginUserType(request);
-                try {
-                    // 1.1 基于 token 构建登录用户
-                    loginUser = buildLoginUserByToken(token, userType);
-                    // 1.2 模拟 Login 功能，方便日常开发调试
-                    if (loginUser == null) {
-                        loginUser = mockLoginUser(request, token, userType);
-                    }
-                } catch (Throwable ex) {
-                    CommonResult<?> result = globalExceptionHandler.allExceptionHandler(request, ex);
-                    ServletUtils.writeJSON(response, result);
-                    return;
+        // login-user 是调用方可伪造的普通 HTTP Header，不能作为认证依据。
+        // Gateway 与 Feign 均会继续透传 Authorization，因此服务统一用 Token
+        // 向 system-server 校验身份，避免绕过 Gateway 直连服务端口时伪造用户。
+        LoginUser loginUser = null;
+        String token = SecurityFrameworkUtils.obtainAuthorization(request,
+                securityProperties.getTokenHeader(), securityProperties.getTokenParameter());
+        if (StrUtil.isNotEmpty(token)) {
+            Integer userType = WebFrameworkUtils.getLoginUserType(request);
+            try {
+                // 1.1 基于 token 构建登录用户
+                loginUser = buildLoginUserByToken(token, userType);
+                // 1.2 模拟 Login 功能，方便日常开发调试
+                if (loginUser == null) {
+                    loginUser = mockLoginUser(request, token, userType);
                 }
+            } catch (Throwable ex) {
+                CommonResult<?> result = globalExceptionHandler.allExceptionHandler(request, ex);
+                ServletUtils.writeJSON(response, result);
+                return;
             }
         }
 
@@ -133,22 +122,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         Long userId = Long.valueOf(token.substring(securityProperties.getMockSecret().length()));
         return new LoginUser().setId(userId).setUserType(userType)
                 .setTenantId(WebFrameworkUtils.getTenantId(request));
-    }
-
-    @SneakyThrows
-    private LoginUser buildLoginUserByHeader(HttpServletRequest request) {
-        String loginUserStr = request.getHeader(SecurityFrameworkUtils.LOGIN_USER_HEADER);
-        if (StrUtil.isEmpty(loginUserStr)) {
-            return null;
-        }
-        try {
-            loginUserStr = URLDecoder.decode(loginUserStr, StandardCharsets.UTF_8.name()); // 解码，解决中文乱码问题
-            return JsonUtils.parseObject(loginUserStr, LoginUser.class);
-        } catch (Exception ex) {
-            log.error("[buildLoginUserByHeader][解析 LoginUser({}) 发生异常]", loginUserStr, ex);
-            ;
-            throw ex;
-        }
     }
 
 }

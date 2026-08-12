@@ -35,12 +35,13 @@ cd "$SCRIPT_DIR"
 # ARM架构基础镜像
 ARM_BASE_IMAGE="pytorch/manylinuxaarch64-builder:cuda12.9"
 DOCKER_PLATFORM="linux/arm64"
-EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+AI_COMPOSE_ENV_FILE="${YFEIEYE_AI_COMPOSE_ENV_FILE:-${SCRIPT_DIR}/.env.docker}"
 # shellcheck source=../.scripts/docker/init-build-cache-dirs.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
+source "${YFEIEYE_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
-source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
-BUILD_CACHE_DIR="$(easyaiot_build_cache_base "$EASYAIOT_ROOT")"
+source "${YFEIEYE_ROOT}/.scripts/docker/deploy_profile.sh"
+BUILD_CACHE_DIR="$(yfeieye_build_cache_base "$YFEIEYE_ROOT")"
 
 # 打印带颜色的消息
 print_info() {
@@ -59,6 +60,16 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Compose `env_file` injects variables into the container only.  Use an
+# explicit CLI env file as well so host-side volume interpolation is stable.
+ai_compose() {
+    if [ ! -f "$AI_COMPOSE_ENV_FILE" ]; then
+        print_error "Compose 环境文件不存在: $AI_COMPOSE_ENV_FILE"
+        return 1
+    fi
+    $COMPOSE_CMD --env-file "$AI_COMPOSE_ENV_FILE" -f "${SCRIPT_DIR}/docker-compose.yaml" "$@"
+}
+
 # 清理 compose recreate 被中断后遗留的「改名孤儿容器」（形如 <12位hex>_ai-service）。
 # recreate 时 compose 先把旧容器改名让出 container_name，中途被打断旧容器就残留；
 # 它若仍在运行会占住宿主机端口，新容器起不来。--remove-orphans 清不掉它
@@ -72,14 +83,14 @@ cleanup_renamed_containers() {
 }
 
 init_build_cache_dirs() {
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
 }
 
 prepare_cached_resources() {
-    init_easyaiot_build_cache_dirs "$EASYAIOT_ROOT"
+    init_yfeieye_build_cache_dirs "$YFEIEYE_ROOT"
     local cache_script="${SCRIPT_DIR}/cache_resources_arm.sh"
     local wheels
-    wheels="$(arm_pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" ai)"
+    wheels="$(arm_pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" ai)"
 
     if arm_pip_wheels_ready_for "$EASYAIOT_ROOT" ai; then
         print_success "检测到完整 pip-wheels: $wheels"
@@ -142,8 +153,8 @@ build_with_cache() {
         set +e
         docker build \
             -f Dockerfile.arm \
-            --build-context "pip-cache=$(pip_cache_build_context_dir_for "$EASYAIOT_ROOT" ai)" \
-            --build-context "pip-wheels=$(arm_pip_wheels_build_context_dir_for "$EASYAIOT_ROOT" ai)" \
+            --build-context "pip-cache=$(pip_cache_build_context_dir_for "$YFEIEYE_ROOT" ai)" \
+            --build-context "pip-wheels=$(arm_pip_wheels_build_context_dir_for "$YFEIEYE_ROOT" ai)" \
             --target runtime \
             --platform "$DOCKER_PLATFORM" \
             -t ai-service:latest \
@@ -314,26 +325,26 @@ configure_architecture() {
 
 # 检查并创建 Docker 网络
 check_network() {
-    print_info "检查 Docker 网络 easyaiot-network..."
+    print_info "检查 Docker 网络 yfeieye-network..."
     
     # 检查网络是否已存在（使用网络名称而不是ID）
-    if docker network ls --format "{{.Name}}" 2>/dev/null | grep -q "^easyaiot-network$"; then
-        print_info "网络 easyaiot-network 已存在"
+    if docker network ls --format "{{.Name}}" 2>/dev/null | grep -q "^yfeieye-network$"; then
+        print_info "网络 yfeieye-network 已存在"
         return 0
     fi
     
     # 网络不存在，尝试创建
-    print_info "网络 easyaiot-network 不存在，正在创建..."
-    local create_output=$(docker network create easyaiot-network 2>&1)
+    print_info "网络 yfeieye-network 不存在，正在创建..."
+    local create_output=$(docker network create yfeieye-network 2>&1)
     local create_exit_code=$?
     
     if [ $create_exit_code -eq 0 ]; then
-        print_success "网络 easyaiot-network 已创建"
+        print_success "网络 yfeieye-network 已创建"
         return 0
     else
         # 检查错误原因
         if echo "$create_output" | grep -qi "already exists"; then
-            print_info "网络 easyaiot-network 已存在（可能在检查后创建）"
+            print_info "网络 yfeieye-network 已存在（可能在检查后创建）"
             return 0
         elif echo "$create_output" | grep -qi "permission denied"; then
             print_error "没有权限创建 Docker 网络"
@@ -350,7 +361,7 @@ check_network() {
             print_warning "网络名称冲突，但网络已存在，继续使用现有网络"
             return 0
         else
-            print_error "无法创建网络 easyaiot-network"
+            print_error "无法创建网络 yfeieye-network"
             print_error "错误信息: $create_output"
             print_info "诊断建议："
             print_info "  1. 检查 Docker 服务是否正常运行: sudo systemctl status docker"
@@ -361,16 +372,38 @@ check_network() {
     fi
 }
 
+# Resolve the host-side state root without sourcing the secrets file.
+resolve_ai_state_root() {
+    local state_root="${YFEIEYE_AI_STATE_ROOT:-}"
+    if [ -z "$state_root" ] && [ -f "$AI_COMPOSE_ENV_FILE" ]; then
+        state_root=$(sed -n 's/^[[:space:]]*YFEIEYE_AI_STATE_ROOT=//p' "$AI_COMPOSE_ENV_FILE" | tail -n 1 | tr -d '\r')
+    fi
+    state_root="${state_root#\"}"
+    state_root="${state_root%\"}"
+    state_root="${state_root#\'}"
+    state_root="${state_root%\'}"
+    state_root="${state_root:-/opt/yfeieye-source/shared/ai}"
+    if [[ "$state_root" != /* ]] || [[ "$state_root" == *$'\n'* ]]; then
+        print_error "YFEIEYE_AI_STATE_ROOT 必须是绝对路径"
+        return 1
+    fi
+    printf '%s' "${state_root%/}"
+}
+
 # 创建必要的目录
 create_directories() {
+    local state_root
+    state_root=$(resolve_ai_state_root) || return 1
     print_info "创建必要的目录..."
-    mkdir -p data/uploads
-    mkdir -p data/datasets
-    mkdir -p data/models
-    mkdir -p data/inference_results
-    mkdir -p static/models
-    mkdir -p temp_uploads
-    mkdir -p model
+    mkdir -p "${state_root}/data/uploads"
+    mkdir -p "${state_root}/data/datasets"
+    mkdir -p "${state_root}/data/models"
+    mkdir -p "${state_root}/data/inference_results"
+    mkdir -p "${state_root}/static/models"
+    mkdir -p "${state_root}/temp_uploads"
+    mkdir -p "${state_root}/model"
+    mkdir -p "${state_root}/logs/app"
+    mkdir -p "${state_root}/logs/services"
     print_success "目录创建完成"
 }
 
@@ -385,18 +418,11 @@ create_env_file() {
             # 自动配置中间件连接信息（使用localhost，因为docker-compose.yaml使用host网络模式）
             print_info "自动配置中间件连接信息..."
             
-            # 更新数据库连接
-            sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-ai20|' .env.docker
-            
             # 更新Nacos配置
             sed -i 's|^NACOS_SERVER=.*|NACOS_SERVER=localhost:8848|' .env.docker
             
             # 更新MinIO配置
             sed -i 's|^MINIO_ENDPOINT=.*|MINIO_ENDPOINT=localhost:9000|' .env.docker
-            sed -i 's|^MINIO_SECRET_KEY=.*|MINIO_SECRET_KEY=basiclab@iot975248395|' .env.docker
-            
-            # 更新Nacos密码
-            sed -i 's|^NACOS_PASSWORD=.*|NACOS_PASSWORD=basiclab@iot78475418754|' .env.docker
             
             # 确保Nacos命名空间为空（使用默认命名空间）
             sed -i 's|^NACOS_NAMESPACE=.*|NACOS_NAMESPACE=|' .env.docker
@@ -412,8 +438,8 @@ create_env_file() {
         print_info "检查并更新中间件连接信息..."
         
         if grep -q "DATABASE_URL=.*PostgresSQL" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-            sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://postgres:iot45722414822@localhost:5432/iot-ai20|' .env.docker
-            print_info "已更新数据库连接为 localhost:5432（host网络模式）"
+            sed -i '/^DATABASE_URL=/ s|PostgresSQL:5432|localhost:15432|; /^DATABASE_URL=/ s|postgres-server:5432|localhost:15432|' .env.docker
+            print_info "已更新数据库连接为 localhost:15432（host网络模式）"
         fi
         
         if grep -q "NACOS_SERVER=.*Nacos" .env.docker || grep -q "NACOS_SERVER=.*14\.18\.122\.2" .env.docker || grep -q "NACOS_SERVER=.*nacos-server" .env.docker; then
@@ -434,10 +460,10 @@ create_env_file() {
 
     # 部署形态集成：与 x86 install_linux.sh 保持一致，确保同形态部署相同服务
     ensure_deploy_profile
-    apply_python_service_deploy_env "${EASYAIOT_ROOT}"
+    apply_python_service_deploy_env "${YFEIEYE_ROOT}"
     if is_mini_deploy_profile; then
         print_info "mini 形态：已配置本机部署（JAVA_BACKEND_URL=48099, NODE_REMOTE_DEPLOY=false）"
-        migrate_mini_minio_data_to_local_storage "${EASYAIOT_ROOT}"
+        migrate_mini_minio_data_to_local_storage "${YFEIEYE_ROOT}"
     else
         print_info "${EASYAIOT_DEPLOY_PROFILE:-full} 形态：已配置网关部署（JAVA_BACKEND_URL=48080, MinIO 启用）"
     fi
@@ -453,8 +479,8 @@ install_service() {
     configure_architecture
     configure_arm_dockerfile
     check_network
-    create_directories
     create_env_file
+    create_directories
     prepare_cached_resources
     
     if [ "${EASYAIOT_SKIP_BUILD:-0}" = "1" ] && docker image inspect ai-service:latest >/dev/null 2>&1; then
@@ -464,7 +490,7 @@ install_service() {
         print_info "架构: $ARCH, 平台: $DOCKER_PLATFORM, 基础镜像: $ARM_BASE_IMAGE"
         print_warning "首次构建可能需要较长时间（20-40分钟），请耐心等待..."
         echo ""
-        
+
         if ! build_with_cache ""; then
             exit 1
         fi
@@ -474,7 +500,7 @@ install_service() {
     
     print_info "启动服务..."
     cleanup_renamed_containers
-    $COMPOSE_CMD up -d --remove-orphans --quiet-pull 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+    ai_compose up -d --remove-orphans --quiet-pull
     
     print_success "服务安装完成！"
     print_info "等待服务启动..."
@@ -504,9 +530,10 @@ start_service() {
     else
         ensure_deploy_profile
     fi
+    create_directories
     
     cleanup_renamed_containers
-    $COMPOSE_CMD up -d --force-recreate --remove-orphans --quiet-pull 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+    ai_compose up -d --force-recreate --remove-orphans --quiet-pull
     print_success "服务已启动"
     check_status
 }
@@ -517,7 +544,14 @@ stop_service() {
     check_docker
     check_docker_compose
     
-    $COMPOSE_CMD down --remove-orphans 2>&1 | grep -v "^Stopping\|^Removing\|^Network" || true
+    local down_rc
+    if ai_compose down --remove-orphans; then
+        down_rc=0
+    else
+        down_rc=$?
+        print_error "停止服务失败（Docker Compose 返回码: $down_rc）"
+        return "$down_rc"
+    fi
     print_success "服务已停止"
 }
 
@@ -530,8 +564,9 @@ restart_service() {
     configure_arm_dockerfile
 
     ensure_deploy_profile
+    create_directories
     cleanup_renamed_containers
-    $COMPOSE_CMD up -d --force-recreate --remove-orphans --quiet-pull 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+    ai_compose up -d --force-recreate --remove-orphans --quiet-pull
     print_success "服务已重启"
     check_status
 }
@@ -542,7 +577,7 @@ check_status() {
     check_docker
     check_docker_compose
     
-    $COMPOSE_CMD ps 2>/dev/null | head -20
+    ai_compose ps 2>/dev/null | head -20
     
     echo ""
     print_info "容器健康状态:"
@@ -571,10 +606,10 @@ view_logs() {
     
     if [ "$1" == "-f" ] || [ "$1" == "--follow" ]; then
         print_info "实时查看日志（按 Ctrl+C 退出）..."
-        $COMPOSE_CMD logs -f
+        ai_compose logs -f
     else
         print_info "查看最近日志..."
-        $COMPOSE_CMD logs --tail=100
+        ai_compose logs --tail=100
     fi
 }
 
@@ -626,11 +661,11 @@ clean_service() {
     check_docker
     check_docker_compose
     print_info "停止并删除容器..."
-    $COMPOSE_CMD down -v --remove-orphans 2>&1 | grep -v "^Stopping\|^Removing\|^Network" || true
-    
+    ai_compose down -v --remove-orphans 2>&1 | grep -v "^Stopping\|^Removing\|^Network" || true
+
     print_info "删除镜像..."
     docker rmi ai-service:latest >/dev/null 2>&1 || true
-    
+
     print_success "清理完成"
 }
 
@@ -649,6 +684,7 @@ update_service() {
     configure_architecture
     configure_arm_dockerfile
     check_network
+    create_directories
 
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
@@ -700,11 +736,11 @@ update_service() {
         print_success "镜像构建完成！"
         print_info "应用新镜像（仅重建变更服务，最小化停机）..."
         cleanup_renamed_containers
-        $COMPOSE_CMD up -d --remove-orphans --no-deps --quiet-pull ai-service 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+        ai_compose up -d --force-recreate --remove-orphans --no-deps --quiet-pull ai-service
     else
         print_success "依赖未变，跳过镜像构建（业务代码经卷挂载，重启进程即可生效）"
         cleanup_renamed_containers
-        $COMPOSE_CMD up -d --remove-orphans --no-deps --quiet-pull ai-service 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+        ai_compose up -d --force-recreate --remove-orphans --no-deps --quiet-pull ai-service
 
         local code_changed=0
         if [ -n "$rev_before" ] && [ "$rev_before" != "$rev_after" ]; then
@@ -715,7 +751,7 @@ update_service() {
 
         if [ "$code_changed" = "1" ]; then
             print_info "重启容器进程以加载最新源码（秒级）..."
-            $COMPOSE_CMD restart ai-service 2>&1 | grep -v "^Restarting" || true
+            ai_compose up -d --force-recreate --remove-orphans --no-deps --quiet-pull ai-service
         else
             print_info "代码无变更，无需重启"
         fi

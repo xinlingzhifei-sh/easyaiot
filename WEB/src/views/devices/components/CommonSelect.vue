@@ -57,6 +57,9 @@ function handlePopupScroll(event) {
 }
 
 async function getList() {
+  if (!props.listFunc) {
+    return;
+  }
   const {data} = await props.listFunc(deviceParams);
   const tempList = data.map((item) => {
     return {

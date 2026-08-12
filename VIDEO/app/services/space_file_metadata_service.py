@@ -3,6 +3,7 @@
 上传 MinIO 后写入 DB，列表查询走数据库分页，避免 MinIO 全量列举超时。
 """
 import logging
+import re
 from datetime import datetime
 from typing import Dict, List, Optional
 from urllib.parse import quote, urlparse, parse_qs
@@ -14,6 +15,70 @@ from app.utils.service_urls import now_shanghai_naive, normalize_to_shanghai_nai
 logger = logging.getLogger(__name__)
 
 VIDEO_EXTENSIONS = ('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.m4v', '.flv')
+
+
+def _normalize_tenant_id(value) -> int:
+    tenant_id = str(value or '').strip()
+    if not re.fullmatch(r'[1-9][0-9]*', tenant_id):
+        raise ValueError('media metadata tenant id must be a positive integer')
+    return int(tenant_id)
+
+
+def validate_object_tenant_scope(tenant_id, object_name: str,
+                                 camera_id: Optional[str] = None) -> str:
+    """Validate new tenant keys and the tenant-1 legacy read-only exception."""
+    tenant_id = _normalize_tenant_id(tenant_id)
+    normalized = str(object_name or '').strip().replace('\\', '/').lstrip('/')
+    if not normalized or '..' in normalized.split('/'):
+        raise ValueError('media object name is invalid')
+    tenant_prefix = f'tenants/{tenant_id}/'
+    if normalized.startswith('tenants/'):
+        if not normalized.startswith(tenant_prefix):
+            raise ValueError('tenant object prefix does not match metadata tenant')
+        if camera_id:
+            camera_id = str(camera_id).strip()
+            if not normalized.startswith((
+                    f'{tenant_prefix}{camera_id}/',
+                    f'{tenant_prefix}cameras/{camera_id}/')):
+                raise ValueError(
+                    'tenant object camera does not match metadata camera')
+        return 'tenant_scoped'
+    if tenant_id != 1:
+        raise ValueError('legacy object keys are read-only for tenant 1 only')
+    if camera_id and not normalized.startswith(f'{str(camera_id).strip()}/'):
+        raise ValueError('legacy object camera does not match metadata camera')
+    return 'legacy_read_only'
+
+
+def object_camera_id(tenant_id, object_name: str) -> str:
+    tenant_id = _normalize_tenant_id(tenant_id)
+    normalized = str(object_name or '').strip().replace('\\', '/').lstrip('/')
+    validate_object_tenant_scope(tenant_id, normalized)
+    parts = normalized.split('/')
+    if parts[0] != 'tenants':
+        return parts[0]
+    if len(parts) < 3:
+        raise ValueError('tenant object camera is missing')
+    if parts[2] == 'cameras':
+        if len(parts) < 4:
+            raise ValueError('tenant object camera is missing')
+        return parts[3]
+    return parts[2]
+
+
+def require_mutable_tenant_object(tenant_id, object_name: str,
+                                  camera_id: Optional[str] = None) -> None:
+    if validate_object_tenant_scope(
+            tenant_id, object_name, camera_id=camera_id) == 'legacy_read_only':
+        raise ValueError('legacy object keys are read-only')
+
+
+def _space_tenant_id(space_model, space_id: int, tenant_id=None) -> int:
+    space = space_model.query.get_or_404(space_id)
+    owner_tenant_id = _normalize_tenant_id(getattr(space, 'tenant_id', None))
+    if tenant_id is not None and _normalize_tenant_id(tenant_id) != owner_tenant_id:
+        raise ValueError('media metadata tenant does not match space owner')
+    return owner_tenant_id
 
 
 def build_download_url(bucket_name: str, object_name: str) -> str:
@@ -34,6 +99,7 @@ def extract_prefix_from_url(url: str) -> Optional[str]:
 
 def upsert_record_file(
     *,
+    tenant_id=None,
     space_id: int,
     device_id: str,
     object_name: str,
@@ -49,11 +115,20 @@ def upsert_record_file(
     source: str = 'dvr',
 ) -> RecordFile:
     """上传 MinIO 后写入或更新录像元数据"""
+    tenant_id = _space_tenant_id(
+        RecordSpace, space_id, tenant_id=tenant_id)
+    validate_object_tenant_scope(
+        tenant_id, object_name, camera_id=device_id)
     filename = filename or object_name.split('/')[-1]
-    url = url or build_download_url(bucket_name, object_name)
+    from app.utils.service_urls import build_record_video_api_url
+    url = build_record_video_api_url(space_id, object_name)
     event_time = event_time or datetime.utcnow()
 
-    record = RecordFile.query.filter_by(bucket_name=bucket_name, object_name=object_name).first()
+    record = RecordFile.query.filter_by(
+        tenant_id=tenant_id,
+        bucket_name=bucket_name,
+        object_name=object_name,
+    ).first()
     if record:
         record.space_id = space_id
         record.device_id = device_id
@@ -73,6 +148,7 @@ def upsert_record_file(
         record.updated_at = datetime.utcnow()
     else:
         record = RecordFile(
+            tenant_id=tenant_id,
             space_id=space_id,
             device_id=device_id,
             object_name=object_name,
@@ -94,6 +170,7 @@ def upsert_record_file(
 
 def upsert_snap_image(
     *,
+    tenant_id=None,
     space_id: int,
     device_id: str,
     object_name: str,
@@ -108,11 +185,20 @@ def upsert_snap_image(
     source: str = 'snap',
 ) -> SnapImage:
     """上传 MinIO 后写入或更新抓拍元数据"""
+    tenant_id = _space_tenant_id(
+        SnapSpace, space_id, tenant_id=tenant_id)
+    validate_object_tenant_scope(
+        tenant_id, object_name, camera_id=device_id)
     filename = filename or object_name.split('/')[-1]
-    url = url or build_download_url(bucket_name, object_name)
+    from app.utils.service_urls import build_snap_image_api_url
+    url = build_snap_image_api_url(space_id, object_name)
     captured_at = captured_at or now_shanghai_naive()
 
-    image = SnapImage.query.filter_by(bucket_name=bucket_name, object_name=object_name).first()
+    image = SnapImage.query.filter_by(
+        tenant_id=tenant_id,
+        bucket_name=bucket_name,
+        object_name=object_name,
+    ).first()
     if image:
         image.space_id = space_id
         image.device_id = device_id
@@ -129,6 +215,7 @@ def upsert_snap_image(
         image.source = source
     else:
         image = SnapImage(
+            tenant_id=tenant_id,
             space_id=space_id,
             device_id=device_id,
             object_name=object_name,
@@ -147,12 +234,15 @@ def upsert_snap_image(
     return image
 
 
-def delete_record_files_metadata(bucket_name: str, object_names: List[str]) -> int:
+def delete_record_files_metadata(bucket_name: str, object_names: List[str], *,
+                                 tenant_id: int, space_id: int) -> int:
     """删除录像 DB 元数据（含 Playback 关联记录）"""
     if not object_names:
         return 0
 
     deleted = RecordFile.query.filter(
+        RecordFile.tenant_id == _normalize_tenant_id(tenant_id),
+        RecordFile.space_id == int(space_id),
         RecordFile.bucket_name == bucket_name,
         RecordFile.object_name.in_(object_names),
     ).delete(synchronize_session=False)
@@ -165,11 +255,14 @@ def delete_record_files_metadata(bucket_name: str, object_names: List[str]) -> i
     return deleted
 
 
-def delete_snap_images_metadata(bucket_name: str, object_names: List[str]) -> int:
+def delete_snap_images_metadata(bucket_name: str, object_names: List[str], *,
+                                tenant_id: int, space_id: int) -> int:
     """删除抓拍 DB 元数据"""
     if not object_names:
         return 0
     deleted = SnapImage.query.filter(
+        SnapImage.tenant_id == _normalize_tenant_id(tenant_id),
+        SnapImage.space_id == int(space_id),
         SnapImage.bucket_name == bucket_name,
         SnapImage.object_name.in_(object_names),
     ).delete(synchronize_session=False)
@@ -192,6 +285,7 @@ def _is_video_file(filename: str) -> bool:
 def sync_record_files_from_minio(space_id: int) -> Dict:
     """从 MinIO 回填录像元数据到数据库（一次性迁移/同步操作）"""
     record_space = RecordSpace.query.get_or_404(space_id)
+    tenant_id = _normalize_tenant_id(record_space.tenant_id)
     bucket_name = record_space.bucket_name
     device_id = record_space.device_id
 
@@ -199,72 +293,85 @@ def sync_record_files_from_minio(space_id: int) -> Dict:
     if not minio_client.bucket_exists(bucket_name):
         return {'synced_count': 0, 'skipped_count': 0, 'error_count': 0}
 
-    prefix = f"{device_id}/" if device_id else ""
+    prefixes = [f'tenants/{tenant_id}/{device_id}/'] if device_id else [
+        f'tenants/{tenant_id}/']
+    if tenant_id == 1 and device_id:
+        prefixes.append(f'{device_id}/')
     synced = skipped = errors = 0
     batch = 0
 
-    for obj in minio_client.list_objects(bucket_name, prefix=prefix, recursive=True):
-        if obj.object_name.endswith('/'):
-            continue
-        filename = obj.object_name.split('/')[-1]
-        if not _is_video_file(filename):
-            continue
+    for prefix in prefixes:
+        for obj in minio_client.list_objects(
+                bucket_name, prefix=prefix, recursive=True):
+            if obj.object_name.endswith('/'):
+                continue
+            filename = obj.object_name.split('/')[-1]
+            if not _is_video_file(filename):
+                continue
 
-        existing = RecordFile.query.filter_by(bucket_name=bucket_name, object_name=obj.object_name).first()
-        if existing:
-            skipped += 1
-            continue
-
-        try:
-            stat = minio_client.stat_object(bucket_name, obj.object_name)
-            obj_device_id = obj.object_name.split('/')[0] if '/' in obj.object_name else (device_id or 'unknown')
-
-            playback = Playback.query.filter(
-                Playback.device_id == obj_device_id,
-                Playback.file_path.in_([
-                    obj.object_name,
-                    build_download_url(bucket_name, obj.object_name),
-                ]),
-            ).first()
-
-            thumbnail_url = None
-            duration = None
-            event_time = stat.last_modified.replace(tzinfo=None) if stat.last_modified else datetime.utcnow()
-
-            if playback:
-                duration = playback.duration
-                thumbnail_url = playback.thumbnail_path
-                if playback.event_time:
-                    event_time = playback.event_time.replace(tzinfo=None) if playback.event_time.tzinfo else playback.event_time
-            else:
-                thumb_name = obj.object_name.rsplit('.', 1)[0] + '.jpg'
-                try:
-                    minio_client.stat_object(bucket_name, thumb_name)
-                    thumbnail_url = build_download_url(bucket_name, thumb_name)
-                except Exception:
-                    pass
-
-            upsert_record_file(
-                space_id=space_id,
-                device_id=obj_device_id,
-                object_name=obj.object_name,
+            existing = RecordFile.query.filter_by(
+                tenant_id=tenant_id,
                 bucket_name=bucket_name,
-                filename=filename,
-                file_size=stat.size,
-                content_type=stat.content_type or 'video/mp4',
-                etag=stat.etag,
-                thumbnail_url=thumbnail_url,
-                duration=duration,
-                event_time=event_time,
-                source='dvr',
-            )
-            synced += 1
-            batch += 1
-            if batch >= 100:
-                batch = 0
-        except Exception as e:
-            errors += 1
-            logger.warning(f"同步录像元数据失败: {obj.object_name}, error={e}")
+                object_name=obj.object_name,
+            ).first()
+            if existing:
+                skipped += 1
+                continue
+
+            try:
+                obj_device_id = object_camera_id(tenant_id, obj.object_name)
+                if device_id and obj_device_id != device_id:
+                    raise ValueError('record object camera does not match space camera')
+                stat = minio_client.stat_object(bucket_name, obj.object_name)
+
+                playback = Playback.query.filter(
+                    Playback.device_id == obj_device_id,
+                    Playback.file_path.in_([
+                        obj.object_name,
+                        build_download_url(bucket_name, obj.object_name),
+                    ]),
+                ).first()
+
+                thumbnail_url = None
+                duration = None
+                event_time = stat.last_modified.replace(tzinfo=None) if stat.last_modified else datetime.utcnow()
+
+                if playback:
+                    duration = playback.duration
+                    thumbnail_url = playback.thumbnail_path
+                    if playback.event_time:
+                        event_time = playback.event_time.replace(tzinfo=None) if playback.event_time.tzinfo else playback.event_time
+                else:
+                    thumb_name = obj.object_name.rsplit('.', 1)[0] + '.jpg'
+                    try:
+                        minio_client.stat_object(bucket_name, thumb_name)
+                        thumbnail_url = build_download_url(bucket_name, thumb_name)
+                    except Exception:
+                        pass
+
+                upsert_record_file(
+                    tenant_id=tenant_id,
+                    space_id=space_id,
+                    device_id=obj_device_id,
+                    object_name=obj.object_name,
+                    bucket_name=bucket_name,
+                    filename=filename,
+                    file_size=stat.size,
+                    content_type=stat.content_type or 'video/mp4',
+                    etag=stat.etag,
+                    thumbnail_url=thumbnail_url,
+                    duration=duration,
+                    event_time=event_time,
+                    source='dvr',
+                )
+                synced += 1
+                batch += 1
+                if batch >= 100:
+                    batch = 0
+            except Exception as e:
+                errors += 1
+                logger.warning(
+                    f"同步录像元数据失败: {obj.object_name}, error={e}")
 
     return {'synced_count': synced, 'skipped_count': skipped, 'error_count': errors}
 
@@ -272,6 +379,7 @@ def sync_record_files_from_minio(space_id: int) -> Dict:
 def sync_snap_images_from_minio(space_id: int) -> Dict:
     """从 MinIO 回填抓拍元数据到数据库"""
     snap_space = SnapSpace.query.get_or_404(space_id)
+    tenant_id = _normalize_tenant_id(snap_space.tenant_id)
     bucket_name = snap_space.bucket_name
     device_id = snap_space.device_id
 
@@ -282,38 +390,50 @@ def sync_snap_images_from_minio(space_id: int) -> Dict:
     if not minio_client.bucket_exists(bucket_name):
         return {'synced_count': 0, 'skipped_count': 0, 'error_count': 0}
 
-    prefix = f"{device_id}/"
+    prefixes = [f'tenants/{tenant_id}/cameras/{device_id}/']
+    if tenant_id == 1:
+        prefixes.append(f'{device_id}/')
     synced = skipped = errors = 0
 
-    for obj in minio_client.list_objects(bucket_name, prefix=prefix, recursive=True):
-        if obj.object_name.endswith('/'):
-            continue
+    for prefix in prefixes:
+        for obj in minio_client.list_objects(
+                bucket_name, prefix=prefix, recursive=True):
+            if obj.object_name.endswith('/'):
+                continue
 
-        existing = SnapImage.query.filter_by(bucket_name=bucket_name, object_name=obj.object_name).first()
-        if existing:
-            skipped += 1
-            continue
-
-        try:
-            stat = minio_client.stat_object(bucket_name, obj.object_name)
-            upsert_snap_image(
-                space_id=space_id,
-                device_id=device_id,
-                object_name=obj.object_name,
+            existing = SnapImage.query.filter_by(
+                tenant_id=tenant_id,
                 bucket_name=bucket_name,
-                file_size=stat.size,
-                content_type=stat.content_type or 'image/jpeg',
-                etag=stat.etag,
-                captured_at=(
-                    normalize_to_shanghai_naive(stat.last_modified)
-                    if stat.last_modified
-                    else now_shanghai_naive()
-                ),
-                source='snap',
-            )
-            synced += 1
-        except Exception as e:
-            errors += 1
-            logger.warning(f"同步抓拍元数据失败: {obj.object_name}, error={e}")
+                object_name=obj.object_name,
+            ).first()
+            if existing:
+                skipped += 1
+                continue
+
+            try:
+                if object_camera_id(tenant_id, obj.object_name) != device_id:
+                    raise ValueError('snapshot object camera does not match space camera')
+                stat = minio_client.stat_object(bucket_name, obj.object_name)
+                upsert_snap_image(
+                    tenant_id=tenant_id,
+                    space_id=space_id,
+                    device_id=device_id,
+                    object_name=obj.object_name,
+                    bucket_name=bucket_name,
+                    file_size=stat.size,
+                    content_type=stat.content_type or 'image/jpeg',
+                    etag=stat.etag,
+                    captured_at=(
+                        normalize_to_shanghai_naive(stat.last_modified)
+                        if stat.last_modified
+                        else now_shanghai_naive()
+                    ),
+                    source='snap',
+                )
+                synced += 1
+            except Exception as e:
+                errors += 1
+                logger.warning(
+                    f"同步抓拍元数据失败: {obj.object_name}, error={e}")
 
     return {'synced_count': synced, 'skipped_count': skipped, 'error_count': errors}

@@ -77,7 +77,6 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
-import { useMessage } from '@/hooks/web/useMessage';
 import { notifyTemplateQueryByType } from '@/api/device/notice';
 
 interface Props {
@@ -110,7 +109,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: any];
 }>();
 
-const { createMessage } = useMessage();
 
 // 组件挂载状态标志
 const isMounted = ref(false);
@@ -331,4 +329,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

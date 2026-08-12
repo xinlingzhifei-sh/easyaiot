@@ -1,5 +1,5 @@
 #!/bin/bash
-# EasyAIoT Node Agent 安装与管理脚本（目标机全程离线，不依赖网络 / apt / python3-venv）
+# yFeiEye Node Agent 安装与管理脚本（目标机全程离线，不依赖网络 / apt / python3-venv）
 #
 # 用法:
 #   ./install.sh [命令]
@@ -133,8 +133,10 @@ sync_agent_sources() {
   fi
   echo "==> 同步 Agent 源码: ${resolved_script_dir} -> ${resolved_install_dir}"
   sudo cp "$resolved_script_dir/run_agent.py" "$resolved_script_dir/agent_server.py" \
+    "$resolved_script_dir/env_security.py" \
     "$resolved_script_dir/media_manager.py" "$resolved_script_dir/mqtt_manager.py" \
-    "$resolved_script_dir/workload_manager.py" \
+    "$resolved_script_dir/workload_manager.py" "$resolved_script_dir/agent_commands.py" \
+    "$resolved_script_dir/stream_forward_executor.py" \
     "$resolved_script_dir/requirements.txt" "$resolved_script_dir/agent.env.example" \
     "$resolved_script_dir/install.sh" "$resolved_install_dir/"
   sudo chmod +x "$resolved_install_dir/install.sh"
@@ -174,6 +176,26 @@ cmd_clean() {
   echo "CLEAN_OK"
 }
 
+validate_agent_env() {
+  local env_file="$1"
+  local node_id="" agent_token=""
+  if [ ! -f "$env_file" ]; then
+    echo "INSTALL_FAIL: missing agent.env at ${env_file}" >&2
+    exit 1
+  fi
+
+  node_id="$(sudo awk -F= '$1=="NODE_ID"{print $2; exit}' "$env_file" 2>/dev/null | tr -d '[:space:]')"
+  agent_token="$(sudo awk -F= '$1=="AGENT_TOKEN"{print $2; exit}' "$env_file" 2>/dev/null | tr -d '[:space:]')"
+  if ! [[ "$node_id" =~ ^[1-9][0-9]*$ ]]; then
+    echo "INSTALL_FAIL: NODE_ID must be a positive integer in ${env_file}" >&2
+    exit 1
+  fi
+  if [ -z "$agent_token" ] || [ "$agent_token" = "your-agent-token-here" ]; then
+    echo "INSTALL_FAIL: AGENT_TOKEN must be set in ${env_file}" >&2
+    exit 1
+  fi
+}
+
 do_install() {
   echo "==> 安装目录: $INSTALL_DIR"
   echo "==> Python: $PYTHON ($($PYTHON --version 2>&1))"
@@ -182,9 +204,11 @@ do_install() {
   resolved_install_dir="$(readlink -f "$INSTALL_DIR")"
   cd "$resolved_install_dir"
   local WHEELS_DIR="$resolved_install_dir/pip-wheels"
+  local HAS_OFFLINE_WHEELS=0
   if [ ! -d "$WHEELS_DIR" ] || ! compgen -G "$WHEELS_DIR"/*.{whl,tar.gz,zip} >/dev/null 2>&1; then
-    echo "INSTALL_FAIL: 缺少离线 pip 包目录 pip-wheels/" >&2
-    exit 1
+    echo "WARN: 缺少离线 pip 包目录 pip-wheels/，将尝试在线 pip 安装（可设置 EASYAIOT_AGENT_ALLOW_ONLINE_PIP=0 禁用）" >&2
+  else
+    HAS_OFFLINE_WHEELS=1
   fi
 
   python_minor_version() {
@@ -305,6 +329,28 @@ PY
     return 0
   }
 
+  setup_agent_online_site_packages() {
+    if [ "${EASYAIOT_AGENT_ALLOW_ONLINE_PIP:-1}" != "1" ]; then
+      return 1
+    fi
+    if ! sudo $PYTHON -m pip --version >/dev/null 2>&1; then
+      return 1
+    fi
+
+    echo "==> 在线 site-packages 安装（pip-wheels 不存在时的恢复路径）..."
+    sudo rm -rf "$SITE_PKG"
+    sudo mkdir -p "$SITE_PKG"
+    if ! sudo $PYTHON -m pip install --target="$SITE_PKG" -r requirements.txt -q; then
+      echo "INSTALL_FAIL: 在线依赖安装失败" >&2
+      return 1
+    fi
+
+    RUN_PYTHON="$PYTHON"
+    write_agent_launcher
+    echo "==> 在线 site-packages 已就绪: $SITE_PKG"
+    return 0
+  }
+
   try_install_python_venv() {
     if ! command -v apt-get >/dev/null 2>&1; then
       return 1
@@ -352,15 +398,17 @@ PY
     return 0
   }
 
-  if setup_agent_site_packages; then
+  if [ "$HAS_OFFLINE_WHEELS" -eq 1 ] && setup_agent_site_packages; then
     :
-  elif setup_agent_venv; then
+  elif setup_agent_online_site_packages; then
+    :
+  elif [ "$HAS_OFFLINE_WHEELS" -eq 1 ] && setup_agent_venv; then
     :
   else
     local py_ver
     py_ver="$(python_minor_version)"
     echo "INSTALL_FAIL: 离线安装失败" >&2
-    echo "INSTALL_FAIL: 请确认平台已同步完整 pip-wheels（含 pip/setuptools/wheel 及 Python ${py_ver} 依赖）" >&2
+    echo "INSTALL_FAIL: 请确认平台已同步完整 pip-wheels（含 pip/setuptools/wheel 及 Python ${py_ver} 依赖），或允许在线 pip 安装" >&2
     exit 1
   fi
 
@@ -375,9 +423,11 @@ PY
     echo "请编辑 $INSTALL_DIR/agent.env 填入 NODE_ID 和 AGENT_TOKEN"
   fi
 
+  validate_agent_env "$resolved_install_dir/agent.env"
+
   cat <<UNIT | sudo tee "$(service_unit_file)" > /dev/null
 [Unit]
-Description=EasyAIoT Node Agent
+Description=yFeiEye Node Agent
 After=network.target docker.service
 Wants=docker.service
 

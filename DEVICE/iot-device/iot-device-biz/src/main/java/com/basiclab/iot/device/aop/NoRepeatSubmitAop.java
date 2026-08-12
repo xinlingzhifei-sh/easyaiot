@@ -19,9 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @功能描述 防止多次提交aop解析注解
  * @date 2022-02-15
  */

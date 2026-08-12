@@ -30,6 +30,7 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.AuthorizationHeader;
 import javax.sip.header.ContactHeader;
+import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
@@ -77,10 +78,18 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         try {
             SIPRequest request = (SIPRequest) evt.getRequest();
             Response response = null;
+            ExpiresHeader expiresHeader = request.getExpires();
+            if (expiresHeader == null) {
+                log.warn("[注册请求] 缺少 Expires 头，回复 400");
+                response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                return;
+            }
+            int expires = expiresHeader.getExpires();
             boolean passwordCorrect = false;
             // 注册标志
             boolean registerFlag = true;
-            if (request.getExpires().getExpires() == 0) {
+            if (expires == 0) {
                 // 注销成功
                 registerFlag = false;
             }
@@ -102,7 +111,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                         request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
                     log.info("{} 设备：{}, 注册续订: {}", title, device.getDeviceId(), device.getDeviceId());
                     if (registerFlag) {
-                        device.setExpires(request.getExpires().getExpires());
+                        device.setExpires(expires);
                         device.setIp(remoteAddressInfo.getIp());
                         device.setPort(remoteAddressInfo.getPort());
                         device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
@@ -180,11 +189,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 response.addHeader(dateHeader);
             }
 
-            if (request.getExpires() == null) {
-                response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
-                return;
-            }
             // 添加Contact头
             response.addHeader(request.getHeader(ContactHeader.NAME));
             // 添加Expires头
@@ -214,12 +218,12 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(IpPortUtil.concatenateIpAndPort(remoteAddressInfo.getIp(), String.valueOf(remoteAddressInfo.getPort())));
             device.setLocalIp(request.getLocalAddress().getHostAddress());
-            if (request.getExpires().getExpires() == 0) {
+            if (expires == 0) {
                 // 注销成功
                 registerFlag = false;
             } else {
                 // 注册成功
-                device.setExpires(request.getExpires().getExpires());
+                device.setExpires(expires);
                 registerFlag = true;
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);

@@ -15,6 +15,7 @@ import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
 import com.basiclab.iot.node.dal.pgsql.ControlPlanePeerMapper;
 import com.basiclab.iot.node.domain.vo.*;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ComputeNodeService;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ControlPlaneService;
@@ -150,7 +151,7 @@ public class ControlPlaneServiceImpl implements ControlPlaneService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void registerPeer(ControlPlanePeerRegisterReqVO reqVO, String inboundToken) {
-        if (StrUtil.isBlank(inboundToken) || !inboundToken.equals(reqVO.getPeerToken())) {
+        if (!NodeTokenVerifier.matches(reqVO.getPeerToken(), inboundToken)) {
             throw exception(CONTROL_PLANE_PEER_TOKEN_INVALID);
         }
         String apiBaseUrl = normalizeApiBaseUrl(reqVO.getApiBaseUrl());
@@ -186,7 +187,7 @@ public class ControlPlaneServiceImpl implements ControlPlaneService {
             throw exception(CONTROL_PLANE_PEER_TOKEN_INVALID);
         }
         boolean tokenMatched = controlPlanePeerMapper.selectList().stream()
-                .anyMatch(peer -> inboundToken.equals(peer.getPeerToken()));
+                .anyMatch(peer -> NodeTokenVerifier.matches(peer.getPeerToken(), inboundToken));
         if (!tokenMatched) {
             throw exception(CONTROL_PLANE_PEER_TOKEN_INVALID);
         }

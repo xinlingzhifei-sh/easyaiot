@@ -129,16 +129,18 @@ async function refreshInstances() {
   }
 }
 
-async function handleStop(record: LLMDeployService) {
-  if (!record.id) return;
-  await stopLlmDeploy(record.id);
+async function handleStop(record: Recordable) {
+  const service = record as LLMDeployService;
+  if (!service.id) return;
+  await stopLlmDeploy(service.id);
   createMessage.success('已停止');
   refreshInstances();
 }
 
-async function handleDelete(record: LLMDeployService) {
-  if (!record.id) return;
-  await deleteLlmDeploy(record.id);
+async function handleDelete(record: Recordable) {
+  const service = record as LLMDeployService;
+  if (!service.id) return;
+  await deleteLlmDeploy(service.id);
   createMessage.success('已删除');
   refreshInstances();
 }

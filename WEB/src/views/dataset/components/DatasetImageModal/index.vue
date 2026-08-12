@@ -73,7 +73,7 @@ defineOptions({name: 'DatasetImageModal'});
 const {createMessage} = useMessage();
 
 const state = reactive({
-  datasetId: null as number | null,
+  datasetId: undefined as number | undefined,
   isImage: false,
   isZip: false,
   fileList: [] as any[],

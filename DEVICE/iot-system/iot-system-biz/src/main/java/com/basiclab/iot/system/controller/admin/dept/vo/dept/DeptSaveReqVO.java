@@ -12,9 +12,8 @@ import javax.validation.constraints.Size;
 /**
  * DeptSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 部门创建/修改 Request VO")
 @Data
@@ -23,7 +22,7 @@ public class DeptSaveReqVO {
     @Schema(description = "部门编号", example = "1024")
     private Long id;
 
-    @Schema(description = "部门名称", example = "BasicLab")
+    @Schema(description = "部门名称", example = "yFeiEye")
     @NotBlank(message = "部门名称不能为空")
     @Size(max = 30, message = "部门名称长度不能超过 30 个字符")
     private String name;

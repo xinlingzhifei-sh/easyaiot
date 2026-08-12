@@ -44,3 +44,7 @@ hs_err_pid*
 .build-cache
 .offline-cache
 face_rec.onnx
+
+# Runtime evidence/access caches must never enter a release commit.
+/data/media-access-audit/
+/data/seekable-playback/

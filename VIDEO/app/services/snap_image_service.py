@@ -1,10 +1,10 @@
 """
 抓拍图片管理服务
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import io
+import hashlib
 import logging
 import os
 import zipfile
@@ -17,13 +17,77 @@ from minio.error import S3Error
 from models import db, SnapSpace, SnapImage
 from app.services.snap_space_service import get_minio_client
 from app.services.playback_disk_guard_service import get_snap_staging_dir
+from app.utils.minio_bucket_policy import ensure_bucket_private
 from app.utils.service_urls import minio_storage_enabled
 from app.services.space_file_metadata_service import (
     delete_snap_images_metadata,
     sync_snap_images_from_minio,
+    require_mutable_tenant_object,
 )
+from app.utils.minio_bucket_policy import ensure_bucket_private
 
 logger = logging.getLogger(__name__)
+
+
+def _space_tenant_id(space, tenant_id=None) -> int:
+    try:
+        owner_tenant_id = int(getattr(space, 'tenant_id', None))
+    except (TypeError, ValueError) as exc:
+        raise ValueError('snapshot space tenant owner is missing') from exc
+    if owner_tenant_id <= 0:
+        raise ValueError('snapshot space tenant owner is invalid')
+    if tenant_id is not None and int(tenant_id) != owner_tenant_id:
+        raise ValueError('snapshot tenant does not match space owner')
+    return owner_tenant_id
+
+
+def _upload_verified_archive(minio_client, bucket_name: str,
+                             object_name: str, zip_buffer: io.BytesIO) -> int:
+    ensure_bucket_private(minio_client, bucket_name)
+    archive_size = zip_buffer.tell()
+    if archive_size <= 0:
+        raise RuntimeError('snapshot archive is empty')
+    archive_hash = hashlib.sha256(zip_buffer.getbuffer()).hexdigest()
+    zip_buffer.seek(0)
+    try:
+        minio_client.put_object(
+            bucket_name,
+            object_name,
+            zip_buffer,
+            length=archive_size,
+            content_type='application/zip',
+            metadata={'sha256': archive_hash},
+        )
+        archive_stat = minio_client.stat_object(bucket_name, object_name)
+        if int(getattr(archive_stat, 'size', -1)) != archive_size:
+            raise RuntimeError('snapshot archive size verification failed')
+        metadata = {
+            str(key).lower(): str(value).strip().lower()
+            for key, value in (getattr(archive_stat, 'metadata', {}) or {}).items()
+        }
+        persisted_hash = metadata.get('x-amz-meta-sha256') or metadata.get('sha256')
+        if persisted_hash != archive_hash:
+            raise RuntimeError('snapshot archive hash verification failed')
+        archive_response = minio_client.get_object(bucket_name, object_name)
+        readback_hash = hashlib.sha256()
+        try:
+            while True:
+                chunk = archive_response.read(1024 * 1024)
+                if not chunk:
+                    break
+                readback_hash.update(chunk)
+        finally:
+            archive_response.close()
+            archive_response.release_conn()
+        if readback_hash.hexdigest() != archive_hash:
+            raise RuntimeError('snapshot archive content verification failed')
+    except Exception:
+        try:
+            minio_client.remove_object(bucket_name, object_name)
+        except Exception:
+            pass
+        raise
+    return archive_size
 
 
 def list_snap_images(
@@ -35,11 +99,14 @@ def list_snap_images(
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
     source: Optional[str] = None,
+    tenant_id=None,
 ) -> Dict:
     """获取抓拍图片列表（数据库分页）"""
     try:
         snap_space = SnapSpace.query.get_or_404(space_id)
-        query = SnapImage.query.filter_by(space_id=space_id)
+        tenant_id = _space_tenant_id(snap_space, tenant_id)
+        query = SnapImage.query.filter_by(
+            tenant_id=tenant_id, space_id=space_id)
 
         effective_device_id = device_id or snap_space.device_id
         if effective_device_id:
@@ -71,11 +138,18 @@ def list_snap_images(
         raise RuntimeError(f"获取抓拍图片列表失败: {str(e)}")
 
 
-def delete_snap_images(space_id: int, object_names: List[str]) -> Dict:
+def delete_snap_images(space_id: int, object_names: List[str], tenant_id=None) -> Dict:
     """批量删除抓拍图片（MinIO/本地 + 数据库）"""
     try:
         snap_space = SnapSpace.query.get_or_404(space_id)
+        tenant_id = _space_tenant_id(snap_space, tenant_id)
         bucket_name = snap_space.bucket_name
+        for object_name in object_names:
+            require_mutable_tenant_object(
+                tenant_id,
+                object_name,
+                camera_id=snap_space.device_id,
+            )
 
         deleted_count = 0
         failed_count = 0
@@ -98,6 +172,7 @@ def delete_snap_images(space_id: int, object_names: List[str]) -> Dict:
             minio_client = get_minio_client()
             if not minio_client.bucket_exists(bucket_name):
                 raise ValueError(f"抓拍空间的MinIO bucket不存在: {bucket_name}")
+            ensure_bucket_private(minio_client, bucket_name)
 
             for object_name in object_names:
                 try:
@@ -110,7 +185,12 @@ def delete_snap_images(space_id: int, object_names: List[str]) -> Dict:
                     logger.warning(f"删除抓拍图片失败: {bucket_name}/{object_name}, error={str(e)}")
 
         success_objects = [n for n in object_names if n not in failed_objects]
-        delete_snap_images_metadata(bucket_name, success_objects)
+        delete_snap_images_metadata(
+            bucket_name,
+            success_objects,
+            tenant_id=tenant_id,
+            space_id=space_id,
+        )
 
         return {
             'deleted_count': deleted_count,
@@ -122,17 +202,19 @@ def delete_snap_images(space_id: int, object_names: List[str]) -> Dict:
         raise RuntimeError(f"批量删除抓拍图片失败: {str(e)}")
 
 
-def get_snap_image(space_id: int, object_name: str):
+def get_snap_image(space_id: int, object_name: str, tenant_id=None):
     """获取抓拍图片内容"""
     import mimetypes
     import os
 
     try:
         snap_space = SnapSpace.query.get_or_404(space_id)
+        tenant_id = _space_tenant_id(snap_space, tenant_id)
         bucket_name = snap_space.bucket_name
 
         if not minio_storage_enabled():
             record = SnapImage.query.filter_by(
+                tenant_id=tenant_id,
                 space_id=space_id,
                 object_name=object_name,
             ).first()
@@ -152,6 +234,7 @@ def get_snap_image(space_id: int, object_name: str):
         minio_client = get_minio_client()
         if not minio_client.bucket_exists(bucket_name):
             raise ValueError(f"抓拍空间的MinIO bucket不存在: {bucket_name}")
+        ensure_bucket_private(minio_client, bucket_name)
 
         try:
             stat = minio_client.stat_object(bucket_name, object_name)
@@ -185,6 +268,7 @@ def cleanup_old_images_by_save_time(space_id: int, save_time_hours: int) -> Dict
         if cutoff_time is None:
             return {'processed_count': 0, 'deleted_count': 0, 'archived_count': 0, 'error_count': 0}
         records = SnapImage.query.filter(
+            SnapImage.tenant_id == _space_tenant_id(snap_space),
             SnapImage.space_id == space_id,
             SnapImage.device_id == snap_space.device_id,
             SnapImage.captured_at < cutoff_time,
@@ -196,10 +280,15 @@ def cleanup_old_images_by_save_time(space_id: int, save_time_hours: int) -> Dict
         minio_client = get_minio_client()
         if not minio_client.bucket_exists(bucket_name):
             return {'processed_count': 0, 'deleted_count': 0, 'archived_count': 0, 'error_count': 0}
+        ensure_bucket_private(minio_client, bucket_name)
 
         archive_bucket_name = current_app.config.get('MINIO_ARCHIVE_BUCKET', 'snap-archive')
         if save_mode == 1 and not minio_client.bucket_exists(archive_bucket_name):
             minio_client.make_bucket(archive_bucket_name)
+        if save_mode == 1:
+            ensure_bucket_private(minio_client, archive_bucket_name)
+        if save_mode == 1:
+            ensure_bucket_private(minio_client, archive_bucket_name)
 
         processed_count = deleted_count = archived_count = error_count = 0
 
@@ -214,11 +303,16 @@ def cleanup_old_images_by_save_time(space_id: int, save_time_hours: int) -> Dict
                 except Exception as e:
                     error_count += 1
                     logger.error(f"删除图片失败: {record.object_name}, error={e}")
-            delete_snap_images_metadata(bucket_name, object_names)
+            delete_snap_images_metadata(
+                bucket_name,
+                object_names,
+                tenant_id=_space_tenant_id(snap_space),
+                space_id=space_id,
+            )
         else:
             try:
                 zip_buffer = io.BytesIO()
-                removed_names = []
+                archived_records = []
                 with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                     for record in records:
                         try:
@@ -227,26 +321,40 @@ def cleanup_old_images_by_save_time(space_id: int, save_time_hours: int) -> Dict
                             data.close()
                             data.release_conn()
                             zip_file.writestr(record.filename, file_content)
-                            minio_client.remove_object(bucket_name, record.object_name)
-                            removed_names.append(record.object_name)
-                            deleted_count += 1
+                            archived_records.append(record)
                         except Exception as e:
                             error_count += 1
                             logger.error(f"处理图片失败: {record.object_name}, error={e}")
 
                 if zip_buffer.tell() > 0:
-                    zip_buffer.seek(0)
-                    archive_object_name = f"{snap_space.device_id}/{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
-                    minio_client.put_object(
-                        archive_bucket_name,
-                        archive_object_name,
-                        zip_buffer,
-                        length=zip_buffer.tell(),
-                        content_type='application/zip',
+                    tenant_id = _space_tenant_id(snap_space)
+                    archive_object_name = (
+                        f"tenants/{tenant_id}/cameras/{snap_space.device_id}/archives/"
+                        f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}.zip"
                     )
+                    _upload_verified_archive(
+                        minio_client, archive_bucket_name,
+                        archive_object_name, zip_buffer)
                     archived_count += 1
-                    processed_count += len(removed_names)
-                    delete_snap_images_metadata(bucket_name, removed_names)
+                    deleted_names = []
+                    for record in archived_records:
+                        try:
+                            minio_client.remove_object(
+                                bucket_name, record.object_name)
+                            deleted_names.append(record.object_name)
+                            deleted_count += 1
+                        except Exception as e:
+                            error_count += 1
+                            logger.error(
+                                f"删除已归档图片失败: {record.object_name}, error={e}")
+                    if deleted_names:
+                        delete_snap_images_metadata(
+                            bucket_name,
+                            deleted_names,
+                            tenant_id=tenant_id,
+                            space_id=space_id,
+                        )
+                        processed_count += len(deleted_names)
             except Exception as e:
                 error_count += len(records)
                 logger.error(f"归档抓拍图片失败: error={e}", exc_info=True)

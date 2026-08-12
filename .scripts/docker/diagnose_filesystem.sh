@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# EasyAIoT 文件系统诊断脚本
+# yFeiEye 文件系统诊断脚本
 # ============================================
 # 用于诊断 Docker Compose 挂载路径错误和文件系统只读问题
 # ============================================
@@ -295,7 +295,7 @@ check_docker_mount_paths() {
 check_project_root() {
     print_section "检查项目根目录路径"
     
-    local project_root="/opt/projects/easyaiot"
+    local project_root="/opt/projects/yfeieye"
     local error_path="/opt/eayaiot"  # 错误的路径（拼写错误）
     
     print_info "检查正确的项目路径: $project_root"
@@ -374,14 +374,14 @@ provide_fix_suggestions() {
     echo ""
     print_warning "如果路径拼写错误，请检查:"
     echo ""
-    print_info "  确保路径为: /opt/projects/easyaiot"
+    print_info "  确保路径为: /opt/projects/yfeieye"
     print_info "  而不是: /opt/eayaiot 或其他错误路径"
     echo ""
 }
 
 # 主函数
 main() {
-    print_section "EasyAIoT 文件系统诊断工具"
+    print_section "yFeiEye 文件系统诊断工具"
     
     echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')"
     echo ""

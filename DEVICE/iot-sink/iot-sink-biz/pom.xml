@@ -148,6 +148,12 @@
             <artifactId>js-scriptengine</artifactId>
             <version>24.1.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

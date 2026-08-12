@@ -2,7 +2,6 @@
 //  main.cc
 //
 //  Copyright (c) 2025 Yuji Hirose. All rights reserved.
-//  MIT License
 //
 
 #include <chrono>

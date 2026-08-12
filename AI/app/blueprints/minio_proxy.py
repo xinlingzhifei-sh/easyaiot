@@ -1,17 +1,12 @@
-"""
-MinIO 对象下载代理（兼容 Console API 路径格式）
-
-数据库与业务层常保存相对路径：
-  /api/v1/buckets/{bucket}/objects/download?prefix={object_key}
-
-算法服务等会将该路径拼到 AI_SERVICE_URL 上拉取模型；AI 模块需代理到 MinIO S3 API。
-"""
 import logging
 import mimetypes
 import os
+import posixpath
+import re
+import tempfile
 from urllib.parse import quote, unquote
 
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, after_this_request, jsonify, request, send_file
 from minio.error import S3Error
 from werkzeug.utils import secure_filename
 
@@ -19,6 +14,16 @@ from app.services.minio_service import ModelService, parse_minio_download_url
 
 minio_proxy_bp = Blueprint('minio_proxy', __name__)
 logger = logging.getLogger(__name__)
+
+_PROTECTED_MEDIA_BUCKETS = frozenset({
+    'record-space',
+    'snap-space',
+    'camera-screenshots',
+    'alert-images',
+    'record-archive',
+    'snap-archive',
+    'review-evidence',
+})
 
 
 def _build_content_disposition(disposition: str, filename: str) -> str:
@@ -43,61 +48,121 @@ def _build_content_disposition(disposition: str, filename: str) -> str:
     )
 
 
-@minio_proxy_bp.route('/api/v1/buckets/<bucket_name>/objects/download', methods=['GET'])
-def download_object(bucket_name: str):
-    """代理 MinIO 对象下载，兼容 MinIO Console 的 download API 路径。"""
-    prefix = request.args.get('prefix')
-    if not prefix:
-        return Response('缺少 prefix 参数', status=400, mimetype='text/plain')
+def _download_from_minio(bucket_name, object_name, destination_path):
+    return ModelService.download_from_minio(bucket_name, object_name, destination_path)
 
-    object_key = unquote(prefix)
-    _, object_key_from_url = parse_minio_download_url(
-        f'/api/v1/buckets/{bucket_name}/objects/download?prefix={prefix}'
+
+def _valid_object_name(value):
+    if not value or value.startswith(('/', '\\')) or '\x00' in value:
+        return False
+    normalized = value.replace('\\', '/')
+    return all(part not in ('', '.', '..') for part in normalized.split('/'))
+
+
+@minio_proxy_bp.route('/api/v1/buckets/<bucket_name>/objects/download', methods=['GET', 'HEAD'])
+def download_bucket_object(bucket_name):
+    normalized_bucket = (bucket_name or '').strip().lower()
+    if normalized_bucket in _PROTECTED_MEDIA_BUCKETS:
+        return jsonify({
+            'code': 403,
+            'msg': 'protected media must use an authorized VIDEO endpoint',
+            'reason': 'protected_media_bucket',
+        }), 403
+    if not re.fullmatch(r'[a-z0-9][a-z0-9.-]{1,62}', normalized_bucket):
+        return jsonify({
+            'code': 400,
+            'msg': 'invalid MinIO bucket name',
+            'reason': 'invalid_bucket_name',
+        }), 400
+
+    prefix = request.args.get('prefix', '').strip()
+    if not prefix:
+        return jsonify({'code': 400, 'msg': 'missing MinIO object path'}), 400
+
+    object_name = unquote(prefix)
+    _, parsed_object_name = parse_minio_download_url(
+        f'/api/v1/buckets/{normalized_bucket}/objects/download?prefix={prefix}'
     )
-    if object_key_from_url:
-        object_key = object_key_from_url
+    if parsed_object_name:
+        object_name = parsed_object_name
+    if not _valid_object_name(object_name):
+        return jsonify({
+            'code': 400,
+            'msg': 'invalid MinIO object path',
+            'reason': 'invalid_object_path',
+        }), 400
 
     from app.utils.service_urls import minio_storage_enabled
     from app.services.local_storage_service import read_local_object
 
     if not minio_storage_enabled():
-        content, content_type, err = read_local_object(bucket_name, object_key)
+        content, content_type, err = read_local_object(
+            normalized_bucket, object_name)
         if err or content is None:
-            logger.warning('本地对象不存在: %s/%s', bucket_name, object_key)
-            return Response(err or '对象不存在', status=404, mimetype='text/plain')
-        filename = os.path.basename(object_key) or 'download'
-        response = Response(content, mimetype=content_type or 'application/octet-stream')
+            logger.warning(
+                'Local object not found: %s/%s', normalized_bucket, object_name)
+            return Response(
+                err or 'Local object not found', status=404, mimetype='text/plain')
+        filename = os.path.basename(object_name) or 'download'
+        response = Response(
+            content, mimetype=content_type or 'application/octet-stream')
         response.headers['Content-Disposition'] = _build_content_disposition('inline', filename)
         response.headers['Content-Length'] = str(len(content))
         return response
 
+    suffix = os.path.splitext(object_name)[1]
+    fd, temp_path = tempfile.mkstemp(suffix=suffix)
+    os.close(fd)
     try:
-        client = ModelService.get_minio_client()
-        if not client.bucket_exists(bucket_name):
-            return Response(f'MinIO 存储桶不存在: {bucket_name}', status=404, mimetype='text/plain')
+        success, error_message = _download_from_minio(
+            normalized_bucket, object_name, temp_path)
+        if not success:
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+            return jsonify({
+                'code': 404,
+                'msg': error_message or 'MinIO object not found',
+            }), 404
 
-        stat = client.stat_object(bucket_name, object_key)
-        data = client.get_object(bucket_name, object_key)
-        content = data.read()
-        data.close()
-        data.release_conn()
+        @after_this_request
+        def cleanup_temp_file(response):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+            return response
 
-        filename = os.path.basename(object_key) or 'download'
-        content_type = stat.content_type
-        if not content_type or content_type == 'application/octet-stream':
-            guessed, _ = mimetypes.guess_type(filename)
-            content_type = guessed or 'application/octet-stream'
-
-        response = Response(content, mimetype=content_type)
-        response.headers['Content-Disposition'] = _build_content_disposition('attachment', filename)
-        response.headers['Content-Length'] = str(len(content))
+        mimetype = mimetypes.guess_type(object_name)[0] or 'application/octet-stream'
+        filename = posixpath.basename(object_name) or 'download'
+        response = send_file(
+            temp_path,
+            mimetype=mimetype,
+            download_name=filename,
+            as_attachment=True,
+            conditional=True,
+        )
+        response.headers['Content-Disposition'] = _build_content_disposition(
+            'attachment', filename)
         return response
-    except S3Error as e:
-        if getattr(e, 'code', '') == 'NoSuchKey':
-            logger.warning('MinIO 对象不存在: %s/%s', bucket_name, object_key)
-            return Response(f'对象不存在: {bucket_name}/{object_key}', status=404, mimetype='text/plain')
-        logger.error('MinIO 下载失败: %s/%s, %s', bucket_name, object_key, e)
-        return Response(f'MinIO 下载失败: {e}', status=500, mimetype='text/plain')
-    except Exception as e:
-        logger.error('代理下载异常: %s/%s, %s', bucket_name, object_key, e, exc_info=True)
-        return Response(f'下载失败: {e}', status=500, mimetype='text/plain')
+    except S3Error as exc:
+        logger.error(
+            'MinIO download failed: %s/%s, %s',
+            normalized_bucket, object_name, exc)
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+        return Response(
+            f'MinIO download failed: {exc}', status=500, mimetype='text/plain')
+    except Exception as exc:
+        logger.error(
+            'Proxy download failed: %s/%s, %s',
+            normalized_bucket, object_name, exc, exc_info=True)
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+        return Response(
+            f'Download failed: {exc}', status=500, mimetype='text/plain')

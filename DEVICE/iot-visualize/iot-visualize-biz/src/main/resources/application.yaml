@@ -49,7 +49,7 @@ mybatis-plus:
     banner: false
   type-aliases-package: ${iot.info.base-package}.dal.dataobject
   encryptor:
-    password: XDV71a+xqStEA3WH
+    password: ${MYBATIS_ENCRYPTOR_PASSWORD:}
 
 mybatis-plus-join:
   banner: false

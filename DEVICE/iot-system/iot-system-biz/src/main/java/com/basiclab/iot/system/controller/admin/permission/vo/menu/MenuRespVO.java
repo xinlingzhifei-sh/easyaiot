@@ -10,9 +10,8 @@ import java.time.LocalDateTime;
 /**
  * MenuRespVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 菜单信息 Response VO")
 @Data
@@ -21,7 +20,7 @@ public class MenuRespVO {
     @Schema(description = "菜单编号", example = "1024")
     private Long id;
 
-    @Schema(description = "菜单名称", example = "BasicLab")
+    @Schema(description = "菜单名称", example = "yFeiEye")
     @NotBlank(message = "菜单名称不能为空")
     @Size(max = 50, message = "菜单名称长度不能超过50个字符")
     private String name;

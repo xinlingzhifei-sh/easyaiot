@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 import { CameraOutlined } from '@ant-design/icons-vue';
 import { useMessage } from '@/hooks/web/useMessage';
@@ -79,7 +79,7 @@ defineOptions({ name: 'DeviceRegionDetectionDrawer' });
 
 const { createMessage } = useMessage();
 
-const [register, { closeDrawer }] = useDrawerInner(async (data) => {
+const [register] = useDrawerInner(async (data) => {
   // 重置状态
   selectedDeviceId.value = null;
   deviceRegions.value = {};
@@ -131,7 +131,7 @@ const selectDevice = async (device: DeviceInfo) => {
   
   // 加载该设备的区域配置（即使已经加载过，也重新加载以确保数据最新）
   try {
-    const response = await getDeviceRegions(device.id);
+    const response = await getDeviceRegions(device.id) as any;
     console.log('selectDevice: 获取区域数据响应:', response);
     
     // 处理响应：可能是直接返回数据，也可能是包含 code 的对象
@@ -336,7 +336,7 @@ const loadTaskDevices = async (taskId: number) => {
 // 加载所有设备列表（兼容旧逻辑，当没有传入taskId时使用）
 const loadDevices = async () => {
   try {
-    const response = await getDeviceList();
+    const response = await getDeviceList({});
     if (response.code === 0 && response.data) {
       devices.value = response.data;
     }
@@ -594,4 +594,3 @@ const loadDevices = async () => {
   }
 }
 </style>
-

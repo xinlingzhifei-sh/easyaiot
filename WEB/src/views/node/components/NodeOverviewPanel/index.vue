@@ -110,7 +110,7 @@ const activeFilter = computed({
             <CountTo
               v-if="item.numeric"
               :start-val="0"
-              :end-val="item.value"
+              :end-val="Number(item.value)"
               :duration="800"
             />
             <template v-else>{{ item.value }}</template>

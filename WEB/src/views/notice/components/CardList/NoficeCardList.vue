@@ -72,12 +72,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {computed, onMounted, reactive, ref} from 'vue';
-import {Card, List, Spin, Typography} from 'ant-design-vue';
+import {onMounted, reactive, ref} from 'vue';
+import {List, Spin} from 'ant-design-vue';
 import {BasicForm, useForm} from '@/components/Form';
 import {propTypes} from '@/utils/propTypes';
 import {isFunction} from '@/utils/is';
-import {grid, useSlider} from './data';
 
 import ALIBABA from "@/assets/images/notice/alibaba.png";
 import DINGDING from "@/assets/images/notice/dingding.png";
@@ -90,10 +89,7 @@ import {useMessage} from "@/hooks/web/useMessage";
 import {formatToDateTime} from "@/utils/dateUtil";
 
 const ListItem = List.Item;
-const CardMeta = Card.Meta;
-const TypographyParagraph = Typography.Paragraph;
 // 获取slider属性
-const sliderProp = computed(() => useSlider(4));
 // 组件接收参数
 const props = defineProps({
   // 请求API的参数
@@ -101,19 +97,17 @@ const props = defineProps({
   //api
   api: propTypes.func,
 });
-const {createConfirm, createMessage} = useMessage()
+const {createMessage} = useMessage()
 //暴露内部方法
 const emit = defineEmits(['getMethod', 'delete', 'edit', 'view']);
 //数据
-const data = ref([]);
+const data = ref<any[]>([]);
 const title = "消息配置";
 // 切换每行个数
 // cover图片自适应高度
 //修改pageSize并重新请求数据
 
-const height = computed(() => {
-  return `h-${120 - grid.value * 6}`;
-});
+void title;
 
 const state = reactive({
   loading: true,
@@ -373,7 +367,7 @@ async function handleDelete(record: object) {
     .product-img {
       position: absolute;
       right: 20px;
-      top: 50px;
+      bottom: 20px;
 
       img {
         cursor: pointer;

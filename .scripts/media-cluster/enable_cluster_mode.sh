@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EasyAIoT 集群模式一键启用：CephFS 挂载 + 目录初始化 + 环境变量模板
+# yFeiEye 集群模式一键启用：CephFS 挂载 + 目录初始化 + 环境变量模板
 #
 # 用法（在已加入 Ceph 集群的节点上）:
 #   export CEPH_MON=storage-ceph
@@ -14,9 +14,24 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 MOUNT_ROOT="${MOUNT_ROOT:-/mnt/easyaiot-media}"
 CEPH_MON="${CEPH_MON:-storage-ceph}"
 CEPHFS_NAME="${CEPHFS_NAME:-easyaiot}"
+YFEIEYE_SRS_HOOK_TOKEN="${YFEIEYE_SRS_HOOK_TOKEN:-}"
 
 print_step() { echo ">>> $*"; }
 print_ok() { echo "[OK] $*"; }
+print_err() { echo "[ERROR] $*" >&2; }
+
+validate_hook_token() {
+  if [[ ${#YFEIEYE_SRS_HOOK_TOKEN} -lt 32 ]]; then
+    print_err "YFEIEYE_SRS_HOOK_TOKEN must contain at least 32 characters"
+    exit 1
+  fi
+  if [[ ! "${YFEIEYE_SRS_HOOK_TOKEN}" =~ ^[A-Za-z0-9._~-]+$ ]]; then
+    print_err "YFEIEYE_SRS_HOOK_TOKEN must contain only URL-safe characters"
+    exit 1
+  fi
+}
+
+validate_hook_token
 
 if [[ "${GENERATE_ENV_ONLY:-0}" != "1" ]]; then
   print_step "挂载 CephFS 到 ${MOUNT_ROOT}"
@@ -40,7 +55,7 @@ print_ok "目录结构就绪"
 
 ENV_SNIPPET="${REPO_ROOT}/.scripts/media-cluster/cluster.env.snippet"
 cat > "${ENV_SNIPPET}" <<EOF
-# EasyAIoT 集群模式环境变量（由 enable_cluster_mode.sh 生成）
+# yFeiEye 集群模式环境变量（由 enable_cluster_mode.sh 生成）
 # 将以下内容合并到 VIDEO/.env.prod、AI/.env.prod 或 docker compose env
 CLUSTER_MODE=true
 MEDIA_HOST_DATA_ROOT=${MOUNT_ROOT}
@@ -51,6 +66,7 @@ SRS_HOST_DATA_ROOT=${MOUNT_ROOT}
 SRS_RECORD_DIR=${MOUNT_ROOT}/playbacks
 MEDIA_UPLOAD_MODE=kafka
 MEDIA_NODE_POOL_ENABLED=true
+YFEIEYE_SRS_HOOK_TOKEN=${YFEIEYE_SRS_HOOK_TOKEN}
 AI_DATASETS_DIR=${MOUNT_ROOT}/ai/datasets
 AI_MODELS_DIR=${MOUNT_ROOT}/ai/models
 ALERT_IMAGES_DIR=${MOUNT_ROOT}/alert_images
@@ -58,6 +74,7 @@ CEPH_MOUNT_ROOT=${MOUNT_ROOT}
 CEPH_MON=${CEPH_MON}
 CEPHFS_NAME=${CEPHFS_NAME}
 EOF
+chmod 600 "${ENV_SNIPPET}"
 print_ok "环境变量片段已写入 ${ENV_SNIPPET}"
 
 echo ""

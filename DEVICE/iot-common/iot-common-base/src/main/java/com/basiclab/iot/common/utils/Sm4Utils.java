@@ -12,9 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * @Description: 国密SM4分组密码算法工具类（对称加密）
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  * @CreateDate: 2024/8/25$ 15:27$
  * @UpdateDate: 2024/8/25$ 15:27$
  */

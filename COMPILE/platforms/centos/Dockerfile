@@ -1,4 +1,4 @@
-# EasyAIoT COMPILE - CentOS/RHEL EL7/EL8/EL9 container build
+# yFeiEye COMPILE - CentOS/RHEL EL7/EL8/EL9 container build
 # Build args: BASE_IMAGE, EL_RELEASE=7|8|9, BUILD_RPM, PANEL_VERSION
 # 前端由宿主机构建；yum/dnf 默认走国内源（见 setup_cn_mirrors.sh）
 

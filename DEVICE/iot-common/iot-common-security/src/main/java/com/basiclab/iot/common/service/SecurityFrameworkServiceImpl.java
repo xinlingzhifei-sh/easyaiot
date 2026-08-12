@@ -3,6 +3,7 @@ package com.basiclab.iot.common.service;
 import cn.hutool.core.collection.CollUtil;
 import com.basiclab.iot.common.core.KeyValue;
 import com.basiclab.iot.common.domain.LoginUser;
+import com.basiclab.iot.common.enums.UserTypeEnum;
 import com.basiclab.iot.common.utils.SecurityFrameworkUtils;
 import com.basiclab.iot.system.api.permission.PermissionApi;
 import com.google.common.cache.CacheLoader;
@@ -13,15 +14,15 @@ import lombok.SneakyThrows;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.basiclab.iot.common.utils.cache.CacheUtils.buildCache;
 
 /**
  * 默认的 {@link SecurityFrameworkService} 实现类
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @AllArgsConstructor
 public class SecurityFrameworkServiceImpl implements SecurityFrameworkService {
@@ -64,6 +65,9 @@ public class SecurityFrameworkServiceImpl implements SecurityFrameworkService {
     @Override
     @SneakyThrows
     public boolean hasAnyPermissions(String... permissions) {
+        if (!isAdminUser()) {
+            return false;
+        }
         return hasAnyPermissionsCache.get(new KeyValue<>(SecurityFrameworkUtils.getLoginUserId(), Arrays.asList(permissions)));
     }
 
@@ -75,6 +79,9 @@ public class SecurityFrameworkServiceImpl implements SecurityFrameworkService {
     @Override
     @SneakyThrows
     public boolean hasAnyRoles(String... roles) {
+        if (!isAdminUser()) {
+            return false;
+        }
         return hasAnyRolesCache.get(new KeyValue<>(SecurityFrameworkUtils.getLoginUserId(), Arrays.asList(roles)));
     }
 
@@ -90,6 +97,12 @@ public class SecurityFrameworkServiceImpl implements SecurityFrameworkService {
             return false;
         }
         return CollUtil.containsAny(user.getScopes(), Arrays.asList(scope));
+    }
+
+    @Override
+    public boolean isAdminUser() {
+        LoginUser user = SecurityFrameworkUtils.getLoginUser();
+        return user != null && Objects.equals(user.getUserType(), UserTypeEnum.ADMIN.getValue());
     }
 
 }

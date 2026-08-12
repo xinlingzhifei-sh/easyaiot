@@ -21,23 +21,23 @@ export interface FaqCategory {
 export const faqList: FaqCategory[] = [
   {
     icon: 'github-filled',
-    title: 'EasyAIoT 问题',
+    title: 'yFeiEye 问题',
     childList: [
       {
-        title: 'EasyAIoT 开源吗？',
+        title: 'yFeiEye 开源吗？',
         content: '开源，基于 MIT 协议，可免费商用。',
       },
       {
-        title: 'EasyAIoT 可以商用吗？',
-        content: '可以，EasyAIoT 采用 MIT 开源协议，允许商业使用。',
+        title: 'yFeiEye 可以商用吗？',
+        content: '可以，yFeiEye 采用 MIT 开源协议，允许商业使用。',
       },
       {
-        title: 'EasyAIoT 官网地址多少？',
-        content: 'https://gitee.com/soaring-xiongkulu/easyaiot',
+        title: 'yFeiEye 官网地址多少？',
+        content: 'https://gitee.com/soaring-xiongkulu/yFeiEye',
       },
       {
-        title: 'EasyAIoT 文档地址多少？',
-        content: 'https://github.com/soaring-xiongkulu/easyaiot',
+        title: 'yFeiEye 文档地址多少？',
+        content: 'https://github.com/soaring-xiongkulu/yFeiEye',
       },
     ],
   },

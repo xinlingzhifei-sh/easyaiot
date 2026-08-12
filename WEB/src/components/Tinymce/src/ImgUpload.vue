@@ -20,7 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['uploading', 'done', 'error'])
 const headers = reactive({
   'Authorization': `Bearer ${getAccessToken()}`,
-  'tenant-id': getTenantId(),
+  'tenant-id': String(getTenantId() ?? ''),
 })
 let uploading = false
 

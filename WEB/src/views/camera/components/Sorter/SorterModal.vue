@@ -137,7 +137,7 @@ const handleSubmit = async () => {
     setDrawerProps({ confirmLoading: true });
     
     if (modalData.value.type === 'edit' && modalData.value.record) {
-      const response = await updateSorter(modalData.value.record.id, values);
+      const response = await updateSorter(modalData.value.record.id, values as any);
       if (response.code === 0) {
         createMessage.success('更新成功');
         emit('success');
@@ -146,7 +146,7 @@ const handleSubmit = async () => {
         createMessage.error(response.msg || '更新失败');
       }
     } else {
-      const response = await createSorter(values);
+      const response = await createSorter(values as any);
       if (response.code === 0) {
         createMessage.success('创建成功');
         emit('success');
@@ -163,4 +163,3 @@ const handleSubmit = async () => {
   }
 };
 </script>
-

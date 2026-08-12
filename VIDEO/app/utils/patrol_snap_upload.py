@@ -23,6 +23,14 @@ def upload_patrol_frame_to_snap_space(
 ) -> bool:
     """将巡检帧写入设备抓拍空间，不产生告警。"""
     try:
+        tenant_id = int(os.environ.get('YFEIEYE_SNAPSHOT_TENANT_ID', ''))
+        if tenant_id <= 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        logger.warning('巡检抓拍租户未配置或非法')
+        return False
+
+    try:
         from app.utils.snap_media_client import stage_snap_frame
         from app.services.media_kafka_service import is_snap_kafka_mode
 
@@ -63,7 +71,8 @@ def upload_patrol_frame_to_snap_space(
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         db.init_app(app)
         with app.app_context():
-            snap_space = SnapSpace.query.filter_by(device_id=device_id).first()
+            snap_space = SnapSpace.query.filter_by(
+                tenant_id=tenant_id, device_id=device_id).first()
             if snap_space and snap_space.bucket_name:
                 bucket_name = snap_space.bucket_name
     except Exception as exc:
@@ -81,7 +90,9 @@ def upload_patrol_frame_to_snap_space(
         return False
 
     ts = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-    object_name = f'{device_id}/{uuid.uuid4().hex[:8]}_{ts}.jpg'
+    object_name = (
+        f'tenants/{tenant_id}/cameras/{device_id}/'
+        f'{uuid.uuid4().hex[:8]}_{ts}.jpg')
     data = encoded.tobytes()
     try:
         client.put_object(
@@ -102,9 +113,11 @@ def upload_patrol_frame_to_snap_space(
             app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
             db.init_app(app)
             with app.app_context():
-                snap_space = SnapSpace.query.filter_by(device_id=device_id).first()
+                snap_space = SnapSpace.query.filter_by(
+                    tenant_id=tenant_id, device_id=device_id).first()
                 if snap_space:
                     upsert_snap_image(
+                        tenant_id=tenant_id,
                         space_id=snap_space.id,
                         device_id=device_id,
                         object_name=object_name,

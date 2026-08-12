@@ -2,9 +2,8 @@
 算法任务服务启动器
 用于自动启动算法任务相关的服务（抽帧器、推送器、排序器）
 
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import os
 import sys
@@ -242,7 +241,10 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
         'CLUSTER_MODE', 'MEDIA_HOST_DATA_ROOT', 'MEDIA_RECORD_DIR', 'MEDIA_SNAP_DIR',
         'MEDIA_UPLOAD_MODE', 'MEDIA_SNAP_UPLOAD_MODE', 'ALERT_IMAGES_DIR',
         'IOT_SINK_API_URL', 'IOT_SINK_USE_GATEWAY', 'IOT_SINK_HOST', 'IOT_SINK_PORT',
+        'IOT_SINK_POST_PROCESS_TOKEN',
         'EASYAIOT_DEPLOY_PROFILE', 'ALERT_HOOK_URL', 'ALERT_KEEP_LATEST',
+        'YFEIEYE_MEDIA_SERVICE_HMAC_SECRET', 'YFEIEYE_ALERT_INGEST_SERVICE_ID',
+        'YFEIEYE_ALERT_INGEST_TENANT_ID', 'YFEIEYE_ALERT_INGEST_ALLOW_UNSIGNED',
         'VIDEO_SERVICE_HOST', 'VIDEO_SERVICE_URL', 'VIDEO_API_USE_GATEWAY',
         'FFMPEG_HWACCEL', 'FFMPEG_THREADS', 'FFMPEG_PRESET', 'FFMPEG_VIDEO_BITRATE', 'FFMPEG_GOP_SIZE',
         'AI_RTSP_TRANSPORT', 'OPENCV_FFMPEG_RTSP_TRANSPORT', 'FFMPEG_RTSP_TRANSPORT',
@@ -258,6 +260,9 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
         if val is not None and val != '':
             env[key] = val
 
+    from app.services.media_authorization_service import build_alert_ingest_process_env
+    env.update(build_alert_ingest_process_env())
+
     video_control_url = _resolve_video_control_url()
     video_service_port = os.getenv('FLASK_RUN_PORT', '6000')
     env['PYTHONUNBUFFERED'] = '1'
@@ -272,9 +277,9 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
     env['POD_IP'] = server_host
     env['HOST_IP'] = server_host
 
-    kafka_bootstrap = env.get('KAFKA_BOOTSTRAP_SERVERS', os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'))
+    kafka_bootstrap = env.get('KAFKA_BOOTSTRAP_SERVERS', os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094'))
     if 'Kafka' in kafka_bootstrap or 'kafka-server' in kafka_bootstrap:
-        env['KAFKA_BOOTSTRAP_SERVERS'] = os.getenv('NODE_REMOTE_KAFKA', kafka_bootstrap)
+        env['KAFKA_BOOTSTRAP_SERVERS'] = os.getenv('NODE_REMOTE_KAFKA', 'localhost:9094')
     else:
         env['KAFKA_BOOTSTRAP_SERVERS'] = kafka_bootstrap
     from app.utils.node_remote_tools import apply_remote_toolchain_env
@@ -871,7 +876,7 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
     
     # 作废尚未执行的异步 stop，避免 stop→start 竞态在数毫秒后误杀新守护进程
     _cancel_pending_stop_requests(task_id)
-    
+
     try:
         # 实时/抓拍/巡检算法任务都需要启动服务进程
         if task.task_type in ['realtime', 'snap', 'patrol']:
@@ -1039,6 +1044,14 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
                     # 守护进程已停止，退出等待
                     break
             
+            # 如果进程已启动，立即清理一次遗留进程（这次会保护新进程）
+            if process_pid:
+                task.service_process_id = process_pid
+                task.run_status = 'running'
+                db.session.commit()
+                logger.debug(f'新进程已启动 (PID: {process_pid})，再次清理遗留进程（会保护新进程）...')
+                cleanup_orphaned_processes(task_id)
+            
             task_type_name = {
                 'realtime': '实时算法',
                 'snap': '抓拍算法',
@@ -1178,6 +1191,15 @@ def recover_unhealthy_algorithm_tasks() -> int:
 
 def cleanup_stopped_processes():
     """清理已停止的守护进程（守护进程会自动管理，此函数主要用于检查）"""
+    starting_task_ids = set()
+    with _starting_lock:
+        for task_id, task_lock in _starting_tasks.items():
+            try:
+                if task_lock.locked():
+                    starting_task_ids.add(task_id)
+            except Exception:
+                pass
+
     with _daemons_lock:
         tasks_to_remove = []
         for task_id, daemon in _running_daemons.items():
@@ -1198,6 +1220,31 @@ def cleanup_stopped_processes():
             except:
                 pass
             del _running_daemons[task_id]
+
+    try:
+        stopped_task_ids = [
+            task.id
+            for task in AlgorithmTask.query.filter(
+                AlgorithmTask.task_type == 'realtime',
+                AlgorithmTask.run_status == 'stopped',
+            ).all()
+        ]
+    except Exception as e:
+        logger.debug(f"查询已停止算法任务用于孤儿进程清理失败: {e}")
+        stopped_task_ids = []
+
+    with _daemons_lock:
+        active_task_ids = {
+            task_id
+            for task_id, daemon in _running_daemons.items()
+            if daemon._running and daemon._process and daemon._process.poll() is None
+        }
+
+    for task_id in stopped_task_ids:
+        if task_id in starting_task_ids or task_id in active_task_ids:
+            continue
+        logger.info(f"清理已停止任务的孤儿算法进程: task_id={task_id}")
+        cleanup_orphaned_processes(task_id)
 
 
 def stop_all_daemons():
@@ -1222,4 +1269,3 @@ def stop_all_daemons():
                     del _running_daemons[task_id]
         
         logger.info(f"✅ 所有守护进程已停止")
-

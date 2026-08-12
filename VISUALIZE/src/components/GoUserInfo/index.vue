@@ -61,7 +61,7 @@ const renderUserInfo = () => {
       }),
       h('div', null, [
         h('div', null, [
-          h(NText, { depth: 2 }, { default: () => 'EasyAIoT' })
+          h(NText, { depth: 2 }, { default: () => 'yFeiEye' })
         ])
       ])
     ]

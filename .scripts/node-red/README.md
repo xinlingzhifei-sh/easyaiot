@@ -1,4 +1,4 @@
-# EasyAIoT Node-RED 演示规则链
+# yFeiEye Node-RED 演示规则链
 
 ## 内容
 
@@ -11,17 +11,17 @@
 | 工控协议桥接链路 | `easyaiot_demo_bridge` | 模拟点位 → 物模型映射 → MQTT 上行 |
 | 视觉质检联动链路 | `easyaiot_demo_vision` | HTTP 质检回调 → AI 判定 → NG 剔除下发 |
 
-容器页面标题 / 顶栏：**EasyAIoT**（`settings.js` → `editorTheme`）。
+容器页面标题 / 顶栏：**yFeiEye**（`settings.js` → `editorTheme`）。
 
 ## 上线步骤
 
 生产环境请按顺序执行（内网地址按实际修改，示例为 `10.0.0.87:1880`）：
 
-### 1) 部署 / 重建 Node-RED（挂载 EasyAIoT 配置）
+### 1) 部署 / 重建 Node-RED（挂载 yFeiEye 配置）
 
 `docker-compose.yml` 已挂载：
 
-- `../node-red/settings.js` → 标题 EasyAIoT + 演示只读中间件
+- `../node-red/settings.js` → 标题 yFeiEye + 演示只读中间件
 - `../node-red/easyaiot_flows_demo.json` → 锁定演示工程
 - `../node-red/public` → 编辑器只读脚本
 
@@ -41,7 +41,7 @@ sudo ./start_nodered_centos7.sh --seed
 ```bash
 docker ps | grep nodered-server
 curl -sf http://127.0.0.1:1880/ >/dev/null && echo OK
-# 浏览器打开 http://<主机>:1880 ，页面标题应为 EasyAIoT
+# 浏览器打开 http://<主机>:1880 ，页面标题应为 yFeiEye
 ```
 
 ### 2) 导入演示规则链
@@ -66,7 +66,7 @@ docker restart nodered-server
 
 1. 部署 WEB（含规则链演示只读逻辑：`WEB/src/utils/noderedDemo.ts`）
 2. 发布/重启 `iot-gateway`（需含 `/admin-api/nodeRed/**` → Node-RED 路由）
-3. 重载公网 nginx（`WEB/conf/nginx.prod-server.conf`）  
+3. 重载公网 nginx（`WEB/conf/nginx.prod-server.conf`）
    - Admin API：`/dev-api/nodeRed/{flows,flow,flow/*}` → Gateway → Node-RED（CRUD 经网关入口）
    - 编辑器静态/WS：其余 `/dev-api/nodeRed/` 仍直连内网 `1880`
    - 确保 `/dev-api/nodeRed/flow/easyaiot_demo_*` 仅允许 GET
@@ -78,7 +78,7 @@ nginx -t && nginx -s reload
 
 ### 4) 验收清单
 
-- [ ] `http://<主机>:1880` 标题为 **EasyAIoT**
+- [ ] `http://<主机>:1880` 标题为 **yFeiEye**
 - [ ] 规则链列表可见 4 条演示项，**无编辑/删除**，可查看打开
 - [ ] 公网经 `/dev-api/nodeRed/` 无法 PUT/DELETE `easyaiot_demo_*`
 - [ ] 演示页签 Deploy 被禁用或部署后演示内容被回填锁定副本
@@ -124,6 +124,6 @@ bash .scripts/node-red/seed_nodered_demo.sh
 - 前端识别：`WEB/src/utils/noderedDemo.ts`
 - 公网反代：`WEB/conf/nginx.prod-server.conf`、`WEB/conf/nginx.conf`
 
-## EasyAIoT 打开方式
+## yFeiEye 打开方式
 
-平台「规则链」列表点击封面/查看 → iframe 打开 `/dev-api/nodeRed/#flow/<id>`，浏览器页签标题为规则链名称；Node-RED 编辑器自身标题为 **EasyAIoT**。
+平台「规则链」列表点击封面/查看 → iframe 打开 `/dev-api/nodeRed/#flow/<id>`，浏览器页签标题为规则链名称；Node-RED 编辑器自身标题为 **yFeiEye**。

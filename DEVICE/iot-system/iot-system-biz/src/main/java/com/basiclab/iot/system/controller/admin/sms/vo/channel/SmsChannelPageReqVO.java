@@ -14,9 +14,8 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * SmsChannelPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Schema(description = "管理后台 - 短信渠道分页 Request VO")
@@ -28,7 +27,7 @@ public class SmsChannelPageReqVO extends PageParam {
     @Schema(description = "任务状态", example = "1")
     private Integer status;
 
-    @Schema(description = "短信签名，模糊匹配", example = "BasicLab源码")
+    @Schema(description = "短信签名，模糊匹配", example = "yFeiEye")
     private String signature;
 
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)

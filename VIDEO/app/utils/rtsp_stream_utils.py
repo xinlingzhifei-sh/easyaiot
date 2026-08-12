@@ -4,9 +4,15 @@ RTSP/FFmpeg 拉流共用工具（realtime / snapshot 算法服务对齐）。
 from __future__ import annotations
 
 import os
+import select
+import subprocess
+import time
 from typing import Any, Dict, Optional
 
 import cv2
+import numpy as np
+
+_POSIX_PIPE_SELECT_SUPPORTED = os.name == "posix"
 
 
 def build_opencv_ffmpeg_capture_options(rtsp_transport: str) -> str:
@@ -91,6 +97,142 @@ def apply_videocapture_stream_timeouts(
         pass
 
 
+def use_ffmpeg_raw_capture_for_url(url: str) -> bool:
+    enabled = os.getenv("AI_HTTP_FLV_FFMPEG_CAPTURE", "true").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+    normalized = (url or "").lower()
+    return (
+        enabled
+        and normalized.startswith(("http://", "https://"))
+        and (".flv" in normalized or ".live.ts" in normalized)
+    )
+
+
+def ffmpeg_raw_capture_dimensions() -> tuple[int, int]:
+    width = int(
+        os.getenv("AI_FFMPEG_INPUT_WIDTH")
+        or os.getenv("AI_TARGET_WIDTH")
+        or os.getenv("VIEW_TARGET_WIDTH")
+        or "1280"
+    )
+    height = int(
+        os.getenv("AI_FFMPEG_INPUT_HEIGHT")
+        or os.getenv("AI_TARGET_HEIGHT")
+        or os.getenv("VIEW_TARGET_HEIGHT")
+        or "720"
+    )
+    return max(1, width), max(1, height)
+
+
+class FfmpegRawVideoCapture:
+    def __init__(self, url: str):
+        self.url = url
+        self.width, self.height = ffmpeg_raw_capture_dimensions()
+        self.fps = float(os.getenv("AI_FFMPEG_INPUT_FPS", "25"))
+        self.frame_size = self.width * self.height * 3
+        try:
+            self.read_timeout_sec = max(
+                0.1,
+                float(os.getenv("AI_HTTP_FLV_READ_TIMEOUT_SEC", "5")),
+            )
+        except ValueError:
+            self.read_timeout_sec = 5.0
+        ffmpeg_bin = os.getenv("FFMPEG_BIN", "ffmpeg")
+        self.process = subprocess.Popen(
+            [
+                ffmpeg_bin,
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-fflags",
+                "nobuffer",
+                "-flags",
+                "low_delay",
+                "-rw_timeout",
+                "5000000",
+                "-i",
+                url,
+                "-an",
+                "-vf",
+                f"scale={self.width}:{self.height}",
+                "-pix_fmt",
+                "bgr24",
+                "-f",
+                "rawvideo",
+                "pipe:1",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            bufsize=self.frame_size,
+        )
+
+    def isOpened(self) -> bool:
+        return self.process is not None and self.process.poll() is None and self.process.stdout is not None
+
+    def read(self):
+        if not self.isOpened():
+            return False, None
+        if _POSIX_PIPE_SELECT_SUPPORTED:
+            data = self._read_posix_pipe_with_timeout()
+        else:
+            data = self.process.stdout.read(self.frame_size)
+        if len(data) != self.frame_size:
+            self.release()
+            return False, None
+        frame = np.frombuffer(data, dtype=np.uint8).reshape((self.height, self.width, 3)).copy()
+        return True, frame
+
+    def _read_posix_pipe_with_timeout(self) -> bytes:
+        stdout = self.process.stdout
+        deadline = time.monotonic() + self.read_timeout_sec
+        data = bytearray()
+        while len(data) < self.frame_size:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            readable, _, _ = select.select([stdout], [], [], remaining)
+            if not readable:
+                break
+            chunk = os.read(stdout.fileno(), self.frame_size - len(data))
+            if not chunk:
+                break
+            data.extend(chunk)
+        return bytes(data)
+
+    def release(self) -> None:
+        process = self.process
+        self.process = None
+        if process is None:
+            return
+        try:
+            if process.stdout:
+                process.stdout.close()
+        except Exception:
+            pass
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+
+    def get(self, prop_id: int) -> float:
+        if prop_id == cv2.CAP_PROP_FRAME_WIDTH:
+            return float(self.width)
+        if prop_id == cv2.CAP_PROP_FRAME_HEIGHT:
+            return float(self.height)
+        if prop_id == cv2.CAP_PROP_FPS:
+            return float(self.fps)
+        return 0.0
+
+    def set(self, _prop_id: int, _value: float) -> bool:
+        return False
+
+
 def open_network_videocapture(
     url: str,
     *,
@@ -98,6 +240,8 @@ def open_network_videocapture(
     read_timeout_msec: int = 2500,
 ) -> cv2.VideoCapture:
     """打开 RTSP/RTMP 网络流；超时属性仅作用于 RTSP。"""
+    if use_ffmpeg_raw_capture_for_url(url):
+        return FfmpegRawVideoCapture(url)
     if url.startswith("rtmp://") or url.startswith("rtsp://"):
         cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
     else:

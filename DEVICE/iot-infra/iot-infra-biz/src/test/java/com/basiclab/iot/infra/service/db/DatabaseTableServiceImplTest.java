@@ -23,9 +23,8 @@ import static org.mockito.Mockito.when;
 /**
  * DatabaseTableServiceImplTest
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Import(DatabaseTableServiceImpl.class)
 public class DatabaseTableServiceImplTest extends BaseDbUnitTest {

@@ -23,9 +23,8 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * AppDictDataController
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Tag(name = "用户 App - 字典数据")
 @RestController

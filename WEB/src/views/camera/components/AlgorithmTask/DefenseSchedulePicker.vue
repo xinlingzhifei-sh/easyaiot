@@ -128,7 +128,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, computed, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 
 interface Props {
   modelValue?: {
@@ -450,4 +450,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

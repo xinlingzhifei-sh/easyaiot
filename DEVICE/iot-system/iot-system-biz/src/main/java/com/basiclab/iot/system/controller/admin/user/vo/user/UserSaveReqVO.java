@@ -17,9 +17,8 @@ import java.util.Set;
 /**
  * UserSaveReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 @Schema(description = "管理后台 - 用户创建/修改 Request VO")
 @Data
@@ -35,7 +34,7 @@ public class UserSaveReqVO {
     @DiffLogField(name = "用户账号")
     private String username;
 
-    @Schema(description = "用户昵称", example = "BasicLab")
+    @Schema(description = "用户昵称", example = "yFeiEye")
     @Size(max = 30, message = "用户昵称长度不能超过30个字符")
     @DiffLogField(name = "用户昵称")
     private String nickname;

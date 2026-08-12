@@ -1,4 +1,4 @@
-# EasyAIoT 官方网站（纯静态）
+# yFeiEye 官方网站（纯静态）
 # 默认端口 8090；nginx 配置统一维护于 WEB/conf/nginx.site.conf
 services:
   site-service:

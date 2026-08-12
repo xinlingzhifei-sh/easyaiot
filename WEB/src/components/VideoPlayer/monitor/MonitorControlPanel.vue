@@ -48,7 +48,7 @@ import MonitorPresetPanel, { type PresetItem } from './MonitorPresetPanel.vue';
 import AudioTalkPanel from './AudioTalkPanel.vue';
 import type { AudioTalkStatus } from './useOnvifAudioTalk';
 
-defineProps<{
+withDefaults(defineProps<{
   talkProtocol?: 'gb28181' | 'onvif' | null;
   talkStatus?: AudioTalkStatus;
   talkInfoText?: string;
@@ -59,7 +59,18 @@ defineProps<{
   showPresets?: boolean;
   presets?: PresetItem[];
   presetLoading?: boolean;
-}>();
+}>(), {
+  talkProtocol: null,
+  talkStatus: 'idle',
+  talkInfoText: '',
+  talkVolume: 100,
+  talkNoiseSuppression: true,
+  talkEchoCancellation: true,
+  talkLevel: 0,
+  showPresets: false,
+  presets: () => [],
+  presetLoading: false,
+});
 
 const emit = defineEmits<{
   'talk-start': [];

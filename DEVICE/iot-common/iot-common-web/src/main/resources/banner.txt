@@ -1,4 +1,4 @@
-BasicLab源码 https://github.com/soaring-xiongkulu/easyaiot
+yFeiEye https://github.com/reese/yfeieye
 Application Version: ${iot.info.version}
 Spring Boot Version: ${spring-boot.version}
 

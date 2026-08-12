@@ -77,33 +77,33 @@ python test_qwenvl3_video.py <视频文件路径>
 ### 示例 1：基本使用（提取4帧）
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4
 ```
 
 ### 示例 2：提取更多帧
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 --num-frames 8
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 --num-frames 8
 ```
 
 ### 示例 3：使用自定义提示词
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --prompt "请详细描述这个视频中的人物、动作和场景"
 ```
 
 ### 示例 4：使用视频文件模式（适用于小文件）
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --use-video-file
 ```
 
 ### 示例 5：保存提取的帧
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --save-frames
 ```
 
@@ -112,21 +112,21 @@ python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
 ### 示例 6：指定模型
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --model qwen-vl-max
 ```
 
 ### 示例 7：使用命令行参数指定 API Key
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --api-key your-api-key-here
 ```
 
 ### 示例 8：完整参数组合
 
 ```bash
-python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
+python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
     --num-frames 6 \
     --model qwen-vl-plus \
     --prompt "分析这个视频中的主要对象、场景和可能的行为" \
@@ -263,9 +263,8 @@ python test_qwenvl3_video.py /opt/projects/easyaiot/VIDEO/video/video2.mp4 \
 
 ## 作者信息
 
-- **作者**：翱翔的雄库鲁
-- **邮箱**：andywebjava@163.com
-- **微信**：EasyAIoT2025
+- **作者**：reese
+- **邮箱**：reese
 
 ## 许可证
 

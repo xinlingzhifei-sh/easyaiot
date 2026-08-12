@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Andrea Pappacoda
 #
-# SPDX-License-Identifier: MIT
 
 gtest_dep = dependency('gtest', main: true)
 libcurl_dep = dependency('libcurl')

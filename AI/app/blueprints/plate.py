@@ -19,6 +19,7 @@ from flask import Blueprint, current_app, jsonify, request
 from ultralytics import YOLO
 
 from app.services.minio_service import ModelService
+from app.utils.model_upload_security import require_official_pretrained_model
 from db_models import (
     db,
     PlateAlgorithmVersion,
@@ -437,7 +438,9 @@ def _train_worker(app, task_id: int):
             _append_train_log(task, f'开始训练车牌算法版本: {version.version}', 1)
 
             params = json.loads(task.hyperparameters or '{}')
-            model_arch = params.get('model_arch', version.base_model or 'yolo11n.pt')
+            model_arch = require_official_pretrained_model(
+                params.get('model_arch', version.base_model or 'yolo11n.pt')
+            )
             epochs = int(params.get('epochs', 100))
             imgsz = int(params.get('imgsz', 640))
             batch = int(params.get('batch_size', 16))
@@ -808,6 +811,12 @@ def create_plate_version():
     version = (data.get('version') or '').strip()
     if not version:
         return jsonify({'code': 400, 'msg': 'version不能为空'}), 400
+    try:
+        base_model = require_official_pretrained_model(
+            data.get('base_model', 'yolo11n.pt')
+        )
+    except ValueError as model_error:
+        return jsonify({'code': 400, 'msg': str(model_error)}), 400
 
     exists = PlateAlgorithmVersion.query.filter_by(version=version).first()
     if exists:
@@ -816,7 +825,7 @@ def create_plate_version():
     entity = PlateAlgorithmVersion(
         version=version,
         description=data.get('description'),
-        base_model=data.get('base_model', 'yolo11n.pt'),
+        base_model=base_model,
         status='draft',
         is_active=False
     )
@@ -832,7 +841,12 @@ def update_plate_version(version_id):
     if 'description' in data:
         version.description = data.get('description')
     if 'base_model' in data and data.get('base_model'):
-        version.base_model = data.get('base_model')
+        try:
+            version.base_model = require_official_pretrained_model(
+                data.get('base_model')
+            )
+        except ValueError as model_error:
+            return jsonify({'code': 400, 'msg': str(model_error)}), 400
     if 'status' in data and data.get('status') in {'draft', 'active', 'archived'}:
         version.status = data.get('status')
     db.session.commit()
@@ -873,6 +887,12 @@ def activate_plate_version(version_id):
 @plate_bp.route('/train/start', methods=['POST'])
 def start_plate_train():
     data = request.get_json() or {}
+    try:
+        model_arch = require_official_pretrained_model(
+            data.get('model_arch', 'yolo11n.pt')
+        )
+    except ValueError as model_error:
+        return jsonify({'code': 400, 'msg': str(model_error)}), 400
     dataset_id = data.get('dataset_id')
     if dataset_id is None or str(dataset_id).strip() == '':
         return jsonify({'code': 400, 'msg': 'dataset_id不能为空'}), 400
@@ -900,7 +920,7 @@ def start_plate_train():
     version = PlateAlgorithmVersion(
         version=version_str,
         description=data.get('description'),
-        base_model=data.get('model_arch', 'yolo11n.pt'),
+        base_model=model_arch,
         status='draft',
         is_active=False
     )
@@ -908,7 +928,7 @@ def start_plate_train():
     db.session.flush()
 
     hyperparameters = {
-        'model_arch': data.get('model_arch', 'yolo11n.pt'),
+        'model_arch': model_arch,
         'epochs': int(data.get('epochs', 100)),
         'imgsz': int(data.get('imgsz', 640)),
         'batch_size': int(data.get('batch_size', 16)),

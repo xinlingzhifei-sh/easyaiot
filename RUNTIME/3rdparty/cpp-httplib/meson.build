@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2021 Andrea Pappacoda
 #
-# SPDX-License-Identifier: MIT
 
 project(
   'cpp-httplib',
   'cpp',
-  license: 'MIT',
   default_options: [
     'cpp_std=c++11',
     'buildtype=release',

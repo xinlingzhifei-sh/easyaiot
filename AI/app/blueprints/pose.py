@@ -191,13 +191,13 @@ def list_pose_models():
     try:
         rows = Model.query.order_by(Model.id.desc()).limit(200).all()
         for m in rows:
-            path = (m.model_path or m.onnx_model_path or '').lower()
+            path = (m.onnx_model_path or '').lower()
             name = (m.name or '').lower()
             if 'pose' in path or 'pose' in name:
                 custom.append({
                     'id': m.id,
                     'name': m.name,
-                    'model_file_path': m.model_path,
+                    'model_file_path': m.onnx_model_path,
                     'version': m.version,
                 })
     except Exception as exc:

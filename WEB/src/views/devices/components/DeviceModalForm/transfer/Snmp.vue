@@ -76,7 +76,16 @@ import { Button } from '@/components/Button'
     { label: 'Shared attributes', value: SpecType.SERVER_SCOPE },
     { label: 'RPC request', value: SpecType.SHARED_SCOPE },
   ]);
-  const modelRef = reactive({
+  type SnmpModel = {
+    type?: string;
+    timeoutMs: string;
+    retries: string;
+    sendAckOnValidationException: boolean;
+    communicationConfigs: any[];
+    communicationConfigsSpecs: SpecType[];
+  };
+
+  const modelRef = reactive<SnmpModel>({
     type: props.type,
     timeoutMs: '500',
     retries: '0',
@@ -97,7 +106,7 @@ import { Button } from '@/components/Button'
       modelRef.communicationConfigsSpecs = [SpecType.LATEST_TELEMETRY];
     } else {
       const tempSpec = specMap.map((i) => i.value);
-      const noneSelectSpec = tempSpec.filter((e) => !tempComm.some((e2) => e2 === e));
+      const noneSelectSpec: SpecType[] = tempSpec.filter((e) => !tempComm.some((e2) => e2 === e));
       modelRef.communicationConfigsSpecs.push(noneSelectSpec[0]);
     }
   }

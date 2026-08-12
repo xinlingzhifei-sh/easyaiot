@@ -1,4 +1,4 @@
-# EasyAIoT FUXA 组态演示工程
+# yFeiEye FUXA 组态演示工程
 
 ## 内容
 
@@ -152,10 +152,9 @@ bash .scripts/go-view/seed_visualize_demo.sh
 ```bash
 python3 .scripts/go-view/gen_visualize_dashboard_demo.py
 ```
-
 ---
 
-## EasyAIoT 免登跳转（SSO）
+## yFeiEye 免登跳转（SSO）
 
 已开启 FUXA `secureEnabled` 时，平台通过代登录 + 同源桥接页免登进入：
 

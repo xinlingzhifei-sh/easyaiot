@@ -1,0 +1,29 @@
+package com.basiclab.iot.system.dal.dataobject.supervision;
+
+import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.basiclab.iot.common.core.dataobject.BaseDO;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
+
+@TableName("system_supervision_alert_review_case_audit")
+@KeySequence("system_supervision_alert_review_case_audit_id_seq")
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class SupervisionAlertReviewCaseAuditDO extends BaseDO {
+
+    @TableId
+    private Long id;
+    private Long reviewCaseId;
+    private Long reviewItemId;
+    private String actionType;
+    private String actionNote;
+    private String metadata;
+    private Long operatorUserId;
+    private LocalDateTime happenedAt;
+    private Integer version;
+
+}

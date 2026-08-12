@@ -84,7 +84,9 @@ const getSchema = computed((): FormSchema[] => {
       isHandleDateDefaultValue = true,
     } = schema
 
-    const valueFormat = componentProps ? componentProps.valueFormat : null
+    const valueFormat = typeof componentProps === 'object' && componentProps
+      ? (componentProps as Recordable).valueFormat
+      : null
     // handle date type
     if (
       isHandleDateDefaultValue
@@ -236,7 +238,7 @@ function handleEnterPress(e: KeyboardEvent) {
   }
 }
 
-const formActionType: Partial<FormActionType> = {
+const formActionType: FormActionType = {
   getFieldsValue,
   setFieldsValue,
   resetFields,

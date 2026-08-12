@@ -4,7 +4,7 @@
       <RadioGroup
         v-model:value="viewMode"
         button-style="solid"
-        size="middle"
+        size="default"
         class="mode-radio-group"
         @change="handleModeChange"
       >

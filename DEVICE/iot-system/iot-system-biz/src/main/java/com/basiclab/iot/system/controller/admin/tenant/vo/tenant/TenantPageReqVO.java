@@ -14,9 +14,8 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * TenantPageReqVO
  *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
+ * @author reese
+ * @email reese
  */
 
 @Schema(description = "管理后台 - 租户分页 Request VO")
@@ -25,10 +24,10 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 @ToString(callSuper = true)
 public class TenantPageReqVO extends PageParam {
 
-    @Schema(description = "租户名", example = "BasicLab")
+    @Schema(description = "租户名", example = "yFeiEye")
     private String name;
 
-    @Schema(description = "联系人", example = "BasicLab")
+    @Schema(description = "联系人", example = "yFeiEye")
     private String contactName;
 
     @Schema(description = "联系手机", example = "15601691300")

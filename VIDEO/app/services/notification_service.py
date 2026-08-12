@@ -1,8 +1,7 @@
 """
 告警通知服务（通过Kafka发送）
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
+@author reese
+@email reese
 """
 import json
 import logging
@@ -29,7 +28,7 @@ def get_kafka_producer():
     
     # 从Flask配置中获取Kafka配置
     try:
-        bootstrap_servers = current_app.config.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        bootstrap_servers = current_app.config.get('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
         request_timeout_ms = current_app.config.get('KAFKA_REQUEST_TIMEOUT_MS', 5000)
         retries = current_app.config.get('KAFKA_RETRIES', 1)
         retry_backoff_ms = current_app.config.get('KAFKA_RETRY_BACKOFF_MS', 100)
@@ -38,7 +37,7 @@ def get_kafka_producer():
     except RuntimeError:
         # 不在Flask应用上下文中，使用环境变量作为后备
         import os
-        bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094')
         request_timeout_ms = int(os.getenv('KAFKA_REQUEST_TIMEOUT_MS', '5000'))
         retries = int(os.getenv('KAFKA_RETRIES', '1'))
         retry_backoff_ms = int(os.getenv('KAFKA_RETRY_BACKOFF_MS', '100'))
@@ -50,8 +49,8 @@ def get_kafka_producer():
     # 这样可以避免在 host 网络模式下尝试解析容器名导致的连接失败
     original_bootstrap_servers = bootstrap_servers
     if 'Kafka' in bootstrap_servers or 'kafka-server' in bootstrap_servers:
-        logger.warning(f'⚠️  检测到 Kafka 配置使用容器名 "{bootstrap_servers}"，强制覆盖为 localhost:9092（VIDEO服务使用 host 网络模式）')
-        bootstrap_servers = 'localhost:9092'
+        logger.warning(f'⚠️  检测到 Kafka 配置使用容器名 "{bootstrap_servers}"，强制覆盖为 localhost:9094（VIDEO服务使用 host 网络模式）')
+        bootstrap_servers = 'localhost:9094'
     
     # 记录最终使用的 bootstrap_servers（用于调试）
     logger.debug(f'Kafka bootstrap_servers: {bootstrap_servers} (原始值: {original_bootstrap_servers})')
@@ -72,7 +71,7 @@ def get_kafka_producer():
         # 再次检查并清理，确保不包含容器名
         bootstrap_servers_list = [s.strip() for s in bootstrap_servers_list if s.strip() and 'Kafka' not in s and 'kafka-server' not in s]
         if not bootstrap_servers_list:
-            bootstrap_servers_list = ['localhost:9092']
+            bootstrap_servers_list = ['localhost:9094']
         
         logger.info(f"正在初始化 Kafka 生产者: bootstrap_servers={bootstrap_servers_list}")
         
@@ -108,7 +107,7 @@ def get_kafka_producer():
         if 'Kafka:9092' in error_msg or 'Kafka' in error_msg:
             logger.error(f"⚠️  检测到错误信息中包含容器名 'Kafka'，这通常是因为 Kafka broker 的 "
                         f"KAFKA_ADVERTISED_LISTENERS 配置问题。请确保 Kafka broker 的配置包含 "
-                        f"PLAINTEXT://localhost:9092")
+                        f"EXTERNAL://localhost:9094")
         # 只记录警告，不抛出异常，避免影响主功能
         logger.warning(f"Kafka生产者初始化失败，将在 {init_retry_interval} 秒后重试")
         return None
@@ -153,6 +152,8 @@ def send_alert_notification(task: SnapTask, alert_data: Dict) -> bool:
     Returns:
         bool: 是否发送成功
     """
+    global _producer
+
     try:
         # 检查是否应该发送通知
         if not should_send_notification(task):
@@ -234,7 +235,6 @@ def send_alert_notification(task: SnapTask, alert_data: Dict) -> bool:
             except Exception as e:
                 logger.warning(f"告警通知发送失败: task_id={task.id}, error={str(e)}")
                 # 如果连接失败，重置生产者，下次重新初始化
-                global _producer
                 if isinstance(e, (KafkaError, ConnectionError, TimeoutError)):
                     try:
                         _producer.close(timeout=0.5)
@@ -245,7 +245,6 @@ def send_alert_notification(task: SnapTask, alert_data: Dict) -> bool:
         except Exception as e:
             logger.warning(f"发送告警通知异常: task_id={task.id}, error={str(e)}")
             # 如果连接失败，重置生产者
-            global _producer
             if isinstance(e, (KafkaError, ConnectionError, TimeoutError)):
                 try:
                     _producer.close(timeout=0.5)

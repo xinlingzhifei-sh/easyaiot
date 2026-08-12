@@ -7,6 +7,7 @@ import com.basiclab.iot.common.domain.TableDataInfo;
 import com.basiclab.iot.message.domain.entity.TPreviewUser;
 import com.basiclab.iot.message.domain.model.vo.TPreviewUserExcelVo;
 import com.basiclab.iot.message.common.PreviewUserDataHandler;
+import com.basiclab.iot.message.security.MessageInternalAccessVerifier;
 import com.basiclab.iot.message.service.TPreviewUserService;
 import com.basiclab.iot.message.util.ExcelUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,8 @@ public class PreviewUserController extends BaseController {
 
     @Autowired
     private PreviewUserDataHandler dataHandler;
+    @Autowired
+    private MessageInternalAccessVerifier messageInternalAccessVerifier;
 
     @PostMapping("/add")
     @ApiOperation("新增")
@@ -52,7 +55,11 @@ public class PreviewUserController extends BaseController {
 
     @GetMapping("/query")
     @ApiOperation("查询")
-    public TableDataInfo query(@ModelAttribute TPreviewUser tPreviewUser){
+    public TableDataInfo query(
+            @RequestHeader(value = MessageInternalAccessVerifier.TOKEN_HEADER, required = false)
+            String internalToken,
+            @ModelAttribute TPreviewUser tPreviewUser){
+        messageInternalAccessVerifier.verify(internalToken);
         startPage();
         List<TPreviewUser> list = tPreviewUserService.query(tPreviewUser);
         return getDataTable(list);

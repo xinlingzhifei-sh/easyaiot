@@ -137,7 +137,7 @@
 |------|--------|------|
 | `PG_CONTAINER` | `postgres-server` | PostgreSQL 容器名 |
 | `PG_USER` | `postgres` | 数据库用户 |
-| `PG_PASSWORD` | `iot45722414822` | 数据库密码（来自 compose 默认；线上改过须覆盖） |
+| `PG_PASSWORD` | `<POSTGRES_PASSWORD>` | 数据库密码（来自 compose 默认；线上改过须覆盖） |
 | `PG_PORT` | `5432` | 容器内端口（用于 migra 连接串） |
 | `PG_NETWORK` | 共享 postgres 容器网络栈 | 默认 `--network container:<容器>`（host/bridge/none/未发布端口都通）；设为某 bridge 网络名则改走该网络 |
 | `PG_DB_HOST` | `127.0.0.1` | migra 连库主机名；默认走容器内回环，一般无需手动设 |
@@ -182,7 +182,7 @@ cd /path/to/easyaiot/.scripts/postgresql/schema-sync
 
 ```bash
 # 查看表结构是否已更新
-docker exec -e PGPASSWORD=iot45722414822 postgres-server \
+docker exec -e PGPASSWORD=<POSTGRES_PASSWORD> postgres-server \
     psql -U postgres -d iot-ai20 -c "\d 你的表名"
 ```
 
@@ -201,7 +201,7 @@ cd /path/to/easyaiot && ./AI/install_linux.sh restart
 - **B. 改类型/加 NOT NULL 等需要先迁移数据**（推荐）：先 dry-run 生成差异文件，**手动编辑**补上数据回填/转换逻辑，再自行应用：
   ```bash
   # 编辑 schema_diffs/iot-ai20_<时间戳>.sql 后：
-  docker exec -i -e PGPASSWORD=iot45722414822 postgres-server \
+  docker exec -i -e PGPASSWORD=<POSTGRES_PASSWORD> postgres-server \
       psql -U postgres -d iot-ai20 -v ON_ERROR_STOP=1 < schema_diffs/iot-ai20_<时间戳>.sql
   ```
   > 注意：`--apply` 应用的是**脚本重新生成**的差异，不会读取你手工编辑过的文件；手工编辑后须按上面命令**自行 psql 应用**。
@@ -267,7 +267,7 @@ cd /path/to/easyaiot/.scripts/postgresql/schema-sync
 #### 验证库是否已创建
 
 ```bash
-docker exec -e PGPASSWORD=iot45722414822 postgres-server \
+docker exec -e PGPASSWORD=<POSTGRES_PASSWORD> postgres-server \
     psql -U postgres -d postgres -c "\l" | grep iot-<新模块>20
 ```
 
@@ -286,7 +286,7 @@ PG_PASSWORD='线上真实密码' ./sync_schema_migra.sh --db iot-ai20
 #### 容器名/端口/网络不同
 
 ```bash
-PG_CONTAINER=my-postgres PG_PORT=5433 PG_NETWORK=easyaiot-network \
+PG_CONTAINER=my-postgres PG_PORT=5433 PG_NETWORK=yfeieye-network \
     ./sync_schema_migra.sh --db iot-ai20
 ```
 
@@ -325,7 +325,7 @@ cat schema_diffs/<db>_<时间戳>.sql.apply.log
 ```bash
 DB=iot-ai20
 BK=backups/${DB}_<时间戳>.sql
-PGPASS=iot45722414822
+PGPASS=<POSTGRES_PASSWORD>
 
 # 1) 断开连接并删库重建（确保目标库干净）
 docker exec -e PGPASSWORD=$PGPASS postgres-server psql -U postgres -d postgres -c \
