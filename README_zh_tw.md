@@ -844,10 +844,6 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 關注公眾號後，使用微信掃描下方二維碼加入 yFeiEye 技術交流群。
 </p>
 
-<div>
-  <img src=".image/交流群3群.jpg" alt="yFeiEye技術交流3群" width="30%">
-</div>
-
 ## 💬 微信號聯絡
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">

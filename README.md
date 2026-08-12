@@ -816,10 +816,6 @@ Please follow our official account below first, then reach us via the technical 
 After following the official account, scan the QR code below with WeChat to join the yFeiEye technical exchange group.
 </p>
 
-<div>
-  <img src=".image/交流群3群.jpg" alt="yFeiEye Technical Exchange Group" width="30%">
-</div>
-
 ## 💬 WeChat Contact
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">

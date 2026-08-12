@@ -858,10 +858,6 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 关注公众号后，使用微信扫描下方二维码加入 yFeiEye 技术交流群。
 </p>
 
-<div>
-  <img src=".image/交流群3群.jpg" alt="yFeiEye技术交流3群" width="30%">
-</div>
-
 ## 💬 微信号联系
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">

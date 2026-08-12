@@ -829,10 +829,6 @@ yFeiEye — это проект с открытым исходным кодом 
 После подписки на официальный аккаунт отсканируйте QR-код ниже через WeChat, чтобы вступить в техническую группу yFeiEye.
 </p>
 
-<div>
-  <img src=".image/交流群3群.jpg" alt="Техническая группа yFeiEye" width="30%">
-</div>
-
 ## 💬 WeChat
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">

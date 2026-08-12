@@ -829,10 +829,6 @@ yFeiEye 플랫폼과 코드를 깊이 이해하실 수 있도록 다양한 서�
 공식 계정을 팔로우한 후, WeChat으로 아래 QR 코드를 스캔하여 yFeiEye 기술 교류 그룹에 가입하세요.
 </p>
 
-<div>
-  <img src=".image/交流群3群.jpg" alt="yFeiEye 기술 교류 그룹" width="30%">
-</div>
-
 ## 💬 WeChat 연락처
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
