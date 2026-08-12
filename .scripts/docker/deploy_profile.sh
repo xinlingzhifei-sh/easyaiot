@@ -531,7 +531,15 @@ apply_python_service_deploy_env() {
     if [ -z "$root" ]; then
         root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
     fi
-    local module env_file
+    local module env_file rpc_token="${IOT_RPC_INTERNAL_TOKEN:-}"
+    if [ -z "$rpc_token" ]; then
+        rpc_token="$(awk -F= '/^IOT_RPC_INTERNAL_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/.scripts/docker/.env" 2>/dev/null || true)"
+    fi
+    if [ -z "$rpc_token" ]; then
+        rpc_token="$(awk -F= '/^IOT_RPC_INTERNAL_TOKEN=/{sub(/^[^=]*=/, ""); sub(/\r$/, ""); print; exit}' \
+            "${root}/DEVICE/.env" 2>/dev/null || true)"
+    fi
     for module in VIDEO AI; do
         env_file="${root}/${module}/.env.docker"
         [ -f "$env_file" ] || continue
@@ -545,6 +553,9 @@ apply_python_service_deploy_env() {
                 _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48099/admin-api/system/auth/media-permission-check"
                 _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST true
                 _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST true
+                if [ -n "$rpc_token" ]; then
+                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
+                fi
             fi
             if [ "$module" = "AI" ]; then
                 # compose 只读挂载 ../.scripts/minio -> /minio-seed-data（flat 种子数据）
@@ -555,6 +566,9 @@ apply_python_service_deploy_env() {
             if [ "$module" = "VIDEO" ]; then
                 _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48080/admin-api/system/auth/media-permission-check"
                 _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST false
+                if [ -n "$rpc_token" ]; then
+                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
+                fi
             fi
             _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST false
             _apply_python_sink_media_env "$env_file"

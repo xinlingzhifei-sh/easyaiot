@@ -10,6 +10,7 @@ from app.utils.ip_utils import resolve_ipv4_for_stream_urls
 _logger = logging.getLogger(__name__)
 
 _GB28181_API_PORT = 48088
+_RPC_INTERNAL_TOKEN_HEADER = 'X-Iot-Rpc-Token'
 
 
 GB28181_SOURCE_PREFIX = 'gb28181://'
@@ -132,6 +133,31 @@ def _build_play_url(base_url: str, device_id: str, channel_id: str) -> str:
     if base.endswith('/api'):
         return f'{base}/play/start/{device_id}/{channel_id}'
     return f'{base}/play/start/{device_id}/{channel_id}'
+
+
+def _play_request_candidates(
+    device_id: str,
+    channel_id: str,
+) -> Iterable[Tuple[str, Dict[str, str]]]:
+    """内部任务优先使用稳定的服务身份，保留用户 JWT 作为兼容回退。"""
+    rpc_token = (os.getenv('IOT_RPC_INTERNAL_TOKEN') or '').strip()
+    if rpc_token:
+        rpc_base = (
+            os.getenv('GB28181_RPC_SERVICE_URL')
+            or f'http://127.0.0.1:{_GB28181_API_PORT}/rpc-api/gb28181'
+        ).strip().rstrip('/')
+        if rpc_base:
+            yield (
+                _build_play_url(rpc_base, device_id, channel_id),
+                {_RPC_INTERNAL_TOKEN_HEADER: rpc_token},
+            )
+
+    legacy_headers: Dict[str, str] = {}
+    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
+    if jwt_token:
+        legacy_headers['X-Authorization'] = f'Bearer {jwt_token}'
+    for base_url in _candidate_bases():
+        yield _build_play_url(base_url, device_id, channel_id), legacy_headers
 
 
 def _body_suggests_hevc_rtmp(body: dict) -> bool:
@@ -390,15 +416,10 @@ def _fetch_gb28181_play_body(
         return None, None, ['invalid gb28181 source']
 
     device_id, channel_id = parsed
-    headers = {}
-    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
-    if jwt_token:
-        headers['X-Authorization'] = f'Bearer {jwt_token}'
-
     http_timeout = timeout if timeout is not None else _gb28181_http_timeout()
     errors: List[str] = []
-    for base_url in _candidate_bases():
-        play_url = _build_play_url(base_url, device_id, channel_id)
+    for play_url, headers in _play_request_candidates(device_id, channel_id):
+        base_url = play_url
         try:
             response = requests.get(play_url, headers=headers, timeout=http_timeout)
             response.raise_for_status()
@@ -489,15 +510,10 @@ def resolve_gb28181_source(
         return source
 
     device_id, channel_id = parsed
-    headers = {}
-    jwt_token = (os.getenv('JWT_TOKEN') or '').strip()
-    if jwt_token:
-        headers['X-Authorization'] = f'Bearer {jwt_token}'
-
     http_timeout = timeout if timeout is not None else _gb28181_http_timeout()
     errors = []
-    for base_url in _candidate_bases():
-        play_url = _build_play_url(base_url, device_id, channel_id)
+    for play_url, headers in _play_request_candidates(device_id, channel_id):
+        base_url = play_url
         try:
             response = requests.get(play_url, headers=headers, timeout=http_timeout)
             response.raise_for_status()
