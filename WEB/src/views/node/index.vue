@@ -33,6 +33,7 @@
         <StorageEnvBatch
           v-if="tabMounted['4']"
           v-show="state.activeKey === '4'"
+          section="manage"
           :initial-node-ids="selectedNodeIds"
         />
         <MediaEnvBatch

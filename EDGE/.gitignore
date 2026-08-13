@@ -4,3 +4,10 @@ __pycache__/
 edge.env
 state/*.json
 !state/.gitkeep
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.local.json
+configs/devices.local.json

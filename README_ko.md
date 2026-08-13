@@ -42,7 +42,7 @@ yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-플랫폼은 <strong>WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, 오케스트레이션 가능한 업무 후처리, 연합 연산 클러스터 스케줄링, 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·3단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다.
+플랫폼은 <strong>WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, 오케스트레이션 가능한 업무 후처리, 연합 연산 클러스터 스케줄링, 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리와 <strong>EDGE C# 엣지 수집 런타임</strong>이 현장에서 Modbus RTU/TCP, OPC UA 등 산업 프로토콜 수집, 로컬 스케줄링, MQTT 클라우드-엣지 연동을 플러그인형 수집기로 담당하며, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·3단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -114,6 +114,56 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 📖 자세한 내용: <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC 모듈 README</a>
 </p>
 
+### 🔌 EDGE: C# 엣지 수집 런타임 — 산업 현장에서 「정확히 수집, 안정적으로 업링크」
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+공정·빌딩 현장에서는 PLC, 전력량계, 센서가 RS-485나 이더넷에 연결되어 있지만, 클라우드 플랫폼에는 별도 수집 소프트웨어가 필요하고 프로토콜을 각각 따로 작성하며, 설정을 바꿀 때마다 현장에 사람을 보내야 하는 경우가 많습니다. 접속 경로가 길고, 운영이 파편화되며, 클라우드-엣지 지표가 어긋납니다. yFeiEye는 독립 <strong>EDGE 모듈</strong>(C#)을 <strong>독립 배포 가능한 엣지 수집 런타임</strong>으로 추가합니다 — 다중 프로토콜 수집기 플러그인, 로컬 스케줄링, 설정 기반 파싱, yFeiEye 클라우드 플랫폼과 MQTT 연동으로 Modbus RTU/TCP, OPC UA 등 현장 측정점을 통합 사물 모델로 업링크하고, 클라우드 설정 하행·속성 쓰기가 엣지에서 바로 실행됩니다.
+</p>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+<strong>엣지 IoT 수집에 C#을 선택한 이유</strong>
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>산업 현장 친화</strong>: C#은 공정 제어, SCADA, 상위 시스템 분야에서 생태계가 성숙하고, Modbus·OPC UA·시리얼 통신 등 프로토콜 라이브러리와 엔지니어링 경험이 풍부해 통합사·자동화 엔지니어의 학습 비용이 낮습니다</li>
+  <li><strong>강타입 + 구조화된 엔지니어링</strong>: 측정점 매핑, 레지스터 파싱, 설정 검증을 컴파일 시점에 발견 — 다중 프로토콜 수집기를 장기 유지할 때 스크립트 언어보다 안정적이고 테스트하기 쉽습니다</li>
+  <li><strong>비동기 동시성·비차단</strong>: <code>async/await</code>가 다중 장치 폴링, 시리얼/네트워크 I/O 동시 처리에 적합 — 동일 게이트웨이에서 수십 개 하위 장치 수집을 스케줄링하며, 고빈도 폴링에서 Python GIL 등 인터프리터 경로의 처리량 병목을 피합니다</li>
+  <li><strong>장기 상주 서비스 안정성</strong>: .NET 런타임은 엣지 게이트웨이 7×24 상주 프로세스에 적합하고, 메모리·GC 동작이 예측 가능합니다. 의존성 주입·플러그인 아키텍처로 수집기 핫스왑·버전 업데이트 시 전체 재시작이 필요 없습니다</li>
+  <li><strong>크로스 플랫폼 배포</strong>: 동일 C# 소스를 Linux x86_64 / ARM64 공업용 PC·엣지 박스에 배포 — 단일 파일/자체 포함 배포로 현장에 Python 가상환경이나 JVM을 둘 필요가 없습니다</li>
+  <li><strong>클라우드 플랫폼과 역할 분담</strong>: 엣지는 「수집·해석·전송」에 집중하고, DEVICE는 사물 모델·장치 수명주기를 담당 — C#은 플랫폼 핵심 업무·AI 추론을 맡지 않아 리소스가 가볍고, RS-485 버스 측·저연산 게이트웨이에서 독립 실행에 적합합니다</li>
+</ul>
+
+<table style="width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px;">
+<tr>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50; width: 18%;">수집기</td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; background-color: #f8f9fa; font-weight: 600; color: #2c3e50;">프로토콜 / 시나리오</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;"><code>modbus-rtu</code></td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">Modbus RTU(RS485/시리얼) — 전력량계, 계기, PLC 등 버스 측 장치</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;"><code>modbus-tcp</code></td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">Modbus TCP — 이더넷 측 공업 장치, 인버터, 게이트웨이</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444;"><code>opc-ua</code></td>
+<td style="padding: 10px 12px; border: 1px solid #e0e0e0; vertical-align: top; color: #444; line-height: 1.7;">OPC UA — 현대화 공정·상위 시스템 상호연동</td>
+</tr>
+</table>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>플러그인형 수집 아키텍처</strong>: <code>ICollector</code> 구현으로 신규 프로토콜 확장; Host가 등록·스케줄링·결과 보고를 통합하고 수집 로직과 런타임을 분리합니다</li>
+  <li><strong>설정 이중 채널</strong>: 로컬 <code>device-jobs.json</code>으로 오프라인 운영; 클라우드 MQTT <code>config/downstream/push</code>로 원격 수집 작업 덮어쓰기 — 현장 설정 변경에 사람을 보낼 필요가 없습니다</li>
+  <li><strong>MQTT 클라우드-엣지 일체</strong>: 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 속성 쓰기 하행 — EMQX로 DEVICE/<strong>iot-sink</strong> 연동, 하위 장치 자동 생성·섀도우 입고</li>
+  <li><strong>독립 패키징·납품</strong>: <code>pack_linux.sh</code>로 x86_64 / ARM64 Linux 배포 패키지 생성 — 공업용 PC·엣지 게이트웨이에 설치, 플랫폼 메인 스택과 분리 배포</li>
+  <li><strong>E2E 연동 즉시 사용</strong>: <code>bash EDGE/demo/run_e2e.sh</code>로 수집 → MQTT 업링크 → 클라우드 입고 전체 체인을 원클릭 검증</li>
+</ul>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+📖 자세한 문서: <a href="EDGE/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">EDGE 모듈 README</a>, <a href="EDGE/docs/PLATFORM_INTEGRATION.md" style="color: #3498db; text-decoration: none; font-weight: 600;">클라우드 플랫폼 연동 가이드</a>
+</p>
+
 ### 🎯 세 가지 하드웨어, 하나의 플랫폼
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -165,6 +215,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>다중 센터 노드 × 다중 워커 노드 연합 클러스터</strong>: 지역 간·다중 데이터센터·클라우드-엣지 협업 배포를 위해 플랫폼은 「N개 센터 노드 + N개 워커 노드」 연합 아키텍처를 채택합니다 — 센터 노드가 통합 오케스트레이션을, 워커 노드가 연산·미디어 실행을 담당하며 수평 확장이 가능합니다. 각 센터 노드는 소속 워커 노드를 관리하고, 스트리밍, 오디오·비디오 트랜스코딩, 영상 분석, 모델 추론·학습 등 역량의 원격 배포와 원클릭 배치를 지원합니다. 다중 센터 노드 간 상호 연동·동기화가 가능하며, 클러스터 스윔레인 뷰에서 「센터—워커」 토폴로지와 자원 수위를 직관적으로 표시합니다. 알고리즘 태스크, 자동 라벨링 파이프라인, 스트림 릴레이 등 워크로드는 노드 역할과 GPU 역량에 따라 지능적으로 스케줄링되어, 대량 스트림 접속·고동시성 추론·분산 학습이 동일 클러스터에서 협력 실행됩니다 — 「등록 용이, 스케줄 명확, 확장 유연, 통합 관리」를 실현합니다</li>
   <li><strong>SAM 제로 스타트 자동 라벨링 오케스트레이션 파이프라인</strong>: 라벨링 샘플과 사용 가능한 검출 모델이 없는 콜드 스타트 시나리오를 위해, 플랫폼은 SAM 개방 어휘 분할 기능을 통합하여 원클릭 무인 라벨링 파이프라인을 제공합니다. 전략에 따라 시스템은 카메라 프레임 추출, SAM 텍스트 프롬프트 초기 라벨링, 기준 달성 시 YOLO 미세 조정 학습 자동 트리거, 양산 단계에서 YOLO 고속 추론을 주력으로 하되 누락 검출에 SAM 지능 보완, 주기적 반복 학습 및 데이터셋 자동 패키징·보내기를 자동으로 연결하여 「수집—라벨링—학습—보내기」 전 과정을 완결합니다. 작업 일시정지·재개 및 로컬/클러스터 컴퓨팅 탄력 스케줄링을 지원하며, 시각적 전략 설정과 실행 로그와 함께, 사용자는 제로 샘플·제로 모델에서 출발하여 맞춤형 검출 역량을 빠르게 축적할 수 있습니다 — 「카테고리를 말로 정의하고 모델이 완성되기를 기다리기」가 데이터셋 구축의 기본 경로가 됩니다</li>
   <li><strong>만 노드급 탄력적 컴퓨팅 클러스터 및 수평 확장 풀</strong>: 초대규모 AI·영상 비즈니스를 위해 클라우드-엣지-디바이스 통합 분산 컴퓨팅 기반을 구축하고, 알고리즘 태스크·스트림 릴레이·알고리즘 서비스·모델 학습·추론을 수평 부하 분산과 탄력적 확장 체계로 통합합니다. 신규 서버는 원클릭으로 등록·연동되어 즉시 스케줄 가능한 컴퓨팅 단위가 되며, 스케줄러가 자원 수위와 업무 부하에 따라 작업을 자동 분배·균형 조정합니다. 수백~수만 대 카메라, 단일 머신~만 노드급까지 선형 확장이 가능하며, 재배포나 수동 튜닝 없이 대량 스트림 접속·고동시성 추론·분산 학습이 동일 컴퓨팅 풀에서 협력 실행되어 「확장 가능, 안정 운영, 통합 관리」를 실현합니다</li>
+  <li><strong>분산 스토리지 드라이버(연산 + 스토리지 이중 클러스터 분리)</strong>: 노드별 로컬 디렉터리 마운트, 경로 고정, 확장 시마다 설정 변경이 필요했던 기존 방식을 넘어, 플랫폼은 원시 로컬 디렉터리 드라이버 대신 <strong>클러스터 이벤트 구동</strong> 방식을 채택합니다 — Export 준비, 클라이언트 마운트, 주·백 전환, 다중 클러스터 브리지 등 스토리지 상태 변경이 이벤트로 자동 감지·연동되며, 스냅샷·녹화·알람 증거·모델 자산이 분산 NFS 클러스터에 통합 저장되어 업무 계층은 마운트 세부사항을 신경 쓸 필요가 없습니다. 연산과 스토리지는 <strong>이중 클러스터로 분리</strong> — 연산 측은 <strong>C++ RUNTIME</strong> 고속 실행 체인을 전면 채택하고, 스토리지 측은 수평 무한 확장 가능한 NFS 클러스터 풀을 독립 구축하여 연산 확장과 스토리지 확장이 서로 묶이지 않고 각자 수위에 따라 탄력적으로 스케일합니다. 클러스터 스윔레인, 토폴로지 뷰, 다중 클러스터 브리지 동기화를 갖추고, 신규 노드는 원클릭 등록으로 스토리지 도메인에 즉시 합류 — 대량 스트림 접속 환경에서 「연산 가능」과 「저장 가능」이 동시에 성립, 「연산·스토리지 분리, 각자 확장, 이벤트 연동, 통합 관리, 무한 확장」을 실현합니다</li>
   <li><strong>천지도 공간 시각화 및 지도 기반 분석</strong>: 국가 천지도를 연동하여 카메라, 알람, 인·차량 인식 역량을 한 장의 지도에 모았습니다. 감시를 「화면 보기」에서 「전체 보기」로 업그레이드합니다. 스트리밍 미디어와 알람 모듈 모두 「지도 분포」 뷰를 제공하며, 장치 디렉터리 트리와 연동해 구역별로 집중 조회할 수 있어 검문소 배치와 온라인 상태를 한눈에 파악합니다. 지도 클릭, 장소 검색, 좌표 일괄 가져오기를 지원하여 GB 채널, NVR 채널, 직접 연결 카메라를 빠르게 배치할 수 있으며, 모든 영상에 명확한 공간 소속을 부여합니다. 알람 이벤트는 카메라 좌표와 자동 연계되어 지도에 표시되며, 시간·이벤트 유형·작업·업무 태그로 필터링하고 선택하면 스냅샷과 녹화를 바로 확인할 수 있어, 「어디서 발생했는지」에서 신속한 대응으로 이어집니다. 얼굴·번호판 라이브러리 인식과 결합하면 동일 대상의 다중 지점 적중 기록을 공간적 맥락으로 연결할 수 있습니다 — <strong>인물 추적</strong>으로 중점 인물의 출현 경로와 활동 범위를 복원하고, <strong>차량 추적</strong>으로 통과 기록을 연결해 차량 경로와 체류 구역을 빠르게 파악하여, 인·차량 수색, 순찰 배치, 사후 복기에 직관적 단서를 제공합니다. 이동형 장치는 궤적 재생을 지원하여 순찰·이동 경로를 시간축으로 재현합니다. 벡터 지도와 위성 영상을 자유롭게 전환하고 시야를 자동 맞춤하여, 관리자가 지도를 중심으로 이상 징후를 발견하고 목표를 잠금하며 지휘·조정할 수 있습니다</li>
   <li><strong>Qwen / DeepSeek 다중 GPU 배포</strong>: Qwen, DeepSeek 등 대규모 언어 모델을 다중 GPU 병렬 방식으로 배포할 수 있습니다. 클러스터 및 Worker 단위로 GPU 자원을 유연하게 스케줄링하여 모델 인스턴스의 탄력적 확장 및 로드 밸런싱을 실현하고, 고동시성 추론 및 긴 컨텍스트 시나리오에서 안정적인 서비스를 제공합니다</li>
   <li><strong>비전 대규모 모델 지능형 이해</strong>: QwenVL3 비전 대규모 모델을 통합하여 실시간 비디오 프레임에 대한 심층 비전 추론 및 의미론적 이해를 지원하며, 프레임 내용에 대한 지능형 분석 및 장면 이해를 수행할 수 있어 더 풍부한 시각적 인지 능력을 제공하며, 픽셀 수준의 인식에서 의미론적 수준의 이해로의 도약을 실현합니다</li>
@@ -226,6 +277,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>Modbus-TCP 산업 이더넷 접속</strong>: 전력량계·PLC·인버터 등 이더넷 측 산업 장치를 위해 플랫폼에 내장 Modbus-TCP 마스터 수집 역량을 제공합니다. 제품/장치에서 접속 파라미터와 측정점을 구성하면 즉시 가동할 수 있으며 — 읽기 값이 장치 섀도·온라인 상태로 자동 유입되고, 쓰기 값·속성 하행이 연결되어 산업 측정점이 IoT 사물 모델, 규칙 엔진, 경보와 동일한 폐루프로 운영됩니다. 별도 수집 소프트웨어를 두지 않아도 됩니다.</li>
   <li><strong>Modbus-RTU 시리얼 현장 접속</strong>: 현장 계측기가 여전히 RS-485 버스에 있을 때 TCP 게이트웨이만 쓰면 접속 비용과 장애점이 배가됩니다. 플랫폼은 Modbus-RTU 시리얼 마스터 수집을 지원하며, 가상·실제 시리얼 시나리오 모두에 적합합니다 — 버스 측 장치도 통합 관리·상하행 제어에 편입되어 「이더넷으로는 들어가기 어렵고, 시리얼은 관리되지 않던」 현장 공백을 보완합니다.</li>
   <li><strong>OPC UA 산업 상호접속</strong>: 현대화된 공정·상위 시스템 상호연동 시나리오를 위해 플랫폼은 OPC UA 클라이언트 접속을 지원하며, 구독/읽기/쓰기 구성을 완료할 수 있습니다 — 복잡한 장치 모델을 플랫폼 사물 모델 속성으로 매핑하고, 상행 수집·하행 쓰기가 기존 장치 섀도, 규칙 체인, 메시지 푸시와 원활히 연결되어 OPC UA 현장 자산이 진정으로 「보고·제어·연동」 가능한 AIoT 운영 체계에 편입됩니다.</li>
+  <li><strong>EDGE C# 엣지 수집 런타임</strong>: 공정 현장에 독립 배포 가능한 엣지 수집 모듈 — C# 플러그인형 수집기로 Modbus RTU, Modbus TCP, OPC UA 등 프로토콜을 담당하고, 로컬 스케줄 수집·설정 기반 파싱, DEVICE/<strong>iot-sink</strong> 클라우드 플랫폼과 MQTT 연동; 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 설정 하행·속성 쓰기 지원; x86_64 / ARM64 Linux 공업용 PC·엣지 게이트웨이에 패키징 배포 가능 — 「현장에서 정확히 수집, 클라우드에서 확실히 관리」하는 클라우드-엣지 협업 폐루프</li>
   <li><strong>사물 모델 속성 정의</strong>: 대시보드·규칙·경보가 각자 측정점명을 쓰면 나중에는 서로 알아듣지 못합니다. 보고/읽기·쓰기 가능한 측정점을 먼저 확정하고 표준 템플릿·커스텀을 지원, 초안 편집 후 게시 — 대시보드·규칙·경보가 동일 필드를 공유; 「무엇을 볼 수 있는지」에 통일된 의미, 측정점명 제각각의 재작업을 뿌리부터 차단</li>
   <li><strong>사물 모델 서비스 정의</strong>: 원격 시작/중지·리셋을 동작마다 일회성 API로 만들면 제어면이 파편화됩니다. 원격 호출 가능한 서비스와 입·출력 파라미터를 계약으로 작성, 초안 편집 후 게시 — 「원격으로 무엇을 할 수 있는지」는 계약에 따라 파라미터만 채우면 됨; 동작마다 일회성 인터페이스를 쌓지 않고, 제어 능력을 재사용·감사 가능하게</li>
   <li><strong>사물 모델 이벤트 정의</strong>: 디바이스가 보고할 업무 이벤트를 미리 합의하지 않으면 경보 표현이 앞뒤로 충돌합니다. 이벤트 유형을 먼저 약속하고 초안 게시 후 통일 적용 — 이벤트 로그·규칙 트리거가 동일 의미를 공유; 「어떤 일이 발생할 수 있는지」에 통일된 표현, 경보가 제각각이 되지 않음</li>
@@ -310,11 +362,11 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 ### 💡 기술 철학
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. 그러나 다섯 가지 프로그래밍 언어의 심층적인 융합을 통해 yFeiEye는 각 언어의 장점을 발휘하여 강력한 기술 생태계를 구축합니다.
+우리는 어떤 프로그래밍 언어도 모든 것을 잘할 수는 없다고 생각합니다. yFeiEye는 시나리오별로 여섯 가지 프로그래밍 언어를 혼합 사용합니다: Java는 플랫폼 아키텍처, Python은 AI 알고리즘, C++는 영상 실행, Go는 프로토콜 게이트웨이, TypeScript는 관제 UI, C#은 엣지 산업 수집을 담당 — 클라우드 관리, 알고리즘, 실행, 프로토콜, UI, 현장 수집이 각자 제자리에 있어 완전한 클라우드-엣지-디바이스 기술 폐루프를 이룹니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만, 네트워크 프로그래밍과 AI 개발에는 맞지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘에 능숙하지만, 고성능 실행에서는 병목이 있습니다. C++는 고성능 태스크 실행에 능숙하지만, 플랫폼 아키텍처와 AI 프로그래밍에는 적합하지 않습니다. Go는 고병행 네트워크 프로그래밍과 프로토콜 구현에 능숙하지만, 플랫폼 제어면과 AI 알고리즘에는 적합하지 않습니다. TypeScript는 복잡한 프론트엔드 인터랙션과 타입 안전한 엔지니어링 UI에 능숙하지만, 고성능 백엔드 연산과 AI 추론에는 적합하지 않습니다. yFeiEye는 다섯 언어 혼합 아키텍처로 각 언어가 제 역할을 하게 하여, 구현은 도전적이지만 사용은 매우 편리한 AIoT 플랫폼을 구축합니다.
+Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 능숙하지만, 네트워크 프로그래밍과 AI 개발에는 맞지 않습니다. Python은 네트워크 프로그래밍과 AI 알고리즘에 능숙하지만, 고채널·저지연 프레임 실행에서는 GIL과 프로세스 오버헤드 병목이 있습니다. C++는 고성능 태스크 실행에 능숙하지만, 플랫폼 아키텍처와 알고리즘 오케스트레이션에는 적합하지 않습니다. Go는 고병행 네트워크 프로그래밍과 프로토콜 구현에 능숙하지만, 플랫폼 제어면과 AI 알고리즘에는 적합하지 않습니다. TypeScript는 복잡한 프론트엔드 인터랙션과 타입 안전한 엔지니어링 UI에 능숙하지만, 고성능 백엔드 연산과 AI 추론에는 적합하지 않습니다. C#은 산업 프로토콜 수집과 엣지 런타임 오케스트레이션에 능숙하며, 강타입으로 측정점 매핑·프로토콜 파싱의 신뢰성을 보장하고, <code>async/await</code>로 다중 장치 동시 폴링을 지원하며, .NET 크로스 플랫폼 배포가 x86/ARM 공업 현장에 적합하고, 공정/SCADA 생태계가 성숙해 통합사가 빠르게 온보딩할 수 있지만, 클라우드 플랫폼 핵심 업무와 AI 알고리즘에는 적합하지 않습니다. 여섯 언어가 각자 강점을 살리고 약점을 피합니다 — 구현은 도전적이지만, 사용은 매우 편리합니다.
 </p>
 
 ![yFeiEye 플랫폼 아키텍처](.image/iframe2-yfeieye.png)
@@ -334,7 +386,7 @@ Java는 안정적이고 신뢰할 수 있는 플랫폼 아키텍처 구축에 �
 ### 🏗️ 프로젝트 아키텍처 특징
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
-yFeiEye는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, VIDEO, RTC, AI 등 여러 독립 배포 가능한 하위 프로젝트로 구성됩니다.
+yFeiEye는 사실 하나의 프로젝트가 아닌, WEB, DEVICE, EDGE, VIDEO, RTC, AI 등 여러 독립 배포 가능한 하위 프로젝트로 구성됩니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
@@ -372,6 +424,7 @@ yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨
 <h4 style="margin-top: 0; color: white; font-size: 18px;">📱 엣지 측 지원</h4>
 <ul style="font-size: 14px; line-height: 1.8; margin: 10px 0; padding-left: 20px;">
   <li>일반 개발 보드도 현장에서 지능형 근무를 바로 담당할 수 있습니다</li>
+  <li><strong>EDGE</strong> C# 엣지 수집을 공업용 PC·RS485 현장에 독립 배포 가능</li>
   <li>현장은 경량 배치로, 각 지점마다 무거운 스토리지를 쌓을 필요가 없습니다</li>
   <li>즉시 지능화하여 엣지 가동 주기를 단축합니다</li>
   <li>연산이 지점별로 펼쳐지고, 경보·증거가 자동으로 클라우드에 집약됩니다</li>
@@ -397,7 +450,7 @@ yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨
 ## 🧩 프로젝트 구조
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
+yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -453,6 +506,20 @@ yFeiEye는 WEB, APP, DEVICE, NODE, VIDEO, RTC, AI, RUNTIME, EDGE, VISUALIZE, TRA
     <li><strong>데이터 수집</strong>: 디바이스 데이터 수집, 저장, 조회 및 분석</li>
     <li><strong>노드 오케스트레이션</strong>: 컴퓨트/미디어 노드 통합 관리, 연결 검사, 워크로드 스케줄링 및 미디어 노드 풀 할당</li>
     <li><strong>시각화 백엔드</strong>: 대형 화면/SCADA 프로젝트, 템플릿, 소재, 데이터 소스, 서비스 배포를 통합 관리하며, 시각화 편집기와 Web SCADA에 엔지니어링 메타데이터·배포 역량 제공</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>EDGE 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>왜 C#인가</strong>: 강타입 측정점 매핑, 비동기 다중 장치 동시 폴링, 7×24 장기 상주 안정성, Linux x86/ARM 크로스 플랫폼 자체 포함 배포 — 공정 생태계 성숙, 통합사 빠른 온보딩</li>
+    <li><strong>C# 엣지 수집 런타임</strong>: 독립 배포 가능한 엣지 측 수집 서비스 — 플러그인형 수집기 + 로컬 스케줄링 + 설정 기반 파싱</li>
+    <li><strong>다중 프로토콜 수집기</strong>: 내장 Modbus RTU(RS485/시리얼), Modbus TCP, OPC UA 수집기; 작업별 <code>ICollector</code> 플러그인 확장</li>
+    <li><strong>MQTT 클라우드-엣지 연동</strong>: 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 설정 하행(<code>config/downstream/push</code>)·속성 쓰기 — DEVICE/<strong>iot-sink</strong> 연동</li>
+    <li><strong>설정 이중 채널</strong>: 로컬 <code>device-jobs.json</code>과 클라우드 MQTT 설정 푸시 모두 수집 작업을 구동</li>
+    <li><strong>Linux 패키징</strong>: <code>pack_linux.sh</code>로 x86_64 / ARM64 독립 배포 패키지 생성 — 공업용 PC·엣지 게이트웨이용</li>
+    <li><strong>연동·문서</strong>: 내장 E2E Demo와 클라우드 플랫폼 연동 가이드(<a href="EDGE/README.md">EDGE/README.md</a>, <a href="EDGE/docs/PLATFORM_INTEGRATION.md">플랫폼 연동 문서</a>)</li>
   </ul>
 </td>
 </tr>
@@ -632,7 +699,7 @@ IoT 디바이스(특히 대량의 카메라)의 효율적인 접속 및 제어 �
 플랫폼은 실시간·캡처·순찰 유형의 알고리즘 태스크를 지원합니다: 세 유형 모두 기본으로 <strong>RUNTIME 고속 실행 계층</strong>(<code>executor=cpp</code>)을 사용할 수 있습니다 — 네이티브 바이너리로 장시간 풀링·디코딩·YOLO 추론·결과 회신을 수행하고, 실시간은 <strong>기본 박스 AI 검출 스트림 푸시</strong>; 캡처는 Cron 채집; 순찰은 다채널 라운드로빈; 스트림 전달도 동일 고성능 경로로 다중 원본 절약 상영. Python 호환 백엔드 대비 RUNTIME이 고채널·저지연에 더 잘 견딥니다. 경보·하트비트는 VIDEO로 회신합니다. 알고리즘 태스크 관리로 프레임 추출·정렬을 유연하게 두고, 모델 서비스 클러스터 추론으로 밀리초 응답·고가용성을 확보합니다. 완전/반방어 모드로 시간대별 정밀 모니터링·경보를 구성합니다.
 </p>
 <p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0;">
-IoT 디바이스 관리 측면에서 yFeiEye는 완전한 디바이스 생명주기 관리 능력을 제공하며, 다양한 IoT·산업 프로토콜(MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA)을 지원하여 디바이스의 빠른 접속, 안전 인증, 실시간 모니터링 및 지능형 제어를 실현합니다. 규칙 엔진을 통해 디바이스 데이터의 지능형 흐름 및 처리를 실현하며, AI 기능과 결합하여 디바이스 데이터를 심층 분석합니다. 이는 디바이스 접속, 데이터 수집, 지능형 분석에서 의사결정 실행에 이르는 전 과정 자동화를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
+IoT 디바이스 관리 측면에서 yFeiEye는 완전한 디바이스 생명주기 관리 능력을 제공하며, 다양한 IoT·산업 프로토콜(MQTT, TCP, HTTP, Modbus-TCP, Modbus-RTU, OPC UA)을 지원하고, <strong>EDGE</strong> C# 엣지 수집 런타임이 현장에서 산업 프로토콜 수집과 MQTT 클라우드-엣지 연동을 담당하여 디바이스의 빠른 접속, 안전 인증, 실시간 모니터링 및 지능형 제어를 실현합니다. 규칙 엔진을 통해 디바이스 데이터의 지능형 흐름 및 처리를 실현하며, AI 기능과 결합하여 디바이스 데이터를 심층 분석합니다. 이는 디바이스 접속, 데이터 수집, 지능형 분석에서 의사결정 실행에 이르는 전 과정 자동화를 실현하여 진정한 만물 인터넷화, 만물 지능화 제어를 실현합니다.
 </p>
 </div>
 
@@ -698,11 +765,13 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 
 | | | |
 |:---:|:---:|:---:|
+| ![다중 클러스터 동기화](.image/banner/banner1200.png) | ![NFS 클러스터 토폴로지](.image/banner/banner1198.png) | ![NFS 클러스터 관리](.image/banner/banner1197.png) |
+| ![노드 관리](.image/banner/banner1199.png) | ![NFS 파일 디렉터리](.image/banner/banner1201.png) | ![NFS 디렉터리 탐색](.image/banner/banner1202.png) |
 | ![Qwen](.image/banner/banner1093.jpg) | ![비전모델](.image/banner/banner1094.jpg) | ![목록](.image/banner/banner1099.png) |
 | ![구성](.image/banner/banner1100.png) | ![상세](.image/banner/banner1101.png) | ![호출](.image/banner/banner1102.png) |
 | ![학습](.image/banner/banner1019.jpg) | ![작업](.image/banner/banner1020.jpg) | ![목록](.image/banner/banner1023.jpg) |
 | ![진행](.image/banner/banner1024.jpg) | ![파라미터](.image/banner/banner1017.jpg) | ![평가](.image/banner/banner1018.jpg) |
-| ![상세](.image/banner/banner1021.jpg) | ![로그](.image/banner/banner1022.jpg) | ![관리](.image/banner/banner1097.png) |
+| ![상세](.image/banner/banner1021.png) | ![로그](.image/banner/banner1022.jpg) | ![관리](.image/banner/banner1097.png) |
 | ![저장소](.image/banner/banner1098.png) | ![버전](.image/banner/banner1039.jpg) | ![자산](.image/banner/banner1061.jpg) |
 | ![추론](.image/banner/banner1040.jpg) | ![구성](.image/banner/banner1042.jpg) | ![결과](.image/banner/banner1043.jpg) |
 | ![온라인](.image/banner/banner1044.jpg) | ![일괄](.image/banner/banner1047.jpg) | ![모니터링](.image/banner/banner1048.jpg) |

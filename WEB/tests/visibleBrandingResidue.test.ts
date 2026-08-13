@@ -15,6 +15,12 @@ assert.equal(listed.status, 0, listed.stderr || 'git ls-files failed')
 
 const protectedLiterals = [
   'EasyAIoT2025',
+  'EasyAIoT.Edge',
+  'urn:EasyAIoT:Edge:OpcUa',
+]
+const protectedPathPrefixes = [
+  'EDGE/EasyAIoT.Edge.sln',
+  'EDGE/src/EasyAIoT.Edge.',
 ]
 const oldBrand = /EasyAIoT|Easy AI Internet of Things/
 const violations: string[] = []
@@ -37,7 +43,10 @@ for (const relativePath of trackedPaths) {
     relativePath === 'WEB/tests/visibleBrandingResidue.test.ts'
   ) continue
 
-  if (oldBrand.test(relativePath)) {
+  if (
+    oldBrand.test(relativePath) &&
+    !protectedPathPrefixes.some((prefix) => relativePath.startsWith(prefix))
+  ) {
     violations.push(`${relativePath}: path contains the old visible brand`)
   }
 }
