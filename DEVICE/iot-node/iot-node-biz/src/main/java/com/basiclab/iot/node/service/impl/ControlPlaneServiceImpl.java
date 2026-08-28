@@ -19,6 +19,7 @@ import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ComputeNodeService;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ControlPlaneService;
+import com.basiclab.iot.node.util.NodeFunctions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -328,7 +329,8 @@ public class ControlPlaneServiceImpl implements ControlPlaneService {
         central.setName(peer.getName());
         central.setHost(peer.getHost() != null ? peer.getHost() : extractHost(peer.getApiBaseUrl()));
         central.setStatus(peer.getStatus());
-        central.setNodeRole("hybrid");
+        central.setNodeRole(NodeFunctions.toCsv(NodeFunctions.PLATFORM_DEFAULT));
+        central.setFunctions(NodeFunctions.PLATFORM_DEFAULT);
         central.setIsPlatform(true);
         central.setIsRemote(true);
         central.setPeerId(peer.getId());

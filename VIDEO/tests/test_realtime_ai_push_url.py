@@ -5,6 +5,8 @@ from typing import Optional
 import unittest
 from unittest.mock import Mock, patch
 
+from app.utils.algorithm_task_identity import build_task_stream_key, rewrite_task_stream_url
+
 
 RUN_DEPLOY_PATH = (
     Path(__file__).resolve().parents[1]
@@ -26,6 +28,9 @@ def load_resolve_ai_rtmp_push_url():
     namespace = {
         "os": os,
         "Optional": Optional,
+        "TASK_ID": 17,
+        "build_task_stream_key": build_task_stream_key,
+        "rewrite_task_stream_url": rewrite_task_stream_url,
         "_srs_api_port": Mock(return_value=1985),
         "_srs_rtmp_port": Mock(return_value=1935),
         "_check_srs_api_ready": Mock(),
@@ -52,7 +57,7 @@ class RealtimeAiPushUrlTest(unittest.TestCase):
                 "rtmp://192.168.0.88:1935/ai/camera-01",
             )
 
-        self.assertEqual(result, "rtmp://127.0.0.1:1935/ai/camera-01")
+        self.assertEqual(result, "rtmp://127.0.0.1:1935/ai/t17_camera-01")
         namespace["_check_srs_api_ready"].assert_called_once_with(
             "127.0.0.1", 1985, timeout=1.0
         )
@@ -69,7 +74,7 @@ class RealtimeAiPushUrlTest(unittest.TestCase):
 
         self.assertEqual(
             result,
-            "rtmp://media.example.test:1935/ai/camera-01",
+            "rtmp://media.example.test:1935/ai/t17_camera-01",
         )
 
     def test_remote_slice_uses_loopback_without_readiness_probe(self):
@@ -78,7 +83,7 @@ class RealtimeAiPushUrlTest(unittest.TestCase):
         with patch.dict(os.environ, {"POD_IP": "10.0.0.8"}, clear=True):
             result = namespace["_resolve_ai_rtmp_push_url"]("camera-01")
 
-        self.assertEqual(result, "rtmp://127.0.0.1:1935/ai/camera-01")
+        self.assertEqual(result, "rtmp://127.0.0.1:1935/ai/t17_camera-01")
         namespace["_check_srs_api_ready"].assert_not_called()
 
 

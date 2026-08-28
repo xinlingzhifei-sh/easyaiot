@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict rKgUTqhVdPDZrzcgKcGm4jkXOHz5nv2NjEd0s49H9maOB8hmbCzrESvcLMCfLg2
+\restrict MJjnjJPWB9I1OcTsavLQXvpf7mnpHqZDDenApGWlEvqsOycF8KdfCy2KCNcEsSJ
 
 -- Dumped from database version 18.4 (Debian 18.4-1.pgdg13+1)
 -- Dumped by pg_dump version 18.4 (Debian 18.4-1.pgdg13+1)
@@ -27,10 +27,10 @@ DROP DATABASE IF EXISTS "iot-node20";
 CREATE DATABASE "iot-node20" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
 
-\unrestrict rKgUTqhVdPDZrzcgKcGm4jkXOHz5nv2NjEd0s49H9maOB8hmbCzrESvcLMCfLg2
+\unrestrict MJjnjJPWB9I1OcTsavLQXvpf7mnpHqZDDenApGWlEvqsOycF8KdfCy2KCNcEsSJ
 \encoding SQL_ASCII
 \connect -reuse-previous=on "dbname='iot-node20'"
-\restrict rKgUTqhVdPDZrzcgKcGm4jkXOHz5nv2NjEd0s49H9maOB8hmbCzrESvcLMCfLg2
+\restrict MJjnjJPWB9I1OcTsavLQXvpf7mnpHqZDDenApGWlEvqsOycF8KdfCy2KCNcEsSJ
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -71,7 +71,7 @@ CREATE TABLE public.compute_node (
     ssh_port integer DEFAULT 22,
     agent_port integer DEFAULT 9100,
     status character varying(16) DEFAULT 'pending'::character varying,
-    node_role character varying(32) NOT NULL,
+    node_role character varying(256) NOT NULL,
     region character varying(64),
     tags jsonb,
     capabilities jsonb,
@@ -86,8 +86,21 @@ CREATE TABLE public.compute_node (
     updater character varying(64),
     update_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     deleted smallint DEFAULT 0,
-    control_plane_id bigint
+    control_plane_id bigint,
+    recording_storage_mode character varying(20) DEFAULT 'central_shared'::character varying NOT NULL,
+    recording_storage_state character varying(20) DEFAULT 'active'::character varying NOT NULL,
+    recording_storage_generation bigint DEFAULT 1 NOT NULL,
+    media_public_url character varying(500),
+    recording_storage_updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    recording_storage_error character varying(500)
 );
+
+
+--
+-- Name: COLUMN compute_node.node_role; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.compute_node.node_role IS '节点功能 CSV：algorithm,forward,live,train,llm,label,infer,mqtt,nfs,transform';
 
 
 --
@@ -95,6 +108,11 @@ CREATE TABLE public.compute_node (
 --
 
 COMMENT ON COLUMN public.compute_node.control_plane_id IS '所属中心节点（平台节点）ID';
+
+COMMENT ON COLUMN public.compute_node.recording_storage_mode IS '录像物理存储模式：central_shared / edge_local';
+COMMENT ON COLUMN public.compute_node.recording_storage_state IS '存储模式状态：active / applying / error';
+COMMENT ON COLUMN public.compute_node.recording_storage_generation IS '存储模式代次，切换时递增';
+COMMENT ON COLUMN public.compute_node.media_public_url IS '客户端可安全直连的边缘媒体地址';
 
 
 --
@@ -376,6 +394,82 @@ CREATE TABLE public.node_metric_snapshot (
 
 
 --
+-- Name: node_sentinel_remediate_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.node_sentinel_remediate_log (
+    id bigint NOT NULL,
+    node_id bigint NOT NULL,
+    component_id character varying(64) NOT NULL,
+    mark character varying(32),
+    action character varying(64),
+    success boolean,
+    exhausted boolean DEFAULT false,
+    attempt_count integer DEFAULT 0,
+    max_attempts integer DEFAULT 3,
+    probe_state character varying(32),
+    message text,
+    logs jsonb DEFAULT '[]'::jsonb NOT NULL,
+    creator character varying(64),
+    create_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updater character varying(64),
+    update_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: node_sentinel_remediate_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.node_sentinel_remediate_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: node_sentinel_remediate_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.node_sentinel_remediate_log_id_seq OWNED BY public.node_sentinel_remediate_log.id;
+
+
+--
+-- Name: node_sentinel_snapshot; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.node_sentinel_snapshot (
+    node_id bigint NOT NULL,
+    node_profile character varying(256) DEFAULT ''::character varying,
+    sentinel_version character varying(32),
+    probe_level character varying(8) DEFAULT 'L0'::character varying,
+    components jsonb DEFAULT '[]'::jsonb NOT NULL,
+    schedulable_capabilities jsonb DEFAULT '{}'::jsonb NOT NULL,
+    summary jsonb DEFAULT '{}'::jsonb NOT NULL,
+    environment_profile jsonb DEFAULT '{}'::jsonb NOT NULL,
+    declared_capabilities jsonb DEFAULT '{}'::jsonb NOT NULL,
+    operational_state character varying(32) DEFAULT 'unknown'::character varying,
+    remediation jsonb DEFAULT '{}'::jsonb NOT NULL,
+    last_probe_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    creator character varying(64),
+    create_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updater character varying(64),
+    update_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: COLUMN node_sentinel_snapshot.node_profile; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.node_sentinel_snapshot.node_profile IS '节点功能 CSV，与 NODE_FUNCTIONS 一致';
+
+
+--
 -- Name: node_ssh_credential_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -479,13 +573,20 @@ ALTER TABLE ONLY public.edge_node ALTER COLUMN id SET DEFAULT nextval('public.ed
 
 
 --
+-- Name: node_sentinel_remediate_log id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.node_sentinel_remediate_log ALTER COLUMN id SET DEFAULT nextval('public.node_sentinel_remediate_log_id_seq'::regclass);
+
+
+--
 -- Data for Name: compute_node; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.compute_node (id, name, host, ssh_port, agent_port, status, node_role, region, tags, capabilities, max_gpu_count, max_task_count, weight, agent_token, remark, last_heartbeat_at, creator, create_time, updater, update_time, deleted, control_plane_id) FROM stdin;
-2	NFS-Storage-01	192.168.1.11	22	9100	pending	storage	\N	{"nfs_role": "server","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:27:56.519563392Z","nfs_probe_ok": "true","ceph_mon_host": "192.168.1.11","ceph_osd_path": "/var/lib/ceph/osd","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/mnt/easyaiot-media","nfs_mount_ready": "true","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "true","media_mount_path": "/mnt/easyaiot-media","nfs_cluster_role": "primary","nfs_export_ready": "true","nfs_probe_summary": "NFS 存储已就绪：Export 正常，客户端已挂载至 /mnt/easyaiot-media"}	{"ceph_osd": true, "media_storage": true}	0	50	100	d92c6783e84b6c7c64ca378656fcb115	\N	\N	\N	2026-08-11 15:13:47.308782	1	2026-08-12 14:27:56.520608	0	1
-1	控制面节点	192.168.1.10	22	9100	online	hybrid	\N	{"nfs_role": "client","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:27:56.561629314Z","nfs_probe_ok": "true","ceph_mon_host": "192.168.1.11","agent_hostname": "demo-node","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/tmp/easyaiot-media","nfs_mount_ready": "true","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "true","media_mount_path": "/tmp/easyaiot-media","nfs_cluster_role": "client","nfs_mount_source": "local:/tmp/easyaiot-media","nfs_probe_summary": "batch-refresh: local media ready","agent_mem_total_bytes": "66009735168","agent_disk_total_bytes": "1005867986944"}	{"zlm": true, "srs_ai": true, "platform": true, "srs_live": true, "auto_label": true, "model_train": true, "ai_inference": true, "llm_inference": true, "algorithm_snap": true, "stream_forward": true, "algorithm_patrol": true, "algorithm_realtime": true}	0	50	100	cd3d4d946d7446a913f846b92ad94557	平台控制面宿主机，自动纳管	2026-08-12 14:35:42.300706	\N	2026-07-14 16:35:07.615462	1	2026-08-12 14:35:42.301037	0	1
-3	NFS-Client-01	192.168.1.12	22	9100	pending	hybrid	\N	{"nfs_role": "client","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:28:00.006608648Z","nfs_probe_ok": "false","ceph_mon_host": "192.168.1.11","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/mnt/easyaiot-media","nfs_mount_ready": "false","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "false","media_mount_path": "/mnt/easyaiot-media","nfs_cluster_role": "client","nfs_export_ready": "false","nfs_probe_summary": "NFS 未挂载至 /mnt/easyaiot-media，请执行客户端挂载部署"}	{"zlm": true, "srs_ai": true, "srs_live": true, "auto_label": true, "model_train": true, "ai_inference": true, "llm_inference": true, "algorithm_snap": true, "stream_forward": true, "algorithm_patrol": true, "algorithm_realtime": true}	0	50	100	0ec4652835ee5d457fd3e73d007c280a	\N	\N	\N	2026-08-11 15:13:55.843354	1	2026-08-12 14:28:00.006898	0	1
+2	NFS-Storage-01	192.168.1.11	22	9100	pending	nfs	\N	{"nfs_role": "server","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:27:56.519563392Z","nfs_probe_ok": "true","ceph_mon_host": "192.168.1.11","ceph_osd_path": "/var/lib/ceph/osd","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/mnt/easyaiot-media","nfs_mount_ready": "true","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "true","media_mount_path": "/mnt/easyaiot-media","nfs_cluster_role": "primary","nfs_export_ready": "true","nfs_probe_summary": "NFS 存储已就绪：Export 正常，客户端已挂载至 /mnt/easyaiot-media"}	{"ceph_osd": true, "media_storage": true}	0	50	100	d92c6783e84b6c7c64ca378656fcb115	\N	\N	\N	2026-08-11 15:13:47.308782	1	2026-08-12 14:27:56.520608	0	1
+1	控制面节点	192.168.1.10	22	9100	online	algorithm,forward,live,nfs	\N	{"nfs_role": "client","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:27:56.561629314Z","nfs_probe_ok": "true","ceph_mon_host": "192.168.1.11","agent_hostname": "demo-node","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/tmp/easyaiot-media","nfs_mount_ready": "true","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "true","media_mount_path": "/tmp/easyaiot-media","nfs_cluster_role": "client","nfs_mount_source": "local:/tmp/easyaiot-media","nfs_probe_summary": "batch-refresh: local media ready","agent_mem_total_bytes": "66009735168","agent_disk_total_bytes": "1005867986944"}	{"zlm": true, "srs_ai": true, "platform": true, "srs_live": true, "auto_label": true, "model_train": true, "ai_inference": true, "llm_inference": true, "algorithm_snap": true, "stream_forward": true, "algorithm_patrol": true, "algorithm_realtime": true}	0	50	100	cd3d4d946d7446a913f846b92ad94557	平台控制面宿主机，自动纳管	2026-08-12 14:35:42.300706	\N	2026-07-14 16:35:07.615462	1	2026-08-12 14:35:42.301037	0	1
+3	NFS-Client-01	192.168.1.12	22	9100	pending	algorithm,forward,live,train,llm,label,infer	\N	{"nfs_role": "client","nfs_export": "/mnt/easyaiot-media","nfs_probe_at": "2026-08-12T06:28:00.006608648Z","nfs_probe_ok": "false","ceph_mon_host": "192.168.1.11","nfs_cluster_id": "1","nfs_mount_opts": "vers=3,tcp,nolock,_netdev","ceph_mount_path": "/mnt/easyaiot-media","nfs_mount_ready": "false","nfs_server_host": "192.168.1.11","storage_backend": "nfs","ceph_mount_ready": "false","media_mount_path": "/mnt/easyaiot-media","nfs_cluster_role": "client","nfs_export_ready": "false","nfs_probe_summary": "NFS 未挂载至 /mnt/easyaiot-media，请执行客户端挂载部署"}	{"zlm": true, "srs_ai": true, "srs_live": true, "auto_label": true, "model_train": true, "ai_inference": true, "llm_inference": true, "algorithm_snap": true, "stream_forward": true, "algorithm_patrol": true, "algorithm_realtime": true}	0	50	100	0ec4652835ee5d457fd3e73d007c280a	\N	\N	\N	2026-08-11 15:13:55.843354	1	2026-08-12 14:28:00.006898	0	1
 \.
 
 
@@ -568,6 +669,22 @@ COPY public.node_metric_snapshot (id, node_id, cpu_percent, mem_percent, disk_pe
 26417	1	57.50	77.00	84.40	[]	0	0.00	2026-08-12 14:35:21.18299	\N	2026-08-12 14:35:21.183741	\N	2026-08-12 14:35:21.183741	0	50810327040	66009735168	805407027200	1005867986944
 26418	1	77.70	76.80	84.40	[]	0	0.00	2026-08-12 14:35:31.733051	\N	2026-08-12 14:35:31.733982	\N	2026-08-12 14:35:31.733982	0	50706747392	66009735168	805407084544	1005867986944
 26419	1	95.70	77.00	84.40	[]	0	0.00	2026-08-12 14:35:42.302845	\N	2026-08-12 14:35:42.304807	\N	2026-08-12 14:35:42.304807	0	50844766208	66009735168	805408034816	1005867986944
+\.
+
+
+--
+-- Data for Name: node_sentinel_remediate_log; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.node_sentinel_remediate_log (id, node_id, component_id, mark, action, success, exhausted, attempt_count, max_attempts, probe_state, message, logs, creator, create_time, updater, update_time, deleted) FROM stdin;
+\.
+
+
+--
+-- Data for Name: node_sentinel_snapshot; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.node_sentinel_snapshot (node_id, node_profile, sentinel_version, probe_level, components, schedulable_capabilities, summary, environment_profile, declared_capabilities, operational_state, remediation, last_probe_at, creator, create_time, updater, update_time, deleted) FROM stdin;
 \.
 
 
@@ -667,6 +784,13 @@ SELECT pg_catalog.setval('public.node_metric_snapshot_id_seq', 26419, true);
 
 
 --
+-- Name: node_sentinel_remediate_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.node_sentinel_remediate_log_id_seq', 1, false);
+
+
+--
 -- Name: node_ssh_credential_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -749,6 +873,22 @@ ALTER TABLE ONLY public.nfs_cluster
 
 ALTER TABLE ONLY public.node_metric_snapshot
     ADD CONSTRAINT node_metric_snapshot_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: node_sentinel_remediate_log node_sentinel_remediate_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.node_sentinel_remediate_log
+    ADD CONSTRAINT node_sentinel_remediate_log_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: node_sentinel_snapshot node_sentinel_snapshot_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.node_sentinel_snapshot
+    ADD CONSTRAINT node_sentinel_snapshot_pkey PRIMARY KEY (node_id);
 
 
 --
@@ -836,6 +976,20 @@ CREATE INDEX idx_nfs_cluster_active ON public.nfs_cluster USING btree (is_active
 --
 
 CREATE INDEX idx_node_metric_node_time ON public.node_metric_snapshot USING btree (node_id, collected_at DESC);
+
+
+--
+-- Name: idx_node_sentinel_remediate_log_node; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_node_sentinel_remediate_log_node ON public.node_sentinel_remediate_log USING btree (node_id, create_time DESC);
+
+
+--
+-- Name: idx_node_sentinel_snapshot_probe; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_node_sentinel_snapshot_probe ON public.node_sentinel_snapshot USING btree (last_probe_at DESC);
 
 
 --

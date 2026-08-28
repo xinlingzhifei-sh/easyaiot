@@ -10,19 +10,31 @@ import lombok.Getter;
  * @created 2025-05-28
  */
 public enum DmPackageStatus implements Status {
-    UNVERIFIED(0,"未验证"),
-    VERIFIED(1,"已验证"),
-    PUBLISHED(2,"已发布"),
-    WAIT_PUBLISHED(3,"待发布")
-    ;
+    UNVERIFIED(0, "未验证"),
+    TESTING(1, "测试中"),
+    PUBLISHED(2, "已发布"),
+    WAIT_PUBLISHED(3, "待发布"),
+    WITHDRAWN(4, "已撤回");
 
     @Getter
-    private Integer code;
+    private final Integer code;
     @Getter
-    private String msg;
+    private final String msg;
 
     DmPackageStatus(int code, String msg) {
         this.code = code;
         this.msg = msg;
+    }
+
+    public static DmPackageStatus of(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        for (DmPackageStatus status : values()) {
+            if (status.code.equals(code)) {
+                return status;
+            }
+        }
+        return null;
     }
 }

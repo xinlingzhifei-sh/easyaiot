@@ -15,6 +15,7 @@ import signal
 import time
 from typing import Dict, Optional, Tuple
 from datetime import datetime
+from urllib.request import urlopen
 
 from models import db, AlgorithmTask
 from app.utils.node_remote_python import resolve_video_bundle_python
@@ -36,6 +37,25 @@ def _stop_post_process_cluster(task_id: int, task: Optional[AlgorithmTask] = Non
     stop_post_process_workers(task_id, task)
 
 
+def _push_post_template(task: AlgorithmTask) -> None:
+    """任务真正启动成功后推送 POST 定制后处理模板。"""
+    if not getattr(task, 'alert_event_enabled', False):
+        logger.info('任务 %s 未启用告警事件，跳过后处理规则链模板推送', task.id)
+        return
+    try:
+        from app.services.post_template_client import parse_pipeline, push_template_on_start
+        from app.services.post_plugin_service import ensure_external_services_ready
+        pipeline = parse_pipeline(getattr(task, 'post_pipeline', None))
+        ok, msg = ensure_external_services_ready(pipeline)
+        if not ok:
+            logger.error('任务 %s POST 外置插件未就绪: %s', task.id, msg)
+            return
+        if not push_template_on_start(task):
+            logger.error('任务 %s 启动后推送 POST 模板失败', task.id)
+    except Exception as e:
+        logger.error('任务 %s 推送 POST 模板异常: %s', getattr(task, 'id', None), e, exc_info=True)
+
+
 # 存储已启动的守护进程对象（参考 AI 模块的 deploy_service.py）
 _running_daemons: Dict[int, AlgorithmTaskDaemon] = {}
 _daemons_lock = threading.Lock()
@@ -45,6 +65,228 @@ _starting_lock = threading.Lock()
 # 停止请求代次：start/restart 会递增以作废尚未执行的异步 stop，避免 stop→start 竞态误杀新进程
 _stop_request_id: Dict[int, int] = {}
 _stop_request_lock = threading.Lock()
+# 节点级共享源流服务由 VIDEO 主进程统一托管。
+_camera_source_process = None
+_camera_source_log_handle = None
+_camera_source_lock = threading.Lock()
+_camera_source_watchdog_lock = threading.Lock()
+_camera_source_watchdog_thread = None
+_camera_source_watchdog_stop = threading.Event()
+
+
+def _camera_source_mode() -> str:
+    mode = (os.getenv('CAMERA_SOURCE_MODE') or 'shared').strip().lower()
+    return 'shared' if mode == 'shared' else 'direct'
+
+
+def _camera_source_manager_url() -> str:
+    explicit_url = (os.getenv('CAMERA_SOURCE_MANAGER_URL') or '').strip().rstrip('/')
+    if explicit_url:
+        return explicit_url
+    port = int(os.getenv('CAMERA_SOURCE_MANAGER_PORT', '6010'))
+    return f'http://127.0.0.1:{port}'
+
+
+def _camera_source_fallback_direct_enabled() -> bool:
+    raw_value = (os.getenv('CAMERA_SOURCE_FALLBACK_DIRECT') or 'true').strip().lower()
+    return raw_value not in ('0', 'false', 'no', 'off')
+
+
+def _camera_source_manager_healthy() -> bool:
+    try:
+        with urlopen(f'{_camera_source_manager_url()}/health', timeout=0.8) as response:
+            if response.status != 200:
+                return False
+            payload = json.loads(response.read().decode('utf-8'))
+            return (
+                payload.get('status') == 'ok'
+                and payload.get('service') == 'camera_source_manager'
+                and int(payload.get('protocol_version', 0)) == 1
+            )
+    except Exception:
+        return False
+
+
+def _start_camera_source_watchdog() -> None:
+    """启动节点级源流进程健康监督，避免存量任务永久停留在降级模式。"""
+    global _camera_source_watchdog_thread
+    with _camera_source_watchdog_lock:
+        if (
+                _camera_source_watchdog_thread is not None
+                and _camera_source_watchdog_thread.is_alive()
+        ):
+            return
+
+        _camera_source_watchdog_stop.clear()
+
+        def _watchdog_loop():
+            interval_seconds = max(
+                1.0,
+                float(os.getenv('CAMERA_SOURCE_WATCHDOG_INTERVAL_SEC', '5')),
+            )
+            while not _camera_source_watchdog_stop.wait(interval_seconds):
+                if _camera_source_mode() != 'shared':
+                    continue
+                if _camera_source_manager_healthy():
+                    continue
+                ok, message = ensure_camera_source_manager()
+                if not ok:
+                    logger.error('CameraSourceManager 自动恢复失败: %s', message)
+
+        _camera_source_watchdog_thread = threading.Thread(
+            target=_watchdog_loop,
+            daemon=True,
+            name='camera_source_manager_watchdog',
+        )
+        _camera_source_watchdog_thread.start()
+
+
+def _resolve_camera_source_python(video_root: str) -> str:
+    """选择具备 OpenCV/FFmpeg 解码依赖的 Python 运行时。"""
+    explicit_python = (os.getenv('CAMERA_SOURCE_PYTHON') or '').strip()
+    if explicit_python:
+        return explicit_python
+    bundle_python = resolve_video_bundle_python('algorithm_realtime', video_root)
+    if os.path.exists(bundle_python) and os.access(bundle_python, os.X_OK):
+        return bundle_python
+    conda_candidates = [
+        os.path.expanduser('~/miniconda3/envs/VIDEO-SVC/bin/python'),
+        os.path.expanduser('~/anaconda3/envs/VIDEO-SVC/bin/python'),
+        '/opt/conda/envs/VIDEO-SVC/bin/python',
+        '/usr/local/miniconda3/envs/VIDEO-SVC/bin/python',
+        '/usr/local/anaconda3/envs/VIDEO-SVC/bin/python',
+    ]
+    for candidate in conda_candidates:
+        if os.path.exists(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    return sys.executable
+
+
+def ensure_camera_source_manager() -> Tuple[bool, str]:
+    """确保本节点 CameraSourceManager 已启动。"""
+    global _camera_source_process, _camera_source_log_handle
+    if _camera_source_mode() != 'shared':
+        return True, '共享源流已关闭'
+    _start_camera_source_watchdog()
+    if _camera_source_manager_healthy():
+        return True, 'CameraSourceManager 已运行'
+
+    with _camera_source_lock:
+        if _camera_source_manager_healthy():
+            return True, 'CameraSourceManager 已运行'
+        if _camera_source_process is not None and _camera_source_process.poll() is None:
+            process = _camera_source_process
+        else:
+            video_root = _get_video_root()
+            service_script = os.path.join(
+                video_root, 'services', 'camera_source_manager', 'run_service.py'
+            )
+            log_dir = os.path.join(video_root, 'logs')
+            os.makedirs(log_dir, exist_ok=True)
+            if _camera_source_log_handle is None or _camera_source_log_handle.closed:
+                _camera_source_log_handle = open(
+                    os.path.join(log_dir, 'camera_source_manager.log'),
+                    mode='a',
+                    encoding='utf-8',
+                )
+            env = os.environ.copy()
+            env['PYTHONUNBUFFERED'] = '1'
+            env['CAMERA_SOURCE_PARENT_PID'] = str(os.getpid())
+            env['CAMERA_SOURCE_MANAGER_PORT'] = str(
+                int(os.getenv('CAMERA_SOURCE_MANAGER_PORT', '6010'))
+            )
+            try:
+                camera_source_python = _resolve_camera_source_python(video_root)
+                process = subprocess.Popen(
+                    [camera_source_python, service_script],
+                    cwd=os.path.dirname(service_script),
+                    env=env,
+                    stdout=_camera_source_log_handle,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                )
+                _camera_source_process = process
+                logger.info('CameraSourceManager 启动中 pid=%s', process.pid)
+            except Exception as exc:
+                logger.error('CameraSourceManager 启动失败: %s', exc, exc_info=True)
+                return False, str(exc)
+
+        deadline = time.monotonic() + 12.0
+        while time.monotonic() < deadline:
+            if _camera_source_manager_healthy():
+                return True, 'CameraSourceManager 启动成功'
+            if process.poll() is not None:
+                return False, f'CameraSourceManager 已退出，返回码 {process.returncode}'
+            time.sleep(0.2)
+        if _camera_source_process is process and process.poll() is None:
+            logger.error(
+                'CameraSourceManager 健康检查超时，终止失去响应的子进程 pid=%s',
+                process.pid,
+            )
+            try:
+                process.terminate()
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=1)
+            except Exception:
+                logger.exception('终止失去响应的 CameraSourceManager 失败')
+            _camera_source_process = None
+        return False, 'CameraSourceManager 启动超时'
+
+
+def stop_camera_source_manager() -> None:
+    """停止节点级共享源流进程及其监督线程。"""
+    global _camera_source_process, _camera_source_log_handle
+    global _camera_source_watchdog_thread
+
+    _camera_source_watchdog_stop.set()
+    watchdog_thread = _camera_source_watchdog_thread
+    if (
+            watchdog_thread is not None
+            and watchdog_thread is not threading.current_thread()
+            and watchdog_thread.is_alive()
+    ):
+        watchdog_thread.join(timeout=3.0)
+    _camera_source_watchdog_thread = None
+
+    with _camera_source_lock:
+        process = _camera_source_process
+        _camera_source_process = None
+        if process is not None and process.poll() is None:
+            try:
+                process.terminate()
+                process.wait(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=2.0)
+            except Exception:
+                logger.exception('停止 CameraSourceManager 失败 pid=%s', process.pid)
+        if _camera_source_log_handle is not None:
+            try:
+                _camera_source_log_handle.close()
+            except Exception:
+                logger.exception('关闭 CameraSourceManager 日志文件失败')
+            finally:
+                _camera_source_log_handle = None
+
+
+def _camera_source_worker_env() -> Dict[str, str]:
+    """构建实时算法 Worker 的共享源流配置。"""
+    env = {
+        'CAMERA_SOURCE_MODE': _camera_source_mode(),
+        'CAMERA_SOURCE_MANAGER_URL': _camera_source_manager_url(),
+        'CAMERA_SOURCE_MANAGER_PORT': str(
+            int(os.getenv('CAMERA_SOURCE_MANAGER_PORT', '6010'))
+        ),
+        'CAMERA_SOURCE_FALLBACK_DIRECT': (
+            'true' if _camera_source_fallback_direct_enabled() else 'false'
+        ),
+    }
+    control_token = (os.getenv('CAMERA_SOURCE_MANAGER_TOKEN') or '').strip()
+    if control_token:
+        env['CAMERA_SOURCE_MANAGER_TOKEN'] = control_token
+    return env
 
 
 def _issue_stop_request(task_id: int) -> int:
@@ -74,6 +316,24 @@ def _use_remote_deploy(task: AlgorithmTask) -> bool:
         return False
     policy = getattr(task, 'schedule_policy', None) or 'local'
     return policy in ('auto', 'node')
+
+
+def _resolve_remote_task_node_id(task: AlgorithmTask) -> Optional[int]:
+    """Resolve the edge node that may own a task, including incomplete legacy state.
+
+    A selected-node deployment can have an active Agent workload even when an older
+    start/stop race failed to persist ``node_id``.  In that case ``target_node_id``
+    is the only safe cleanup target.  Local tasks must never use that fallback.
+    """
+    node_id = getattr(task, 'node_id', None)
+    if node_id:
+        return int(node_id)
+
+    policy = (getattr(task, 'schedule_policy', None) or 'local').strip().lower()
+    target_node_id = getattr(task, 'target_node_id', None)
+    if policy in ('auto', 'node') and target_node_id:
+        return int(target_node_id)
+    return None
 
 
 def _heartbeat_stale(last_heartbeat, timeout_sec: int) -> bool:
@@ -109,9 +369,22 @@ def _local_algorithm_daemon_running(task_id: int) -> bool:
 
 
 def _algorithm_task_service_healthy(task: AlgorithmTask) -> bool:
-    """判断算法任务服务是否仍在运行（本机守护进程 / 远程心跳）。"""
+    """判断算法任务服务是否仍在运行（本机守护进程 / 分片部署 / 远程心跳）。"""
     if _local_algorithm_daemon_running(task.id):
         return True
+
+    try:
+        from app.services.algorithm_task_cluster_service import (
+            deployments_healthy,
+            parse_device_deployments,
+            use_device_level_schedule,
+        )
+        if parse_device_deployments(task):
+            return deployments_healthy(task)
+        if use_device_level_schedule(task) and getattr(task, 'device_deployments', None):
+            return deployments_healthy(task)
+    except Exception as e:
+        logger.debug('算法分片健康检查跳过: %s', e)
 
     timeout = _algorithm_heartbeat_failover_seconds()
     if _heartbeat_stale(task.service_last_heartbeat, timeout):
@@ -228,6 +501,53 @@ def _inject_realtime_sampling_env(env: dict, task) -> None:
             env['MOTION_GATE_CONFIG'] = json.dumps(raw, ensure_ascii=False)
 
 
+def _resolve_control_plane_host() -> str:
+    """解析远程 Worker 可回连的控制面地址，禁止把 localhost 下发到边缘节点。"""
+    explicit = (os.getenv('EASYAIOT_PLATFORM_HOST') or '').strip()
+    if explicit and explicit not in ('127.0.0.1', 'localhost'):
+        return explicit
+    try:
+        from app.utils.node_client import resolve_platform_host
+        detected = (resolve_platform_host() or '').strip()
+        if detected and detected not in ('127.0.0.1', 'localhost'):
+            return detected
+    except Exception:
+        pass
+    for key in ('GATEWAY_URL', 'JAVA_BACKEND_URL', 'VIDEO_CONTROL_URL'):
+        raw = (os.getenv(key) or '').strip()
+        if not raw:
+            continue
+        try:
+            from urllib.parse import urlparse
+            host = (urlparse(raw).hostname or '').strip()
+            if host and host not in ('127.0.0.1', 'localhost'):
+                return host
+        except Exception:
+            pass
+    host = (os.getenv('HOST_IP') or '').strip()
+    if host and host not in ('127.0.0.1', 'localhost'):
+        return host
+    return ''
+
+
+def _replace_loopback_host(raw: str, control_plane_host: str) -> str:
+    value = str(raw or '').strip()
+    if not value or not control_plane_host:
+        return value
+    # MQTT broker 支持逗号分隔多地址：逐段重写
+    if ',' in value:
+        return ','.join(_replace_loopback_host(part, control_plane_host) for part in value.split(','))
+    for loopback in ('localhost:', '127.0.0.1:'):
+        if value.startswith(loopback):
+            return f'{control_plane_host}:{value[len(loopback):]}'
+    return (
+        value.replace('://localhost:', f'://{control_plane_host}:')
+        .replace('://127.0.0.1:', f'://{control_plane_host}:')
+        .replace('@localhost:', f'@{control_plane_host}:')
+        .replace('@127.0.0.1:', f'@{control_plane_host}:')
+    )
+
+
 def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_host: str, task=None) -> dict:
     env = {}
     for key in (
@@ -237,7 +557,7 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
         'USE_GPU', 'GPU_IDS', 'GPU_POLICY', 'INFER_GPU_POLICY', 'FFMPEG_GPU_POLICY',
         'CUDA_VISIBLE_DEVICES', 'NVIDIA_VISIBLE_DEVICES', 'ORT_EXECUTION_PROVIDERS',
         'KAFKA_BOOTSTRAP_SERVERS', 'MINIO_ENDPOINT', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY',
-        'MINIO_SECURE', 'NACOS_SERVER', 'VIDEO_ENV',
+        'MINIO_SECURE', 'NACOS_SERVER', 'VIDEO_ENV', 'MQTT_BROKER_URLS',
         'CLUSTER_MODE', 'MEDIA_HOST_DATA_ROOT', 'MEDIA_RECORD_DIR', 'MEDIA_SNAP_DIR',
         'MEDIA_UPLOAD_MODE', 'MEDIA_SNAP_UPLOAD_MODE', 'ALERT_IMAGES_DIR',
         'IOT_SINK_API_URL', 'IOT_SINK_USE_GATEWAY', 'IOT_SINK_HOST', 'IOT_SINK_PORT',
@@ -255,6 +575,9 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
         'STREAM_FORWARD_TARGET_STREAMS', 'STREAM_FORWARD_THREAD_QUEUE_SIZE',
         'STREAM_FORWARD_MAX_MUXING_QUEUE_SIZE', 'STREAM_FORWARD_NVENC_SKIP_TEST',
         'STREAM_FORWARD_NVENC_PRESET', 'STREAM_FORWARD_RELAY_STAGGER_SEC',
+        'CAMERA_SOURCE_MODE', 'CAMERA_SOURCE_MANAGER_URL', 'CAMERA_SOURCE_MANAGER_PORT',
+        'CAMERA_SOURCE_MANAGER_TOKEN', 'CAMERA_SOURCE_FALLBACK_DIRECT',
+        'CAMERA_SOURCE_HEARTBEAT_INTERVAL_SEC', 'CAMERA_SOURCE_STALE_FRAME_SEC',
     ):
         val = os.getenv(key)
         if val is not None and val != '':
@@ -276,6 +599,47 @@ def _build_task_deploy_env(task_id: int, task_type: str, log_path: str, server_h
     env['LOG_PATH'] = log_path
     env['POD_IP'] = server_host
     env['HOST_IP'] = server_host
+    control_plane_host = _resolve_control_plane_host()
+    remote = bool(server_host) and server_host not in (
+        '', '127.0.0.1', 'localhost', control_plane_host,
+    )
+    if remote and control_plane_host:
+        for key in (
+            'DATABASE_URL', 'GATEWAY_URL', 'JAVA_BACKEND_URL', 'AI_SERVICE_URL',
+            'VIDEO_SERVICE_URL', 'IOT_SINK_API_URL', 'ALERT_HOOK_URL',
+            'KAFKA_BOOTSTRAP_SERVERS', 'MINIO_ENDPOINT',
+        ):
+            raw = env.get(key) or os.getenv(key) or ''
+            if raw:
+                env[key] = _replace_loopback_host(raw, control_plane_host)
+        video_base = f'http://{control_plane_host}:{video_service_port}'
+        env['VIDEO_SERVICE_URL'] = video_base
+        env['VIDEO_SERVICE_HOST'] = control_plane_host
+        # 边缘节点的告警总线必须指向控制面 EMQX：无显式配置时也把默认回环重写为中心地址，
+        # 否则边缘 RUNTIME 的 MQTT 告警会连自身回环而静默丢失
+        mqtt_broker = env.get('MQTT_BROKER_URLS') or os.getenv('MQTT_BROKER_URLS') or '127.0.0.1:1883'
+        env['MQTT_BROKER_URLS'] = _replace_loopback_host(mqtt_broker, control_plane_host)
+        heartbeat_path = (
+            '/video/algorithm/heartbeat/patrol'
+            if task_type == 'patrol'
+            else '/video/algorithm/heartbeat/realtime'
+        )
+        env['VIDEO_HEARTBEAT_URL'] = f'{video_base}{heartbeat_path}'
+
+        prefer_gpu = bool(getattr(task, 'prefer_gpu', False)) if task is not None else False
+        if not prefer_gpu:
+            env['USE_GPU'] = 'false'
+            env['FFMPEG_HWACCEL'] = 'none'
+            env['ORT_EXECUTION_PROVIDERS'] = 'CPUExecutionProvider'
+            env.pop('GPU_IDS', None)
+            env.pop('CUDA_VISIBLE_DEVICES', None)
+            env.pop('NVIDIA_VISIBLE_DEVICES', None)
+    # 第二阶段 mmap 仅限单节点，远程 Worker 无条件独立拉流，禁止误连控制节点路径。
+    if task_type == 'realtime':
+        env['CAMERA_SOURCE_REMOTE_WORKER'] = 'true'
+        env['CAMERA_SOURCE_MODE'] = 'direct'
+        env.pop('CAMERA_SOURCE_MANAGER_URL', None)
+        env.pop('CAMERA_SOURCE_MANAGER_TOKEN', None)
 
     kafka_bootstrap = env.get('KAFKA_BOOTSTRAP_SERVERS', os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9094'))
     if 'Kafka' in kafka_bootstrap or 'kafka-server' in kafka_bootstrap:
@@ -298,10 +662,17 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
         REMOTE_RUNTIME_BIN,
         REMOTE_RUNTIME_LD_LIBRARY_PATH,
     )
+    from app.services.algorithm_task_cluster_service import (
+        use_device_level_schedule,
+        deploy_sharded_algorithm_task,
+    )
 
     ok, sync_msg = _ensure_task_models_on_cluster(task)
     if not ok:
         return (False, f'集群模型预同步失败: {sync_msg}', False)
+
+    if use_device_level_schedule(task):
+        return deploy_sharded_algorithm_task(task_id, task)
 
     policy = getattr(task, 'schedule_policy', None) or 'local'
     target_node_id = getattr(task, 'target_node_id', None)
@@ -326,6 +697,12 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
     executor = normalize_executor(getattr(task, 'executor', None) or 'cpp')
     files = None
     work_dir = video_root_remote
+    env = _build_task_deploy_env(task_id, task.task_type, log_dir, host, task=task)
+    # 远程部署必须把目标节点 id 写入 env（ini 生成时还会覆盖 compute_node_id）：
+    # RUNTIME 心跳与 MQTT 告警据此归属边缘节点，而不是控制面自身的节点标识
+    if node_id is not None:
+        env['NODE_ID'] = str(node_id)
+        env['COMPUTE_NODE_ID'] = str(node_id)
 
     if executor == 'cpp':
         if task.task_type not in ('realtime', 'snap', 'patrol'):
@@ -376,19 +753,49 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
                 False,
             )
         remote_ini = os.path.join(log_dir, 'runtime.ini')
+        remote_node_id = str(node_id) if node_id is not None else ''
         try:
-            ini_path, ini_content = generate_runtime_ini_content(
-                task,
-                log_dir,
-                prefer_cluster_model=True,
-                remote_ini_path=remote_ini,
-            )
+            from app.services.runtime_config_service import generate_runtime_inis_content
+            device_count = len(task.devices or [])
+            if (task.task_type or '').strip().lower() == 'realtime' and device_count > 1:
+                pairs = generate_runtime_inis_content(
+                    task,
+                    log_dir,
+                    prefer_cluster_model=True,
+                    force_per_device=True,
+                    remote_ini_dir=log_dir,
+                    heartbeat_url=env.get('VIDEO_HEARTBEAT_URL'),
+                    compute_node_id=remote_node_id,
+                    mqtt_broker_urls=env.get('MQTT_BROKER_URLS'),
+                )
+                files = [{'path': p, 'content': c, 'mode': '0644'} for p, c in pairs]
+                if len(pairs) == 1:
+                    command = [REMOTE_RUNTIME_BIN, pairs[0][0]]
+                else:
+                    ini_args = ' '.join(f'"{p}"' for p, _ in pairs)
+                    script = (
+                        'set -e; pids=(); '
+                        f'for f in {ini_args}; do "{REMOTE_RUNTIME_BIN}" "$f" & pids+=($!); done; '
+                        'trap \'kill "${pids[@]}" 2>/dev/null || true\' EXIT TERM INT; '
+                        'wait'
+                    )
+                    command = ['/bin/bash', '-lc', script]
+            else:
+                ini_path, ini_content = generate_runtime_ini_content(
+                    task,
+                    log_dir,
+                    prefer_cluster_model=True,
+                    remote_ini_path=remote_ini,
+                    heartbeat_url=env.get('VIDEO_HEARTBEAT_URL'),
+                    compute_node_id=remote_node_id,
+                    mqtt_broker_urls=env.get('MQTT_BROKER_URLS'),
+                )
+                command = [REMOTE_RUNTIME_BIN, ini_path]
+                files = [{'path': ini_path, 'content': ini_content, 'mode': '0644'}]
         except Exception as e:
             logger.error('生成远程 RUNTIME 配置失败: %s', e, exc_info=True)
             return (False, f'生成远程 RUNTIME 配置失败: {e}', False)
-        command = [REMOTE_RUNTIME_BIN, ini_path]
         work_dir = '/opt/easyaiot/RUNTIME'
-        env = _build_task_deploy_env(task_id, task.task_type, log_dir, host, task=task)
         env['VIDEO_ROOT'] = video_root_remote
         env['RUNTIME_BIN'] = REMOTE_RUNTIME_BIN
         env['LD_LIBRARY_PATH'] = REMOTE_RUNTIME_LD_LIBRARY_PATH
@@ -398,7 +805,6 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
             task.service_port = int(task.runtime_control_port)
         else:
             task.service_port = 8000 + (int(task_id) % 1000)
-        files = [{'path': ini_path, 'content': ini_content, 'mode': '0644'}]
     else:
         service_dir = {
             'realtime': 'realtime_algorithm_service',
@@ -413,8 +819,8 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
         python_exec = resolve_video_bundle_python(bundle, video_root_remote)
         deploy_script = os.path.join(work_dir, 'run_deploy.py')
         command = [python_exec, deploy_script]
-        env = _build_task_deploy_env(task_id, task.task_type, log_dir, host, task=task)
         env['VIDEO_ROOT'] = video_root_remote
+        files = None
 
     result = node_client.deploy_workload(
         node_id=node_id,
@@ -428,11 +834,22 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
         files=files,
     )
 
+    # 用户停止可能与健康恢复部署并发：远程部署完成后必须重新读取已提交的启用状态。
+    # 若停止请求先提交，立即清理刚下发的 workload，避免数据库已停止但边缘进程残留。
+    from app.services.algorithm_task_cluster_service import _task_is_enabled, stop_remote_workload
+    if not _task_is_enabled(task_id):
+        stop_remote_workload(int(node_id), str(task_id))
+        logger.info('任务 %s 已停用，清理刚下发的远程 workload', task_id)
+        return (False, '任务已停用，已清理刚下发的远程进程', False)
+
     task.node_id = node_id
     task.service_server_ip = host
     task.service_process_id = result.get('pid')
     task.service_log_path = log_dir
     task.run_status = 'running'
+    # 整任务单节点部署时清空分片明细，避免与旧分片状态混用
+    if hasattr(task, 'device_deployments'):
+        task.device_deployments = None
     db.session.commit()
 
     logger.info(
@@ -443,6 +860,25 @@ def _deploy_task_on_remote_node(task_id: int, task: AlgorithmTask) -> Tuple[bool
 
 
 def _stop_remote_task(task_id: int, node_id: Optional[int]) -> None:
+    task = None
+    try:
+        task = AlgorithmTask.query.get(task_id)
+    except Exception:
+        task = None
+    if task is not None:
+        try:
+            from app.services.algorithm_task_cluster_service import (
+                parse_device_deployments,
+                stop_all_shards,
+                apply_task_service_fields_from_deployments,
+            )
+            if parse_device_deployments(task) or getattr(task, 'device_deployments', None):
+                stop_all_shards(task)
+                apply_task_service_fields_from_deployments(task, [])
+                return
+        except Exception as e:
+            logger.warning('按分片停止算法任务失败 task_id=%s: %s', task_id, e)
+
     if not node_id:
         return
     from app.utils import node_client
@@ -450,6 +886,10 @@ def _stop_remote_task(task_id: int, node_id: Optional[int]) -> None:
         node_client.stop_workload(node_id, WORKLOAD_TYPE_ALGORITHM, str(task_id))
     except Exception as e:
         logger.warning('远程停止算法任务失败 task_id=%s: %s', task_id, e)
+    try:
+        node_client.release_workload(WORKLOAD_TYPE_ALGORITHM, str(task_id))
+    except Exception as e:
+        logger.debug('释放算法任务绑定失败 task_id=%s: %s', task_id, e)
 
 
 def get_service_script_path(service_type: str) -> str:
@@ -501,6 +941,7 @@ def cleanup_orphaned_processes(task_id: int, extra_protected_pids: set = None):
     # 仅清理实时算法服务 / RUNTIME，避免误杀 stream_forward 等同 TASK_ID 的 run_deploy
     realtime_deploy_marker = os.path.join('realtime_algorithm_service', 'run_deploy.py')
     runtime_ini_marker = f'task_{task_id}.ini'
+    runtime_ini_prefix = f'task_{task_id}_'
     orphan_terminate_timeout = int(os.getenv('ALGORITHM_ORPHAN_TERMINATE_TIMEOUT', '12'))
     try:
         import psutil
@@ -512,22 +953,24 @@ def cleanup_orphaned_processes(task_id: int, extra_protected_pids: set = None):
                 daemon = _running_daemons[task_id]
                 # 保护正在运行的守护进程管理的进程（即使_process为None，也可能正在启动中）
                 if daemon._running:
-                    if daemon._process:
-                        try:
-                            # 检查进程是否真的在运行
-                            if daemon._process.poll() is None:
-                                # 守护进程管理的进程还在运行，保护它及其子进程
-                                protected_pids.add(daemon._process.pid)
-                                try:
-                                    # 获取所有子进程的PID
-                                    parent_proc = psutil.Process(daemon._process.pid)
-                                    for child in parent_proc.children(recursive=True):
-                                        protected_pids.add(child.pid)
-                                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                                    pass
-                        except:
-                            # poll失败，进程可能已经不存在，但不影响保护逻辑
-                            pass
+                    managed = []
+                    if getattr(daemon, '_processes', None):
+                        managed.extend([p for p in daemon._processes if p])
+                    if daemon._process and daemon._process not in managed:
+                        managed.append(daemon._process)
+                    if managed:
+                        for mp in managed:
+                            try:
+                                if mp.poll() is None:
+                                    protected_pids.add(mp.pid)
+                                    try:
+                                        parent_proc = psutil.Process(mp.pid)
+                                        for child in parent_proc.children(recursive=True):
+                                            protected_pids.add(child.pid)
+                                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                        pass
+                            except Exception:
+                                pass
                     else:
                         # 进程为None但守护进程还在运行，说明可能正在启动中
                         # 为了安全起见，不清理任何进程（避免误杀正在启动的进程）
@@ -543,14 +986,20 @@ def cleanup_orphaned_processes(task_id: int, extra_protected_pids: set = None):
                 
                 cmdline_str = ' '.join(cmdline)
                 is_python_deploy = realtime_deploy_marker in cmdline_str
-                is_runtime_bin = (
-                    runtime_ini_marker in cmdline_str
-                    and (
-                        'RUNTIME' in cmdline_str
-                        or any(
-                            str(arg).endswith('RUNTIME') or str(arg).endswith('RUNTIME.exe')
-                            for arg in cmdline
-                        )
+                def _cmdline_is_task_runtime(args) -> bool:
+                    for arg in args:
+                        base = os.path.basename(str(arg))
+                        if base == runtime_ini_marker:
+                            return True
+                        if base.startswith(runtime_ini_prefix) and base.endswith('.ini'):
+                            return True
+                    return False
+
+                is_runtime_bin = _cmdline_is_task_runtime(cmdline) and (
+                    'RUNTIME' in cmdline_str
+                    or any(
+                        str(arg).endswith('RUNTIME') or str(arg).endswith('RUNTIME.exe')
+                        for arg in cmdline
                     )
                 )
                 if not is_python_deploy and not is_runtime_bin:
@@ -766,19 +1215,33 @@ def stop_service_process(task_id: int, service_type: str, stop_request_id: int =
     was_remote = False
     try:
         task = AlgorithmTask.query.get(task_id)
-        was_remote = bool(task and task.node_id)
+        remote_node_id = _resolve_remote_task_node_id(task) if task else None
+        was_remote = bool(
+            task and (
+                remote_node_id
+                or getattr(task, 'device_deployments', None)
+            )
+        )
     except RuntimeError:
         # stop_algorithm_task 在后台线程执行 teardown 时无 Flask 上下文，仅做本机进程清理
         logger.debug('无 Flask 应用上下文，跳过远程任务数据库操作: task_id=%s', task_id)
 
     if was_remote and task:
-        _stop_remote_task(task_id, task.node_id)
+        _stop_remote_task(task_id, remote_node_id)
         task.node_id = None
         task.service_process_id = None
         task.run_status = 'stopped'
+        if hasattr(task, 'device_deployments'):
+            task.device_deployments = None
         db.session.commit()
 
     _stop_post_process_cluster(task_id, task)
+
+    try:
+        from app.services.post_template_client import push_template_on_stop
+        push_template_on_stop(task_id)
+    except Exception as e:
+        logger.warning('任务 %s 删除 POST 模板失败: %s', task_id, e)
 
     daemon_to_join = None
     with _daemons_lock:
@@ -826,6 +1289,22 @@ def restart_task_services(task_id: int) -> bool:
     _cancel_pending_stop_requests(task_id)
     task = AlgorithmTask.query.get(task_id)
     if task and _use_remote_deploy(task):
+        from app.services.algorithm_task_cluster_service import (
+            use_device_level_schedule,
+            stop_all_shards,
+            apply_task_service_fields_from_deployments,
+            deploy_sharded_algorithm_task,
+        )
+        if use_device_level_schedule(task):
+            stop_all_shards(task)
+            apply_task_service_fields_from_deployments(task, [])
+            db.session.commit()
+            success, _, _ = deploy_sharded_algorithm_task(task_id, task, fresh_allocate=True)
+            if success:
+                task = AlgorithmTask.query.get(task_id)
+                if task:
+                    _start_post_process_cluster(task)
+            return success
         _stop_remote_task(task_id, task.node_id)
         _stop_post_process_cluster(task_id, task)
         success, _, _ = _deploy_task_on_remote_node(task_id, task)
@@ -881,11 +1360,41 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
         # 实时/抓拍/巡检算法任务都需要启动服务进程
         if task.task_type in ['realtime', 'snap', 'patrol']:
             if _use_remote_deploy(task):
+                from app.services.algorithm_task_cluster_service import (
+                    use_device_level_schedule,
+                    deployments_healthy,
+                    parse_device_deployments,
+                    stop_all_shards,
+                    apply_task_service_fields_from_deployments,
+                    deploy_sharded_algorithm_task,
+                )
+
                 failover_sec = _algorithm_heartbeat_failover_seconds()
+                if use_device_level_schedule(task) and parse_device_deployments(task):
+                    if deployments_healthy(task) and not _heartbeat_stale(
+                        task.service_last_heartbeat, failover_sec,
+                    ):
+                        logger.info('任务 %s 分片已在集群运行，跳过重复部署', task_id)
+                        ok_pp, _ = _start_post_process_cluster(task)
+                        if ok_pp:
+                            _push_post_template(task)
+                        return (True, '任务已在远程分片运行', True) if ok_pp else (False, '后处理集群启动失败', False)
+                    logger.info('任务 %s 分片未健康或心跳超时，重新按设备分片部署', task_id)
+                    stop_all_shards(task)
+                    apply_task_service_fields_from_deployments(task, [])
+                    db.session.commit()
+                    result = deploy_sharded_algorithm_task(task_id, task, fresh_allocate=True)
+                    if result[0]:
+                        _start_post_process_cluster(task)
+                        _push_post_template(task)
+                    return result
+
                 if task.node_id and not _heartbeat_stale(task.service_last_heartbeat, failover_sec):
                     if _is_compute_node_online(int(task.node_id)):
                         logger.info('任务 %s 已在远程节点 %s 运行，跳过重复部署', task_id, task.node_id)
                         ok_pp, _ = _start_post_process_cluster(task)
+                        if ok_pp:
+                            _push_post_template(task)
                         return (True, '任务已在远程节点运行', True) if ok_pp else (False, '后处理集群启动失败', False)
                 if task.node_id:
                     logger.info(
@@ -895,15 +1404,29 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
                     _stop_remote_task(task_id, task.node_id)
                     task.node_id = None
                     task.service_process_id = None
+                    if hasattr(task, 'device_deployments'):
+                        task.device_deployments = None
                     db.session.commit()
                 result = _deploy_task_on_remote_node(task_id, task)
                 if result[0]:
                     _start_post_process_cluster(task)
+                    _push_post_template(task)
                 return result
 
             ok, sync_msg = _ensure_task_models_on_cluster(task)
             if not ok:
                 return (False, f'集群模型预同步失败: {sync_msg}', False)
+
+            if task.task_type == 'realtime' and _camera_source_mode() == 'shared':
+                source_ok, source_message = ensure_camera_source_manager()
+                if not source_ok and not _camera_source_fallback_direct_enabled():
+                    return (False, f'共享源流服务启动失败: {source_message}', False)
+                if not source_ok:
+                    logger.warning(
+                        '共享源流服务暂不可用，任务 %s 将降级独立拉流: %s',
+                        task_id,
+                        source_message,
+                    )
 
             # 检查是否已经有运行的守护进程（在清理之前检查，避免误杀正在运行的进程）
             should_cleanup = True
@@ -961,24 +1484,28 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
             # 启动守护进程（传入所有必要参数，不需要数据库连接）
             logger.info(f'启动守护进程，任务ID: {task_id}, 任务类型: {task.task_type}')
             extra_env = {}
+            if task.task_type == 'realtime':
+                extra_env.update(_camera_source_worker_env())
             _inject_sam_supplement_env(extra_env, task)
             _inject_realtime_sampling_env(extra_env, task)
 
             executor = (getattr(task, 'executor', None) or 'cpp').strip().lower()
             runtime_bin = None
             runtime_ini = None
+            runtime_inis = None
             if executor in ('cpp', 'c++', 'runtime', 'cxx'):
                 executor = 'cpp'
                 if task.task_type not in ('realtime', 'snap', 'patrol'):
                     return (False, f'executor=cpp 不支持任务类型: {task.task_type}', False)
                 try:
                     from .runtime_config_service import (
-                        generate_runtime_ini,
+                        generate_runtime_inis,
                         ensure_runtime_bin_ready,
                         runtime_library_path_env,
                     )
                     runtime_bin = ensure_runtime_bin_ready(task)
-                    runtime_ini = generate_runtime_ini(task, log_path)
+                    runtime_inis = generate_runtime_inis(task, log_path)
+                    runtime_ini = runtime_inis[0] if runtime_inis else None
                     lib_path = runtime_library_path_env()
                     if lib_path:
                         extra_env['LD_LIBRARY_PATH'] = lib_path
@@ -988,6 +1515,11 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
                         task.service_port = 8000 + (int(task_id) % 1000)
                     task.service_log_path = log_path
                     db.session.commit()
+                    logger.info(
+                        'cpp 任务 %s 生成 %s 路 RUNTIME 配置',
+                        task_id,
+                        len(runtime_inis or []),
+                    )
                 except Exception as e:
                     logger.error('生成 RUNTIME 配置失败: %s', e, exc_info=True)
                     return (False, f'生成 RUNTIME 配置失败: {e}', False)
@@ -1019,6 +1551,7 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
                     executor=executor,
                     runtime_bin=runtime_bin,
                     runtime_ini=runtime_ini,
+                    runtime_inis=runtime_inis,
                 )
                 _running_daemons[task_id] = daemon
 
@@ -1028,18 +1561,24 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
                     task_id,
                 )
             
-            # 等待守护进程启动并获取进程PID（最多等待2秒）
+            # 等待守护进程启动并获取进程PID（最多等待5秒；多路会错峰拉起）
             import time
             process_pid = None
-            for _ in range(20):  # 等待最多2秒（20 * 0.1秒）
+            for _ in range(50):  # 等待最多5秒（50 * 0.1秒）
                 time.sleep(0.1)
-                if daemon._process is not None:
+                managed = list(getattr(daemon, '_processes', None) or [])
+                if daemon._process is not None and daemon._process not in managed:
+                    managed.append(daemon._process)
+                alive = []
+                for mp in managed:
                     try:
-                        if daemon._process.poll() is None:
-                            process_pid = daemon._process.pid
-                            break
-                    except:
+                        if mp.poll() is None:
+                            alive.append(mp)
+                    except Exception:
                         pass
+                if alive:
+                    process_pid = alive[0].pid
+                    break
                 if not daemon._running:
                     # 守护进程已停止，退出等待
                     break
@@ -1059,6 +1598,7 @@ def start_task_services(task_id: int, task: AlgorithmTask) -> Tuple[bool, str, b
             }.get(task.task_type, task.task_type)
             logger.info(f"✅ 任务 {task_id} 的{task_type_name}服务启动成功（守护进程已启动）")
             _start_post_process_cluster(task)
+            _push_post_template(task)
             return (True, "启动成功", False)
         else:
             # 未知的任务类型
@@ -1166,16 +1706,34 @@ def _auto_start_all_tasks_internal():
 
 def recover_unhealthy_algorithm_tasks() -> int:
     """恢复已启用但进程已退出的算法任务，返回成功恢复数。"""
+    from app.services.algorithm_task_cluster_service import _task_is_enabled
+
     tasks = AlgorithmTask.query.filter_by(is_enabled=True).all()
     recovered = 0
     for task in tasks:
+        if not _task_is_enabled(task.id):
+            continue
         if _algorithm_task_service_healthy(task):
             continue
         try:
+            from app.services.algorithm_task_cluster_service import (
+                use_device_level_schedule,
+                migrate_unhealthy_algorithm_task,
+            )
+            if use_device_level_schedule(task):
+                migrated = migrate_unhealthy_algorithm_task(task.id)
+                if migrated and _task_is_enabled(task.id):
+                    recovered += 1
+                    logger.info('算法任务 %s 分片迁移恢复成功 migrated=%s', task.id, migrated)
+                    continue
+
             logger.info(
                 '算法任务 %s (%s) 服务未运行或心跳超时，尝试恢复',
                 task.id, task.task_name,
             )
+            if not _task_is_enabled(task.id):
+                logger.info('算法任务 %s 已停用，取消健康恢复', task.id)
+                continue
             success, msg, _ = start_task_services(task.id, task)
             if success:
                 recovered += 1

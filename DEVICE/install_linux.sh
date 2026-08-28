@@ -353,6 +353,15 @@ compose_up_detached() {
     _up_rc=$?
     cat "$_up_log"
 
+    # 媒体 bind 源异常（/mnt/easyaiot-media 误建为文件等）→ 修复后重试一次
+    if [ "$_up_rc" -ne 0 ] && repair_media_bind_after_compose_error "$(cat "$_up_log")"; then
+        print_warning "媒体挂载源已修复（EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}），重试 DEVICE 启动..."
+        : > "$_up_log"
+        COMPOSE_ANSI=never device_compose up -d --no-color --remove-orphans "${up_targets[@]}" > "$_up_log" 2>&1
+        _up_rc=$?
+        cat "$_up_log"
+    fi
+
     # rootless runc /dev/null 间歇性错误 → 退避重试
     for _retry in 1 2 3; do
         [ "$_up_rc" -eq 0 ] && break
@@ -415,6 +424,14 @@ _repair_created_iot_containers() {
         COMPOSE_ANSI=never device_compose up -d --no-color "$_svc_name" > "$_up_log" 2>&1
         _up_rc=$?
         cat "$_up_log"
+
+        if [ "$_up_rc" -ne 0 ] && repair_media_bind_after_compose_error "$(cat "$_up_log")"; then
+            print_warning "媒体挂载源已修复，重试重建 $_n ..."
+            : > "$_up_log"
+            COMPOSE_ANSI=never device_compose up -d --no-color "$_svc_name" > "$_up_log" 2>&1
+            _up_rc=$?
+            cat "$_up_log"
+        fi
 
         # 对 OCI /dev/null 错误退避重试
         for _retry in 1 2 3; do
@@ -778,7 +795,7 @@ _normalize_build_ownership() {
         return 0
     fi
     print_warning "Maven 产物目录不可写（常见原因：Docker userns-remap 写成 nobody 属主），正在修复..."
-    chown -R "${uid}:${gid}" "$SCRIPT_DIR"/*/target "$JARS_DIR" 2>/dev/null || true
+    chown -R "${uid}:${gid}" "$SCRIPT_DIR"/*/target "$SCRIPT_DIR"/iot-node/*/target "$JARS_DIR" 2>/dev/null || true
     if touch "$probe" 2>/dev/null; then
         rm -f "$probe"
         return 0
@@ -848,14 +865,17 @@ ensure_mvnd_image() {
 # 确保常驻 builder 容器在运行（卷挂载源码 + m2 + settings）。失败返回非 0 → 调用方回退 C1。
 ensure_mvnd_builder() {
     ensure_mvnd_image || return 1
-    # 已在运行
+    # 已在运行：若仍是旧版双挂载（/NODE+/DEVICE），重建为仅 /build
     if [ "$(docker inspect -f '{{.State.Running}}' "$MVND_CONTAINER" 2>/dev/null)" = "true" ]; then
-        return 0
+        if docker exec "$MVND_CONTAINER" test -f /build/iot-node/pom.xml 2>/dev/null \
+            && ! docker exec "$MVND_CONTAINER" test -d /NODE 2>/dev/null; then
+            return 0
+        fi
+        print_info "mvnd builder 挂载布局已过时，重建容器..."
+        docker rm -f "$MVND_CONTAINER" >/dev/null 2>&1 || true
     fi
-    # 存在但已停止 → 启动
+    # 存在但已停止 → 删除重建（避免沿用旧挂载）
     if docker inspect "$MVND_CONTAINER" >/dev/null 2>&1; then
-        docker start "$MVND_CONTAINER" >/dev/null 2>&1 && return 0
-        # 启动失败（卷/配置可能变化）→ 删除重建
         docker rm -f "$MVND_CONTAINER" >/dev/null 2>&1 || true
     fi
     print_info "启动常驻 mvnd builder 容器 $MVND_CONTAINER ..."
@@ -1294,11 +1314,22 @@ start_services() {
     ensure_platform_agent_after_device_stack
 }
 
+# stop/clean 用的 down：必须带上 compose profile。
+# iot-tdengine 声明了 profiles: [tdengine]，裸 docker compose down 不会停止/删除该容器。
+# 无论当前部署形态是否 full，down 时都启用 tdengine profile，避免从 full 切走后残留。
+device_compose_down() {
+    refresh_device_compose_profile_args
+    if [[ ! " ${DEVICE_COMPOSE_PROFILE_ARGS[*]} " =~ [[:space:]]tdengine[[:space:]] ]]; then
+        DEVICE_COMPOSE_PROFILE_ARGS+=(--profile tdengine)
+    fi
+    device_compose down "$@"
+}
+
 # 停止所有服务
 stop_services() {
     print_info "停止所有服务..."
     cd "$SCRIPT_DIR"
-    $DOCKER_COMPOSE down
+    device_compose_down
     print_success "服务已停止"
 }
 
@@ -1444,7 +1475,7 @@ clean() {
         done
     fi
     cd "$SCRIPT_DIR"
-    $DOCKER_COMPOSE down
+    device_compose_down
     print_success "容器清理完成"
 
     print_info "清理各模块 target 目录下的 .jar 包..."
@@ -1509,7 +1540,7 @@ clean_all() {
         done
     fi
     cd "$SCRIPT_DIR"
-    $DOCKER_COMPOSE down --rmi all
+    device_compose_down --rmi all
     stop_mvnd_builder
     print_success "完全清理完成"
 }

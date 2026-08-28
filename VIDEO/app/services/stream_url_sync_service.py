@@ -166,10 +166,17 @@ def resolve_device_stream_urls(device: Device) -> Tuple[str, str, str, str]:
 
     deployment = _find_stream_forward_deployment(device_id)
     if deployment:
-        host = str(deployment.get('host') or '').strip()
+        # 边缘接入任务在边缘节点拉流，但发布目标可能是控制面 SRS。
+        # 播放地址必须跟随 publish_host，不能回退为仅边缘网可达的执行节点地址。
+        host = str(deployment.get('publish_host') or deployment.get('host') or '').strip()
         node_id = deployment.get('node_id')
         tags = None
-        if node_id:
+        if deployment.get('publish_host'):
+            tags = {
+                'srs_rtmp_port': os.getenv('CONTROL_PLANE_SRS_RTMP_PORT', '1935'),
+                'srs_http_port': os.getenv('CONTROL_PLANE_SRS_HTTP_PORT', '8080'),
+            }
+        if node_id and not deployment.get('publish_host'):
             try:
                 from app.utils import node_client
                 node = node_client.get_node(int(node_id))
@@ -194,6 +201,7 @@ def sync_device_stream_urls(
     *,
     deploy_host: str,
     node_id: Optional[int] = None,
+    tags_override: Optional[Dict[str, Any]] = None,
     commit: bool = True,
 ) -> int:
     """将设备流地址同步到指定推流/媒体节点（写库）。"""
@@ -201,8 +209,8 @@ def sync_device_stream_urls(
     if not host:
         return 0
 
-    tags = None
-    if node_id:
+    tags = tags_override
+    if node_id and tags is None:
         try:
             from app.utils import node_client
             node = node_client.get_node(int(node_id))
@@ -221,7 +229,7 @@ def sync_device_stream_urls(
                 is_media_pool_enabled,
                 stream_urls_from_binding,
             )
-            if is_media_pool_enabled():
+            if is_media_pool_enabled() and tags_override is None:
                 binding = allocate_device_media(device_id)
                 rtmp, http, ai_rtmp, ai_http = stream_urls_from_binding(binding)
             else:
@@ -264,9 +272,19 @@ def sync_devices_for_deployment(deployment: Dict[str, Any], *, commit: bool = Tr
     device_ids = list(deployment.get('device_ids') or [])
     if not device_ids:
         return 0
+    publish_host = str(deployment.get('publish_host') or '').strip()
+    is_control_plane_publish = bool(publish_host)
     return sync_device_stream_urls(
         device_ids,
-        deploy_host=str(deployment.get('host') or ''),
-        node_id=deployment.get('node_id'),
+        deploy_host=publish_host or str(deployment.get('host') or ''),
+        node_id=None if is_control_plane_publish else deployment.get('node_id'),
+        tags_override=(
+            {
+                'srs_rtmp_port': os.getenv('CONTROL_PLANE_SRS_RTMP_PORT', '1935'),
+                'srs_http_port': os.getenv('CONTROL_PLANE_SRS_HTTP_PORT', '8080'),
+            }
+            if is_control_plane_publish
+            else None
+        ),
         commit=commit,
     )

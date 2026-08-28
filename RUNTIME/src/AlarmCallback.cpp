@@ -84,6 +84,7 @@ std::string AlarmCallback::buildVideoJsonBody(
     root["device_id"] = ctx.deviceId;
     root["device_name"] = ctx.deviceName.empty() ? ctx.deviceId : ctx.deviceName;
     root["task_type"] = ctx.taskType.empty() ? "realtime" : ctx.taskType;
+    root["task_id"] = ctx.taskId;
     root["correlation_id"] = ctx.taskId + "_" + timestamp;
     root["time"] = timestamp;
     root["image_path"] = imagePath;
@@ -99,6 +100,7 @@ std::string AlarmCallback::buildVideoJsonBody(
         detection["class_name"] = det.class_name;
         detection["confidence"] = det.class_score;
         detection["class_id"] = det.class_id;
+        detection["model_id"] = det.model_id;
         Json::Value bbox(Json::arrayValue);
         bbox.append(static_cast<int>(det.x1));
         bbox.append(static_cast<int>(det.y1));
@@ -191,6 +193,30 @@ bool AlarmCallback::sendVideoAlert(
         return false;
     }
     LOG(INFO) << "[OK] VIDEO alert hook accepted";
+    return true;
+}
+
+bool AlarmCallback::sendVideoAlertJson(const std::string& jsonBody) {
+    if (!client_) {
+        LOG(ERROR) << "[ERROR] HTTP client not initialized";
+        return false;
+    }
+    if (jsonBody.empty()) {
+        return true;
+    }
+
+    httplib::Headers headers = {{"Content-Type", "application/json"}};
+    auto res = client_->Post(path_.c_str(), headers, jsonBody, "application/json");
+    if (!res) {
+        LOG(ERROR) << "[ERROR] HTTP request failed: " << httplib::to_string(res.error());
+        return false;
+    }
+    if (res->status != 200) {
+        LOG(ERROR) << "[ERROR] HTTP response error: status=" << res->status
+                   << ", body=" << res->body;
+        return false;
+    }
+    LOG(INFO) << "[OK] VIDEO hook JSON accepted";
     return true;
 }
 

@@ -2,6 +2,7 @@
 @author reese
 @email reese
 """
+import json
 from datetime import datetime, timezone, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
@@ -72,6 +73,12 @@ class Device(db.Model):
     support_zoom = db.Column(db.Boolean, nullable=True)
     nvr_id = db.Column(db.Integer, db.ForeignKey('nvr.id', ondelete='SET NULL'), nullable=True)
     nvr_channel = db.Column(db.SmallInteger, nullable=False, default=0, comment='NVR 通道号，0 表示非 NVR 挂载')
+    ingress_node_id = db.Column(
+        db.BigInteger,
+        nullable=True,
+        index=True,
+        comment='摄像头接入 compute_node.id；NULL 表示主节点本机接入',
+    )
     rtsp_direct = db.Column(db.Text, nullable=True, comment='摄像头直连 RTSP（经 NVR 枚举时 rtsp_direct）')
     channel_online = db.Column(db.Boolean, nullable=True, comment='NVR 通道在线状态')
     connection_status = db.Column(db.String(100), nullable=True, comment='NVR 通道连接状态/探测备注')
@@ -359,6 +366,12 @@ class Nvr(db.Model):
     source = db.Column(db.String(32), nullable=True, comment='探测来源 isapi/dahua_cgi 等')
     rtsp_template = db.Column(db.Text, nullable=True, comment='自定义 RTSP 路径模板')
     rtsp_port = db.Column(db.SmallInteger, nullable=True, comment='RTSP 端口，默认 554')
+    ingress_node_id = db.Column(
+        db.BigInteger,
+        nullable=True,
+        index=True,
+        comment='NVR 接入 compute_node.id；NULL 表示主节点本机接入',
+    )
     created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow())
     updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
 
@@ -382,6 +395,8 @@ class Alert(db.Model):
     image_path = db.Column(db.String(500), nullable=True, comment='本地图片路径（算法落盘）')
     image_url = db.Column(db.String(500), nullable=True, comment='MinIO 下载路径（/api/v1/buckets/.../objects/download?prefix=...）')
     record_path = db.Column(db.String(500), nullable=True, comment='告警录像 MinIO 下载路径（/api/v1/buckets/.../objects/download?prefix=...），非宿主机 /data/playbacks 路径')
+    image_asset_id = db.Column(db.String(36), nullable=True, index=True, comment='统一媒体资产ID（事件图片）')
+    record_asset_id = db.Column(db.String(36), nullable=True, index=True, comment='统一媒体资产ID（事件片段）')
     task_type = db.Column(db.String(20), nullable=True, comment='告警事件类型[realtime:实时算法任务,snap:抓拍算法任务]')
     task_id = db.Column(db.Integer, nullable=True, comment='关联的任务ID')
     task_name = db.Column(db.String(255), nullable=True, comment='关联的任务名称')
@@ -391,7 +406,7 @@ class Alert(db.Model):
     notification_sent = db.Column(db.Boolean, default=False, nullable=False, comment='是否已发送通知')
     notification_sent_time = db.Column(db.DateTime, nullable=True, comment='通知发送时间')
     business_tags = db.Column(db.Text, nullable=True, comment='业务标签（JSON数组，库匹配告警携带匹配库标签）')
-    correlation_id = db.Column(db.String(36), nullable=True, index=True, comment='关联事件ID（同一帧算法告警/人脸/车牌）')
+    correlation_id = db.Column(db.String(36), nullable=True, unique=True, comment='关联事件ID（同一帧算法告警/人脸/车牌，告警表内唯一）')
     # 边缘节点维度（区分多 EDGE 集群数据）
     edge_node_id = db.Column(db.BigInteger, nullable=True, index=True, comment='边缘节点 edge_node.id')
     edge_node_name = db.Column(db.String(128), nullable=True, comment='边缘节点名称（冗余）')
@@ -525,6 +540,116 @@ class SpaceGroupSavePolicy(db.Model):
     )
 
 
+class DeviceRecordingPolicy(db.Model):
+    """设备录像策略；物理存储位置继承接入节点的 recording_storage_mode。"""
+    __tablename__ = 'device_recording_policy'
+
+    id = db.Column(db.BigInteger().with_variant(db.Integer, 'sqlite'), primary_key=True, autoincrement=True)
+    device_id = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    recording_mode = db.Column(db.String(20), nullable=False, default='continuous')
+    retention_hours = db.Column(db.Integer, nullable=False, default=168)
+    event_pre_seconds = db.Column(db.Integer, nullable=False, default=10)
+    event_post_seconds = db.Column(db.Integer, nullable=False, default=20)
+    event_image_sync = db.Column(db.Boolean, nullable=False, default=True)
+    event_clip_sync = db.Column(db.Boolean, nullable=False, default=True)
+    live_transport_mode = db.Column(db.String(20), nullable=False, default='always_push')
+    playback_route_mode = db.Column(db.String(20), nullable=False, default='auto')
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'recording_mode': self.recording_mode,
+            'retention_hours': self.retention_hours,
+            'event_pre_seconds': self.event_pre_seconds,
+            'event_post_seconds': self.event_post_seconds,
+            'event_image_sync': self.event_image_sync,
+            'event_clip_sync': self.event_clip_sync,
+            'live_transport_mode': self.live_transport_mode,
+            'playback_route_mode': self.playback_route_mode,
+            'created_at': utc_isoformat_z(self.created_at),
+            'updated_at': utc_isoformat_z(self.updated_at),
+        }
+
+
+class MediaAsset(db.Model):
+    """跨中心/边缘统一媒体资产索引；浏览器只能使用资产 ID，不能接触服务器绝对路径。"""
+    __tablename__ = 'media_asset'
+
+    id = db.Column(db.String(36), primary_key=True)
+    asset_type = db.Column(db.String(32), nullable=False, index=True)
+    device_id = db.Column(db.String(100), nullable=False, index=True)
+    alert_id = db.Column(db.BigInteger, nullable=True, index=True)
+    task_id = db.Column(db.BigInteger, nullable=True, index=True)
+    source_node_id = db.Column(db.BigInteger, nullable=True, index=True)
+    storage_node_id = db.Column(db.BigInteger, nullable=True, index=True)
+    storage_generation = db.Column(db.BigInteger, nullable=False, default=1)
+    storage_scope = db.Column(db.String(16), nullable=False)
+    storage_backend = db.Column(db.String(16), nullable=False)
+    bucket_name = db.Column(db.String(255), nullable=True)
+    object_key = db.Column(db.String(500), nullable=False)
+    status = db.Column(db.String(16), nullable=False, default='pending', index=True)
+    start_time = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
+    end_time = db.Column(db.DateTime(timezone=True), nullable=True)
+    duration_ms = db.Column(db.BigInteger, nullable=True)
+    file_size = db.Column(db.BigInteger, nullable=True)
+    content_type = db.Column(db.String(100), nullable=False, default='application/octet-stream')
+    etag = db.Column(db.String(128), nullable=True)
+    checksum = db.Column(db.String(128), nullable=True)
+    retry_count = db.Column(db.Integer, nullable=False, default=0)
+    last_error = db.Column(db.Text, nullable=True)
+    expires_at = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint('bucket_name', 'object_key', name='uq_media_asset_bucket_object'),
+        db.Index('ix_media_asset_device_time', 'device_id', 'start_time', 'end_time'),
+        db.Index('ix_media_asset_alert_type', 'alert_id', 'asset_type'),
+        db.Index('ix_media_asset_source_status', 'source_node_id', 'status'),
+        db.Index('ix_media_asset_storage_time', 'storage_node_id', 'start_time'),
+        db.Index('ix_media_asset_expiry_status', 'expires_at', 'status'),
+    )
+
+    def to_dict(self):
+        return {
+            'asset_id': self.id,
+            'asset_type': self.asset_type,
+            'device_id': self.device_id,
+            'alert_id': self.alert_id,
+            'task_id': self.task_id,
+            'source_node_id': self.source_node_id,
+            'storage_node_id': self.storage_node_id,
+            'storage_generation': self.storage_generation,
+            'storage_scope': self.storage_scope,
+            'storage_backend': self.storage_backend,
+            'status': self.status,
+            'start_time': utc_isoformat_z(self.start_time),
+            'end_time': utc_isoformat_z(self.end_time),
+            'duration_ms': self.duration_ms,
+            'file_size': self.file_size,
+            'content_type': self.content_type,
+            'etag': self.etag,
+            'checksum': self.checksum,
+            'retry_count': self.retry_count,
+            'last_error': self.last_error,
+            'expires_at': utc_isoformat_z(self.expires_at),
+            'play_url': f'/video/media/assets/{self.id}/content',
+            'created_at': utc_isoformat_z(self.created_at),
+            'updated_at': utc_isoformat_z(self.updated_at),
+        }
+
+
 class RecordFile(db.Model):
     """录像空间文件元数据表（MinIO 实体 + DB 索引，列表查询走数据库分页）"""
     __tablename__ = 'record_file'
@@ -533,6 +658,7 @@ class RecordFile(db.Model):
     tenant_id = db.Column(db.BigInteger, nullable=False, index=True, comment='所属租户ID')
     space_id = db.Column(db.Integer, nullable=False, index=True)
     device_id = db.Column(db.String(100), nullable=False, index=True, comment='设备ID')
+    task_id = db.Column(db.Integer, nullable=True, index=True, comment='算法任务ID，原始流录像为空')
     object_name = db.Column(db.String(500), nullable=False, comment='MinIO 对象路径')
     bucket_name = db.Column(db.String(255), nullable=False, comment='MinIO bucket')
     filename = db.Column(db.String(255), nullable=False, comment='文件名')
@@ -541,9 +667,10 @@ class RecordFile(db.Model):
     etag = db.Column(db.String(128), nullable=True, comment='MinIO ETag')
     url = db.Column(db.String(500), nullable=False, comment='MinIO 下载地址')
     thumbnail_url = db.Column(db.String(500), nullable=True, comment='封面下载地址')
-    duration = db.Column(db.SmallInteger, nullable=True, comment='时长（秒）')
+    duration = db.Column(db.Integer, nullable=True, comment='时长（秒）')
     event_time = db.Column(db.DateTime, nullable=False, index=True, comment='录像时间（排序字段）')
     source = db.Column(db.String(50), default='dvr', nullable=False, comment='来源[dvr|manual]')
+    asset_id = db.Column(db.String(36), nullable=True, unique=True, index=True, comment='统一媒体资产ID')
     created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow())
     updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
 
@@ -584,6 +711,7 @@ class RecordFile(db.Model):
             'tenant_id': self.tenant_id,
             'object_name': self.object_name,
             'filename': self.filename,
+            'task_id': self.task_id,
             'size': self.file_size or 0,
             'last_modified': self.event_time.isoformat() if self.event_time else None,
             'etag': self.etag or '',
@@ -1130,6 +1258,11 @@ class AlgorithmTask(db.Model):
                            comment='自动调度时是否优先 GPU 节点')
     target_node_id = db.Column(db.BigInteger, nullable=True, comment='指定部署节点ID')
     node_id = db.Column(db.BigInteger, nullable=True, comment='实际运行节点ID')
+    device_deployments = db.Column(
+        db.Text,
+        nullable=True,
+        comment='设备级远程/分片部署明细 JSON：[{device_ids,node_id,host,workload_id,pid,local}]',
+    )
 
     # 执行后端：python=现有 run_deploy；cpp=RUNTIME 二进制（realtime/snap/patrol，本机）
     executor = db.Column(db.String(20), default='cpp', nullable=False,
@@ -1179,7 +1312,9 @@ class AlgorithmTask(db.Model):
     post_process_enabled = db.Column(db.Boolean, default=False, nullable=False, comment='是否启用 AI 后处理脚本')
     post_process_script = db.Column(db.String(255), nullable=True, comment='后处理脚本文件名，默认 post_process.py')
     post_process_replicas = db.Column(db.Integer, default=1, nullable=False, comment='后处理 Worker 副本数（集群水平扩展）')
-    
+    # POST 定制后处理流水线 JSON（NULL = 默认 region_gate → default_pass）
+    post_pipeline = db.Column(db.Text, nullable=True, comment='POST 定制后处理 pipeline JSON')
+
     # 布防时段配置
     defense_mode = db.Column(db.String(20), default='half', nullable=False, comment='布防模式[full:全防模式,half:半防模式,day:白天模式,night:夜间模式]')
     defense_schedule = db.Column(db.Text, nullable=True, comment='布防时段配置（JSON格式，7天×24小时的二维数组）')
@@ -1208,6 +1343,17 @@ class AlgorithmTask(db.Model):
     def _parse_alert_class_names(self):
         from app.utils.alert_class_filter import parse_alert_class_names
         return parse_alert_class_names(self.alert_class_names)
+
+    def _parse_device_deployments(self):
+        import json
+        raw = getattr(self, 'device_deployments', None)
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            return data if isinstance(data, list) else []
+        except Exception:
+            return []
 
     @staticmethod
     def _parse_library_ids(raw) -> list:
@@ -1318,6 +1464,7 @@ class AlgorithmTask(db.Model):
             'prefer_gpu': self.prefer_gpu if self.prefer_gpu is not None else True,
             'target_node_id': self.target_node_id,
             'node_id': self.node_id,
+            'device_deployments': self._parse_device_deployments(),
             'executor': getattr(self, 'executor', None) or 'cpp',
             'runtime_bin_path': getattr(self, 'runtime_bin_path', None),
             'runtime_control_port': getattr(self, 'runtime_control_port', None),
@@ -1344,9 +1491,64 @@ class AlgorithmTask(db.Model):
             'post_process_enabled': bool(self.post_process_enabled),
             'post_process_script': self.post_process_script,
             'post_process_replicas': int(self.post_process_replicas or 1),
+            'post_pipeline': self._parse_post_pipeline(),
             'created_at': utc_isoformat_z(self.created_at),
             'updated_at': utc_isoformat_z(self.updated_at)
         }
+
+    def _parse_post_pipeline(self):
+        raw = getattr(self, 'post_pipeline', None)
+        if not raw:
+            return None
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+            return data if isinstance(data, list) else None
+        except Exception:
+            return None
+
+
+class AlgorithmTaskStreamRuntime(db.Model):
+    """算法任务在单个摄像头上的实际运行状态。"""
+    __tablename__ = 'algorithm_task_stream_runtime'
+
+    task_id = db.Column(db.Integer, primary_key=True, nullable=False, comment='算法任务ID')
+    device_id = db.Column(db.String(100), primary_key=True, nullable=False, comment='设备ID')
+    node_id = db.Column(db.BigInteger, nullable=True, comment='运行节点ID')
+    stream_key = db.Column(db.String(255), nullable=False, comment='任务级 SRS stream key')
+    source_mode = db.Column(db.String(20), nullable=False, default='pending', comment='实际源流模式')
+    status = db.Column(db.String(20), nullable=False, default='starting', comment='任务设备运行状态')
+    last_frame_time = db.Column(db.DateTime(timezone=True), nullable=True, comment='最后读取帧时间')
+    last_detection_time = db.Column(db.DateTime(timezone=True), nullable=True, comment='最后推理时间')
+    last_alert_time = db.Column(db.DateTime(timezone=True), nullable=True, comment='最后告警时间')
+    error_message = db.Column(db.String(500), nullable=True, comment='最近错误信息')
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
+
+    def to_dict(self):
+        return {
+            'task_id': self.task_id,
+            'device_id': self.device_id,
+            'node_id': self.node_id,
+            'stream_key': self.stream_key,
+            'source_mode': self.source_mode,
+            'status': self.status,
+            'last_frame_time': utc_isoformat_z(self.last_frame_time),
+            'last_detection_time': utc_isoformat_z(self.last_detection_time),
+            'last_alert_time': utc_isoformat_z(self.last_alert_time),
+            'error_message': self.error_message,
+            'updated_at': utc_isoformat_z(self.updated_at),
+        }
+
+
+class AlgorithmTaskNotificationState(db.Model):
+    """任务、设备、通知渠道维度的通知抑制状态。"""
+    __tablename__ = 'algorithm_task_notification_state'
+
+    task_id = db.Column(db.Integer, primary_key=True, nullable=False, comment='算法任务ID')
+    device_id = db.Column(db.String(100), primary_key=True, nullable=False, comment='设备ID')
+    channel_key = db.Column(db.String(255), primary_key=True, nullable=False, comment='通知渠道稳定键')
+    last_notify_time = db.Column(db.DateTime, nullable=True, comment='最后通知时间')
+    last_event_id = db.Column(db.String(36), nullable=True, comment='最后通知事件ID')
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
 
 
 class AlgorithmPostProcessResult(db.Model):
@@ -1387,6 +1589,79 @@ class AlgorithmPostProcessResult(db.Model):
             'payload': json.loads(self.payload) if self.payload else None,
             'correlation_id': self.correlation_id,
             'created_at': utc_isoformat_z(self.created_at),
+        }
+
+
+class PostPlugin(db.Model):
+    """POST 外置插件登记（Manifest；无市场包仓）。"""
+    __tablename__ = 'post_plugin'
+
+    id = db.Column(db.String(128), primary_key=True, comment='插件 id，如 acme.echo')
+    name = db.Column(db.String(256), nullable=False, comment='显示名')
+    latest_version = db.Column(db.String(32), nullable=True, comment='当前版本')
+    runtime = db.Column(db.String(16), nullable=False, default='http', comment='builtin|http|grpc|script')
+    enabled = db.Column(db.Boolean, default=True, nullable=False)
+    manifest_json = db.Column(db.Text, nullable=False, comment='plugin.json 全文')
+    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow())
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
+
+    def to_dict(self, include_service: bool = True):
+        import json
+        manifest = {}
+        try:
+            manifest = json.loads(self.manifest_json) if self.manifest_json else {}
+        except Exception:
+            manifest = {}
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'latest_version': self.latest_version,
+            'runtime': self.runtime,
+            'enabled': bool(self.enabled),
+            'manifest': manifest,
+            'created_at': utc_isoformat_z(self.created_at),
+            'updated_at': utc_isoformat_z(self.updated_at),
+        }
+        if include_service:
+            svc = PostPluginService.query.filter_by(
+                plugin_id=self.id, version=self.latest_version or ''
+            ).first()
+            if svc is None and self.latest_version:
+                svc = PostPluginService.query.filter_by(plugin_id=self.id).first()
+            data['service'] = svc.to_dict() if svc else None
+        return data
+
+
+class PostPluginService(db.Model):
+    """外置插件服务运行态。"""
+    __tablename__ = 'post_plugin_service'
+
+    plugin_id = db.Column(db.String(128), primary_key=True)
+    version = db.Column(db.String(32), primary_key=True, default='')
+    replicas = db.Column(db.Integer, default=1, nullable=False)
+    status = db.Column(db.String(32), default='stopped', nullable=False)
+    endpoint = db.Column(db.Text, nullable=True, comment='http://host:port')
+    deploy_mode = db.Column(db.String(16), default='endpoint', comment='endpoint|docker')
+    binding_json = db.Column(db.Text, nullable=True, comment='节点绑定 JSON')
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
+
+    def to_dict(self):
+        import json
+        binding = None
+        if self.binding_json:
+            try:
+                binding = json.loads(self.binding_json)
+            except Exception:
+                binding = self.binding_json
+        return {
+            'plugin_id': self.plugin_id,
+            'version': self.version,
+            'replicas': int(self.replicas or 1),
+            'status': self.status,
+            'endpoint': self.endpoint,
+            'deploy_mode': self.deploy_mode or 'endpoint',
+            'binding': binding,
+            'updated_at': utc_isoformat_z(self.updated_at),
         }
 
 
@@ -2132,10 +2407,11 @@ class RegionModelService(db.Model):
 
 
 class DeviceDetectionRegion(db.Model):
-    """设备检测区域表（独立于算法任务的区域检测配置）"""
+    """设备检测区域表（按算法任务 + 设备隔离的区域检测配置）"""
     __tablename__ = 'device_detection_region'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('algorithm_task.id', ondelete='CASCADE'), nullable=True, comment='算法任务ID')
     device_id = db.Column(db.String(100), db.ForeignKey('device.id', ondelete='CASCADE'), nullable=False, comment='设备ID')
     region_name = db.Column(db.String(255), nullable=False, comment='区域名称')
     region_type = db.Column(db.String(50), default='polygon', nullable=False, comment='区域类型[polygon:多边形,line:线条]')
@@ -2172,8 +2448,9 @@ class DeviceDetectionRegion(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow())
     updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
     
-    # 关联关系
-    device = db.relationship('Device', backref='detection_regions', lazy=True)
+    # 关联关系（backref 勿用 detection_regions，AlgorithmTask 已占用该名指向旧 DetectionRegion 表）
+    task = db.relationship('AlgorithmTask', backref='device_detection_regions', lazy=True)
+    device = db.relationship('Device', backref='device_detection_regions', lazy=True)
     image = db.relationship('Image', backref='device_detection_regions', lazy=True)
     
     def to_dict(self):
@@ -2194,6 +2471,7 @@ class DeviceDetectionRegion(db.Model):
         
         return {
             'id': self.id,
+            'task_id': self.task_id,
             'device_id': self.device_id,
             'region_name': self.region_name,
             'region_type': self.region_type,
@@ -2271,6 +2549,7 @@ class Playback(db.Model):
     file_path = db.Column(db.String(500), nullable=False)  # 文件路径
     event_time = db.Column(db.DateTime(timezone=True), nullable=False)  # 录制发生时间
     device_id = db.Column(db.String(100), nullable=False)  # 设备id（与 device.id 一致）
+    task_id = db.Column(db.Integer, nullable=True, index=True, comment='算法任务ID，原始流录像为空')
     device_name = db.Column(db.String(100), nullable=False)  # 设备名称
     duration = db.Column(db.SmallInteger(), nullable=False)  # 时长/秒
     thumbnail_path = db.Column(db.String(500), nullable=True)  # 封面图路径
@@ -2294,6 +2573,7 @@ class Playback(db.Model):
             'video_url': resolve_playback_display_url(file_path),
             'event_time': self.event_time.isoformat() if self.event_time else None,
             'device_id': self.device_id,
+            'task_id': self.task_id,
             'device_name': self.device_name,
             'duration': self.duration,
             'thumbnail_path': self.thumbnail_path,
@@ -2366,6 +2646,12 @@ class StreamForwardTask(db.Model):
     executor = db.Column(db.String(20), default='cpp', nullable=False,
                          comment='执行后端[cpp:RUNTIME forward,python:FFmpeg]')
     runtime_bin_path = db.Column(db.String(500), nullable=True, comment='自定义 RUNTIME 二进制路径')
+    publish_scope = db.Column(
+        db.String(20),
+        default='node',
+        nullable=False,
+        comment='推流落点[node:运行节点本机,control_plane:控制面媒体服务]',
+    )
     
     # 统计信息
     total_streams = db.Column(db.Integer, default=0, nullable=False, comment='总推流数')
@@ -2421,6 +2707,7 @@ class StreamForwardTask(db.Model):
             'node_id': self.node_id,
             'executor': getattr(self, 'executor', None) or 'cpp',
             'runtime_bin_path': getattr(self, 'runtime_bin_path', None),
+            'publish_scope': getattr(self, 'publish_scope', None) or 'node',
             'device_deployments': self._parse_device_deployments(),
             'total_streams': self.total_streams,
             'last_process_time': utc_isoformat_z(self.last_process_time),
@@ -2523,6 +2810,29 @@ class PatrolSession(db.Model):
         }
 
 
+class AiModel(db.Model):
+    """edge 形态模型注册表（与 AI 模块 model 表结构对齐，存于 VIDEO 库）。"""
+    __tablename__ = 'model'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    model_path = db.Column(db.String(500), nullable=True)
+    image_url = db.Column(db.String(500))
+    version = db.Column(db.String(20), default='1.0.0')
+    status = db.Column(db.Integer, default=0, nullable=False)
+    class_names = db.Column(db.Text, nullable=True)
+    selected_class_names = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow())
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.utcnow(), onupdate=lambda: datetime.utcnow())
+    onnx_model_path = db.Column(db.String(500))
+    torchscript_model_path = db.Column(db.String(500))
+    tensorrt_model_path = db.Column(db.String(500))
+    openvino_model_path = db.Column(db.String(500))
+    model_origin = db.Column(db.String(32), default='upload', nullable=True)
+    origin_ref = db.Column(db.String(128), nullable=True)
+
+
 def ensure_algorithm_task_sam_columns(engine):
     """老库 algorithm_task 表补 SAM 补充识别列。"""
     import logging
@@ -2583,6 +2893,7 @@ def ensure_algorithm_task_post_process_columns(engine):
         'post_process_enabled': 'BOOLEAN DEFAULT FALSE',
         'post_process_script': 'VARCHAR(255)',
         'post_process_replicas': 'INTEGER DEFAULT 1',
+        'post_pipeline': 'TEXT',
     }
     try:
         inspector = inspect(engine)
@@ -2608,6 +2919,7 @@ def ensure_stream_forward_task_executor_columns(engine):
     columns = {
         'executor': "VARCHAR(20) DEFAULT 'cpp'",
         'runtime_bin_path': 'VARCHAR(500)',
+        'publish_scope': "VARCHAR(20) NOT NULL DEFAULT 'node'",
     }
     try:
         inspector = inspect(engine)
@@ -2622,6 +2934,83 @@ def ensure_stream_forward_task_executor_columns(engine):
             log.info('已为 stream_forward_task 表添加 %s 列', col)
     except Exception as e:
         log.warning('ensure_stream_forward_task_executor_columns: %s', e)
+
+
+def ensure_camera_ingress_columns(engine):
+    """老库补摄像头/NVR 接入节点字段；节点表位于 iot-node，不建立跨库外键。"""
+    import logging
+    from sqlalchemy import inspect, text
+
+    log = logging.getLogger(__name__)
+    for table_name in ('device', 'nvr'):
+        try:
+            inspector = inspect(engine)
+            if table_name not in inspector.get_table_names():
+                continue
+            col_names = {c['name'] for c in inspector.get_columns(table_name)}
+            if 'ingress_node_id' not in col_names:
+                with engine.begin() as conn:
+                    conn.execute(text(
+                        f'ALTER TABLE {table_name} ADD COLUMN ingress_node_id BIGINT'
+                    ))
+                    conn.execute(text(
+                        f'CREATE INDEX IF NOT EXISTS ix_{table_name}_ingress_node_id '
+                        f'ON {table_name} (ingress_node_id)'
+                    ))
+                log.info('已为 %s 表添加 ingress_node_id 列', table_name)
+        except Exception as e:
+            log.warning('ensure_camera_ingress_columns(%s): %s', table_name, e)
+
+
+def ensure_media_asset_compat_columns(engine):
+    """老库补统一媒体资产关联列；新策略/资产表由 db.create_all 幂等创建。"""
+    import logging
+    from sqlalchemy import inspect, text
+
+    log = logging.getLogger(__name__)
+    table_columns = {
+        'alert': {
+            'image_asset_id': 'VARCHAR(36)',
+            'record_asset_id': 'VARCHAR(36)',
+        },
+        'record_file': {
+            'asset_id': 'VARCHAR(36)',
+        },
+    }
+    try:
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+        for table_name, columns in table_columns.items():
+            if table_name not in existing_tables:
+                continue
+            inspected_columns = {c['name']: c for c in inspector.get_columns(table_name)}
+            existing_columns = set(inspected_columns)
+            with engine.begin() as conn:
+                for column_name, ddl in columns.items():
+                    if column_name not in existing_columns:
+                        conn.execute(text(
+                            f'ALTER TABLE {table_name} ADD COLUMN {column_name} {ddl}'
+                        ))
+                        log.info('已为 %s 表添加 %s 列', table_name, column_name)
+                if table_name == 'alert':
+                    conn.execute(text(
+                        'CREATE INDEX IF NOT EXISTS ix_alert_image_asset_id ON alert (image_asset_id)'
+                    ))
+                    conn.execute(text(
+                        'CREATE INDEX IF NOT EXISTS ix_alert_record_asset_id ON alert (record_asset_id)'
+                    ))
+                elif table_name == 'record_file':
+                    duration_type = str(inspected_columns.get('duration', {}).get('type', '')).upper()
+                    if engine.dialect.name == 'postgresql' and duration_type in ('SMALLINT', 'SMALL INTEGER'):
+                        conn.execute(text(
+                            'ALTER TABLE record_file ALTER COLUMN duration TYPE INTEGER'
+                        ))
+                    conn.execute(text(
+                        'CREATE UNIQUE INDEX IF NOT EXISTS ux_record_file_asset_id '
+                        'ON record_file (asset_id) WHERE asset_id IS NOT NULL'
+                    ))
+    except Exception as e:
+        log.warning('ensure_media_asset_compat_columns: %s', e)
 
 
 def ensure_algorithm_task_executor_columns(engine):

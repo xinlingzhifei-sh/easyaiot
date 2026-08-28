@@ -2,15 +2,28 @@
 # yFeiEye 部署形态配置
 #
 # EASYAIOT_DEPLOY_PROFILE 取值（默认 full）：
-#   mini     | 1  — 边缘精简版，推荐宿主机内存 ≥ 4 GB（事件面统一 Gateway→iot-sink）
+#   edge     | 0  — 边缘部署（交互选型后再选 standalone / integrated；
+#                   环境变量指定 edge 时默认 standalone，便于快速开始）
+#   mini     | 1  — 边缘精简版，推荐宿主机内存 ≥ 4 GB
 #   standard | 2  — 标准版，推荐宿主机内存 ≥ 16 GB
 #   full     | 3  — 完整版，推荐宿主机内存 ≥ 20 GB（默认）
 #
-# 各形态服务范围详见 print_deploy_profile_summary；内存占用分析见 analyze_deploy_memory.sh。
+# edge 子形态（EASYAIOT_EDGE_MORPHOLOGY）：
+#   standalone  — 纯边缘形态（汇聚面与算力同机）【快速开始默认】
+#   integrated  — 云边一体形态（本机仅算力，接入中心）
+#
+# 各形态能力说明见 print_deploy_profile_summary；内存占用分析见 analyze_deploy_memory.sh。
+
+# shellcheck source=edge_deploy_common.sh
+_EDGE_COMMON="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/edge_deploy_common.sh"
+# shellcheck disable=SC1090
+[ -f "$_EDGE_COMMON" ] && source "$_EDGE_COMMON"
+unset _EDGE_COMMON
 
 _resolve_deploy_profile_raw() {
     local p="${EASYAIOT_DEPLOY_PROFILE:-full}"
     case "$p" in
+        0|edge|pure-edge|standalone-edge) echo "edge" ;;
         1|mini|minimal|4g|4G) echo "mini" ;;
         2|standard|std|16g|16G) echo "standard" ;;
         3|full|complete|*) echo "full" ;;
@@ -40,6 +53,15 @@ apply_deploy_profile() {
     export EASYAIOT_DEPLOY_PROFILE
 
     case "$EASYAIOT_DEPLOY_PROFILE" in
+        edge)
+            export EASYAIOT_ENABLE_TDENGINE=0
+            # RUNTIME 告警走 HTTP → VIDEO，不依赖 MQTT/EMQX
+            export EASYAIOT_ENABLE_EMQX=0
+            export EASYAIOT_ENABLE_HARNESS=0
+            export EASYAIOT_ENABLE_IDEA=0
+            export EASYAIOT_ENABLE_PANEL=0
+            export EASYAIOT_ENABLE_MQTT_DEMO=0
+            ;;
         mini)
             export EASYAIOT_ENABLE_TDENGINE=0
             export EASYAIOT_ENABLE_EMQX=1
@@ -54,7 +76,12 @@ apply_deploy_profile() {
             ;;
     esac
 
-    EASYAIOT_MEDIA_ROOT="$(resolve_easyaiot_media_root 2>/dev/null || echo "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}")"
+    # 确保宿主机 bind 源是真实目录（误建成文件会导致 daemon: mkdir ... file exists）
+    if command -v ensure_easyaiot_media_bind_source >/dev/null 2>&1 || type ensure_easyaiot_media_bind_source >/dev/null 2>&1; then
+        EASYAIOT_MEDIA_ROOT="$(ensure_easyaiot_media_bind_source)"
+    else
+        EASYAIOT_MEDIA_ROOT="$(resolve_easyaiot_media_root 2>/dev/null || echo "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}")"
+    fi
     export EASYAIOT_MEDIA_ROOT
     if [ -z "${NFS_SERVER:-}" ]; then
         NFS_SERVER="$(resolve_nfs_server_from_mount)"
@@ -64,11 +91,12 @@ apply_deploy_profile() {
     sync_deploy_profile_to_modules
 }
 
-# docker compose --profile 参数（mini/standard/full 启用 EMQX；full 另启 TDengine）
+# docker compose --profile 参数（mini/standard/full 启用 EMQX；full 另启 TDengine；edge 无 profile）
 compose_profile_flags() {
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
         full) echo "--profile tdengine --profile emqx" ;;
         mini|standard) echo "--profile emqx" ;;
+        edge) echo "" ;;
         *) echo "" ;;
     esac
 }
@@ -77,6 +105,10 @@ compose_profile_flags() {
 middleware_skipped_services() {
     local -a skips=()
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+        edge)
+            # 仅保留 PostgreSQL / Redis / SRS；无 DEVICE → 无 Nacos/MinIO/EMQX/Kafka
+            skips+=(Milvus ZLMediaKit NodeRED FUXA TDengine TDengine-init Kafka MinIO Nacos)
+            ;;
         mini)
             skips+=(Milvus ZLMediaKit NodeRED FUXA TDengine TDengine-init)
             ;;
@@ -93,6 +125,10 @@ middleware_skipped_services() {
 device_skipped_services() {
     local -a skips=()
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+        edge)
+            # 零 DEVICE：全部跳过（模块级也会跳过；此处兜底）
+            skips+=(iot-gateway iot-system iot-infra iot-sink iot-device iot-dataset iot-node iot-visualize iot-file iot-message iot-gb28181 iot-tdengine)
+            ;;
         mini)
             skips+=(iot-device iot-dataset iot-node iot-visualize iot-file iot-message iot-gb28181 iot-tdengine)
             ;;
@@ -110,9 +146,33 @@ device_enabled_services() {
     echo ""
 }
 
-# mini 形态：精简模块集，但事件面与 standard/full 统一（Gateway→Nacos→iot-sink）
+# mini：精简 DEVICE/中间件，事件面仍为 Gateway→iot-sink
+# edge：与 mini 共享部分本地存储行为（见 is_local_storage_deploy_profile），但零 DEVICE
 is_mini_deploy_profile() {
-    [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "mini" ]
+    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+        mini) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+is_edge_deploy_profile() {
+    [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "edge" ]
+}
+
+# 本地存储热路径（告警图/录像不经 MinIO）：mini 与 edge
+is_local_storage_deploy_profile() {
+    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+        mini|edge) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# WEB 前端构建/镜像标签：edge 与 mini 共用裁剪菜单（VITE 仅识别 mini/standard/full）
+frontend_deploy_profile() {
+    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+        edge) echo "mini" ;;
+        *) echo "${EASYAIOT_DEPLOY_PROFILE:-full}" ;;
+    esac
 }
 
 # full 形态：含 TDengine / iot-sink 工业协议演示等完整能力
@@ -122,12 +182,36 @@ is_full_deploy_profile() {
 
 # 按部署形态判断业务模块是否启用
 #   APP / VISUALIZE / TRANSFORM — 仅 full 全量形态
+#   POST — 仅 standard / full（mini / edge 不部署定制后处理）
 #   PANEL — 源码/Docker 部署默认启用；安装包（deb/桌面端）本身即为 PANEL，
 #           由 systemd/二进制托管，部署时不应再拉 Docker PANEL（EASYAIOT_ENABLE_PANEL=0）。
 #           无源码 runtime 未显式开启时也默认跳过。
+#   IDEA — 社区贡献在线 IDE，mini/standard/full 均启用（EASYAIOT_ENABLE_IDEA=0 关闭）
+#   HARNESS — DeepSeek Harness AI Agent，mini/standard/full 均启用（EASYAIOT_ENABLE_HARNESS=0 关闭）
 module_enabled_for_deploy_profile() {
     case "$1" in
         APP|VISUALIZE|TRANSFORM) [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "full" ] ;;
+        POST)
+            case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
+                standard|full) return 0 ;;
+                *) return 1 ;;
+            esac
+            ;;
+        DEVICE)
+            # edge：零 DEVICE（无 gateway/system/sink）；告警/DVR 由 VIDEO 本地消化
+            is_edge_deploy_profile && return 1
+            return 0
+            ;;
+        AI|RTC)
+            is_edge_deploy_profile && return 1
+            return 0
+            ;;
+        HARNESS)
+            case "${EASYAIOT_ENABLE_HARNESS:-}" in
+                0|false|FALSE|no|NO|off|OFF) return 1 ;;
+                *) return 0 ;;
+            esac
+            ;;
         PANEL)
             case "${EASYAIOT_ENABLE_PANEL:-}" in
                 0|false|FALSE|no|NO|off|OFF) return 1 ;;
@@ -138,6 +222,12 @@ module_enabled_for_deploy_profile() {
                 return 1
             fi
             [ "${EASYAIOT_ENABLE_PANEL:-1}" != "0" ]
+            ;;
+        IDEA)
+            case "${EASYAIOT_ENABLE_IDEA:-}" in
+                0|false|FALSE|no|NO|off|OFF) return 1 ;;
+                *) return 0 ;;
+            esac
             ;;
         *) return 0 ;;
     esac
@@ -159,7 +249,7 @@ panel_skip_deploy_reason() {
 # mini / standard 形态均不部署 TDengine 中间件
 is_tdengine_disabled_deploy_profile() {
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini|standard) return 0 ;;
+        mini|standard|edge) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -167,14 +257,16 @@ is_tdengine_disabled_deploy_profile() {
 # mini / standard 形态均不部署可视化（iot-visualize / VISUALIZE 编辑器 / FUXA / 相关菜单）
 is_visualize_disabled_deploy_profile() {
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini|standard) return 0 ;;
+        mini|standard|edge) return 0 ;;
         *) return 1 ;;
     esac
 }
 
-# iot-sink Spring Profile（local + 形态专用 profile）
+# iot-sink Spring Profile（local + 形态专用 profile）；edge 不部署 sink
 iot_sink_spring_profiles_active() {
-    if is_mini_deploy_profile; then
+    if is_edge_deploy_profile; then
+        echo "local"
+    elif is_mini_deploy_profile || is_local_storage_deploy_profile; then
         echo "local,mini"
     elif is_tdengine_disabled_deploy_profile; then
         echo "local,standard"
@@ -194,6 +286,7 @@ device_compose_profile_flags() {
 # 各形态推荐内存上限（MiB，供 analyze_deploy_memory.sh 等脚本引用）
 deploy_profile_budget_mib() {
     case "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}" in
+        edge) echo "2048" ;;
         mini|1) echo "4096" ;;
         standard|2) echo "16384" ;;
         full|3|*) echo "20480" ;;
@@ -202,6 +295,7 @@ deploy_profile_budget_mib() {
 
 deploy_profile_budget_label() {
     case "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}" in
+        edge) echo "2 GB" ;;
         mini|1) echo "4 GB" ;;
         standard|2) echo "16 GB" ;;
         full|3|*) echo "20 GB" ;;
@@ -210,19 +304,26 @@ deploy_profile_budget_label() {
 
 _deploy_profile_desc() {
     case "${EASYAIOT_DEPLOY_PROFILE:-}" in
-        mini) echo "边缘精简版（推荐 ≥ 4 GB）" ;;
-        standard) echo "标准版（推荐 ≥ 16 GB）" ;;
-        full) echo "完整版（推荐 ≥ 20 GB）" ;;
-        *) echo "完整版（推荐 ≥ 20 GB）" ;;
+        edge)
+            case "${EASYAIOT_EDGE_MORPHOLOGY:-standalone}" in
+                integrated) echo "edge / integrated（云边一体形态）" ;;
+                *) echo "edge / standalone（纯边缘形态，推荐 ≥ 2 GB）" ;;
+            esac
+            ;;
+        mini) echo "mini（边缘精简版，推荐 ≥ 4 GB）" ;;
+        standard) echo "standard（标准版，推荐 ≥ 16 GB）" ;;
+        full) echo "full（完整版，推荐 ≥ 20 GB）" ;;
+        *) echo "full（完整版，推荐 ≥ 20 GB）" ;;
     esac
 }
 
 _print_deploy_profile_menu() {
     echo ""
-    echo "请选择部署规格（按目标宿主机内存选型）："
-    echo "  1) mini     — 边缘精简版（推荐内存 ≥ 4 GB）"
-    echo "  2) standard — 标准版（推荐内存 ≥ 16 GB）"
-    echo "  3) full     — 完整版（推荐内存 ≥ 20 GB，默认）"
+    echo "请选择部署形态："
+    echo "  0) edge      — 边缘部署（随后选择 standalone / integrated）"
+    echo "  1) mini      — 边缘精简版（推荐内存 ≥ 4 GB）"
+    echo "  2) standard  — 标准版（推荐内存 ≥ 16 GB）"
+    echo "  3) full      — 完整版（推荐内存 ≥ 20 GB，默认）"
     echo ""
 }
 
@@ -265,6 +366,38 @@ ensure_deploy_profile() {
     apply_deploy_profile
 }
 
+# compose 报「creating mount source path ... file exists」时调用：修复/回退媒体根并同步模块 env
+# 返回 0=已修复可重试；1=非该类错误
+repair_media_bind_after_compose_error() {
+    local log_text="${1:-}"
+    _deploy_profile_load_media_root_helpers
+    if ! type is_media_bind_source_mkdir_error >/dev/null 2>&1; then
+        return 1
+    fi
+    is_media_bind_source_mkdir_error "$log_text" || return 1
+
+    local prev="${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}"
+    echo "[media] 检测到 Docker bind 源异常（mkdir file exists），正在修复媒体根: ${prev}"
+
+    # 1) 原地修复（误建成文件 / 坏 symlink → 目录）
+    if type ensure_easyaiot_media_bind_source >/dev/null 2>&1; then
+        ensure_easyaiot_media_bind_source >/dev/null || true
+    fi
+
+    # 2) /mnt 路径在 Snap Docker / 异常挂载上常仍失败 → 强制家目录本地 bind
+    case "$prev" in
+        /mnt/*)
+            echo "[media] /mnt 媒体根对 Docker 不可用，回退到 $(easyaiot_home_media_root 2>/dev/null || echo "${HOME}/easyaiot/media")"
+            ensure_easyaiot_media_bind_source --force-home >/dev/null || true
+            ;;
+    esac
+
+    export EASYAIOT_MEDIA_ROOT
+    sync_deploy_profile_to_modules "$(_deploy_profile_repo_root)"
+    echo "[media] 已修复并同步 EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}"
+    return 0
+}
+
 print_deploy_profile_summary() {
   apply_deploy_profile
   local desc
@@ -272,21 +405,36 @@ print_deploy_profile_summary() {
   echo "当前部署形态: ${desc} (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
   warn_web_rebuild_if_profile_changed
   case "${EASYAIOT_DEPLOY_PROFILE}" in
+    edge)
+      if [ "${EASYAIOT_EDGE_MORPHOLOGY:-standalone}" = "integrated" ]; then
+        echo "  定位: edge / integrated — 云边一体形态（本机仅部署边缘算力）"
+        echo "  能力: 接入中心汇聚面，执行边缘推理任务"
+      else
+        echo "  定位: edge / standalone — 纯边缘形态（汇聚面与算力同机，本地闭环）"
+        echo "  推荐内存: ≥ 2 GB（含边缘推理与峰值缓冲）"
+        echo "  能力: 视频接入、实时推理、告警与录像本地闭环"
+        echo "  存储: 本地媒体目录"
+        echo "  中间件: 精简为数据库、缓存与流媒体必要组件"
+        echo "  访问: 控制台本机直连（默认端口见部署说明）"
+      fi
+      ;;
     mini)
-      echo "  业务: iot-gateway + iot-system + iot-sink + VIDEO/AI/RTC/WEB（告警/DVR 统一经 Gateway→sink）"
-      echo "  运维: PANEL 独立控制台（:9200，所有形态默认启用）"
-      echo "  中间件: PostgreSQL, Redis, SRS, Nacos, MinIO, EMQX, Kafka"
-      echo "  不启动: TDengine, Milvus, ZLMediaKit, NodeRED, FUXA、iot-device/iot-node/iot-visualize/TRANSFORM 等"
-      echo "  API 路由: nginx → Gateway:48080 → Nacos LB（含 /admin-api/sink/**）"
+      echo "  定位: 边缘精简版 — 轻量平台能力，适于点位智能化"
+      echo "  推荐内存: ≥ 4 GB"
+      echo "  能力: 设备接入、视频智能、实时通信与管理控制台"
+      echo "  事件面: 经平台网关统一汇聚"
+      echo "  精简: 不含时序库、工业可视化与部分扩展组件"
       ;;
     standard)
-      echo "  不启动: TDengine, NodeRED, FUXA, iot-device, iot-tdengine, iot-visualize/VISUALIZE、TRANSFORM（相关菜单不启用）"
-      echo "  运维: PANEL 独立控制台（:9200，所有形态默认启用）"
-      echo "  其余模块与中间件全部启动（含 EMQX、RTC）"
+      echo "  定位: 标准版 — 完整业务主干，适于楼层/园区级覆盖"
+      echo "  推荐内存: ≥ 16 GB"
+      echo "  能力: 在精简版基础上启用更完整的中间件与业务能力"
+      echo "  精简: 不含时序库、部分工业组态与可视化扩展"
       ;;
     full)
-      echo "  启动全部业务模块与中间件（含 APP 移动端 H5、iot-visualize/VISUALIZE、TRANSFORM、FUXA、RTC，推荐宿主机内存 ≥ 20 GB）"
-      echo "  运维: PANEL 独立控制台（:9200，所有形态默认启用）"
+      echo "  定位: 完整版 — 全栈能力，适于一体机/机房级交付"
+      echo "  推荐内存: ≥ 20 GB"
+      echo "  能力: 全量业务与中间件（含移动端、可视化、工业协议演示等）"
       ;;
   esac
 }
@@ -301,20 +449,46 @@ lock_deploy_profile_for_child_installs() {
 select_deploy_profile_for_install() {
   if [ "${EASYAIOT_SKIP_PROFILE_PROMPT:-}" = "1" ]; then
     ensure_deploy_profile
+    if declare -F ensure_edge_morphology_for_install >/dev/null 2>&1; then
+      ensure_edge_morphology_for_install || return 1
+    fi
     lock_deploy_profile_for_child_installs
     return 0
   fi
 
   # 已通过环境变量显式指定形态时不弹菜单（含交互终端）
   # 例: EASYAIOT_DEPLOY_PROFILE=full bash .../install_linux.sh install
+  # 快速开始: EASYAIOT_DEPLOY_PROFILE=edge → 默认 standalone，不再二次弹窗
+  # 云边一体: EASYAIOT_DEPLOY_PROFILE=edge EASYAIOT_EDGE_MORPHOLOGY=integrated VIDEO_BASE_URL=...
   case "${EASYAIOT_DEPLOY_PROFILE:-}" in
-    mini|standard|full)
+    mini|standard|full|edge)
       apply_deploy_profile
+      if [ "${EASYAIOT_DEPLOY_PROFILE}" = "edge" ]; then
+        # 显式指定 edge 且未给子形态时，默认纯边缘（快速开始一键路径）
+        local _edge_morph=""
+        if declare -F normalize_edge_morphology >/dev/null 2>&1; then
+          _edge_morph="$(normalize_edge_morphology "${EASYAIOT_EDGE_MORPHOLOGY:-}")"
+        fi
+        if [ -z "${_edge_morph}" ]; then
+          export EASYAIOT_EDGE_MORPHOLOGY=standalone
+        else
+          export EASYAIOT_EDGE_MORPHOLOGY="${_edge_morph}"
+        fi
+        if declare -F ensure_edge_morphology_for_install >/dev/null 2>&1; then
+          ensure_edge_morphology_for_install || return 1
+        fi
+      fi
       save_deploy_profile
       lock_deploy_profile_for_child_installs
       echo ""
       if declare -F print_info >/dev/null 2>&1; then
-        print_info "使用环境变量指定的部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
+        if [ "${EASYAIOT_EDGE_MORPHOLOGY:-}" = "integrated" ]; then
+          print_info "已选定: edge / integrated（云边一体形态）"
+        elif [ "${EASYAIOT_DEPLOY_PROFILE}" = "edge" ]; then
+          print_info "已选定: edge / standalone（纯边缘形态）"
+        else
+          print_info "使用环境变量指定的部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
+        fi
       else
         echo "[INFO] 使用环境变量指定的部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
       fi
@@ -334,11 +508,33 @@ select_deploy_profile_for_install() {
 
   _print_deploy_profile_menu
   local choice=""
-  read -r -p "请输入选项 [1-3，默认 3]: " choice
+  read -r -p "请输入选项 [0-3，默认 3]: " choice
   case "${choice:-3}" in
-    1) export EASYAIOT_DEPLOY_PROFILE=mini ;;
-    2) export EASYAIOT_DEPLOY_PROFILE=standard ;;
-    *) export EASYAIOT_DEPLOY_PROFILE=full ;;
+    0|edge)
+      export EASYAIOT_DEPLOY_PROFILE=edge
+      unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true
+      if declare -F ensure_edge_morphology_for_install >/dev/null 2>&1; then
+        ensure_edge_morphology_for_install || return 1
+      else
+        export EASYAIOT_EDGE_MORPHOLOGY=standalone
+      fi
+      if [ "${EASYAIOT_EDGE_MORPHOLOGY}" = "integrated" ]; then
+        apply_deploy_profile
+        lock_deploy_profile_for_child_installs
+        echo ""
+        if declare -F print_info >/dev/null 2>&1; then
+          print_info "已选定: edge / integrated（云边一体形态）"
+        else
+          echo "[INFO] 已选定: edge / integrated（云边一体形态）"
+        fi
+        echo ""
+        return 0
+      fi
+      export EASYAIOT_EDGE_MORPHOLOGY=standalone
+      ;;
+    1|mini) export EASYAIOT_DEPLOY_PROFILE=mini; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
+    2|standard) export EASYAIOT_DEPLOY_PROFILE=standard; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
+    *) export EASYAIOT_DEPLOY_PROFILE=full; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
   esac
   apply_deploy_profile
   save_deploy_profile
@@ -363,11 +559,28 @@ select_deploy_profile_interactive() {
 
     _print_deploy_profile_menu
     local choice=""
-    read -r -p "请输入选项 [1-3，默认 3]: " choice
+    read -r -p "请输入选项 [0-3，默认 3]: " choice
     case "${choice:-3}" in
-        1) export EASYAIOT_DEPLOY_PROFILE=mini ;;
-        2) export EASYAIOT_DEPLOY_PROFILE=standard ;;
-        *) export EASYAIOT_DEPLOY_PROFILE=full ;;
+        0|edge)
+            export EASYAIOT_DEPLOY_PROFILE=edge
+            unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true
+            if declare -F ensure_edge_morphology_for_install >/dev/null 2>&1; then
+                ensure_edge_morphology_for_install || return 1
+            else
+                export EASYAIOT_EDGE_MORPHOLOGY=standalone
+            fi
+            if [ "${EASYAIOT_EDGE_MORPHOLOGY}" = "integrated" ]; then
+                apply_deploy_profile
+                echo ""
+                echo "[INFO] 已选定: edge / integrated（云边一体形态）"
+                echo ""
+                return 0
+            fi
+            export EASYAIOT_EDGE_MORPHOLOGY=standalone
+            ;;
+        1|mini) export EASYAIOT_DEPLOY_PROFILE=mini; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
+        2|standard) export EASYAIOT_DEPLOY_PROFILE=standard; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
+        *) export EASYAIOT_DEPLOY_PROFILE=full; unset EASYAIOT_EDGE_MORPHOLOGY 2>/dev/null || true ;;
     esac
     apply_deploy_profile
     save_deploy_profile
@@ -384,7 +597,18 @@ resolve_nfs_server_from_mount() {
     fi
     local root
     root="$(resolve_easyaiot_media_root)"
-    if mountpoint -q "$root" 2>/dev/null; then
+    # 用 findmnt/timeout，避免僵死 NFS 上 mountpoint 卡死整个 update
+    if type _is_media_mountpoint_safe >/dev/null 2>&1; then
+        if _is_media_mountpoint_safe "$root"; then
+            findmnt -n -o SOURCE "$root" 2>/dev/null | cut -d: -f1 || true
+            return
+        fi
+    elif command -v timeout >/dev/null 2>&1; then
+        if timeout 3 mountpoint -q "$root" 2>/dev/null; then
+            findmnt -n -o SOURCE "$root" 2>/dev/null | cut -d: -f1 || true
+            return
+        fi
+    elif mountpoint -q "$root" 2>/dev/null; then
         findmnt -n -o SOURCE "$root" 2>/dev/null | cut -d: -f1 || true
         return
     fi
@@ -406,12 +630,46 @@ _set_env_docker_kv() {
     fi
 }
 
-# WEB：按形态写入 nginx 配置（统一经 Gateway 48080）
+# WEB .env：KEY = value（Vite 格式，允许等号两侧空格）
+_set_web_env_kv() {
+    local file="$1" key="$2" value="$3"
+    [ -f "$file" ] || return 0
+    if grep -qE "^${key}[[:space:]]*=" "$file" 2>/dev/null; then
+        local tmp="${file}.tmp.$$"
+        sed -E "s|^${key}[[:space:]]*=.*|${key} = ${value}|" "$file" > "$tmp" && mv "$tmp" "$file"
+    else
+        [ -n "$(tail -c1 "$file" 2>/dev/null || true)" ] && echo "" >> "$file"
+        echo "${key} = ${value}" >> "$file"
+    fi
+}
+
+# WEB：按形态写入 nginx 配置（统一经 Gateway 48080；edge/mini 用专用 conf）
 sync_web_deploy_profile_env() {
     local root="${1:-$(_deploy_profile_repo_root)}"
     local web_env="${root}/WEB/.env"
     local conf="./conf/nginx.conf"
+    local vite_profile tenant_flag captcha_flag edge_flag
+    vite_profile="$(frontend_deploy_profile)"
+    if is_edge_deploy_profile; then
+        conf="./conf/nginx.edge.conf"
+        tenant_flag="false"
+        captcha_flag="false"
+        edge_flag="true"
+    elif is_mini_deploy_profile; then
+        conf="./conf/nginx.mini.conf"
+        tenant_flag="true"
+        captcha_flag="true"
+        edge_flag="false"
+    else
+        tenant_flag="true"
+        captcha_flag="true"
+        edge_flag="false"
+    fi
     [ -f "$web_env" ] || return 0
+    _set_web_env_kv "$web_env" "VITE_GLOB_DEPLOY_PROFILE" "$vite_profile"
+    _set_web_env_kv "$web_env" "VITE_GLOB_APP_TENANT_ENABLE" "$tenant_flag"
+    _set_web_env_kv "$web_env" "VITE_GLOB_APP_CAPTCHA_ENABLE" "$captcha_flag"
+    _set_web_env_kv "$web_env" "VITE_GLOB_EDGE_STANDALONE" "$edge_flag"
     if grep -q '^NGINX_CONF=' "$web_env" 2>/dev/null; then
         local tmp="${web_env}.tmp.$$"
         sed "s|^NGINX_CONF=.*|NGINX_CONF=${conf}|" "$web_env" > "$tmp" && mv "$tmp" "$web_env"
@@ -436,7 +694,7 @@ apply_middleware_deploy_env() {
     local root="${1:-$(_deploy_profile_repo_root)}"
     local env_file="${root}/.scripts/docker/.env"
     local mount_root
-    mount_root="$(resolve_easyaiot_media_root)"
+    mount_root="$(ensure_easyaiot_media_bind_source 2>/dev/null || resolve_easyaiot_media_root)"
     local nfs_export="${NFS_EXPORT:-$mount_root}"
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
@@ -511,19 +769,58 @@ record_web_deploy_profile_built() {
     echo "${EASYAIOT_DEPLOY_PROFILE:-full}" > "$stamp"
 }
 
-# 按部署形态同步 VIDEO/AI .env.docker（告警/DVR 统一经 Gateway→iot-sink；mini 仅精简 DEVICE/中间件）
+# 按部署形态同步 VIDEO/AI .env.docker
+# mini/standard/full：告警/DVR 经 Gateway→iot-sink（可含 MinIO）
+# edge：零 DEVICE；本地落库 + 本地 DVR；不写 sink/MinIO
 _apply_python_sink_media_env() {
     local env_file="$1"
+    local compose_env="${2:-}"
+    local with_sink_hooks="${3:-1}"
     local mount_root
-    mount_root="$(resolve_easyaiot_media_root)"
-    _set_env_docker_kv "$env_file" MINIO_ENABLED true
-    _set_env_docker_kv "$env_file" IOT_SINK_USE_GATEWAY 1
-    _set_env_docker_kv "$env_file" SINK_DVR_HOOK_URL "http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr"
-    _set_env_docker_kv "$env_file" IOT_SINK_MEDIA_HOOK_URL "http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr"
-    _set_env_docker_kv "$env_file" ALERT_IMAGES_DIR "/mnt/easyaiot-media/alert_images"
-    _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$mount_root"
-    _set_env_docker_kv "$env_file" SRS_HOST_DATA_ROOT "$mount_root"
-    _set_env_docker_kv "$env_file" SRS_RECORD_DIR "${mount_root}/playbacks"
+    _deploy_profile_load_media_root_helpers
+    # 宿主机绑定源（供 docker-compose ${EASYAIOT_MEDIA_ROOT} 替换）
+    mount_root="$(ensure_easyaiot_media_bind_source 2>/dev/null || resolve_easyaiot_media_root 2>/dev/null || true)"
+    if [ -z "$mount_root" ]; then
+        local repo_root
+        repo_root="$(_deploy_profile_repo_root)"
+        if [ -d "${repo_root}/.runtime-media" ]; then
+            mount_root="${repo_root}/.runtime-media"
+        else
+            mount_root="/mnt/easyaiot-media"
+        fi
+    fi
+    # 容器内固定挂载点（与 VIDEO/AI docker-compose.yaml 一致；勿把宿主机路径写进 .env.docker）
+    local container_media_root="/mnt/easyaiot-media"
+    if [ "$with_sink_hooks" = "1" ]; then
+        _set_env_docker_kv "$env_file" MINIO_ENABLED true
+        _set_env_docker_kv "$env_file" IOT_SINK_USE_GATEWAY 1
+        _set_env_docker_kv "$env_file" SINK_DVR_HOOK_URL "http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr"
+        _set_env_docker_kv "$env_file" IOT_SINK_MEDIA_HOOK_URL "http://localhost:48080/admin-api/sink/media/hook/srs/on_dvr"
+    fi
+    _set_env_docker_kv "$env_file" ALERT_IMAGES_DIR "${container_media_root}/alert_images"
+    _set_env_docker_kv "$env_file" SRS_HOST_DATA_ROOT "$container_media_root"
+    _set_env_docker_kv "$env_file" SRS_RECORD_DIR "${container_media_root}/playbacks"
+    _set_env_docker_kv "$env_file" EASYAIOT_MEDIA_ROOT "$container_media_root"
+    # 全形态：录像守护默认策略（live+ai 双写易撑盘）
+    _set_env_docker_kv "$env_file" PLAYBACK_CLEANUP_ENABLED true
+    _set_env_docker_kv "$env_file" PLAYBACK_GUARD_INTERVAL_MINUTES 5
+    _set_env_docker_kv "$env_file" PLAYBACK_MAX_AGE_HOURS "${PLAYBACK_MAX_AGE_HOURS:-24}"
+    _set_env_docker_kv "$env_file" PLAYBACK_GLOBAL_MAX_FILES "${PLAYBACK_GLOBAL_MAX_FILES:-1500}"
+    _set_env_docker_kv "$env_file" PLAYBACK_GLOBAL_MAX_GB "${PLAYBACK_GLOBAL_MAX_GB:-50}"
+    _set_env_docker_kv "$env_file" PLAYBACK_DEVICE_MAX_FILES "${PLAYBACK_DEVICE_MAX_FILES:-60}"
+    _set_env_docker_kv "$env_file" PLAYBACK_DISK_WARN_PERCENT 80
+    _set_env_docker_kv "$env_file" PLAYBACK_DISK_CRITICAL_PERCENT 85
+    _set_env_docker_kv "$env_file" PLAYBACK_DISK_TARGET_PERCENT 70
+    _set_env_docker_kv "$env_file" PLAYBACK_LEGACY_DIRS "${HOME:-/home/ubuntu}/easyaiot/data/playbacks"
+    # compose 文件变量替换读项目目录 .env（不是 .env.docker），同步写入宿主机路径
+    if [ -n "$compose_env" ]; then
+        touch "$compose_env" 2>/dev/null || true
+        if [ -w "$compose_env" ] || [ -w "$(dirname "$compose_env")" ]; then
+            _set_env_docker_kv "$compose_env" EASYAIOT_MEDIA_ROOT "$mount_root"
+        else
+            echo "[media] 警告: 无法写入 ${compose_env}（权限不足），请手动设置 EASYAIOT_MEDIA_ROOT=${mount_root}" >&2
+        fi
+    fi
 }
 
 apply_python_service_deploy_env() {
@@ -544,10 +841,52 @@ apply_python_service_deploy_env() {
         env_file="${root}/${module}/.env.docker"
         [ -f "$env_file" ] || continue
         _set_env_docker_kv "$env_file" EASYAIOT_DEPLOY_PROFILE "${EASYAIOT_DEPLOY_PROFILE:-full}"
+
+        if is_edge_deploy_profile; then
+            # 零 DEVICE：业务回调指向本机 VIDEO
+            _set_env_docker_kv "$env_file" JAVA_BACKEND_URL "http://127.0.0.1:6000"
+            _set_env_docker_kv "$env_file" GATEWAY_URL "http://127.0.0.1:6000"
+            _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY false
+            if [ "$module" = "VIDEO" ]; then
+                _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST true
+                _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST true
+                _set_env_docker_kv "$env_file" MINIO_ENABLED false
+                # edge 不部署 POST：Infer 走直发 / 本地落盘路径
+                _set_env_docker_kv "$env_file" POST_ENABLED false
+                # 模型管理走本机 VIDEO（无 AI / 无 MinIO）
+                _set_env_docker_kv "$env_file" AI_SERVICE_URL "http://127.0.0.1:6000/video"
+                # 容器内媒体卷路径；权重落盘到 local-storage，种子只读挂载 /model-seed-data
+                _set_env_docker_kv "$env_file" LOCAL_STORAGE_ROOT "/mnt/easyaiot-media/local-storage"
+                _set_env_docker_kv "$env_file" MODEL_SEED_DATA_ROOT "/model-seed-data"
+                # edge 无 EMQX：RUNTIME HTTP → VIDEO /video/alert/hook 直连落库
+                _set_env_docker_kv "$env_file" ALGO_BUS_TRANSPORT http
+                _set_env_docker_kv "$env_file" ALERT_HOOK_URL "http://127.0.0.1:6000/video/alert/hook"
+                # 本地 DVR：勿在「上传后删本地」（edge 无 MinIO）；录像守护扫容器内目录
+                _set_env_docker_kv "$env_file" PLAYBACK_DELETE_AFTER_UPLOAD false
+                _set_env_docker_kv "$env_file" PLAYBACK_MAX_AGE_HOURS 24
+                _set_env_docker_kv "$env_file" IOT_SINK_USE_GATEWAY 0
+                _set_env_docker_kv "$env_file" SINK_DVR_HOOK_URL ""
+                _set_env_docker_kv "$env_file" IOT_SINK_MEDIA_HOOK_URL ""
+                _set_env_docker_kv "$env_file" DVR_LOCAL_PERSIST 1
+                _set_env_docker_kv "$env_file" MEDIA_UPLOAD_MODE sync
+                _set_env_docker_kv "$env_file" VIDEO_AUTH_ENABLED 1
+                _set_env_docker_kv "$env_file" AUTH_CHECK_URL "http://127.0.0.1:6000/video/system/auth/get-permission-info"
+                # edge 默认不部署 RTC；仍写入占位，避免 VIDEO 读到 127.0.0.1:1984 误导前端
+                _set_env_docker_kv "$env_file" RTC_SERVICE_URL "http://127.0.0.1:6100"
+                _set_env_docker_kv "$env_file" RTC_GO2RTC_WEB_URL "/dev-api/go2rtc/"
+                _set_env_docker_kv "$env_file" RTC_RTSP_HOST "127.0.0.1"
+                _set_env_docker_kv "$env_file" RTC_RTSP_PORT "8554"
+                _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 0
+            else
+                _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 0
+            fi
+            continue
+        fi
+
         _set_env_docker_kv "$env_file" JAVA_BACKEND_URL "http://localhost:48080"
         _set_env_docker_kv "$env_file" GATEWAY_URL "http://localhost:48080"
         _set_env_docker_kv "$env_file" AUTH_CHECK_URL "http://localhost:48080/admin-api/system/auth/get-permission-info"
-        if is_mini_deploy_profile; then
+        if is_mini_deploy_profile || is_local_storage_deploy_profile; then
             _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY false
             if [ "$module" = "VIDEO" ]; then
                 _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48099/admin-api/system/auth/media-permission-check"
@@ -571,7 +910,10 @@ apply_python_service_deploy_env() {
                 fi
             fi
             _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST false
-            _apply_python_sink_media_env "$env_file"
+            _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 1
+        else
+            # AI：仅同步媒体根，供 compose ${EASYAIOT_MEDIA_ROOT} 替换
+            _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 0
         fi
     done
 }
@@ -584,6 +926,7 @@ apply_mini_python_service_env() {
 # mini 形态：安装阶段将 MinIO 磁盘历史对象同步到宿主机 /data/local-storage
 migrate_mini_minio_data_to_local_storage() {
     is_mini_deploy_profile || return 0
+    is_edge_deploy_profile && return 0
     local root="${1:-}"
     if [ -z "$root" ]; then
         root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -612,6 +955,57 @@ print(f'copied={copied} skipped={skipped}')
     else
         echo "警告: mini MinIO 历史数据同步失败，AI 启动时会再次尝试"
     fi
+}
+
+_profile_print_info() {
+    if type print_info >/dev/null 2>&1; then
+        print_info "$@"
+    else
+        echo "[INFO] $*"
+    fi
+}
+
+_container_exists_by_name() {
+    local name="$1"
+    docker ps -a --filter "name=^${name}$" --format '{{.Names}}' 2>/dev/null | grep -qx "$name"
+}
+
+# 停止并移除当前部署形态不应运行的容器（含从 full/standard 切换后残留）
+cleanup_profile_excluded_containers() {
+    ensure_deploy_profile 2>/dev/null || apply_deploy_profile
+
+    local -a to_stop=()
+    local name skip found
+
+    if is_tdengine_disabled_deploy_profile; then
+        for name in tdengine-server tdengine-init; do
+            _container_exists_by_name "$name" && to_stop+=("$name")
+        done
+    fi
+
+    # edge 零 DEVICE，不会执行 DEVICE/install_linux.sh 的 stop_device_disabled_services
+    if is_edge_deploy_profile || ! module_enabled_for_deploy_profile DEVICE; then
+        for skip in $(device_skipped_services); do
+            [ -z "$skip" ] && continue
+            _container_exists_by_name "$skip" || continue
+            found=0
+            for name in "${to_stop[@]}"; do
+                if [ "$name" = "$skip" ]; then
+                    found=1
+                    break
+                fi
+            done
+            [ "$found" -eq 0 ] && to_stop+=("$skip")
+        done
+    fi
+
+    [ ${#to_stop[@]} -eq 0 ] && return 0
+
+    _profile_print_info "当前形态 (${EASYAIOT_DEPLOY_PROFILE}) 不部署以下容器，停止并移除: ${to_stop[*]}"
+    for name in "${to_stop[@]}"; do
+        docker stop "$name" >/dev/null 2>&1 || true
+        docker rm -f "$name" >/dev/null 2>&1 || true
+    done
 }
 
 # 根据跳过列表判断中间件是否属于当前形态

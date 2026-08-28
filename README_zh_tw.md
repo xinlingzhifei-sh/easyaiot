@@ -29,7 +29,7 @@
 
 yFeiEye 官方網站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
-提供產品介紹、特性說明、三檔硬體選型、安裝包下載與文件入口，便於快速了解平臺價值並開始落地。
+提供產品介紹、特性說明、四檔硬體選型、安裝包下載與文件入口，便於快速了解平臺價值並開始落地。
 
 ## 📖 項目介紹
 
@@ -42,7 +42,7 @@ yFeiEye 官方網站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-平臺由 <strong>WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISUALIZE、TRANSFORM、PANEL、SITE</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>RTC 消費級攝像頭 P2P 橋接</strong>（基於 go2rtc，覆蓋 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——門店 Tapo 補盲、塗鴉白牌納管、海外 Ring/Nest 門鈴、米家存量利舊、Wyze 低成本擴點、DoorBird 門口對講、GoPro 機動機位、石頭掃地機移動視角等場景，Web 一鍵接入並納入統一視頻與 AI 研判閉環）、<strong>大疆機場與無人機空中視角接入</strong>、即時 / 抓拍 / 巡檢算法任務、<strong>RUNTIME 原生高速執行層</strong>（編譯型二進制承接拉流解碼、YOLO 推理、帶框推流與多路原畫轉發——相對解釋型鏈路更低 CPU/內存、更穩時延；同一二進制覆蓋即時 / 抓拍 / 巡檢 / 轉發）、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、可編排業務後處理、聯邦算力集羣調度，以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，並由 <strong>EDGE C# 邊緣採集運行時</strong>在現場以插件化採集器承接 Modbus RTU/TCP、OPC UA 等工業協議採集、本地調度與 MQTT 云邊對接，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、三檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置。
+平臺由 <strong>WEB、APP、DEVICE、EDGE、SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TRANSFORM、PANEL、IDEA、HARNESS、SITE</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>RTC 消費級攝像頭 P2P 橋接</strong>（基於 go2rtc，覆蓋 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——門店 Tapo 補盲、塗鴉白牌納管、海外 Ring/Nest 門鈴、米家存量利舊、Wyze 低成本擴點、DoorBird 門口對講、GoPro 機動機位、石頭掃地機移動視角等場景，Web 一鍵接入並納入統一視頻與 AI 研判閉環）、<strong>大疆機場與無人機空中視角接入</strong>、即時 / 抓拍 / 巡檢算法任務、<strong>RUNTIME 原生高速執行層</strong>（編譯型二進制承接拉流解碼、YOLO 推理、帶框推流與多路原畫轉發——相對解釋型鏈路更低 CPU/內存、更穩時延；同一二進制覆蓋即時 / 抓拍 / 巡檢 / 轉發）、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、<strong>POST 定製研判</strong>（檢出之後按現場規則過濾、複合判斷再告警，改規則不必重訓模型）、聯邦算力集羣調度、<strong>SENTINEL 集羣節點哨兵</strong>（按業務摸清節點就緒與可調度能力，缺件可自助補齊，任務按真能力下發），以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，並由 <strong>EDGE C# 邊緣採集運行時</strong>在現場以插件化採集器承接 Modbus RTU/TCP、OPC UA 等工業協議採集、本地調度與 MQTT 云邊對接，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>POST 定製研判服務</strong>，把檢測結果鍛造成可貼現場的業務事件，誤報少、規則可配、上線可先試跑；配套 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、四檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地；並以 <strong>IDEA 社區貢獻在線 IDE</strong> 讓貢獻者瀏覽器即可打開全倉、用 GitHub Copilot 共創、按改動發佈到本機並提交 PR，把開源共建從「先配環境」變成「打開即改」。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置；並新增 <strong>ANDROID / IOS / HARMONYOS 三端殼打包工程</strong>，把這一移動體驗以 APK / IPA / HAP 安裝包形態覆蓋到主流手機系統，一套前端、一鍵出包、版本統一管理。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -68,7 +68,7 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>縮短驗收週期</strong>：到場按 mini / standard / full 選一檔即可裝機，進度與結果當場可見，少因命令記不全、步驟漏一步導致「裝一半不知卡在哪」，PoC 與正式交付都能更快過驗收</li>
+  <li><strong>縮短驗收週期</strong>：到場按 edge / mini / standard / full 選一檔即可裝機，進度與結果當場可見，少因命令記不全、步驟漏一步導致「裝一半不知卡在哪」，PoC 與正式交付都能更快過驗收</li>
   <li><strong>降低駐場與遠程成本</strong>：容器是否在跑、資源是否吃緊、日誌卡在哪一目了然，重啓、清緩存、拉鏡像不必先翻文檔再等開發支援，值守人員可自助處置常見故障</li>
   <li><strong>多項目一套口徑</strong>：同一套裝機與運維入口可複用到多臺一體機、多處機房，交付、值守、交接口徑一致，避免「每臺現場各一套口口相傳」</li>
 </ul>
@@ -119,14 +119,14 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>Docker 一體化</strong>：<code>bash RTC/install_linux.sh start</code> 同時運行 go2rtc 核心與 Python 管理服務，host 網路適配 P2P 局域網直連</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 詳細接入文檔見 <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC 模組 README</a>。
-</p>
-
 ### 🔌 EDGE：C# 邊緣採集運行時，讓工業現場「採得準、上得去」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 工控與樓宇現場常見「PLC、電錶、傳感器掛在 RS-485 或以太網側，雲平臺卻要另配一套數採軟體、協議各寫各的、配置改一次要派人到現場」——接入鏈路長、運維割裂、云邊對不上口徑。yFeiEye 新增獨立 <strong>EDGE 模組</strong>（C#），作為<strong>可獨立部署的邊緣採集運行時</strong>：多協議採集器插件、本地調度、配置驅動解析、MQTT 對接 yFeiEye 雲平臺，把 Modbus RTU/TCP、OPC UA 等現場測點收成統一物模型上行，雲端配置下發與屬性寫值也能直達邊緣執行。
+</p>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0;">
+<strong>與設備管理「網關」的區別：</strong>設備管理裡的網關是雲上的產品/設備類型（GATEWAY + 子設備 SUBSET 拓撲），負責建檔、影子、綁定與下發；EDGE 沒有單獨設備頁面，而是現場去<strong>當這台網關</strong>的採集進程——採上來的數落在同一套設備管理裡。另有一條路徑是 iot-sink <strong>在雲端直接輪詢</strong> Modbus/OPC UA（平臺須能訪問現場設備）；EDGE 則在現場採完只走 MQTT 上雲，適合 OT 隔離與 RS-485。當前已對齊網關屬性上下行、子設備屬性代報與配置下發，可作為現場工業網關使用；拓撲主動申報、子設備事件/服務透傳、OTA 等完整網關協議面仍在演進。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
@@ -164,16 +164,12 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
   <li><strong>插件化採集架構</strong>：實現 <code>ICollector</code> 即可擴展新協議；Host 統一註冊、調度與結果上報，採集邏輯與運行時解耦</li>
   <li><strong>配置雙通道</strong>：本地 <code>device-jobs.json</code> 可離線運行；雲端 MQTT <code>config/downstream/push</code> 可遠程覆蓋採集任務，現場改配置不必再派人</li>
-  <li><strong>MQTT 云邊一體</strong>：網關屬性上報、子設備代報、雲端屬性寫值下行，經 EMQX 對接 DEVICE/<strong>iot-sink</strong>，子設備自動創建與影子入庫</li>
+  <li><strong>MQTT 云邊一體</strong>：以平臺 GATEWAY 身份接入——網關屬性上報、子設備屬性代報、雲端屬性寫值下行，經 EMQX 對接 DEVICE/<strong>iot-sink</strong>，子設備自動創建與影子入庫，數據在「設備管理」展現</li>
   <li><strong>獨立打包交付</strong>：<code>pack_linux.sh</code> 產出 x86_64 / ARM64 Linux 部署包，可裝於工控機、邊緣網關，與平臺主棧解耦部署</li>
   <li><strong>E2E 聯調開箱即用</strong>：<code>bash EDGE/demo/run_e2e.sh</code> 一鍵驗證採集 → MQTT 上行 → 雲端入庫全鏈路</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 詳細文檔見 <a href="EDGE/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">EDGE 模組 README</a>、<a href="EDGE/docs/PLATFORM_INTEGRATION.md" style="color: #3498db; text-decoration: none; font-weight: 600;">雲平臺對接指南</a>。
-</p>
-
-### 🎯 三檔硬體，一套平臺
+### 🛰️ SENTINEL：集羣節點哨兵，讓「納管即就緒、調度按真能力」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 很多智能物聯網項目走到落地時都會卡住：<strong>功能做全了，小機器裝不下；為了裝得下，又得砍能力、拆版本、維護多套部署包。</strong> yFeiEye 用同一套平臺化解這一矛盾——<strong>邊緣盒子點上智能、AI 一體攝像頭上牆即分析、AIoT 智能全棧一體機一箱配齊全鏈路</strong>，三類最常見的現場硬件各選一檔即可，同一套軟件貫穿從單點試點到樓面覆蓋再到全棧交付，不必拆版本。
@@ -181,17 +177,23 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 
 | 選型 | 典型硬體（舉例） | 推薦記憶體 | 你能做到什麼 | 實測驗證 |
 | :-- | :-- | :--: | :-- | :--: |
+| **edge** 邊緣單機版 | <strong>輕量邊緣單機</strong>（2 GB 工控機、舊筆記本、雲上最小機型、門店試裝機） | ≥ 2 GB | <strong>一台機器閉環先跑通</strong>：WEB + VIDEO + RUNTIME；攝像頭接入、即時分析、智能告警；零 DEVICE，登入由 VIDEO 主導 | 約 **1.02 GB**，餘量近 1 GB |
 | **mini** 邊緣精簡版 | <strong>邊緣盒子</strong>（8 GB 工控機、門店安防一體機、工地現場網關） | ≥ 8 GB | <strong>一個點位裝上就有智能</strong>：攝像頭接入、即時分析、智能告警、模型推理；事件面與 standard/full 一致（Gateway + iot-sink + EMQX） | 約 4–6 GB，餘量充足 |
-| **standard** 標準版 | <strong>AI 一體攝像頭</strong>（智能攝像終端、帶算力 AI 監控攝像頭、多目 AI 分析一體機） | ≥ 16 GB | <strong>每路攝像頭即智能節點</strong>：多路攝像頭上牆即可樓面/園區級覆蓋，設備、規則、算力統一編排，多場景並行運營 | 約 10 GB，運行平穩有餘量 |
-| **full** 完整版（預設） | <strong>AIoT 智能全棧一體機</strong>（企業級全棧智控一體機、行業物聯網全棧主機、雲邊端一體智能平臺一體機） | ≥ 20 GB | <strong>一箱配齊 IoT + 視頻 + AI</strong>：設備納管、海量接入、智能分析、指揮研判一體化，全量能力長期穩跑 | 約 14 GB，全能力開啓仍留足餘量 |
+| **standard** 標準版 | <strong>AI 一體攝像頭</strong>（智能攝像終端、帶算力 AI 監控攝像頭、多目 AI 分析一體機） | ≥ 16 GB | <strong>每路攝像頭即智能節點</strong>：多路攝像頭上牆即可樓面/園區級覆蓋，設備、規則、算力統一編排，多場景並行運營；<strong>POST 定製研判</strong>讓告警貼現場口徑 | 約 10 GB，運行平穩有餘量 |
+| **full** 完整版（預設） | <strong>AIoT 智能全棧一體機</strong>（企業級全棧智控一體機、行業物聯網全棧主機、雲邊端一體智能平臺一體機） | ≥ 20 GB | <strong>一箱配齊 IoT + 視頻 + AI</strong>：設備納管、海量接入、智能分析、指揮研判一體化，全量能力長期穩跑；含 <strong>POST 定製研判</strong>與對外業務流轉 | 約 14 GB，全能力開啓仍留足餘量 |
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+<strong>edge 怎麼裝：</strong><code>EASYAIOT_DEPLOY_PROFILE=edge sudo bash .scripts/docker/install_linux.sh install</code>（或 <code>... install_linux.sh edge install</code>）。首次安裝互動選單亦可選檔；詳情見上方 <a href="#-快速開始">快速開始</a>。
+</p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
 <strong>安裝選型與資源符合性（實測）：</strong>
 </p>
 
-| | | |
-|:---:|:---:|:---:|
-| ![邊緣盒子 mini](.image/deploy-profile-mini.png) | ![AI 一體攝像頭 standard](.image/deploy-profile-standard.png) | ![全棧一體機 full](.image/deploy-profile-full.png) |
+| | |
+|:---:|:---:|
+| ![邊緣單機 edge](.image/deploy-profile-edge.png) | ![邊緣盒子 mini](.image/deploy-profile-mini.png) |
+| ![AI 一體攝像頭 standard](.image/deploy-profile-standard.png) | ![全棧一體機 full](.image/deploy-profile-full.png) |
 
 <div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
   <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 yFeiEye 無限聯邦邊緣集群模式</p>
@@ -220,8 +222,10 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>大疆機場 / 無人機空中視角接入</strong>：突破固定攝像頭「只能看地面、難覆蓋廣域」的布控侷限，將大疆司空體系下的機場與無人機高空畫面納入平臺統一視頻與 AI 研判閉環。流媒體模組提供「接入大疆直播」能力：支持<strong>司空 API 開啓直播</strong>與<strong>手動直播源</strong>兩種接入方式——API 模式一鍵拉起廠家直播流並自動登記設備；手動模式則支持直接填入 RTSP / RTMP / HTTP-FLV / HLS 等直播源。接入後空中畫面可與國標/ONVIF 固定點位同屏共管，管理者可像管理固定攝像頭一樣調閱機場與飛行器實況，並進一步掛接即時 AI 分析、告警聯動與證據留存，快速覆蓋廣域巡查、應急勘察、周界補盲等傳統固定點位難以觸及的場景，顯著縮短「發現異常—鎖定現場—聯動處置」的響應鏈條，讓智慧安防從平面布控升級到天地一體協同感知</li>
   <li><strong>RTC 消費級攝像頭 P2P 橋接</strong>：一次打通 <strong>Tapo（TP-Link 家用/門店 IPC）、Tuya（塗鴉系白牌海量設備）、Ring / Nest（海外門鈴生態）、小米米家（國內家庭存量利舊）、Wyze（高性價比補點）、DoorBird（高端門口對講）、GoPro（機動巡檢機位）、Roborock（掃地機移動視角）</strong> 九大品牌——它們原生均不支持標準 RTSP，RTC 模組基於 go2rtc 提供 P2P 橋接與統一管理 API。Web 管控臺「接入 RTC 攝像頭」按品牌動態引導填參或 OAuth 綁定，一鍵完成 go2rtc 流註冊、VIDEO 設備登記與 SRS 推流轉發；橋接後與國標/ONVIF 專業攝像機<strong>同屏共管、同掛 AI 任務、同走告警聯動</strong>，把「家裡/門店已在用的攝像頭」和「項目裡的專業攝像機」納入同一套視頻研判體系</li>
   <li><strong>即時對講與雲臺遠控</strong>：打破「只能看、不能管」的傳統監控侷限，值守人員在即時預覽同屏即可完成語音喊話與雲臺操控——無需切換系統、不必親臨現場，即可遠程溝通、引導疏散或制止違規行爲，把響應從「派人到場」壓縮到「開口即達」。雲臺操控讓攝像頭隨心轉向、變焦聚焦，突發情況可迅速對準事發區域、放大細節，形成「看得清、指得準、喊得到」的一體化現場處置閉環。全面兼容 GB28181 與 ONVIF 設備，利舊現有監控資產，無需額外購置對講主機或第三方軟體，讓存量攝像頭即刻具備遠程溝通與靈活調度能力，顯著降低系統孤島與值守成本</li>
-  <li><strong>可編排算法後處理</strong>：突破「只能檢出、難以研判」的能力瓶頸，在目標檢測之上增設獨立的業務研判層，將畫面感知結果轉化爲可運營、可追責、可統計的業務事件。支持按任務靈活定義人數統計、越線通行、停留超時、區域滯留、多條件複合告警等場景規則，無需反覆調整模型即可快速適配工地安監、園區安防、交通管控等差異化需求，把通用視覺能力鍛造成貼近現場的管理抓手。後處理與即時分析彼此獨立、並行運轉——監控畫面持續流暢研判，業務邏輯按需彈性擴展，研判結果自動沉澱存檔並驅動精準告警，顯著降低誤報漏報與人工複覈成本。業務人員專注規則表達，平臺負責分發執行與規模承載，讓「看得見」真正走向「判得清、管得住、用得起來」</li>
+  <li><strong>POST 定製研判（可編排後處理）</strong>：突破「只能檢出、難以研判」的能力瓶頸，由獨立 <strong>POST</strong> 服務承接業務研判層，將畫面感知結果轉化爲可運營、可追責、可統計的業務事件。算法任務內即可編排規則鏈：默認按檢測區域過濾後再告警，並可疊加業務腳本與行業插件，靈活定義人數統計、越線通行、停留超時、區域滯留、多條件複合告警等場景，無需反覆調整模型即可適配工地安監、園區安防、交通管控等差異化需求。上線前可用樣例事件試跑規則、看清攔什麼、會不會告警；運行中改規則即時生效，不必停分析。感知與研判彼此獨立、並行運轉——畫面持續流暢分析，業務邏輯按需擴展，研判結果自動沉澱並驅動精準告警，顯著降低誤報漏報與人工複核成本。業務人員專注規則表達，集成商可插拔行業能力，平臺負責分發執行與規模承載，讓「看得見」真正走向「判得清、管得住、用得起來」</li>
   <li><strong>多中心節點 × 多工作節點聯邦集羣</strong>：面向跨區域、多機房與雲邊協同部署，平臺採用「N 箇中心節點 + N 個工作節點」聯邦架構——中心節點統一編排，工作節點承載算力與媒體執行，可橫向擴展。每個中心節點納管本域工作節點，支持流媒體、音視頻轉碼、視頻分析、模型推理與訓練等能力的遠程分發與一鍵部署；多中心可互聯同步，集羣泳道視圖直觀呈現「中心—工作」拓撲與資源水位。算法任務、自動標註流水線、推流轉發等工作負載按節點角色與 GPU 能力智能調度，讓海量路數接入、高併發推理與分佈式訓練在同一集羣中協同運轉，真正做到「納得進、分得清、擴得開、管得全」</li>
+  <li><strong>SENTINEL 集羣節點哨兵</strong>：面向聯邦擴容與跨機房算力池，解決「機器加進來了、卻不知道能不能接活」的交付痛點——按業務功能持續摸清每臺節點的就緒度與可調度能力，任務只派到真正就緒的機器；缺件時可自動請求環境補齊，無公網現場也能離線納管擴容，讓集羣真正做到「納得進、認得清、派得準、少登機」</li>
+
   <li><strong>SAM 零啓動自動標註編排流水線</strong>：面向「尚無標註樣本、尚無可用檢測模型」的冷啓動場景，平臺集成 SAM 開放詞彙分割能力，提供一鍵無人值守標註流水線。系統按策略自動串聯攝像頭抽幀採集、文本提示首批標註、達標後自動觸發 YOLO 微調訓練、量產階段以 YOLO 高速推理爲主並對漏檢樣本智能切換 SAM 回補、按進度週期性迭代訓練及數據集自動打包導出，完整貫通「採—標—訓—導」閉環。支持任務暫停恢復與本地/集羣算力彈性調度，配合可視化策略配置與運行日誌，幫助用戶從零樣本、零模型起步快速沉澱專屬檢測能力，讓「開口定義類別、坐等模型成型」成爲數據集建設的預設可用路徑</li>
   <li><strong>萬級彈性算力集羣與橫向擴容池</strong>：面向超大規模 AI 與視頻業務，構建雲邊端一體的分佈式算力底座，將算法任務、推流轉發、算法服務、模型訓練與推理統一納入橫向負載均衡與彈性伸縮體系。新增伺服器一鍵納管入網即可成爲可調度算力單元，調度中樞按資源水位與業務壓力自動分發任務、平衡負載，實現從百路到萬路攝像頭、從單機到萬級節點的線性擴容——無需重複部署與手工調參，讓海量路數接入、高併發推理與分佈式訓練在同一算力池中協同運行，真正做到「擴得動、跑得穩、管得住」</li>
   <li><strong>分佈式存儲驅動（計算 + 存儲雙集羣解耦）</strong>：突破傳統「每台節點本地目錄掛載、路徑寫死、擴容必改配置」的存儲瓶頸，平臺以<strong>集羣事件驅動</strong>替代原始本地目錄驅動——Export 就緒、客戶端掛載、主從切換、多集羣橋接等存儲狀態變更以事件自動感知與聯動，抓拍、錄像、告警證據與模型資產統一寫入分佈式 NFS 集羣，業務層無需關心底層掛載細節。計算與存儲<strong>雙集羣分離解耦</strong>：算力側全面擁抱 <strong>C++ RUNTIME</strong> 高速執行鏈路，存儲側獨立構建可橫向無限擴容的 NFS 集羣池，算力擴容與存儲擴容互不綁死、各按水位獨立伸縮。配套集羣泳道、拓撲視圖與多集羣橋接同步能力，新增節點一鍵納管即可加入存儲域，讓海量路數接入下的「算得動」與「存得下」同步成立，真正做到「算存分離、各自擴容、事件聯動、管得齊、擴得開」</li>
@@ -286,7 +290,7 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>Modbus-TCP 工業以太網接入</strong>：面向電錶、PLC、變頻器等以太網側工控設備，平臺內置 Modbus-TCP 主站採集能力，按產品/設備配置接入參數與測點即可上線——讀數自動匯入設備影子與在線狀態，寫值與屬性下發貫通，讓工業測點與物聯網物模型、規則引擎、告警聯動同一套閉環，不必再外掛獨立數採軟體</li>
   <li><strong>Modbus-RTU 串口現場接入</strong>：大量現場儀表仍掛在 RS-485 總線，若只能走 TCP 網關轉換，接入成本與故障點都會翻倍。平臺支持 Modbus-RTU 串口主站採集，適配虛擬串口與真實串口場景——總線側設備同樣納入統一納管與上下行控制，補齊「以太網進不了、串口又管不住」的現場空白</li>
   <li><strong>OPC UA 工業互聯接入</strong>：面向現代化工控與上位系統互聯場景，平臺支持 OPC UA 客戶端接入，完成訂閱/讀寫配置——複雜設備模型可映射爲平臺物模型屬性，上行採集與下行寫點與現有設備影子、規則鏈、消息推送無縫銜接，讓 OPC UA 現場資產真正進入「看得見、控得住、可聯動」的 AIoT 運營體系</li>
-  <li><strong>EDGE C# 邊緣採集運行時</strong>：面向工控現場可獨立部署的邊緣採集模組——以 C# 插件化採集器承接 Modbus RTU、Modbus TCP、OPC UA 等協議，本地調度採集、配置驅動解析，經 MQTT 與 DEVICE/<strong>iot-sink</strong> 雲平臺對接；支持網關屬性上報、子設備代報、雲端配置下發與屬性寫值，可打包發佈至 x86_64 / ARM64 Linux 工控機與邊緣網關，實現「現場採得準、雲端管得住」的云邊協同閉環</li>
+  <li><strong>EDGE C# 邊緣採集運行時</strong>：面向工控現場可獨立部署的邊緣採集模組——以 C# 插件化採集器承接 Modbus RTU、Modbus TCP、OPC UA 等協議，本地調度採集、配置驅動解析，經 MQTT 與 DEVICE/<strong>iot-sink</strong> 雲平臺對接。它對應設備管理中的 GATEWAY 角色（而非另開一套設備頁）：現場匯聚、雲上納管；已覆蓋網關/子設備屬性上下行與配置下發，拓撲與子設備事件/服務透傳等仍在演進。可打包發佈至 x86_64 / ARM64 Linux 工控機與邊緣網關，實現「現場採得準、雲端管得住」的云邊協同閉環</li>
   <li><strong>物模型屬性定義</strong>：大屏、規則、告警若各寫一套測點名，後期必然互相聽不懂。平臺先把設備能上報、能讀寫的測點定清楚，支持標準模板與自定義，草稿改完再發布——大屏、規則、告警從此認同一套字段，「能看哪些量」有統一語義，測點名各說各話的返工從根上被掐掉</li>
   <li><strong>物模型服務定義</strong>：遠程啓停、復位若每做一個動作就寫一次性接口，控制面必然碎片化。平臺把設備可被遠程調用的服務及入參出參寫成契約，草稿編輯、發佈後生效——「能遠程做什麼」按契約填參即可，不必再爲每個動作堆一次性接口，控制能力可複用、可審計</li>
   <li><strong>物模型事件定義</strong>：設備會上報哪些業務事件若不事先約定，告警口徑必然前後打架。平臺先約定事件類型，草稿發佈後統一生效——事件日誌與規則觸發共用同一語義，「會發生哪些事」有統一口徑，告警不會各說各話</li>
@@ -345,6 +349,36 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>個人中心</strong>：帳號、租戶與應用偏好集中管理，多端使用各得其便</li>
   <li><strong>流暢觀看</strong>：即時畫面與告警錄像在移動端流暢回放，低延時、不卡頓，移動值守體驗不打折</li>
   <li><strong>持續在線</strong>：登入狀態自動保持，少被打斷、少重複登入，讓「雲邊端智能管控」真正觸達手機與小程序</li>
+</ul>
+
+#### 💻 IDEA 在線 IDE
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>瀏覽器即開發</strong>：基於 code-server 提供 VS Code 風格在線 IDE，默認 clone 完整 yFeiEye 倉庫，貢獻者不必先配本機環境即可改代碼、跑模組級驗證、提交 PR</li>
+  <li><strong>獨立門戶與多人在線</strong>：操作臺獨立運行於 <code>:9300</code>，與 WEB 管控臺解耦；一人一 Docker 工作區，端口池 13338–13437 支持多人同時在線；管控臺懸浮球一鍵跳轉門戶</li>
+  <li><strong>六語言工具鏈對齊本機</strong>：預裝 <strong>JDK 21</strong>、Node 22、Python、Go、CMake/C++、.NET 8，覆蓋 WEB / DEVICE / AI / RUNTIME / EDGE 的閱讀、輕改與模組級驗證</li>
+  <li><strong>AI 共創</strong>：預裝 GitHub Copilot（用自己的 GitHub 帳號登入，平臺不代持密鑰）；無 Copilot 訂閱時可自備 OpenAI 兼容 API Key，經 Continue 輔助改代碼；工具欄可分屏打開 HARNESS AI 助手，拖文件自動 <code>@</code> 引用，邊改邊問</li>
+  <li><strong>本機發佈</strong>：按工作區改動路徑建議待發模組，一鍵執行構建並替換本機正在跑的同名容器，刷新現網即可驗收，縮短「改完—看到效果」的閉環</li>
+  <li><strong>OAuth 與閒置回收</strong>：支持 Gitee / GitHub 登入（可強制），一人一區綁定帳號；閒置默認 8 小時自動停機，心跳與打開 IDE 會刷新活躍時間，避免算力空轉</li>
+  <li><strong>貢獻閉環</strong>：綁定個人 fork → 開分支改代碼 → 推送到 fork → 向官方倉提交 PR</li>
+</ul>
+
+#### 🤖 HARNESS AI 助手
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
+模組多、鏈路長，查健康、問架構、找配置常要翻文檔、登伺服器。HARNESS 把平臺知識與即時探測收成<strong>對話式助手</strong>——業務頁右下角即問即查，縮短排障與 PoC 週期，少依賴原廠與口口相傳的經驗。
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>問即查</strong>：Agent 調平臺 Tool 探測 Gateway / 視頻 / 算法等服務健康，並指向相關配置與源碼——把 SSH + 翻 compose 壓縮成一次對話</li>
+  <li><strong>懂本體</strong>：內置 <code>HARNESS/ontology/AGENTS.md</code> 與全倉工作區，架構、端口、API、安裝約定有統一答案</li>
+  <li><strong>頁內即聊</strong>：懸浮抽屜 iframe 嵌入，看告警/設備時不跳轉、不丟上下文；亦可全屏「AI 助手」或新視窗</li>
+  <li><strong>IDEA 分屏共創</strong>：工具欄一鍵打開右側 AI 助手，編輯器與 Agent 同屏；亦可 <code>?file=路徑&harness=1</code> 深鏈打開指定文件並分屏</li>
+  <li><strong>拖入自動 @</strong>：從資源管理器拖文件到助手面板，自動關聯為對話上下文</li>
+  <li><strong>雙向跳轉</strong>：Agent 可通過 <code>easyaiot_open_in_idea</code> 生成門戶鏈接，從問答回到可改可發的完整 IDE；IDEA 改代碼提 PR，HARNESS 問架構查健康</li>
+  <li><strong>MCP + Cursor Skill</strong>：同一套 <code>easyaiot_*</code> 能力經 MCP 暴露給 Cursor 等 IDE——管控臺能問能查的，開發環境裡同樣能調，Skill 可跨項目復用</li>
+  <li><strong>全形態開箱</strong>：基於 <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar（<code>:3080</code>），<code>mini / standard / full</code> 默認部署即帶（<code>EASYAIOT_ENABLE_HARNESS=0</code> 可關）；DeepSeek / OpenAI 兼容端點，Key 在 <code>harness.env</code> 或 UI 自備</li>
+  <li><strong>安全提示</strong>：實驗模組，上游 <code>dsh</code> 處於 Developer Preview；生產請限制訪問並配置寫操作 / Shell 審批；API Key 勿提交 Git</li>
 </ul>
 
 ### 📦 內置 AI 模型
@@ -472,8 +506,8 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>官方價值入口</strong>：面向訪客、集成商與終端客戶的獨立官方網站，把「雲邊端一體化」講清楚——先理解價值，再進入下載與部署</li>
-    <li><strong>縮短認知路徑</strong>：產品特性、三檔硬體選型、安裝包入口與文件導覽同站完成，減少「翻倉庫、問人、找包」的溝通成本</li>
-    <li><strong>支撐選型決策</strong>：按 mini / standard / full 呈現邊緣盒子、AI 一體攝像頭與全棧一體機適用場景，幫助現場按硬體能力一次選對檔位</li>
+    <li><strong>縮短認知路徑</strong>：產品特性、四檔硬體選型、安裝包入口與文件導覽同站完成，減少「翻倉庫、問人、找包」的溝通成本</li>
+    <li><strong>支撐選型決策</strong>：按 edge / mini / standard / full 呈現輕量單機、邊緣盒子、AI 一體攝像頭與全棧一體機適用場景，幫助現場按硬體能力一次選對檔位</li>
     <li><strong>引流到落地</strong>：官網與演示環境、開源倉庫、Releases 安裝包形成閉環，讓「看懂 → 試用 → 下載 → 裝機」可連續完成</li>
   </ul>
 </td>
@@ -504,6 +538,16 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>ANDROID / IOS / HARMONYOS模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>一套前端三端殼</strong>：APP uni-app 頁面分別打成 Android（DCloud 離線運行時 + Gradle → APK）、iOS（WKWebView 殼 + xcodebuild → .app / .ipa）、鴻蒙（ArkWeb 殼 + hvigor → HAP）可安裝應用，主流手機系統同一套業務邏輯</li>
+    <li><strong>一鍵出包</strong>：<code>make-apk.sh</code> / <code>make-ipa.sh</code> / <code>make-hap.sh</code> 帶版本一致性校驗；prod / test / dev 多環境各自出包</li>
+    <li><strong>統一管理</strong>：<code>.scripts/docker/mobile.sh</code> 承擔 status / build / bump / artifacts / clean；<code>bump</code> 一次改齊五處版本號，版本不一致拒絕打包</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>DEVICE模組</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -525,23 +569,23 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
     <li><strong>為何選用 C#</strong>：強類型測點映射、異步多設備併發輪詢、7×24 長駐穩定、Linux x86/ARM 跨平臺自包含發佈，工控生態成熟、集成商上手快</li>
     <li><strong>C# 邊緣採集運行時</strong>：獨立部署的邊緣側採集服務，插件化採集器 + 本地調度 + 配置驅動解析</li>
     <li><strong>多協議採集器</strong>：內置 Modbus RTU（RS485/串口）、Modbus TCP、OPC UA 採集器，可按任務擴展 <code>ICollector</code> 插件</li>
-    <li><strong>MQTT 云邊對接</strong>：屬性上報、子設備代報、雲端配置下發（<code>config/downstream/push</code>）與屬性寫值下行，對接 DEVICE/<strong>iot-sink</strong></li>
+    <li><strong>MQTT 云邊對接</strong>：以設備管理 GATEWAY 身份接入，屬性上報、子設備屬性代報、雲端配置下發（<code>config/downstream/push</code>）與屬性寫值下行，對接 DEVICE/<strong>iot-sink</strong>；數據在同一套設備管理展現，與雲端工業輪詢（平臺直連現場設備）互補——EDGE 適合 OT 隔離與 RS-485 現場</li>
     <li><strong>配置雙通道</strong>：本地 <code>device-jobs.json</code> 與雲端 MQTT 配置推送均可驅動採集任務</li>
     <li><strong>Linux 打包發佈</strong>：<code>pack_linux.sh</code> 產出 x86_64 / ARM64 獨立部署包，適配工控機與邊緣網關</li>
-    <li><strong>聯調與文檔</strong>：內置 E2E Demo 與雲平臺對接指南（見 <a href="EDGE/README.md">EDGE/README.md</a>、<a href="EDGE/docs/PLATFORM_INTEGRATION.md">平臺對接文檔</a>）</li>
+    <li><strong>聯調開箱</strong>：內置 E2E Demo，一鍵驗證採集 → MQTT 上行 → 雲端入庫；配套雲平臺對接能力</li>
   </ul>
 </td>
 </tr>
 <tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>NODE模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>SENTINEL模組</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
-    <li><strong>節點代理</strong>：邊緣/遠程節點 Agent，一鍵安裝部署後自動接入平臺</li>
-    <li><strong>狀態上報</strong>：週期性心跳，即時上報 CPU、記憶體、磁盤、GPU 利用率及在運工作負載狀態</li>
-    <li><strong>遠程工作負載</strong>：接收平臺下發的部署/停止指令，在節點本地拉起 AI 模型服務、算法任務、音視頻轉碼等工作負載</li>
-    <li><strong>媒體節點池</strong>：支持在節點上遠程部署流媒體能力，實現設備與媒體節點綁定及流地址生成</li>
-    <li><strong>節點角色</strong>：支持算力、媒體、混合三種角色，支撐跨節點調度與彈性擴容；算力節點可承接中心下發的即時 / 抓拍 / 巡檢與高性能轉發</li>
-    <li><strong>離線友好</strong>：支持離線依賴打包與 Agent 熱更新，適配無外網或受限網路環境下的批量節點納管</li>
+    <li><strong>業務就緒哨兵</strong>：跟著每臺調度節點走，按勾選業務持續摸清本機是否真正可接活</li>
+    <li><strong>納管即監測</strong>：節點納入平臺後自動開始巡檢，擴容當天即可驗收就緒度</li>
+    <li><strong>可調度能力匯聚</strong>：把「能不能跑某類業務」匯總到管控臺，調度按真能力下發</li>
+    <li><strong>缺件自助補齊</strong>：期望環境缺失時可自動請求平臺補齊，減少現場登機裝機</li>
+    <li><strong>斷網友好擴容</strong>：無公網或受限網絡現場可離線納管與環境同步</li>
+    <li><strong>交付口徑統一</strong>：組件健康與可調度功能同屏可見，驗收與排障少猜</li>
   </ul>
 </td>
 </tr>
@@ -557,6 +601,7 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
     <li><strong>抽幀器與排序器</strong>：支持靈活的抽幀策略與結果排序機制，每個算法任務可綁定獨立的抽幀器和排序器</li>
     <li><strong>佈防時段</strong>：支持全防模式和半防模式的時段化配置</li>
     <li><strong>編排與執行分工</strong>：VIDEO 管設備編排、原畫預覽、告警歸檔與啓停；重活交給 <strong>RUNTIME</strong>（推理與高性能轉發）——「管得住」與「跑得動」分開，路數與時延不再被 Python 編排拖住</li>
+    <li><strong>與 POST 研判銜接</strong>：算法任務可配置後處理規則，檢測結果經定製研判後再進入標準告警，改規則不必停分析</li>
     <li><strong>驗收預覽</strong>：支持原畫與研判畫面並排對照，便於現場快速驗收延時與標註效果</li>
   </ul>
 </td>
@@ -603,6 +648,19 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>POST模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>定製研判</strong>：在目標檢測之上獨立做業務判斷，把「框出目標」變成「該不該告警、按什麼口徑告警」</li>
+    <li><strong>按任務配規則</strong>：區域過濾、放行、業務腳本與行業插件可編排成規則鏈，貼工地、園區、交通等現場管理抓手</li>
+    <li><strong>少誤報、可驗收</strong>：區域外不刷屏；上線前可試跑規則，看清攔什麼、會不會產生告警</li>
+    <li><strong>改口徑不停分析</strong>：運行中保存規則即時生效，不必爲改禁區或加判斷而停任務</li>
+    <li><strong>感知與研判解耦</strong>：畫面分析繼續跑，業務邏輯按需擴展；行業能力可插拔，多項目複用同一套檢測</li>
+    <li><strong>內置插件</strong>：<code>line_cross</code> 越線檢測、<code>region_enter_exit</code> 區域進出、<code>dwell_timer</code> 停留超時、<code>headcount_gate</code> 人數閾值——算法任務「後處理規則」中直接選用，無需登記；越線/進出/停留需開啓目標追蹤（<code>track_id</code>）</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>VISUALIZE模組</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -633,6 +691,26 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
     <li><strong>當天可閉環</strong>：按檔位界面化裝機，進度與結果當場可見，業務管控臺未就緒也能先把整機拉起來並交出去</li>
     <li><strong>自助排障</strong>：容器健康、資源水位、任務日誌與鏡像就緒度一目了然，常見啓停、拉鏡像、清緩存不必等開發敲命令</li>
     <li><strong>多現場複用</strong>：同一套入口貫穿多臺一體機與多處機房，PoC 與量產交付口徑一致</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>IDEA模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>社區貢獻在線 IDE</strong>：瀏覽器打開 VS Code 風格工作區，默認 clone 全倉；一人一 Docker 區，支持本機發佈與閒置回收，把開源共建從「先配環境」變成「打開即改」</li>
+    <li><strong>分屏 AI 助手</strong>：工具欄打開右側 HARNESS，拖文件自動 <code>@</code> 引用；支持 <code>?file=&harness=1</code> 深鏈定位</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>HARNESS模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>對話式助手</strong>：問健康、問架構、定位問題，縮短排障與 PoC，少依賴原廠</li>
+    <li><strong>頁內懸浮抽屜</strong>：業務頁不跳轉即聊；<code>mini / standard / full</code> 默認自帶</li>
+    <li><strong>IDEA 分屏聯動</strong>：編輯器右側嵌助手，拖入 <code>@</code>、深鏈定位與雙向跳轉</li>
+    <li><strong>MCP / Skill</strong>：管控臺與 IDE 共用平臺語義，Skill 可跨項目復用</li>
   </ul>
 </td>
 </tr>
@@ -725,11 +803,29 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 - [Windows 映像部署](.doc/部署文档/平台Windows部署文档_zh_tw.md) — `install_windows.ps1` 推薦入口
 - [部署最佳實踐](.doc/部署文档/部署最佳实践_zh_tw.md) — 規格選型、環境要求、一鍵部署（含 CentOS **7～9** / **CentOS ARM** / **麒麟(Kylin) / 歐拉(openEuler)**）、運維排錯與生產環境建議
 
+## 📘 操作手冊
+
+面向交付、值守與業務操作：按**操作鏈**組織（目標 → 前置 → 步驟 → 驗收），預設平臺已部署可用。
+
+- [平臺操作手冊（目錄）](.doc/操作手册/README.md) — 怎麼讀、最短閉環與文件索引
+- [操作鏈總覽](.doc/操作手册/00-操作链总览.md) — 全局地圖、選單速查、PoC 當天驗收清單
+- [登入與基礎準備](.doc/操作手册/01-登录与基础准备.md) — 帳號、組織、權限、通知渠道底座
+- [視頻設備接入](.doc/操作手册/02-视频设备接入.md) — ONVIF / NVR / 國標 / RTC / 大疆 → 預覽與推流
+- [AI 演算法任務閉環](.doc/操作手册/03-AI算法任务闭环.md) — 標註/模型 → 任務 → 告警
+- [物聯網設備接入](.doc/操作手册/04-物联网设备接入.md) — 產品物模型 → 設備 → EDGE / 工業採集
+- [告警通知與對外聯動](.doc/操作手册/05-告警通知与对外联动.md) — 告警處置、通知、TRANSFORM
+- [可視化大屏](.doc/操作手册/06-可视化大屏.md) — 大屏/組態編輯、發佈與投放
+- [APP 移動值守](.doc/操作手册/07-APP移动值守.md) — 移動端與 WEB 能力對照
+
 ## 🎮 演示環境
 
 - 演示地址：http://36.111.47.113:8888/
 - 帳號：admin
 - 密碼：admin123
+
+## 🎬 演示影片
+
+- Bilibili：https://www.bilibili.com/video/BV1d3846yEQz/?vd_source=5d3350c0182a2cf35c2739f3d16c1161
 
 ## ⚙️ 項目地址
 
@@ -764,6 +860,12 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 
 | | | |
 |:---:|:---:|:---:|
+| ![視頻監控](.image/banner/banner1225.png) | ![視頻監控](.image/banner/banner1226.png) | ![視頻監控](.image/banner/banner1227.png) |
+| ![視頻監控](.image/banner/banner1228.png) | ![視頻監控](.image/banner/banner1229.png) | ![視頻監控](.image/banner/banner1230.png) |
+| ![視頻監控](.image/banner/banner1219.png) | ![視頻監控](.image/banner/banner1220.png) | ![視頻監控](.image/banner/banner1221.png) |
+| ![視頻監控](.image/banner/banner1222.png) | ![視頻監控](.image/banner/banner1223.png) | ![視頻監控](.image/banner/banner1224.png) |
+| ![區域檢測](.image/banner/banner1213.png) | ![區域檢測](.image/banner/banner1214.png) | ![區域檢測](.image/banner/banner1218.png) |
+| ![後處理規則鏈](.image/banner/banner1216.png) | ![後處理規則鏈](.image/banner/banner1217.png) | ![後處理規則鏈](.image/banner/banner1215.png) |
 | ![直播](.image/banner/banner1145.jpg) | ![預覽](.image/banner/banner1146.jpg) | ![攝像頭](.image/banner/banner1051.jpg) |
 | ![列表](.image/banner/banner1053.jpg) | ![推流](.image/banner/banner1083.jpg) | ![轉發](.image/banner/banner1084.jpg) |
 | ![存儲](.image/banner/banner1121.png) | ![抓拍](.image/banner/banner1122.png) | ![錄像](.image/banner/banner1123.png) |
@@ -775,6 +877,13 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![實況](.image/banner/banner1026.jpg) | ![多路](.image/banner/banner1028.jpg) | ![推流](.image/banner/banner1103.png) |
 | ![預覽](.image/banner/banner1104.png) | ![接入](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![實況](.image/banner/banner1183.jpg) | ![地圖](.image/banner/banner1184.jpg) |  |
+
+#### 🤖 AI助手
+
+| | | |
+|:---:|:---:|:---:|
+| ![IDEA登入](.image/banner/banner1203.png) | ![IDEA工作區](.image/banner/banner1204.png) | ![IDEA開發](.image/banner/banner1205.png) |
+| ![AI助手對話](.image/banner/banner1210.png) | ![AI助手分析](.image/banner/banner1211.png) | ![AI助手協作](.image/banner/banner1212.png) |
 
 #### 🧠 AI模型
 
@@ -824,7 +933,8 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![統計](.image/banner/banner1176.jpg) | ![總覽](.image/banner/banner1177.jpg) | ![看板](.image/banner/banner1178.jpg) |
 | ![產品](.image/banner/banner1006.jpg) | ![設備](.image/banner/banner1009.jpg) | ![OTA](.image/banner/banner1179.jpg) |
 | ![固件](.image/banner/banner1180.jpg) | ![任務](.image/banner/banner1181.jpg) | ![進度](.image/banner/banner1182.jpg) |
-| ![規則](.image/banner/banner1013.jpg) | ![編排](.image/banner/banner1014.png) |  |
+| ![規則](.image/banner/banner1013.jpg) | ![編排](.image/banner/banner1014.png) | ![轉發](.image/banner/banner1206.png) |
+| ![運行](.image/banner/banner1209.png) | ![目的](.image/banner/banner1207.png) | ![投遞](.image/banner/banner1208.png) |
 
 #### 🖥️ 集羣
 
@@ -854,9 +964,13 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 
 | | | |
 |:---:|:---:|:---:|
-| ![首頁](.image/banner/app/app_1000.jpg) | ![監控](.image/banner/app/app_1001.jpg) | ![預覽](.image/banner/app/app_1002.jpg) |
-| ![告警](.image/banner/app/app_1003.jpg) | ![回放](.image/banner/app/app_1004.jpg) | ![設備](.image/banner/app/app_1005.jpg) |
-| ![消息](.image/banner/app/app_1006.jpg) | ![我的](.image/banner/app/app_1007.jpg) |  |
+| ![APP截圖](.image/banner/app/app_1008.jpg) | ![APP截圖](.image/banner/app/app_1009.jpg) | ![APP截圖](.image/banner/app/app_1010.jpg) |
+| ![APP截圖](.image/banner/app/app_1011.jpg) | ![APP截圖](.image/banner/app/app_1012.jpg) | ![APP截圖](.image/banner/app/app_1013.jpg) |
+| ![APP截圖](.image/banner/app/app_2023.png) | ![APP截圖](.image/banner/app/app_2024.png) | ![APP截圖](.image/banner/app/app_2025.png) |
+| ![APP截圖](.image/banner/app/app_2026.png) | ![APP截圖](.image/banner/app/app_2027.png) | ![APP截圖](.image/banner/app/app_2028.png) |
+| ![APP截圖](.image/banner/app/app_1014.jpg) | ![APP截圖](.image/banner/app/app_1015.jpg) | ![APP截圖](.image/banner/app/app_1016.jpg) |
+| ![APP截圖](.image/banner/app/app_1017.jpg) | ![APP截圖](.image/banner/app/app_1018.jpg) | ![APP截圖](.image/banner/app/app_1019.jpg) |
+| ![APP截圖](.image/banner/app/app_1020.jpg) | ![APP截圖](.image/banner/app/app_1021.jpg) | ![APP截圖](.image/banner/app/app_1022.jpg) |
 
 ## 🛠️ 服務與支持
 
@@ -1054,6 +1168,10 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 <tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">為推動 yFeiEye 物聯網資料「可展成屏」，提出基於開源 GoView 的可視化 Board（拖拽看板）方案，讓圖表與平台 IoT 物模型測點直接關聯，快速取用即時值與歷史值；同時貢獻感測器浮點資料預測、運行狀態上下閾值、閾值告警與規則聯動，以及中心設備關聯子設備狀態的一屏展示。</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>添旺</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">爲推動 yFeiEye 項目在雲邊協同視頻接入與智能研判方向的發展，獨立貢獻多項關鍵能力，直面邊緣落地中「接不進、調不準、跑不實、查不回」的核心痛點：其一，支援邊緣攝像頭接入與算法節點親和——IPC / NVR 可選擇在線邊緣節點作爲「接入節點」，設備發現、網段掃描、ONVIF 探測與 NVR 通道枚舉全部下沉至邊緣節點就近執行，源流經邊緣節點回推主節點媒體服務統一分發播放，使分支機構、跨網段/私網中的攝像頭無需與中心平臺網路直通即可納管出流；算法任務創建時按攝像頭登記的接入節點自動鎖定執行節點，從調度機制上杜絕任務被派往無法訪問攝像頭的節點而空轉失效，讓算力真正圍繞攝像頭就近編排。其二，定位並修復同攝像頭多任務及多模型僅單路生效的核心缺陷——以任務級流標識隔離各任務的推理鏈路，透過共享解碼復用單路取流支撐多任務並發分析，並讓告警與運行狀態全鏈路攜帶任務身份，使同一攝像頭可穩定並行承載多個算法任務與多模型檢測（如人臉+車輛同框識別），且以獨立取流服務與迴歸測試長期守護該行爲。其三，支援邊緣錄影分層存儲與統一事件回放——邊緣側錄影按層級就地留存，告警事件與錄影證據可在雲邊統一入口檢索回放，補齊「事件有據可查、證據可信可回放」的證據閉環。上述工作顯著增強了平臺在真實複雜網路環境下的交付確定性與智能分析結果的可信度。</td>
 </tr>
 </tbody>
 </table>

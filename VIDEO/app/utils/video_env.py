@@ -91,6 +91,7 @@ def load_video_env(*, override: bool = True) -> str | None:
     if env_name:
         candidates.append(os.path.join(root, f'.env.{env_name}'))
     candidates.append(os.path.join(root, '.env'))
+    loaded_path = None
     for path in candidates:
         if os.path.isfile(path):
             load_dotenv(path, override=override)

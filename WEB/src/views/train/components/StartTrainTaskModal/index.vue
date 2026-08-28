@@ -170,6 +170,7 @@ import { BasicForm, useForm } from '@/components/Form';
 import { getDatasetPage } from '@/api/device/dataset';
 import { getModelPage } from '@/api/device/model';
 import { getNodePage, type ComputeNodeVO } from '@/api/device/node';
+import { nodeHasFunction } from '@/views/node/utils/constants';
 import { getTrainGpuStatus, uploadTrainDataset } from '@/api/device/train';
 import { useMessage } from '@/hooks/web/useMessage';
 import { Button } from '@/components/Button';
@@ -452,8 +453,7 @@ const loadNodes = async () => {
     const res = await getNodePage({ pageNo: 1, pageSize: 200, status: 'online' });
     const page = (res as { data?: { list?: unknown[] }; list?: unknown[] })?.data || res;
     const list = (((page as { list?: unknown[] })?.list || []) as ComputeNodeVO[]).filter(
-      (node) =>
-        node.nodeRole === 'compute' || node.nodeRole === 'gpu' || node.nodeRole === 'hybrid',
+      (node) => nodeHasFunction(node, 'train'),
     );
     nodeRecords.value = list;
     nodeOptions.value = list
@@ -721,7 +721,7 @@ const [registerForm, { setFieldsValue, validate, resetFields, updateSchema, getF
         },
       },
       helpMessage:
-        '优先调度 GPU 节点；无可用 GPU 时自动回落到 CPU 节点（含中心节点）。集群模式需 CephFS 与 model_train Bundle',
+        '优先调度 GPU 节点；无可用 GPU 时自动回落到 CPU 节点（含中心节点）。集群模式需 NFS 与 model_train Bundle',
     },
     {
       field: 'target_node_id',
@@ -939,7 +939,7 @@ async function initTrainDrawer(data: Record<string, unknown> = {}) {
     await loadDatasets();
     cloudDatasetsLoaded.value = true;
     const matched = datasetList.value.find(
-      (item) => String(item.id) === String(data.datasetId) && !!item.zipUrl,
+      (item) => String(item.id) === String(data.datasetId) && item.isSyncMinio === 1 && !!item.zipUrl,
     );
     if (matched) {
       selectedDatasetId.value = matched.id;
@@ -1177,7 +1177,7 @@ const startTrain = async () => {
       createMessage.warn('请选择云端数据集');
       return;
     }
-    if (!dataset.zipUrl) {
+    if (dataset.isSyncMinio !== 1 || !dataset.zipUrl) {
       if (dataset.isAllocated !== 1) {
         createMessage.warn('该数据集尚未划分用途，请先在数据集管理中点击「按比例划分数据集用途」');
       } else if (dataset.isSyncMinio !== 1) {

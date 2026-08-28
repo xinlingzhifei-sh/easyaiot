@@ -1,6 +1,6 @@
 # yFeiEye Deployment Best Practices
 
-> This document stays in sync with project scripts and covers production deployment and operations.  
+> This document stays in sync with project scripts and covers production deployment and operations.
 > For a quick start, see [Platform Deployment Guide](./平台部署文档.md).
 
 ---
@@ -8,7 +8,8 @@
 ## Table of Contents
 
 - [Two Usage Modes (Detailed)](#two-usage-modes-detailed)
-- [5-Minute Deployment Flow](#5-minute-deployment-flow)
+- [Quick Start](#quick-start)
+- [5-Minute Full-Tier Reminder](#5-minute-full-tier-reminder)
 - [Deployment Profile Selection](#deployment-profile-selection)
 - [Environment Requirements & Pre-Deployment Checks](#environment-requirements--pre-deployment-checks)
 - [One-Click & Step-by-Step Deployment](#one-click--step-by-step-deployment)
@@ -148,19 +149,39 @@ Key directories: MinIO `record-space` / `alert-images`, local `playbacks`, alert
 
 ### Relationship to Per-Module Scripts
 
-Module directories (`DEVICE/`, `AI/`, `VIDEO/` …) have independent `install_linux.sh` for that module only — **no** unified [Analyze] menu.  
+Module directories (`DEVICE/`, `AI/`, `VIDEO/` …) have independent `install_linux.sh` for that module only — **no** unified [Analyze] menu.
 Full platform orchestration + interactive guide + cross-module log/disk analysis → use `.scripts/docker/install_linux.sh` only.
 
 ---
 
-## 5-Minute Deployment Flow
+## Quick Start
+
+Open the docs and mutter: “Can my little box even run this?” — **Yes. Don’t panic.**
+
+Lightest tier **edge**, containers use about **1 GB**. Spin up that old laptop first; upgrade later when you’re hooked.
 
 ```bash
 git clone https://gitee.com/volara/easyaiot.git && cd easyaiot
 
-docker --version && docker compose version
+# Recommended
+EASYAIOT_DEPLOY_PROFILE=edge sudo bash .scripts/docker/install_linux.sh install
+# sudo bash .scripts/docker/install_linux.sh edge install
 
-# Option A: Direct command
+# Or interactive
+# sudo .scripts/docker/install_linux.sh
+
+.scripts/docker/install_linux.sh verify
+# Optional: peek at memory vs the tier budget
+.scripts/docker/install_linux.sh resources
+```
+
+Then open `https://<server-ip>:8888` — default `admin` / `admin123`.
+All green? You’re done—easier than you feared. Go grab that coffee early.
+
+### 5-Minute Full-Tier Reminder
+
+```bash
+# Option A: Direct command (full-tier example)
 sudo .scripts/docker/install_linux.sh pull    # Optional: pre-built images
 sudo .scripts/docker/install_linux.sh install
 .scripts/docker/install_linux.sh verify
@@ -168,7 +189,7 @@ sudo .scripts/docker/install_linux.sh install
 # Option B: Interactive
 sudo .scripts/docker/install_linux.sh         # 1 Deploy → 1 Install → 7 Verify
 
-# Access: http://<server-ip>:8888
+# Access: https://<server-ip>:8888
 ```
 
 ### Install Duration
@@ -182,11 +203,12 @@ sudo .scripts/docker/install_linux.sh         # 1 Deploy → 1 Install → 7 Ver
 
 ## Deployment Profile Selection
 
-Selected interactively on first `install`, or via `export EASYAIOT_DEPLOY_PROFILE=mini|standard|full`.  
+Selected interactively on first `install`, or via `export EASYAIOT_DEPLOY_PROFILE=edge|mini|standard|full`.
 Saved to `.scripts/docker/.deploy_profile`, reused by `start` / `stop` / `update`.
 
 | Profile | Aliases | Recommended RAM | Use case |
 |---------|---------|-----------------|----------|
+| **edge** | `0` | ≥ 2 GB | Lightest edge / old-box trial |
 | **mini** | `1` / `4g` | ≥ 8 GB | Edge nodes, PoC |
 | **standard** | `2` / `16g` | ≥ 16 GB | Regular production |
 | **full** | `3` (default) | ≥ 20 GB | Full features + APP H5 |

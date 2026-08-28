@@ -20,6 +20,7 @@ import { Verify } from '@/components/Verifition'
 import { getTenantByWebsite, getTenantIdByName } from '@/api/base/login'
 import { Button } from '@/components/Button'
 import { extractLoginErrorMessage, resolveLoginTenantId, runLoginSubmitFlow } from './loginSubmit'
+import { isLoginCaptchaEnabled, isLoginTenantEnabled } from '@/utils/deployProfile'
 const FormItem = Form.Item
 const InputPassword = Input.Password
 
@@ -30,6 +31,8 @@ const userStore = useUserStore()
 const permissionStore = usePermissionStore()
 
 const { tenantEnable, captchaEnable } = useGlobSetting()
+const loginTenantEnabled = isLoginTenantEnabled()
+const loginCaptchaEnabled = isLoginCaptchaEnabled()
 
 const { setLoginState, getLoginState } = useLoginState()
 const { getFormRules } = useFormRules()
@@ -61,7 +64,7 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN)
 // 获取验证码
 async function getCode() {
   await runLoginSubmitFlow({
-    captchaEnable,
+    captchaEnable: loginCaptchaEnabled ? captchaEnable : 'false',
     validateForm: validForm,
     login: () => handleLogin({}),
     showCaptcha: () => verify.value.show(),
@@ -71,7 +74,7 @@ async function getCode() {
 // 根据域名，获得租户信息 && 获取租户ID
 async function getTenantId() {
   const tenantId = await resolveLoginTenantId({
-    tenantEnable,
+    tenantEnable: loginTenantEnabled ? tenantEnable : 'false',
     tenantName: formData.tenantName,
     website: location.host,
     getTenantByWebsite,
@@ -98,7 +101,8 @@ async function handleLogin(params: { captchaVerification?: string } = {}) {
     })
     if (userInfo) {
       console.log(JSON.stringify(userInfo))
-      await permissionStore.changePermissionCode(userInfo.permissions)
+      const permissions = userInfo.permissions
+      await permissionStore.changePermissionCode(Array.isArray(permissions) ? permissions : [])
       notification.success({
         message: t('sys.login.loginSuccessTitle'),
         description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.user.nickname}`,
@@ -126,9 +130,8 @@ async function handleLogin(params: { captchaVerification?: string } = {}) {
     v-show="getShow" ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules"
     @keypress.enter="getCode"
   >
-    <FormItem name="tenantName" class="enter-x">
+    <FormItem v-if="loginTenantEnabled && tenantEnable === 'true'" name="tenantName" class="enter-x">
       <Input
-        v-if="tenantEnable === 'true'"
         v-model:value="formData.tenantName"
         size="large"
         :placeholder="t('sys.login.tenantName')"
@@ -179,5 +182,12 @@ async function handleLogin(params: { captchaVerification?: string } = {}) {
       </Button> -->
     </FormItem>
   </Form>
-  <Verify ref="verify" mode="pop" :captcha-type="captchaType" :img-size="{ width: '360px', height: '180px' }" @success="handleLogin" />
+  <Verify
+    v-if="loginCaptchaEnabled && captchaEnable !== 'false'"
+    ref="verify"
+    mode="pop"
+    :captcha-type="captchaType"
+    :img-size="{ width: '360px', height: '180px' }"
+    @success="handleLogin"
+  />
 </template>

@@ -198,6 +198,15 @@ const selectedItem = ref<AlertReviewItem | null>(null)
 const ruleDrawerVisible = ref(false)
 const ruleDrawerItem = ref<AlertReviewItem | null>(null)
 const ruleDrawerDeviceId = computed(() => ruleDrawerItem.value?.cameraId || ruleDrawerItem.value?.deviceId || '')
+const ruleDrawerTaskId = computed(() => {
+  const item = ruleDrawerItem.value
+  const raw = item?.reviewData?.taskId
+    ?? item?.reviewData?.task_id
+    ?? item?.ruleSuggestion?.taskId
+    ?? item?.ruleSuggestion?.task_id
+  const taskId = Number(raw)
+  return Number.isInteger(taskId) && taskId > 0 ? taskId : null
+})
 
 type UnifiedTimelineKind = 'object' | 'coverage' | 'evidence' | 'case' | 'export'
 
@@ -2800,12 +2809,13 @@ defineExpose({
 
     <a-drawer v-model:visible="ruleDrawerVisible" title="区域规则" width="960" destroy-on-close>
       <DeviceRegionDrawer
-        v-if="ruleDrawerDeviceId"
+        v-if="ruleDrawerDeviceId && ruleDrawerTaskId"
         :device-id="ruleDrawerDeviceId"
+        :task-id="ruleDrawerTaskId"
         @save="handleRegionRuleSave"
       />
       <div v-else class="empty-panel">
-        未选择摄像头
+        {{ ruleDrawerDeviceId ? '当前线索缺少算法任务信息，无法编辑任务级区域' : '未选择摄像头' }}
       </div>
     </a-drawer>
   </div>

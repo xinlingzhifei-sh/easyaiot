@@ -219,6 +219,16 @@ compose_up_or_fail() {
     compose_log=$(mktemp)
     if ! $COMPOSE_CMD "${compose_args[@]}" up "$@" >"$compose_log" 2>&1; then
         cat "$compose_log"
+        if repair_media_bind_after_compose_error "$(cat "$compose_log")"; then
+            print_warning "媒体挂载源已修复（EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}），重试启动..."
+            : >"$compose_log"
+            if $COMPOSE_CMD "${compose_args[@]}" up "$@" >"$compose_log" 2>&1; then
+                grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" "$compose_log" || true
+                rm -f "$compose_log"
+                return 0
+            fi
+            cat "$compose_log"
+        fi
         rm -f "$compose_log"
         print_error "Docker Compose 创建/更新容器失败"
         return 1
@@ -1102,17 +1112,16 @@ update_service() {
 
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
-    rev_before="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_before="$(easyaiot_git_rev_parse_head)"
 
     print_info "拉取最新代码..."
     # --ff-only：快进失败立即返回，不产生意外合并提交，比默认 pull 更快更安全
-    if ! git pull --ff-only; then
-        print_error "Git pull 失败，已停止更新，未重建旧版本容器"
+    if ! easyaiot_git_pull_ff_only strict; then
         return 1
     fi
 
     local rev_after=""
-    rev_after="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_after="$(easyaiot_git_rev_parse_head)"
 
     check_gpu
     configure_gpu

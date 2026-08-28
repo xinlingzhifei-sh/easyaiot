@@ -37,6 +37,12 @@ vhost __defaultVhost__ {
     tcp_nodelay     on;
     min_latency     on;
 
+    # edge_local 节点先在本机落 DVR，再由 SRS 原生转发同一 app/stream 到控制面。
+    forward {
+        enabled         ${SRS_FORWARD_ENABLED};
+        destination     ${SRS_FORWARD_DESTINATION};
+    }
+
     play {
         gop_cache       off;
         queue_length    10;

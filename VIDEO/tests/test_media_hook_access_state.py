@@ -12,7 +12,10 @@ sys.path.insert(0, str(ROOT))
 
 sys.modules.setdefault(
     "app.services.dvr_device_resolver",
-    types.SimpleNamespace(resolve_device_from_hook=Mock(return_value=("cam-001", None))),
+    types.SimpleNamespace(
+        resolve_device_from_hook=Mock(return_value=("cam-001", None)),
+        resolve_stream_identity_from_hook=Mock(return_value=(None, "cam-001", None)),
+    ),
 )
 sys.modules.setdefault(
     "app.services.dvr_upload_service",

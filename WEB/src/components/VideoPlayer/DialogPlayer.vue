@@ -161,6 +161,7 @@ import {
   pickWvpPlaySources,
   AI_PLAY_FALLBACK_MS,
   isAiStreamPlayUrl,
+  isGb28181LivePlaceholderStreamUrl,
   pickDirectPlayUrls,
   resolveGbChannelPlayUrls,
   schedulePendingAiStreamUpgrade,
@@ -199,6 +200,7 @@ const state = reactive({
   preferAi: false,
   playLoading: false,
   vodMode: false,
+  nativeVodFailed: false,
   isGb28181: false,
   isOnvif: false,
   presets: [] as PresetItem[],
@@ -362,7 +364,7 @@ async function applyResolvedStream(
     playSources?: WvpPlaySourceOption[] | null;
   },
 ) {
-  if (!resolved.url) {
+  if (!resolved.url || isGb28181LivePlaceholderStreamUrl(resolved.url)) {
     createMessage.warning(
       enableAi.value ? '该设备暂无 AI 流或原始流播放地址' : '该设备暂无可播放地址',
     );
@@ -418,10 +420,24 @@ async function reloadStreamForAiToggle() {
 
   enableAiReloading.value = true;
   clearAiFallbackTimer();
-  state.playLoading = true;
   state.currentUrl = '';
 
   try {
+    if (state.isGb28181 && state.deviceIdentification && state.presetPos) {
+      let pendingAi: string | null = null;
+      if (enableAi.value) {
+        const resolved = await resolveGbChannelPlayUrls(
+          state.deviceIdentification,
+          state.presetPos,
+          { enableAi: true, synced: record },
+        );
+        pendingAi = resolved.pendingAiUrl?.trim() || null;
+      }
+      await startGb28181WvpPlay(pendingAi);
+      return;
+    }
+
+    state.playLoading = true;
     const resolved = await resolveLivePlayUrls(record);
     await applyResolvedStream(record, resolved);
   } finally {
@@ -441,8 +457,43 @@ watch(enableAi, () => {
   handleEnableAiChange();
 });
 
+async function startGb28181WvpPlay(pendingAiUrl?: string | null) {
+  if (!state.deviceIdentification || !state.presetPos) return;
+  state.currentUrl = '';
+  state.playLoading = true;
+  try {
+    const res = await playByDeviceAndChannel(state.deviceIdentification, state.presetPos);
+    const streamContent = res?.data?.data ?? res?.data;
+    const playSources = pickWvpPlaySources(streamContent);
+    const playSource = playSources[0];
+    if (!playSource?.url || isGb28181LivePlaceholderStreamUrl(playSource.url)) {
+      createMessage.error(streamContent?.msg || res?.data?.msg || '未获取到播放地址');
+      return;
+    }
+    state.vodMode = false;
+    state.fallbackUrl = null;
+    state.preferAi = false;
+    state.playSources = playSources;
+    state.playerEngine = playSource.playerEngine ?? '';
+    state.videoCodec = playSource.videoCodec ?? '';
+    await nextTick();
+    state.currentUrl = playSource.url;
+    playerKey.value += 1;
+    const pending = pendingAiUrl?.trim();
+    if (pending && pending !== playSource.url && enableAi.value) {
+      schedulePendingAiUpgrade(playSource.url, pending);
+    }
+    triggerPlayerFillResize();
+  } catch {
+    createMessage.error('点播失败，请检查设备连接');
+  } finally {
+    state.playLoading = false;
+  }
+}
+
 async function loadStream(record: Record<string, any>) {
   clearAiFallbackTimer();
+  state.nativeVodFailed = false;
   state.fallbackUrl = null;
   state.preferAi = false;
   state.playerEngine = '';
@@ -457,27 +508,38 @@ async function loadStream(record: Record<string, any>) {
   const rawSeekOffset = hasSeekOffset ? Number(record['playback_offset_seconds']) : Number.NaN;
   state.seekOffsetSeconds = Number.isFinite(rawSeekOffset) && rawSeekOffset >= 0 ? rawSeekOffset : -1;
 
-  const preResolvedUrl = String(record.http_stream ?? '').trim();
-  const recordFallback = String(record._fallbackUrl ?? '').trim() || null;
-  const recordPreferAi = !!record._preferAi;
-  const recordPendingAi = String(record._pendingAiUrl ?? '').trim() || null;
-
   const gbIds = getGb28181PlayIds(record);
-  const sipDeviceId = gbIds?.sipDeviceId ?? '';
-  const channelId = gbIds?.channelId ?? '';
-  const gbRecord = shouldPlayViaGb28181(record);
+  const sipDeviceId = gbIds?.sipDeviceId ?? String(record.deviceIdentification || '').trim();
+  const channelId =
+    gbIds?.channelId ??
+    String(record.channelId || record.presetPos || record.channel_id || '').trim();
+  const gbRecord = shouldPlayViaGb28181(record) || record._forceGbWvp === true;
 
   state.deviceIdentification = gbRecord ? sipDeviceId : '';
   state.channelId = channelId;
   state.presetPos = gbRecord ? channelId : '';
   state.isGb28181 = gbRecord;
   state.isOnvif = gbRecord ? false : isOnvifDevice(record);
+  state.deviceId = String(record.id ?? '');
 
-  if (preResolvedUrl) {
+  const recordPendingAi = String(record._pendingAiUrl ?? '').trim() || null;
+  const preResolvedUrl = String(record.http_stream ?? '').trim();
+  const recordFallback = String(record._fallbackUrl ?? '').trim() || null;
+  const recordPreferAi = !!record._preferAi;
+
+  // 国标通道始终走 WVP 点播，忽略数据库里的占位播放地址。
+  if (gbRecord && sipDeviceId && channelId) {
+    await startGb28181WvpPlay(recordPendingAi);
+    return;
+  }
+
+  if (preResolvedUrl && !isGb28181LivePlaceholderStreamUrl(preResolvedUrl)) {
     state.deviceId = String(record.id ?? '');
     state.playLoading = false;
-    state.vodMode = isVodPlaybackUrl(preResolvedUrl);
-    state.fallbackUrl = recordFallback;
+    state.vodMode = record._forceVod === true || isVodPlaybackUrl(preResolvedUrl);
+    state.fallbackUrl = recordFallback && !isGb28181LivePlaceholderStreamUrl(recordFallback)
+      ? recordFallback
+      : null;
     state.preferAi = recordPreferAi;
     state.playerEngine = String(record._playerEngine ?? '').trim()
       || (shouldUseNativeSeekPlayback(preResolvedUrl, state.seekOffsetSeconds, state.seekTime) ? 'native' : '');
@@ -496,33 +558,6 @@ async function loadStream(record: Record<string, any>) {
     return;
   }
 
-  if (gbRecord) {
-    state.currentUrl = '';
-    state.playLoading = true;
-    try {
-      const res = await playByDeviceAndChannel(sipDeviceId, channelId);
-      const streamContent = res?.data?.data ?? res?.data;
-      const playSources = pickWvpPlaySources(streamContent);
-      const playSource = playSources[0];
-      if (playSource?.url) {
-        state.vodMode = false;
-        state.playSources = playSources;
-        state.playerEngine = playSource.playerEngine ?? '';
-        state.videoCodec = playSource.videoCodec ?? '';
-        state.currentUrl = playSource.url;
-        playerKey.value += 1;
-        triggerPlayerFillResize();
-      } else {
-        createMessage.error(streamContent?.msg || res?.data?.msg || '未获取到播放地址');
-      }
-    } catch {
-      createMessage.error('点播失败，请检查设备连接');
-    } finally {
-      state.playLoading = false;
-    }
-    return;
-  }
-
   state.deviceId = String(record.id ?? '');
   const streamUrl = String(record.http_stream ?? '').trim();
   if (!streamUrl && record._pendingRecord) {
@@ -532,8 +567,14 @@ async function loadStream(record: Record<string, any>) {
     return;
   }
 
+  if (!streamUrl || isGb28181LivePlaceholderStreamUrl(streamUrl)) {
+    state.playLoading = false;
+    state.currentUrl = '';
+    return;
+  }
+
   state.playLoading = false;
-  state.vodMode = isVodPlaybackUrl(streamUrl);
+  state.vodMode = record._forceVod === true || isVodPlaybackUrl(streamUrl);
   state.playerEngine = '';
   state.videoCodec = '';
   state.playSources = [];
@@ -602,12 +643,13 @@ const [register, { closeModal, setModalProps }] = useModalInner((record) => {
 });
 
 async function handleModalOpen(record: Record<string, any>) {
-  const vod = isVodPlaybackUrl(String(record.http_stream ?? ''));
+  const vod = record._forceVod === true || isVodPlaybackUrl(String(record.http_stream ?? ''));
   skipEnableAiWatch = true;
   enableAi.value = record._enableAi !== false;
   state.record = record;
   state.deviceName = formatCameraDeviceLabel(record);
   state.vodMode = vod;
+  state.nativeVodFailed = false;
   state.presets = [];
   applyModalLayout(vod);
 
@@ -1141,12 +1183,19 @@ function handleCancel() {
   overflow: hidden;
   background: #000;
 
+  > .monitor-dialog__native-vod,
   > .jessibuca-root,
   > .monitor-dialog__loading {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+
+  > .monitor-dialog__native-vod {
+    display: block;
+    object-fit: contain;
+    background: #000;
   }
 
   :deep(.jessibuca-container) {

@@ -195,10 +195,16 @@ import {
 import { formatCameraDeviceLabel, isGb28181Device } from '@/views/camera/utils/deviceLabel';
 import {
   AI_PLAY_FALLBACK_MS,
+  AI_STREAM_PROBE_MULTI_VIEW_MS,
   loadGbChannelSyncedDevice,
   pickDirectPlayUrls,
+  ensureDirectRtspPlayReady,
   schedulePendingAiStreamUpgrade,
-  resolveGbChannelPlayUrls} from '@/views/camera/utils/devicePlay';
+  resolveGbChannelPlayUrls,
+  isAiStreamPlayUrl,
+  isGb28181LivePlaceholderStreamUrl,
+  toMultiViewPlayUrl,
+} from '@/views/camera/utils/devicePlay';
 import {
   collectMonitorTreeExpandedKeys,
   findMonitorDeviceById,
@@ -247,6 +253,66 @@ import {
   type CameraMonitorLayoutPreset,
   type CameraMonitorLayoutSlot,
 } from '@/views/camera/utils/monitorLayoutStorage';
+
+/** 多分屏同时起播并发上限，避免浏览器/SRS 瞬时打满导致后几路卡在「疯狂加载中」 */
+const MULTI_VIEW_PLAY_CONCURRENCY = 2;
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<void>,
+  staggerMs = 220,
+): Promise<void> {
+  if (!items.length) return;
+  const limit = Math.max(1, Math.min(concurrency, items.length));
+  let cursor = 0;
+  const runOne = async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      await worker(items[index]!, index);
+      if (staggerMs > 0 && cursor < items.length) {
+        await new Promise((r) => window.setTimeout(r, staggerMs));
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: limit }, () => runOne()));
+}
+
+const playStartQueue: Array<() => Promise<void>> = [];
+let playStartActive = 0;
+
+function enqueuePlayStart<T>(job: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    playStartQueue.push(async () => {
+      try {
+        resolve(await job());
+      } catch (e) {
+        reject(e);
+      }
+    });
+    drainPlayStartQueue();
+  });
+}
+
+function drainPlayStartQueue() {
+  while (playStartActive < MULTI_VIEW_PLAY_CONCURRENCY && playStartQueue.length) {
+    const next = playStartQueue.shift();
+    if (!next) return;
+    playStartActive += 1;
+    void next().finally(() => {
+      playStartActive -= 1;
+      drainPlayStartQueue();
+    });
+  }
+}
+
+function isMultiViewLayout(): boolean {
+  return state.splitMode > 1;
+}
+
+function shouldEnableAiForPlay(): boolean {
+  return enableAi.value;
+}
 
 interface PlayCell {
   deviceId: string;
@@ -510,7 +576,7 @@ async function playSavedSlot(index: number, saved: CameraMonitorLayoutSlot) {
     const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveGbChannelPlayUrls(
       gb.sipDeviceId,
       gb.channelId,
-      { enableAi: enableAi.value, synced },
+      { enableAi: shouldEnableAiForPlay(), synced },
     );
     if (!url) {
       createMessage.warn(`方案恢复失败：${saved.name}`);
@@ -534,6 +600,7 @@ async function playSavedSlot(index: number, saved: CameraMonitorLayoutSlot) {
     state.playCells[index] = null;
     return;
   }
+  await ensureDirectRtspPlayReady(dev.id);
   const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveDirectPlayUrl(dev);
   if (!url) {
     createMessage.warn(`方案恢复失败：${saved.name}`);
@@ -554,23 +621,30 @@ async function restorePendingVideos() {
   if (isRestoringLayout.value) return;
   isRestoringLayout.value = true;
   try {
-    const tasks: Promise<void>[] = [];
+    const pending: Array<{ idx: number; saved: CameraMonitorLayoutSlot }> = [];
     state.playCells.forEach((cell, idx) => {
       if (!cell?.pendingRestore || !cell.deviceId) return;
-      tasks.push(
-        playSavedSlot(idx, {
+      pending.push({
+        idx,
+        saved: {
           deviceId: cell.deviceId,
           name: cell.name,
           device: cell.device,
-        }).finally(() => {
+        },
+      });
+    });
+    await runWithConcurrency(
+      pending,
+      MULTI_VIEW_PLAY_CONCURRENCY,
+      async ({ idx, saved }) => {
+        await playSavedSlot(idx, saved).finally(() => {
           const current = state.playCells[idx];
           if (current) {
             state.playCells[idx] = { ...current, pendingRestore: false };
           }
-        }),
-      );
-    });
-    await Promise.all(tasks);
+        });
+      },
+    );
   } finally {
     isRestoringLayout.value = false;
   }
@@ -668,7 +742,7 @@ async function resolveDirectPlayUrl(device: MonitorTreeDeviceNode) {
   if (isGb28181Device(device.source, device.device_kind)) {
     return { url: null as string | null, fallbackUrl: null as string | null | undefined };
   }
-  return pickDirectPlayUrls(device, enableAi.value);
+  return pickDirectPlayUrls(device, shouldEnableAiForPlay());
 }
 
 const aiFallbackTimers = new Map<number, number>();
@@ -697,6 +771,8 @@ function schedulePendingAiUpgrade(
   aiUrl: string,
   fallbackUrl: string,
 ) {
+  if (!shouldEnableAiForPlay()) return;
+  const multi = isMultiViewLayout();
   schedulePendingAiStreamUpgrade(
     aiUrl,
     fallbackUrl,
@@ -708,6 +784,11 @@ function schedulePendingAiUpgrade(
       const cell = state.playCells[cellIdx];
       if (!cell) return;
       state.playCells[cellIdx] = { ...cell, url: aiUrl, fallbackUrl };
+    },
+    {
+      serialize: true,
+      probeMs: multi ? AI_STREAM_PROBE_MULTI_VIEW_MS : undefined,
+      delayMs: multi ? 1200 + cellIdx * 500 : 400,
     },
   );
 }
@@ -737,50 +818,69 @@ async function startPlayAtCell(
     pendingAiUrl?: string | null;
   },
 ) {
-  clearAiFallbackTimer(cellIdx);
-  aiFallbackPlayingUrls.delete(cellIdx);
-  const existing = state.playCells[cellIdx];
-  if (existing && playerRefs.value[cellIdx]?.destroy) {
-    playerRefs.value[cellIdx].destroy();
-  }
+  return enqueuePlayStart(async () => {
+    clearAiFallbackTimer(cellIdx);
+    aiFallbackPlayingUrls.delete(cellIdx);
+    liveRemountRetries.delete(cellIdx);
 
-  const fallbackUrl = payload.fallbackUrl?.trim();
-  const hasFallback = !!(payload.preferAi && fallbackUrl && fallbackUrl !== payload.url);
-  const playSources = payload.playSources?.filter((source) => source.url?.trim()) ?? null;
-  const pendingAi = payload.pendingAiUrl?.trim();
+    const existing = state.playCells[cellIdx];
+    if (existing && playerRefs.value[cellIdx]?.destroy) {
+      playerRefs.value[cellIdx].destroy();
+    }
 
-  state.playerIdx = cellIdx;
-  state.playCells[cellIdx] = {
-    deviceId: payload.deviceId,
-    name: payload.name,
-    url: payload.url,
-    fallbackUrl: hasFallback ? fallbackUrl : null,
-    playerEngine: payload.playerEngine ?? null,
-    videoCodec: payload.videoCodec ?? null,
-    playSources};
-
-  await nextTick();
-
-  if (pendingAi && pendingAi !== payload.url) {
-    schedulePendingAiUpgrade(cellIdx, payload.deviceId, pendingAi, payload.url);
-  }
-
-  if (!hasFallback) return;
-
-  const primaryUrl = payload.url;
-  const timerId = window.setTimeout(async () => {
-    aiFallbackTimers.delete(cellIdx);
-    const cell = state.playCells[cellIdx];
-    if (!cell || cell.url !== primaryUrl) return;
-    if (aiFallbackPlayingUrls.get(cellIdx) === primaryUrl) return;
-    if (playerRefs.value[cellIdx]?.playing) return;
-
-    createMessage.warning(
-      'AI 流暂不可用（请确认算法任务已启动且媒体服务器已收到 AI 推流），已切换为原始画面（无检测框）',
+    const useMultiViewUrl = isMultiViewLayout();
+    const convertUrl = (url: string) =>
+      (useMultiViewUrl ? toMultiViewPlayUrl(url) : null) || url;
+    const primaryUrl = convertUrl(payload.url);
+    const fallbackRaw = payload.fallbackUrl?.trim();
+    const fallbackUrl = fallbackRaw ? convertUrl(fallbackRaw) : '';
+    const pendingRaw = payload.pendingAiUrl?.trim();
+    const pendingAi = pendingRaw ? convertUrl(pendingRaw) : '';
+    const allowAiUpgrade = shouldEnableAiForPlay();
+    const hasFallback = !!(
+      allowAiUpgrade
+      && payload.preferAi
+      && fallbackUrl
+      && fallbackUrl !== primaryUrl
     );
-    state.playCells[cellIdx] = { ...cell, url: fallbackUrl, fallbackUrl: null };
-  }, AI_PLAY_FALLBACK_MS);
-  aiFallbackTimers.set(cellIdx, timerId);
+    const playSources = payload.playSources
+      ?.filter((source) => source.url?.trim())
+      .map((source) => ({ ...source, url: convertUrl(source.url) }))
+      ?? null;
+
+    state.playerIdx = cellIdx;
+    state.playCells[cellIdx] = {
+      deviceId: payload.deviceId,
+      name: payload.name,
+      url: primaryUrl,
+      fallbackUrl: hasFallback ? fallbackUrl : null,
+      playerEngine: payload.playerEngine ?? null,
+      videoCodec: payload.videoCodec ?? null,
+      playSources,
+    };
+
+    await nextTick();
+
+    if (allowAiUpgrade && pendingAi && pendingAi !== primaryUrl) {
+      schedulePendingAiUpgrade(cellIdx, payload.deviceId, pendingAi, primaryUrl);
+    }
+
+    if (!hasFallback) return;
+
+    const timerId = window.setTimeout(async () => {
+      aiFallbackTimers.delete(cellIdx);
+      const cell = state.playCells[cellIdx];
+      if (!cell || cell.url !== primaryUrl) return;
+      if (aiFallbackPlayingUrls.get(cellIdx) === primaryUrl) return;
+      if (playerRefs.value[cellIdx]?.playing) return;
+
+      createMessage.warning(
+        'AI 流暂不可用（请确认算法任务已启动且媒体服务器已收到 AI 推流），已切换为原始画面（无检测框）',
+      );
+      state.playCells[cellIdx] = { ...cell, url: fallbackUrl, fallbackUrl: null };
+    }, AI_PLAY_FALLBACK_MS);
+    aiFallbackTimers.set(cellIdx, timerId);
+  });
 }
 
 function findNextPlaySource(cell: PlayCell): WvpPlaySourceOption | null {
@@ -790,6 +890,9 @@ function findNextPlaySource(cell: PlayCell): WvpPlaySourceOption | null {
   const currentIndex = sources.findIndex((source) => source.url.trim() === currentUrl);
   return sources.find((_, index) => index > currentIndex) ?? null;
 }
+
+/** 已是原始流仍超时则最多重新挂载一次。 */
+const liveRemountRetries = new Map<number, number>();
 
 /** 播放中断（timeout/error）：AI 流先回退原始流，原始流失败继续尝试备用播放源 */
 function handleCellStreamError(cellIdx: number) {
@@ -806,16 +909,40 @@ function handleCellStreamError(cellIdx: number) {
   }
 
   const nextSource = findNextPlaySource(cell);
-  if (!nextSource) return;
-  createMessage.warning('当前视频流播放失败，正在尝试备用播放源');
+  if (nextSource) {
+    createMessage.warning('当前视频流播放失败，正在尝试备用播放源');
+    state.playCells[cellIdx] = {
+      ...cell,
+      url: nextSource.url,
+      fallbackUrl: null,
+      playerEngine: nextSource.playerEngine,
+      videoCodec: nextSource.videoCodec,
+    };
+    nextTick(() => playerRefs.value[cellIdx]?.play?.());
+    return;
+  }
+
+  if (isAiStreamPlayUrl(cell.url)) {
+    const liveUrl = cell.url.replace(/\/ai\//i, '/live/');
+    if (liveUrl !== cell.url && !isGb28181LivePlaceholderStreamUrl(liveUrl)) {
+      liveRemountRetries.delete(cellIdx);
+      state.playCells[cellIdx] = { ...cell, url: liveUrl, fallbackUrl: null };
+      return;
+    }
+  }
+
+  const retries = liveRemountRetries.get(cellIdx) || 0;
+  if (retries >= 1 || !cell.url || !cell.deviceId) return;
+  liveRemountRetries.set(cellIdx, retries + 1);
+  const remountBase = isMultiViewLayout()
+    ? (toMultiViewPlayUrl(cell.url.replace(/([?&])_r=\d+/g, '').replace(/[?&]$/, '')) || cell.url)
+    : cell.url;
+  const separator = remountBase.includes('?') ? '&' : '?';
   state.playCells[cellIdx] = {
     ...cell,
-    url: nextSource.url,
+    url: `${remountBase}${separator}_r=${Date.now()}`,
     fallbackUrl: null,
-    playerEngine: nextSource.playerEngine,
-    videoCodec: nextSource.videoCodec,
   };
-  nextTick(() => playerRefs.value[cellIdx]?.play?.());
 }
 
 async function reloadPlayCellAtIndex(cellIdx: number) {
@@ -837,7 +964,7 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
       const { url, fallbackUrl, preferAi, pendingAiUrl, playerEngine, videoCodec, playSources } = await resolveGbChannelPlayUrls(
         gb.sipDeviceId,
         gb.channelId,
-        { enableAi: enableAi.value, synced },
+        { enableAi: shouldEnableAiForPlay(), synced },
       );
       if (url) {
         await startPlayAtCell(cellIdx, {
@@ -867,7 +994,7 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
 
   const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveDirectPlayUrl(device);
   if (!url) {
-    createMessage.warn(enableAi.value ? '该设备暂无 AI 流或原始流地址' : '该设备暂无播放地址');
+    createMessage.warn(shouldEnableAiForPlay() ? '该设备暂无 AI 流或原始流地址' : '该设备暂无播放地址');
     return;
   }
   await startPlayAtCell(cellIdx, {
@@ -880,11 +1007,17 @@ async function reloadPlayCellAtIndex(cellIdx: number) {
 }
 
 async function reloadAllPlayCellsForAiToggle() {
-  const tasks: Promise<void>[] = [];
+  const indexes: number[] = [];
   state.playCells.forEach((cell, idx) => {
-    if (cell) tasks.push(reloadPlayCellAtIndex(idx));
+    if (cell) indexes.push(idx);
   });
-  await Promise.all(tasks);
+  await runWithConcurrency(
+    indexes,
+    MULTI_VIEW_PLAY_CONCURRENCY,
+    async (idx) => {
+      await reloadPlayCellAtIndex(idx);
+    },
+  );
 }
 
 let aiToggleRequestSeq = 0;
@@ -1040,7 +1173,7 @@ async function playGbChannel(cellIdx: number, gb: GbChannelRef) {
     );
     if (!url) {
       createMessage.warn(
-        enableAi.value
+        shouldEnableAiForPlay()
           ? '国标通道 AI 流不可用，请确认算法任务已启动；WVP 点播也失败，请检查通道状态'
           : '国标通道拉流失败，请检查 WVP 服务与通道状态',
       );
@@ -1138,7 +1271,7 @@ async function handleTreeSelect(keys: string[] | string) {
     const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolveDirectPlayUrl(device);
     if (!url) {
       createMessage.warn(
-        enableAi.value
+        shouldEnableAiForPlay()
           ? '该设备暂无 AI 流或原始流播放地址，请先在设备列表中配置'
           : '该设备暂无可用播放地址，请先在设备列表中配置流地址',
       );

@@ -6,6 +6,7 @@
 #include <glog/logging.h>
 #include <opencv2/opencv.hpp>
 
+#include "AlgoMqttBus.h"
 #include "RTMPEncoder.h"
 #include "YoloThreadPool.h"
 
@@ -567,25 +568,40 @@ void Pipeline::inferLoop() {
         int detectCount = 0;
 
         if (config_.enableAI && yoloPool_) {
+            const size_t modelCount = yoloPool_->modelCount();
             if (aiFrameInterval % submitInterval == 0) {
-                yoloPool_->submitTask(img, 0, localFrameId);
+                for (size_t m = 0; m < modelCount; ++m) {
+                    yoloPool_->submitTask(img, static_cast<int>(m), 0, localFrameId);
+                }
                 lastSubmittedFrameId = localFrameId;
             }
             aiFrameInterval++;
             localFrameId++;
 
+            // 多模型聚合：全部模型返回同一帧结果后才刷新，避免单模型结果覆盖整体
             for (int checkFrame = lastSubmittedFrameId;
                  checkFrame >= 0 && checkFrame >= lastSubmittedFrameId - 30;
                  checkFrame--) {
-                int r = yoloPool_->getTargetResultNonBlock(detections, 0, checkFrame);
-                if (r == 0) {
-                    lastDetections = detections;
+                std::vector<DetectObject> merged;
+                bool allReady = true;
+                for (size_t m = 0; m < modelCount; ++m) {
+                    std::vector<DetectObject> modelDets;
+                    if (yoloPool_->getTargetResultNonBlock(modelDets, static_cast<int>(m), 0, checkFrame) == 0) {
+                        merged.insert(merged.end(), modelDets.begin(), modelDets.end());
+                    } else {
+                        allReady = false;
+                        break;
+                    }
+                }
+                if (allReady) {
+                    lastDetections = std::move(merged);
                     break;
                 }
             }
 
             if (!lastDetections.empty()) {
                 std::vector<DetectObject> alarmDetections;
+                const bool skipRegionGate = AlgoMqttBus::postEnabled();
                 for (const auto& det : lastDetections) {
                     int x1 = static_cast<int>(det.x1);
                     int y1 = static_cast<int>(det.y1);
@@ -593,7 +609,8 @@ void Pipeline::inferLoop() {
                     int y2 = static_cast<int>(det.y2);
                     int centerX = (x1 + x2) / 2;
                     int centerY = (y1 + y2) / 2;
-                    bool inAlarmRegion = regionFn_ ? regionFn_(centerX, centerY) : true;
+                    bool inAlarmRegion = skipRegionGate ? true
+                        : (regionFn_ ? regionFn_(centerX, centerY) : true);
                     if (inAlarmRegion) {
                         detectCount++;
                         if (config_.enableAlarm && det.class_score >= config_.alarmConfidenceThreshold) {

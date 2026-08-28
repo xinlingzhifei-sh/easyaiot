@@ -10,6 +10,20 @@ import app.services as app_services
 
 
 class TestAlertHookDirectPersist(unittest.TestCase):
+    def test_notification_channel_key_is_stable_and_channel_specific(self):
+        email = {'method': 'email', 'template_id': 11}
+        reordered_email = {'template_id': 11, 'method': 'email'}
+        webhook = {'method': 'http', 'template_id': 11}
+
+        self.assertEqual(
+            self.hook_mod._notification_channel_key(email),
+            self.hook_mod._notification_channel_key(reordered_email),
+        )
+        self.assertNotEqual(
+            self.hook_mod._notification_channel_key(email),
+            self.hook_mod._notification_channel_key(webhook),
+        )
+
     def setUp(self):
         self._env = os.environ.copy()
         self.addCleanup(self._restore_environment)
@@ -49,6 +63,22 @@ class TestAlertHookDirectPersist(unittest.TestCase):
     def test_should_use_direct_persist_in_mini(self):
         with patch.dict(os.environ, {'EASYAIOT_DEPLOY_PROFILE': 'mini'}, clear=True):
             self.assertTrue(self.hook_mod._should_use_direct_alert_persist())
+
+    def test_kafka_suppression_isolated_by_event_identity(self):
+        with patch.object(self.hook_mod.time, 'time', return_value=100.0):
+            first_person = self.hook_mod._should_suppress_alert_event_kafka(
+                9, 'dev-1', 'realtime', 5, '1:person'
+            )
+            first_detection = self.hook_mod._should_suppress_alert_event_kafka(
+                9, 'dev-1', 'realtime', 5, '32:detection'
+            )
+            repeated_person = self.hook_mod._should_suppress_alert_event_kafka(
+                9, 'dev-1', 'realtime', 5, '1:person'
+            )
+
+        self.assertFalse(first_person)
+        self.assertFalse(first_detection)
+        self.assertTrue(repeated_person)
 
     def test_process_alert_hook_uses_direct_persist_in_mini(self):
         alert_data = {

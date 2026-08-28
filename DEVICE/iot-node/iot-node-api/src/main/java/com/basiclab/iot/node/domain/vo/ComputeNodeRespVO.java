@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Schema(description = "管理后台 - 服务器节点 Response VO")
@@ -29,8 +30,11 @@ public class ComputeNodeRespVO {
     @Schema(description = "状态")
     private String status;
 
-    @Schema(description = "节点角色")
+    @Schema(description = "节点功能 CSV（落库字段）")
     private String nodeRole;
+
+    @Schema(description = "节点功能列表")
+    private List<String> functions;
 
     @Schema(description = "区域")
     private String region;
@@ -64,6 +68,9 @@ public class ComputeNodeRespVO {
 
     @Schema(description = "SSH 凭据是否已配置")
     private Boolean sshCredentialConfigured;
+
+    @Schema(description = "创建节点后是否已触发 Sentinel 全量离线自动部署")
+    private Boolean sentinelAutoDeployStarted;
 
     @Schema(description = "SSH 最近测试时间")
     private LocalDateTime sshLastTestAt;
@@ -106,6 +113,24 @@ public class ComputeNodeRespVO {
 
     @Schema(description = "所属中心节点 ID")
     private Long controlPlaneId;
+
+    @Schema(description = "录像物理存储模式：central_shared / edge_local")
+    private String recordingStorageMode;
+
+    @Schema(description = "存储模式状态：active / applying / error")
+    private String recordingStorageState;
+
+    @Schema(description = "存储模式代次")
+    private Long recordingStorageGeneration;
+
+    @Schema(description = "客户端可安全直连的边缘媒体地址")
+    private String mediaPublicUrl;
+
+    @Schema(description = "存储模式最近更新时间")
+    private LocalDateTime recordingStorageUpdatedAt;
+
+    @Schema(description = "存储模式最近错误")
+    private String recordingStorageError;
 
     @Schema(description = "是否为远程对等中心节点下的节点（联邦展示）")
     private Boolean isRemote;

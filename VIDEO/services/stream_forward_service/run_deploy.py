@@ -728,9 +728,19 @@ def _srs_rtmp_port() -> int:
 def _resolve_rtmp_push_url(device_id: str, device_rtmp_stream: Optional[str] = None) -> Optional[str]:
     """解析 FFmpeg 推流地址。
 
-    远程分片在节点本机推 SRS，固定走 127.0.0.1（避免外网 IP 回环/端口误判）；
-    播放地址仍由 stream_url_sync_service 写入 device.rtmp_stream（外网 IP）。
+    control_plane 发布任务优先使用 launcher 注入的主节点地址；其余远程分片
+    仍推节点本机 SRS（避免外网 IP 回环/端口误判）。播放地址由
+    stream_url_sync_service 按实际发布节点写入。
     """
+    push_host = os.getenv('STREAM_FORWARD_PUSH_HOST', '').strip()
+    if push_host:
+        raw_port = os.getenv('STREAM_FORWARD_PUSH_PORT', '1935').strip() or '1935'
+        try:
+            push_port = int(raw_port)
+        except (TypeError, ValueError):
+            push_port = 1935
+        return f'rtmp://{push_host}:{push_port}/live/{device_id}'
+
     pod_ip = os.getenv('POD_IP', '').strip()
     if pod_ip:
         rtmp_port = _srs_rtmp_port()
@@ -747,7 +757,7 @@ def check_rtmp_server_connection(rtmp_url: str) -> bool:
             return False
 
         api_port = _srs_api_port()
-        if _check_srs_api_ready('127.0.0.1', api_port):
+        if not os.getenv('STREAM_FORWARD_PUSH_HOST', '').strip() and _check_srs_api_ready('127.0.0.1', api_port):
             return True
 
         url_parts = rtmp_url.replace('rtmp://', '').split('/')
@@ -2318,7 +2328,10 @@ def _fixed_rate_push_worker(device_id: str):
     logger.info(f"📤 固定速率推帧线程停止 [设备: {device_id}]")
 
 
-def update_task_status(status: str = None, exception_reason: str = None):
+_EXC_REASON_UNSET = object()
+
+
+def update_task_status(status: str = None, exception_reason: str | None | object = _EXC_REASON_UNSET):
     """更新任务状态到数据库
     
     Args:
@@ -2331,8 +2344,11 @@ def update_task_status(status: str = None, exception_reason: str = None):
             if task:
                 if status is not None:
                     task.status = status
-                if exception_reason is not None:
-                    task.exception_reason = exception_reason[:500]  # 限制长度
+                # 约定：当调用方显式传入 exception_reason=None 时，表示“清空异常原因”
+                if exception_reason is not _EXC_REASON_UNSET:
+                    task.exception_reason = (
+                        exception_reason[:500] if exception_reason is not None else None
+                    )  # 限制长度 + 支持清空
                 db.session.commit()
                 logger.debug(f"任务状态已更新: status={status}, exception_reason={exception_reason}")
     except Exception as e:

@@ -691,11 +691,19 @@ update_service() {
     configure_kylin_dockerfile
     clean_compose_cache
     check_network
+
+    if easyaiot_update_should_recreate_only video-service:latest; then
+        wire_cpp_runtime_override
+        video_compose up -d --force-recreate --remove-orphans
+        print_success "服务更新完成"
+        return 0
+    fi
+
     prepare_cached_resources
-    
+
     print_info "拉取最新代码..."
-    git pull || print_warning "Git pull 失败，继续使用当前代码"
-    
+    easyaiot_git_pull_ff_only
+
     print_info "重新构建镜像..."
     print_info "架构: $ARCH, 平台: $DOCKER_PLATFORM, 基础镜像: $ARM_BASE_IMAGE"
     print_warning "构建可能需要较长时间（20-40分钟），请耐心等待..."

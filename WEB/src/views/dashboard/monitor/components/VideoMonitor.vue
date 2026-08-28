@@ -223,6 +223,34 @@ import {
   type MonitorLayoutSlot,
 } from '../utils/monitorLayoutStorage'
 
+/** 多分屏同时起播并发上限，避免后几路卡在「疯狂加载中」 */
+const MULTI_VIEW_PLAY_CONCURRENCY = 2
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<void>,
+  staggerMs = 220,
+): Promise<void> {
+  if (!items.length) return
+  const limit = Math.max(1, Math.min(concurrency, items.length))
+  let cursor = 0
+  const runOne = async () => {
+    while (cursor < items.length) {
+      const index = cursor++
+      await worker(items[index]!, index)
+      if (staggerMs > 0 && cursor < items.length) {
+        await new Promise((r) => window.setTimeout(r, staggerMs))
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: limit }, () => runOne()))
+}
+
+function shouldEnableAiForPlay(): boolean {
+  return enableAi.value
+}
+
 /** 与 monitor/index.vue 中 MONITOR_OVERLAY_Z_INDEX 保持一致 */
 const MONITOR_OVERLAY_Z_INDEX = 10050
 
@@ -749,21 +777,29 @@ async function restorePendingVideos() {
   if (isRestoringLayout.value) return
   isRestoringLayout.value = true
   try {
-    const tasks: Promise<void>[] = []
+    const pending: Array<{ idx: number; slot: MonitorLayoutSlot }> = []
     internalVideoList.value.forEach((slot, idx) => {
       if (!slot?.pendingRestore || !slot.deviceId) return
-      tasks.push(
-        playSavedSlot(idx, {
+      pending.push({
+        idx,
+        slot: {
           deviceId: slot.deviceId,
           name: slot.name,
           location: slot.location,
           device: slot.device,
-        }).finally(() => {
-          slot.pendingRestore = false
-        }),
-      )
+        },
+      })
     })
-    await Promise.all(tasks)
+    await runWithConcurrency(
+      pending,
+      MULTI_VIEW_PLAY_CONCURRENCY,
+      async ({ idx, slot }) => {
+        await playSavedSlot(idx, slot).finally(() => {
+          const current = internalVideoList.value[idx]
+          if (current) current.pendingRestore = false
+        })
+      },
+    )
   } finally {
     isRestoringLayout.value = false
   }
@@ -1312,7 +1348,7 @@ async function resolvePlayUrlsForDevice(dev: MonitorTreeDeviceNode) {
   if (isGb28181Device(dev.source, dev.device_kind)) {
     return { url: null as string | null, fallbackUrl: null as string | null | undefined }
   }
-  return pickDirectPlayUrls(dev, enableAi.value)
+  return pickDirectPlayUrls(dev, shouldEnableAiForPlay())
 }
 
 async function reloadVideoAtIndex(index: number) {
@@ -1361,7 +1397,7 @@ async function reloadVideoAtIndex(index: number) {
 
   const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolvePlayUrlsForDevice(dev)
   if (!url) {
-    createMessage.warn(enableAi.value ? '该设备暂无 AI 流或原始流地址' : '该设备暂无播放地址')
+    createMessage.warn(shouldEnableAiForPlay() ? '该设备暂无 AI 流或原始流地址' : '该设备暂无播放地址')
     return
   }
   await startPlayAtScreen(index, {
@@ -1377,11 +1413,17 @@ async function reloadVideoAtIndex(index: number) {
 }
 
 async function reloadAllVideosForAiToggle() {
-  const tasks: Promise<void>[] = []
+  const indexes: number[] = []
   internalVideoList.value.forEach((slot, idx) => {
-    if (slot?.url) tasks.push(reloadVideoAtIndex(idx))
+    if (slot?.url) indexes.push(idx)
   })
-  await Promise.all(tasks)
+  await runWithConcurrency(
+    indexes,
+    MULTI_VIEW_PLAY_CONCURRENCY,
+    async (idx) => {
+      await reloadVideoAtIndex(idx)
+    },
+  )
 }
 
 let aiToggleRequestSeq = 0
@@ -1442,7 +1484,7 @@ const playDeviceStream = async (device: any) => {
     )
     if (!url) {
       createMessage.warn(
-        enableAi.value
+        shouldEnableAiForPlay()
           ? '国标通道 AI 流不可用，请确认算法任务已启动；WVP 点播也失败，请检查通道状态'
           : '国标通道拉流失败，请检查 WVP 服务与通道状态',
       )
@@ -1480,7 +1522,7 @@ const playDeviceStream = async (device: any) => {
   const { url, fallbackUrl, preferAi, pendingAiUrl } = await resolvePlayUrlsForDevice(dev)
   if (!url) {
     createMessage.warning(
-      enableAi.value
+      shouldEnableAiForPlay()
         ? '该设备暂无 AI 流或原始流播放地址，请先在设备列表中配置'
         : '该设备暂无可用播放地址，请先在设备列表中配置流地址',
     )

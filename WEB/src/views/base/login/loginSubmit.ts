@@ -50,8 +50,10 @@ export async function resolveLoginTenantId({
   getTenantIdByName,
   setTenantId,
 }: ResolveLoginTenantIdOptions): Promise<number | string | undefined> {
-  if (tenantEnable !== 'true')
-    return undefined
+  if (tenantEnable !== 'true') {
+    setTenantId(DEFAULT_TENANT_ID)
+    return DEFAULT_TENANT_ID
+  }
 
   if (getTenantByWebsite && website) {
     try {

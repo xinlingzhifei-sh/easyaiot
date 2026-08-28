@@ -16,6 +16,7 @@ import * as authUtil from '@/utils/auth'
 import { Verify } from '@/components/Verifition'
 import { getTenantIdByName, sendSmsCode } from '@/api/base/login'
 import { Button } from '@/components/Button'
+import { isLoginCaptchaEnabled, isLoginTenantEnabled } from '@/utils/deployProfile'
 const FormItem = Form.Item
 
 const { t } = useI18n()
@@ -23,6 +24,8 @@ const { prefixCls } = useDesign('login')
 const { createMessage, notification, createErrorModal } = useMessage()
 const { handleBackLogin, getLoginState } = useLoginState()
 const { tenantEnable, captchaEnable } = useGlobSetting()
+const loginTenantEnabled = isLoginTenantEnabled()
+const loginCaptchaEnabled = isLoginCaptchaEnabled()
 const { getFormRules } = useFormRules()
 const userStore = useUserStore()
 const permissionStore = usePermissionStore()
@@ -49,18 +52,14 @@ const getShow = computed(() => unref(getLoginState) === LoginStateEnum.MOBILE)
 
 // 获取验证码
 async function getCode() {
-  // 情况一，未开启：则直接登录
-  if (captchaEnable === 'false') {
+  if (!loginCaptchaEnabled || captchaEnable === 'false') {
     await handleLogin()
   }
   else {
-    // 情况二，已开启：则展示验证码；只有完成验证码的情况，才进行登录
-    // 弹出验证码
     verify.value.show()
   }
 }
 
-// 获取租户ID
 async function getTenantId() {
   await resolveLoginTenantId({
     tenantEnable,
@@ -83,7 +82,10 @@ async function handleLogin() {
       mode: 'none', // 不要默认的错误提示
     })
     if (userInfo) {
-      await permissionStore.changePermissionCode(userInfo.permissions)
+    if (userInfo) {
+      const perms = userInfo.permissions
+      await permissionStore.changePermissionCode(Array.isArray(perms) ? perms : [])
+    }
       notification.success({
         message: t('sys.login.loginSuccessTitle'),
         description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.user.nickname}`,
@@ -123,9 +125,8 @@ async function getSmsCode() {
   <div v-if="getShow">
     <LoginFormTitle class="enter-x" />
     <Form ref="formRef" class="enter-x p-4" :model="formData" :rules="getFormRules">
-      <FormItem name="tenantName" class="enter-x">
+      <FormItem v-if="loginTenantEnabled && tenantEnable === 'true'" name="tenantName" class="enter-x">
         <Input
-          v-if="tenantEnable === 'true'"
           v-model:value="formData.tenantName"
           size="large"
           :placeholder="t('sys.login.tenantName')"
@@ -155,6 +156,13 @@ async function getSmsCode() {
         </Button>
       </FormItem>
     </Form>
-    <Verify ref="verify" mode="pop" :captcha-type="captchaType" :img-size="{ width: '400px', height: '200px' }" @success="handleLogin" />
+    <Verify
+      v-if="loginCaptchaEnabled && captchaEnable !== 'false'"
+      ref="verify"
+      mode="pop"
+      :captcha-type="captchaType"
+      :img-size="{ width: '400px', height: '200px' }"
+      @success="handleLogin"
+    />
   </div>
 </template>

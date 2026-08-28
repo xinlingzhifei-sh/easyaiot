@@ -7,12 +7,12 @@ import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
 import com.basiclab.iot.node.dal.pgsql.NodeMetricSnapshotMapper;
 import com.basiclab.iot.node.domain.vo.NodeAgentHeartbeatReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentRegisterReqVO;
-import com.basiclab.iot.node.enums.NodeRoleEnum;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.EdgeNodeService;
 import com.basiclab.iot.node.service.NodeAgentService;
 import com.basiclab.iot.node.service.NodeClusterMetricsBroadcaster;
+import com.basiclab.iot.node.service.NodeSentinelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -42,6 +42,12 @@ public class NodeAgentServiceImpl implements NodeAgentService {
     private static final long HEARTBEAT_TTL_SECONDS = 60;
     /** 容量差异超过该比例视为冲突（宿主机 61G vs 容器 30G ≈ 50%） */
     private static final double CAPACITY_MISMATCH_RATIO = 0.20;
+    /**
+     * iot-node10.sql 演示库容量指纹。真实宿主机常为更小内存（如 46G），
+     * 若仍按「仅更大容量可抢绑」会拒绝心跳，导致 GPU/显存永远写不进指标。
+     */
+    private static final long DEMO_SEED_MEM_TOTAL_BYTES = 66_009_735_168L;
+    private static final String DEMO_SEED_HOSTNAME = "demo-node";
     private static final String TAG_AGENT_HOSTNAME = "agent_hostname";
     private static final String TAG_AGENT_MEM_TOTAL = "agent_mem_total_bytes";
 
@@ -57,6 +63,9 @@ public class NodeAgentServiceImpl implements NodeAgentService {
     @Resource
     private EdgeNodeService edgeNodeService;
 
+    @Resource
+    private NodeSentinelService nodeSentinelService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void register(NodeAgentRegisterReqVO reqVO) {
@@ -64,7 +73,7 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         node.setStatus(NodeStatusEnum.ONLINE.getStatus());
         node.setLastHeartbeatAt(LocalDateTime.now());
         // 显式 register 仅在原 Agent 心跳过期时允许换绑主机名
-        bindOrValidateAgentHostname(node, reqVO.getHostname(), true, null);
+        bindOrValidateAgentHostname(node, reqVO.getHostname(), true, null, null);
         if (reqVO.getCapabilities() != null && !reqVO.getCapabilities().isEmpty()) {
             Map<String, Boolean> caps = node.getCapabilities() != null
                     ? new HashMap<>(node.getCapabilities()) : new HashMap<>();
@@ -84,13 +93,14 @@ public class NodeAgentServiceImpl implements NodeAgentService {
     @Transactional(rollbackFor = Exception.class)
     public void heartbeat(NodeAgentHeartbeatReqVO reqVO) {
         ComputeNodeDO node = validateAgent(reqVO.getNodeId(), reqVO.getAgentToken());
-        bindOrValidateAgentHostname(node, reqVO.getHostname(), false, reqVO.getMemTotalBytes());
+        bindOrValidateAgentHostname(node, reqVO.getHostname(), false,
+                reqVO.getMemTotalBytes(), reqVO.getDiskTotalBytes());
         // 即使 hostname 相同/缺失，也要按内存总量指纹拦截两套硬件交叉上报
         bindOrValidateAgentCapacity(node, reqVO.getMemTotalBytes(), reqVO.getDiskTotalBytes(), false);
         node.setStatus(NodeStatusEnum.ONLINE.getStatus());
         node.setLastHeartbeatAt(LocalDateTime.now());
         syncGpuCountFromHeartbeat(node, reqVO.getGpuInfo());
-        syncCephMountFromHeartbeat(node, reqVO);
+        syncNfsMountFromHeartbeat(node, reqVO);
         computeNodeMapper.updateById(node);
         // 边缘运行时节点：刷新 edge_node 管理表心跳/Ceph 状态
         if (node.getTags() != null && ("true".equalsIgnoreCase(node.getTags().get("edge_runtime"))
@@ -118,6 +128,7 @@ public class NodeAgentServiceImpl implements NodeAgentService {
                 .build();
         nodeMetricSnapshotMapper.insert(snapshot);
         touchHeartbeat(node.getId());
+        nodeSentinelService.ingestHeartbeat(node.getId(), reqVO.getSentinel());
         nodeClusterMetricsBroadcaster.broadcastNodeUpdate(node, snapshot);
     }
 
@@ -148,7 +159,8 @@ public class NodeAgentServiceImpl implements NodeAgentService {
      *   否则冲突 Agent 会通过 register 与本机来回抢绑）。
      */
     private void bindOrValidateAgentHostname(ComputeNodeDO node, String hostname,
-                                             boolean allowRebindWhenStale, Long memTotalBytes) {
+                                             boolean allowRebindWhenStale,
+                                             Long memTotalBytes, Long diskTotalBytes) {
         if (StrUtil.isBlank(hostname)) {
             return;
         }
@@ -158,16 +170,21 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         String bound = tags.get(TAG_AGENT_HOSTNAME);
         if (StrUtil.isNotBlank(bound) && !bound.equalsIgnoreCase(reported)) {
             boolean staleTakeover = allowRebindWhenStale && !hasFreshHeartbeat(node.getId());
-            // 同机改名：仅 heartbeat 带容量且指纹一致时允许
+            // 同机改名：内存 + 磁盘指纹都接近时才允许（仅内存会把两台 ~32G 机器误判为同机）
             boolean sameMachineRename = memTotalBytes != null
                     && memTotalBytes > 0
-                    && capacityMatchesBound(node, memTotalBytes);
-            if (!staleTakeover && !sameMachineRename) {
+                    && capacityMatchesBound(node, memTotalBytes, diskTotalBytes);
+            // 演示库 hostname=demo-node：允许平台节点换绑到真实主机名，否则心跳被拒、GPU 不上报
+            boolean seedHostnameTakeover = ComputeNodeServiceImpl.isPlatformNode(node)
+                    && isDemoSeedHostname(bound);
+            if (!staleTakeover && !sameMachineRename && !seedHostnameTakeover) {
                 log.warn("拒绝冲突 Agent: nodeId={}, boundHostname={}, reportedHostname={}",
                         node.getId(), bound, reported);
                 throw exception(AGENT_HOST_MISMATCH);
             }
-            if (sameMachineRename) {
+            if (seedHostnameTakeover) {
+                log.info("演示库主机名换绑: nodeId={}, {} -> {}", node.getId(), bound, reported);
+            } else if (sameMachineRename) {
                 log.info("同机主机名变更，允许换绑: nodeId={}, {} -> {}", node.getId(), bound, reported);
             } else {
                 log.warn("原 Agent 心跳已过期，允许换绑主机名: nodeId={}, {} -> {}", node.getId(), bound, reported);
@@ -177,12 +194,56 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         node.setTags(tags);
     }
 
-    private boolean capacityMatchesBound(ComputeNodeDO node, long memTotalBytes) {
+    private boolean capacityMatchesBound(ComputeNodeDO node, long memTotalBytes, Long diskTotalBytes) {
         Long boundMem = readBoundMemTotal(node, CAPACITY_KEY_PREFIX + node.getId());
         if (boundMem == null || boundMem <= 0) {
             return false;
         }
-        return relativeDiff(boundMem, memTotalBytes) <= CAPACITY_MISMATCH_RATIO;
+        if (relativeDiff(boundMem, memTotalBytes) > CAPACITY_MISMATCH_RATIO) {
+            return false;
+        }
+        Long boundDisk = readBoundDiskTotal(node);
+        if (boundDisk != null && boundDisk > 0 && diskTotalBytes != null && diskTotalBytes > 0) {
+            return relativeDiff(boundDisk, diskTotalBytes) <= CAPACITY_MISMATCH_RATIO;
+        }
+        return true;
+    }
+
+    private boolean capacityMatchesBound(ComputeNodeDO node, long memTotalBytes) {
+        return capacityMatchesBound(node, memTotalBytes, null);
+    }
+
+    private Long readBoundDiskTotal(ComputeNodeDO node) {
+        if (node.getTags() == null) {
+            return null;
+        }
+        String raw = node.getTags().get("agent_disk_total_bytes");
+        if (StrUtil.isBlank(raw)) {
+            return null;
+        }
+        try {
+            return Long.parseLong(raw.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private boolean isDemoSeedHostname(String hostname) {
+        return StrUtil.isNotBlank(hostname) && DEMO_SEED_HOSTNAME.equalsIgnoreCase(hostname.trim());
+    }
+
+    private boolean isDemoSeedCapacity(Long boundMem, ComputeNodeDO node) {
+        if (boundMem != null && boundMem == DEMO_SEED_MEM_TOTAL_BYTES) {
+            return true;
+        }
+        if (node.getTags() == null) {
+            return false;
+        }
+        String memTag = node.getTags().get(TAG_AGENT_MEM_TOTAL);
+        if (StrUtil.isNotBlank(memTag) && String.valueOf(DEMO_SEED_MEM_TOTAL_BYTES).equals(memTag.trim())) {
+            return true;
+        }
+        return isDemoSeedHostname(node.getTags().get(TAG_AGENT_HOSTNAME));
     }
 
     /**
@@ -201,8 +262,14 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         if (boundMem != null && boundMem > 0 && relativeDiff(boundMem, memTotalBytes) > CAPACITY_MISMATCH_RATIO) {
             boolean platformLargerTakeover = ComputeNodeServiceImpl.isPlatformNode(node)
                     && memTotalBytes > boundMem * (1.0 + CAPACITY_MISMATCH_RATIO);
+            // 演示库 61G 指纹 → 真实机更小内存：必须允许换绑，否则指标/GPU 永远停在样例快照
+            boolean seedCapacityTakeover = ComputeNodeServiceImpl.isPlatformNode(node)
+                    && isDemoSeedCapacity(boundMem, node);
             boolean staleTakeover = allowRebindWhenStale && !hasFreshHeartbeat(node.getId());
-            if (platformLargerTakeover) {
+            if (seedCapacityTakeover) {
+                log.warn("演示库容量指纹换绑: nodeId={}, boundMem={}, reportedMem={}",
+                        node.getId(), boundMem, memTotalBytes);
+            } else if (platformLargerTakeover) {
                 log.warn("平台节点采纳更大容量上报: nodeId={}, boundMem={}, reportedMem={}",
                         node.getId(), boundMem, memTotalBytes);
             } else if (!staleTakeover) {
@@ -261,11 +328,7 @@ public class NodeAgentServiceImpl implements NodeAgentService {
 
     /** GPU / 混合节点：根据 Agent 上报的 gpu_info 同步 maxGpuCount（含控制面 HYBRID 节点） */
     private void syncGpuCountFromHeartbeat(ComputeNodeDO node, java.util.List<java.util.Map<String, Object>> gpuInfo) {
-        String role = node.getNodeRole();
         if (gpuInfo == null || gpuInfo.isEmpty()) {
-            return;
-        }
-        if (!NodeRoleEnum.GPU.getRole().equals(role) && !NodeRoleEnum.HYBRID.getRole().equals(role)) {
             return;
         }
         int detected = gpuInfo.size();
@@ -274,22 +337,26 @@ public class NodeAgentServiceImpl implements NodeAgentService {
         }
     }
 
-    /** 将 Agent 上报的挂载状态写入节点 tags，供调度器与拓扑使用 */
-    private void syncCephMountFromHeartbeat(ComputeNodeDO node, NodeAgentHeartbeatReqVO reqVO) {
-        if (reqVO.getCephMountReady() == null && StrUtil.isBlank(reqVO.getCephMountRoot())) {
+    /** 将 Agent 上报的 NFS 挂载状态写入节点 tags，供调度器与拓扑使用 */
+    private void syncNfsMountFromHeartbeat(ComputeNodeDO node, NodeAgentHeartbeatReqVO reqVO) {
+        Boolean readyFlag = reqVO.getNfsMountReady() != null
+                ? reqVO.getNfsMountReady() : reqVO.getCephMountReady();
+        String mountRoot = StrUtil.blankToDefault(reqVO.getNfsMountRoot(), reqVO.getCephMountRoot());
+        if (readyFlag == null && StrUtil.isBlank(mountRoot)) {
             return;
         }
         Map<String, String> tags = node.getTags() != null
                 ? new HashMap<>(node.getTags()) : new HashMap<>();
-        if (reqVO.getCephMountReady() != null) {
-            String ready = Boolean.TRUE.equals(reqVO.getCephMountReady()) ? "true" : "false";
-            tags.put("ceph_mount_ready", ready);
+        if (readyFlag != null) {
+            String ready = Boolean.TRUE.equals(readyFlag) ? "true" : "false";
             tags.put("nfs_mount_ready", ready);
+            tags.put("ceph_mount_ready", ready);
         }
-        if (StrUtil.isNotBlank(reqVO.getCephMountRoot())) {
-            String root = reqVO.getCephMountRoot().trim();
-            tags.put("ceph_mount_path", root);
+        if (StrUtil.isNotBlank(mountRoot)) {
+            String root = mountRoot.trim();
+            tags.put("nfs_mount_path", root);
             tags.put("media_mount_path", root);
+            tags.put("ceph_mount_path", root);
         }
         if (reqVO.getClusterMode() != null) {
             tags.put("cluster_mode", Boolean.TRUE.equals(reqVO.getClusterMode()) ? "true" : "false");

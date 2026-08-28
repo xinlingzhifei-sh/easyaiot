@@ -4,9 +4,28 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import app.services as app_services
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+
+_MISSING = object()
+_STUBBED_MODULE_NAMES = (
+    "models",
+    "tzlocal",
+    "apscheduler.schedulers.background",
+    "onvif",
+    "sqlalchemy",
+    "wsdiscovery",
+    "app.services.camera_service",
+    "app.services.nvr_service",
+    "app.services.onvif_service",
+    "app.utils.gb28181_source",
+    "app.utils.ip_utils",
+)
+_previous_modules = {name: sys.modules.get(name, _MISSING) for name in _STUBBED_MODULE_NAMES}
+_previous_camera_service = getattr(app_services, "camera_service", _MISSING)
 
 sys.modules.setdefault("tzlocal", types.SimpleNamespace(get_localzone_name=Mock(return_value="UTC")))
 sys.modules.setdefault(
@@ -45,7 +64,22 @@ sys.modules["models"] = types.SimpleNamespace(
     db=types.SimpleNamespace(session=Mock()),
 )
 
-from app.services import camera_service
+from app.services import camera_service as _camera_service_under_test
+
+for _module_name, _previous_module in _previous_modules.items():
+    if _previous_module is _MISSING:
+        sys.modules.pop(_module_name, None)
+    else:
+        sys.modules[_module_name] = _previous_module
+if _previous_camera_service is _MISSING:
+    try:
+        delattr(app_services, "camera_service")
+    except AttributeError:
+        pass
+else:
+    app_services.camera_service = _previous_camera_service
+
+camera_service = _camera_service_under_test
 
 
 class CameraAccessStateSummaryTest(unittest.TestCase):
@@ -92,7 +126,7 @@ class CameraAccessStateSummaryTest(unittest.TestCase):
             "ai_ready": False,
         }
 
-        with patch("app.services.camera_service.get_device_access_summary", return_value=summary):
+        with patch.object(camera_service, "get_device_access_summary", return_value=summary):
             payload = camera_service._to_dict(camera)
 
         self.assertEqual(summary, payload["access_state"])

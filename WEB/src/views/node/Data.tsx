@@ -5,8 +5,9 @@ import type { DescItem } from '@/components/Description';
 import { formatToDateTime } from '@/utils/dateUtil';
 import {
   NODE_METRIC,
-  NODE_ROLE_DESC,
-  NODE_ROLE_MAP,
+  NODE_FUNCTION_MAP,
+  NODE_FUNCTION_DESC,
+  NODE_FUNCTION_OPTIONS,
   NODE_STATUS_MAP,
   NODE_TERM,
   CEPH_POOL_OPTIONS,
@@ -18,6 +19,9 @@ import {
   readCephMountFromTags,
   formatStorageDisplayValue,
   formatGpuSummary,
+  parseNodeFunctions,
+  formatNodeFunctions,
+  nodeHasFunction,
 } from './utils/constants';
 import {
   formatSshUsername,
@@ -27,7 +31,15 @@ import {
   renderCephMountBadge,
 } from './utils/nodeDisplay';
 
-export { NODE_ROLE_MAP, NODE_STATUS_MAP };
+function formHasFunction(values: Record<string, any> | undefined, fn: string) {
+  return nodeHasFunction({ functions: values?.functions, nodeRole: values?.nodeRole }, fn);
+}
+
+function formHasLive(values: Record<string, any> | undefined) {
+  return formHasFunction(values, 'live') || formHasFunction(values, 'forward');
+}
+
+export { NODE_FUNCTION_MAP as NODE_ROLE_MAP, NODE_STATUS_MAP };
 
 export const columns: BasicColumn[] = [
   {
@@ -52,21 +64,16 @@ export const columns: BasicColumn[] = [
     customRender: ({ text }) => renderNodeStatusBadge(text),
   },
   {
-    title: '角色',
-    dataIndex: 'nodeRole',
-    width: 100,
-    customRender: ({ text }) => renderNodeRoleBadge(text),
+    title: '功能',
+    dataIndex: 'functions',
+    width: 180,
+    customRender: ({ record }) => renderNodeRoleBadge(record),
   },
   {
     title: 'GPU',
     dataIndex: 'maxGpuCount',
     width: 70,
-    customRender: ({ text, record }) => {
-      if (record.nodeRole === 'gpu' || (text != null && text > 0)) {
-        return text ?? '-';
-      }
-      return '-';
-    },
+    customRender: ({ text }) => (text != null && text > 0 ? text : '-'),
   },
   {
     title: NODE_METRIC.cpu,
@@ -118,12 +125,12 @@ export const searchFormSchema: FormSchema[] = [
     },
   },
   {
-    label: '节点角色',
-    field: 'nodeRole',
+    label: '节点功能',
+    field: 'function',
     component: 'Select',
     componentProps: {
-      placeholder: '全部角色',
-      options: Object.entries(NODE_ROLE_MAP).map(([value, label]) => ({ label, value })),
+      placeholder: '全部功能',
+      options: NODE_FUNCTION_OPTIONS,
       allowClear: true,
     },
   },
@@ -166,24 +173,24 @@ export const formSchema: FormSchema[] = [
     componentProps: { placeholder: '10.0.0.11 或 node-a.internal' },
   },
   {
-    label: '节点角色',
-    field: 'nodeRole',
+    label: '节点功能',
+    field: 'functions',
     required: true,
-    component: 'Select',
-    defaultValue: 'compute',
-    colProps: { span: 12 },
+    component: 'CheckboxGroup',
+    defaultValue: ['algorithm'],
+    colProps: { span: 24 },
     componentProps: {
-      options: Object.entries(NODE_ROLE_MAP).map(([value, label]) => ({ label, value })),
+      options: NODE_FUNCTION_OPTIONS,
     },
+    helpMessage: '按这台机器要承担的业务勾选；可多选。保存前会 SSH 预检 Python、磁盘、Agent 端口和控制面连通，不通过则不会添加。运行时由控制面离线分发，节点无公网也可纳管。GPU 是硬件属性，不作为角色。',
   },
   {
     label: 'GPU 数量',
     field: 'maxGpuCount',
     component: 'InputNumber',
-    defaultValue: 1,
+    defaultValue: 0,
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'gpu',
-    componentProps: { min: 1, max: 16, placeholder: '节点 GPU 卡数' },
+    componentProps: { min: 0, max: 16, placeholder: '节点 GPU 卡数，没有则填 0' },
     helpMessage: 'Agent 上线后会根据实际上报自动校正',
   },
   {
@@ -259,9 +266,47 @@ export const formSchema: FormSchema[] = [
   {
     field: 'dividerMedia',
     component: 'Divider',
-    label: `${NODE_TERM.mediaPort}（media / hybrid 节点）`,
+    label: `${NODE_TERM.mediaPort}（直播接入 / 推流转发）`,
     colProps: { span: 24 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
+  },
+  {
+    label: '录像存储',
+    field: 'recordingStorageMode',
+    component: 'Select',
+    defaultValue: 'central_shared',
+    colProps: { span: 12 },
+    ifShow: ({ values }) => formHasLive(values),
+    componentProps: {
+      options: [
+        { label: '中心共享存储（简化部署）', value: 'central_shared' },
+        { label: '边缘本地存储（降低中心带宽）', value: 'edge_local' },
+      ],
+    },
+    helpMessage: '中心共享：边缘节点必须实际挂载与中心相同的 NFS/CephFS，普通本地目录即使可写也不符合要求；边缘本地：持续录像保留在本节点，只同步事件图片、事件片段和索引，主节点按需代理播放。',
+  },
+  {
+    label: '',
+    field: 'centralStorageHint',
+    component: 'Input',
+    slot: 'centralStorageHint',
+    colProps: { span: 24 },
+    ifShow: ({ values }) => formHasLive(values) && values.recordingStorageMode === 'central_shared',
+  },
+  {
+    label: '录像访问地址',
+    field: 'mediaPublicUrl',
+    component: 'Input',
+    colProps: { span: 12 },
+    ifShow: ({ values }) => formHasLive(values) && values.recordingStorageMode === 'edge_local',
+    componentProps: { placeholder: '如：http://edge-node.example:6000' },
+    dynamicRules: ({ values }) => values.recordingStorageMode === 'edge_local'
+      ? [
+          { required: true, message: '边缘本地存储必须填写录像访问地址', trigger: ['change', 'blur'] },
+          { pattern: /^https?:\/\//i, message: '请输入以 http:// 或 https:// 开头的地址', trigger: ['change', 'blur'] },
+        ]
+      : [],
+    helpMessage: '填写主节点可以访问的边缘媒体 API 根地址，不要使用 localhost/127.0.0.1。',
   },
   {
     label: 'SRS RTMP 端口',
@@ -269,7 +314,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 1935,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -278,7 +323,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8080,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -287,7 +332,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 1985,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -296,7 +341,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8000,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
     helpMessage: 'SRS rtc_server 监听端口，勿与 ZLM WebRTC 端口相同',
   },
@@ -306,7 +351,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 6080,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -315,7 +360,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 10935,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -324,7 +369,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8554,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -333,7 +378,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8800,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
     helpMessage: 'ZLM [rtc] 监听端口，默认 8800，避免与 SRS WebRTC(8000) 冲突',
   },
@@ -343,7 +388,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 30000,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -353,15 +398,15 @@ export const formSchema: FormSchema[] = [
     slot: 'zlmRtpPortMax',
     defaultValue: 30500,
     colProps: { span: 16 },
-    ifShow: ({ values }) => values.nodeRole === 'media' || values.nodeRole === 'hybrid',
+    ifShow: ({ values }) => formHasLive(values),
     componentProps: { min: 1, max: 65535 },
   },
   {
     field: 'dividerMqtt',
     component: 'Divider',
-    label: `${NODE_TERM.mqttPort}（mqtt 网关节点）`,
+    label: `${NODE_TERM.mqttPort}（物联接入）`,
     colProps: { span: 24 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
   },
   {
     label: 'MQTT TCP 端口',
@@ -369,7 +414,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 1883,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -378,7 +423,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8883,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -387,7 +432,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8083,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -396,7 +441,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 8084,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -405,7 +450,7 @@ export const formSchema: FormSchema[] = [
     component: 'InputNumber',
     defaultValue: 18083,
     colProps: { span: 8 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { min: 1, max: 65535 },
   },
   {
@@ -414,7 +459,7 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     defaultValue: 'emqxsecretcookie',
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { placeholder: '同集群 Cookie 必须一致' },
     helpMessage: 'EMQX 集群节点间认证 Cookie，多节点部署时保持一致',
   },
@@ -423,16 +468,16 @@ export const formSchema: FormSchema[] = [
     field: 'emqxClusterSeeds',
     component: 'Input',
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'mqtt',
+    ifShow: ({ values }) => formHasFunction(values, 'mqtt'),
     componentProps: { placeholder: 'emqx@10.0.0.31,emqx@10.0.0.32（单节点可留空）' },
     helpMessage: 'static discovery 种子列表；留空则自动使用本节点',
   },
   {
     field: 'dividerStorage',
     component: 'Divider',
-    label: 'Ceph 存储（storage 节点）',
+    label: 'NFS 共享存储',
     colProps: { span: 24 },
-    ifShow: ({ values }) => values.nodeRole === 'storage',
+    ifShow: ({ values }) => formHasFunction(values, 'nfs'),
   },
   {
     label: 'Ceph 存储池',
@@ -440,7 +485,7 @@ export const formSchema: FormSchema[] = [
     component: 'Select',
     defaultValue: STORAGE_TAG_DEFAULTS.cephPool,
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'storage',
+    ifShow: ({ values }) => formHasFunction(values, 'nfs'),
     componentProps: {
       options: CEPH_POOL_OPTIONS.map(({ label, value }) => ({ label, value })),
     },
@@ -452,7 +497,7 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     defaultValue: STORAGE_TAG_DEFAULTS.cephOsdPath,
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'storage',
+    ifShow: ({ values }) => formHasFunction(values, 'nfs'),
     componentProps: { placeholder: '/var/lib/ceph/osd' },
     helpMessage: 'Ceph OSD 数据目录',
   },
@@ -472,7 +517,7 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     defaultValue: STORAGE_TAG_DEFAULTS.cephMonHost,
     colProps: { span: 12 },
-    ifShow: ({ values }) => values.nodeRole === 'storage',
+    ifShow: ({ values }) => formHasFunction(values, 'nfs'),
     componentProps: { placeholder: 'storage-ceph 或 10.0.0.21' },
     helpMessage: 'Ceph Monitor 集群 VIP 或主机名',
   },
@@ -540,15 +585,19 @@ export const basicDetailSchema: DescItem[] = [
   { field: 'sshPort', label: 'SSH 端口', render: (val) => val ?? 22 },
   { field: 'agentPort', label: NODE_TERM.agentPort, render: (val) => val ?? 9100 },
   {
-    field: 'nodeRole',
-    label: '节点角色',
-    render: (val) => NODE_ROLE_MAP[val] || val,
+    field: 'functions',
+    label: '节点功能',
+    render: (_val, data) => formatNodeFunctions(data),
   },
   {
-    field: 'nodeRoleDesc',
-    label: '角色说明',
+    field: 'functionsDesc',
+    label: '功能说明',
     span: 2,
-    render: (_val, data) => NODE_ROLE_DESC[data?.nodeRole] || '-',
+    render: (_val, data) => {
+      const ids = parseNodeFunctions(data);
+      if (!ids.length) return '-';
+      return ids.map((id) => NODE_FUNCTION_DESC[id] || id).join('；');
+    },
   },
   { field: 'region', label: '区域', render: (val) => val || '-' },
   {
@@ -559,8 +608,8 @@ export const basicDetailSchema: DescItem[] = [
   {
     field: 'maxGpuCount',
     label: 'GPU 数量',
-    render: (val, data) => {
-      if (data?.nodeRole === 'gpu' || (val != null && val > 0)) return val ?? '-';
+    render: (val) => {
+      if (val != null && val > 0) return val;
       return '无';
     },
   },
@@ -606,10 +655,10 @@ export const nodeSetupSummarySchema: DescItem[] = [
     render: (val) => renderNodeStatusBadge(val),
   },
   {
-    field: 'nodeRole',
-    label: '节点角色',
+    field: 'functions',
+    label: '节点功能',
     labelMinWidth: 108,
-    render: (val) => renderNodeRoleBadge(val),
+    render: (_val, data) => renderNodeRoleBadge(data),
   },
   { field: 'host', label: '主机地址', labelMinWidth: 108 },
   { field: 'id', label: '节点 ID', labelMinWidth: 108 },
@@ -634,6 +683,34 @@ export const nodeSetupSummarySchema: DescItem[] = [
 ];
 
 export const mediaDetailSchema: DescItem[] = [
+  {
+    field: 'recordingStorageMode',
+    label: '录像存储模式',
+    render: (val) => val === 'edge_local' ? '边缘本地存储' : '中心共享存储',
+  },
+  {
+    field: 'recordingStorageState',
+    label: '配置状态',
+    render: (val, data) => {
+      if (val === 'active') return useRender.renderTag(`已生效 · v${data?.recordingStorageGeneration ?? 1}`, 'success');
+      if (val === 'failed') return useRender.renderTag('应用失败', 'error');
+      return useRender.renderTag('等待应用', 'warning');
+    },
+  },
+  {
+    field: 'mediaPublicUrl',
+    label: '边缘录像地址',
+    span: 2,
+    show: (data) => data?.recordingStorageMode === 'edge_local',
+    render: (val) => val || '-',
+  },
+  {
+    field: 'recordingStorageError',
+    label: '应用错误',
+    span: 2,
+    show: (data) => !!data?.recordingStorageError,
+    render: (val) => val || '-',
+  },
   {
     field: 'tags.srs_rtmp_port',
     label: 'SRS RTMP',

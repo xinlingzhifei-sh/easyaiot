@@ -47,9 +47,11 @@ async def main() -> None:
         f"NodeIds: ns={idx};s=Temperature | ns={idx};s=Setpoint | ns={idx};s=Running",
         flush=True,
     )
-    print("SecurityPolicy=None / Anonymous 即可连接（日志里证书告警可忽略）", flush=True)
+    print("SecurityPolicy=None / Anonymous 即可连接", flush=True)
 
     async with server:
+        # 进入 context 后才真正 bind 监听；供 start 脚本探测就绪
+        print("OPC UA READY", flush=True)
         value = 25.0
         while True:
             value += 0.5
@@ -64,3 +66,6 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         sys.exit(0)
+    except Exception as exc:  # pragma: no cover
+        print(f"OPC UA server fatal: {exc}", file=sys.stderr, flush=True)
+        raise

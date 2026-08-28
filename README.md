@@ -29,7 +29,7 @@ My vision is for this system to be accessible worldwide, achieving truly zero ba
 
 yFeiEye Official Website: [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
-Product introduction, feature overview, three hardware tiers, installer downloads, and documentation entry—so you can quickly understand the platform and start deploying.
+Product introduction, feature overview, four hardware tiers, installer downloads, and documentation entry—so you can quickly understand the platform and start deploying.
 
 ## 📖 Project Overview
 
@@ -42,7 +42,7 @@ Many smart IoT projects hit the same wall at deployment: video systems, device p
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-The platform comprises core modules including <strong>WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, and SITE</strong>, with <strong>COMPILE</strong> handling multi-platform packaging and delivery (including Ubuntu / CentOS·RHEL <strong>7–9</strong> (x86 + <strong>CentOS ARM</strong>, packages per el7/el8/el9) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM). On the capability side, the platform covers GB28181 / ONVIF multi-protocol camera access, <strong>RTC consumer-camera P2P bridging</strong> (based on go2rtc, covering <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, and Roborock</strong>—store Tapo fill-in, Tuya white-label onboarding, overseas Ring/Nest doorbells, Xiaomi reuse, Wyze low-cost scale-out, DoorBird intercom, GoPro mobile views, Roborock vacuum cameras—with one-click Web onboarding into unified video and AI judgment), <strong>DJI dock and drone aerial view access</strong>, real-time / snapshot / patrol algorithm tasks, <strong>RUNTIME native high-speed execution layer</strong> (compiled binary owns pull/decode, YOLO inference, boxed push, and multi-channel raw forward—lower CPU/memory and steadier latency than interpreted paths; one binary covers realtime / snap / patrol / forward), YOLO object detection and SAM zero-shot auto-annotation, face/plate recognition, orchestrable business post-processing, federated compute cluster scheduling, and <strong>Infinite Federated Edge Cluster mode</strong> (ordinary development boards ready out of the box, on-site intelligence for local decisions, alerts and evidence automatically aggregated to the cloud, compute scaling with business as needed), plus MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT device lifecycle management, with the <strong>EDGE C# edge collection runtime</strong> handling Modbus RTU/TCP, OPC UA, and other on-site industrial protocols via pluggable collectors, local scheduling, and MQTT cloud-edge integration, plus <strong>visualization dashboards and Web SCADA configuration</strong>, so device data can be displayed as command-center situational awareness and mapped back to process screens; plus the new <strong>TRANSFORM multidirectional data-flow engine</strong>, which delivers platform-side business events to external systems such as MES / ERP / CRM / WMS by contract—multi-party integration that is configurable, traceable, and reusable; and the companion <strong>PANEL delivery & watch entry</strong>, so appliances can be installed and accepted on arrival day, and watch/troubleshooting no longer wait on developers running remote commands every time; plus the <strong>SITE official website</strong> to present product value, three hardware tiers, and installer entry—so visitors understand first, then download and deploy. On the experience side, the Web console and mobile App / mini-program are capability-aligned, so command centers and field inspections share the same business logic—handle incidents anytime, anywhere.
+The platform comprises core modules including <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TRANSFORM, PANEL, IDEA, HARNESS, and SITE</strong>, with <strong>COMPILE</strong> handling multi-platform packaging and delivery (including Ubuntu / CentOS·RHEL <strong>7–9</strong> (x86 + <strong>CentOS ARM</strong>, packages per el7/el8/el9) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM). On the capability side, the platform covers GB28181 / ONVIF multi-protocol camera access, <strong>RTC consumer-camera P2P bridging</strong> (based on go2rtc, covering <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, and Roborock</strong>—store Tapo fill-in, Tuya white-label onboarding, overseas Ring/Nest doorbells, Xiaomi reuse, Wyze low-cost scale-out, DoorBird intercom, GoPro mobile views, Roborock vacuum cameras—with one-click Web onboarding into unified video and AI judgment), <strong>DJI dock and drone aerial view access</strong>, real-time / snapshot / patrol algorithm tasks, <strong>RUNTIME native high-speed execution layer</strong> (compiled binary owns pull/decode, YOLO inference, boxed push, and multi-channel raw forward—lower CPU/memory and steadier latency than interpreted paths; one binary covers realtime / snap / patrol / forward), YOLO object detection and SAM zero-shot auto-annotation, face/plate recognition, <strong>POST custom judgment</strong> (after detection, filter and composite rules before alerting—change rules without retraining models), federated compute cluster scheduling, <strong>SENTINEL cluster-node sentinel</strong> (continuously reveals per-node readiness and schedulable business capacity, requests environment fill-in when gaps appear, and dispatches work by real capability), and <strong>Infinite Federated Edge Cluster mode</strong> (ordinary development boards ready out of the box, on-site intelligence for local decisions, alerts and evidence automatically aggregated to the cloud, compute scaling with business as needed), plus MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT device lifecycle management, with the <strong>EDGE C# edge collection runtime</strong> handling Modbus RTU/TCP, OPC UA, and other on-site industrial protocols via pluggable collectors, local scheduling, and MQTT cloud-edge integration, plus <strong>visualization dashboards and Web SCADA configuration</strong>, so device data can be displayed as command-center situational awareness and mapped back to process screens; plus the new <strong>POST custom judgment service</strong>, which turns detections into field-ready business events—fewer false alarms, configurable rules, trial runs before go-live; plus the <strong>TRANSFORM multidirectional data-flow engine</strong>, which delivers platform-side business events to external systems such as MES / ERP / CRM / WMS by contract—multi-party integration that is configurable, traceable, and reusable; and the companion <strong>PANEL delivery & watch entry</strong>, so appliances can be installed and accepted on arrival day, and watch/troubleshooting no longer wait on developers running remote commands every time; plus the <strong>SITE official website</strong> to present product value, four hardware tiers, and installer entry—so visitors understand first, then download and deploy; and <strong>IDEA community cloud IDE</strong> so contributors can open the full repo in a browser, co-create with GitHub Copilot, publish local changes, and submit PRs—turning open-source collaboration from “set up the environment first” into “open and edit”. On the experience side, the Web console and mobile App / mini-program are capability-aligned, so command centers and field inspections share the same business logic—handle incidents anytime, anywhere; and the new <strong>ANDROID / IOS / HARMONYOS packaging shells</strong> ship that mobile experience as installable apps on every mainstream phone OS (APK / IPA / HAP) from one frontend codebase, with one-command builds and unified version management.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -68,7 +68,7 @@ Smart IoT projects most often stall at the last mile: the machine is on site, ye
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>Shorter acceptance cycles</strong>: On arrival pick mini / standard / full, install, and see progress and results on the spot—fewer “stuck halfway, unsure where” cases from incomplete commands or skipped steps; PoC and production delivery clear acceptance faster</li>
+  <li><strong>Shorter acceptance cycles</strong>: On arrival pick edge / mini / standard / full, install, and see progress and results on the spot—fewer “stuck halfway, unsure where” cases from incomplete commands or skipped steps; PoC and production delivery clear acceptance faster</li>
   <li><strong>Lower on-site and remote cost</strong>: Whether containers are running, resources are tight, and where logs stall is obvious at a glance—restart, clean cache, and pull images without first hunting docs or waiting for developer support; watch staff can self-serve common faults</li>
   <li><strong>One playbook across projects</strong>: The same install and ops entry reuses across appliances and rooms—delivery, watch, and handoff share one standard, avoiding “each site has its own oral tradition”</li>
 </ul>
@@ -119,14 +119,14 @@ In homes, retail stores, and light-security deployments, many devices already in
   <li><strong>Docker all-in-one</strong>: <code>bash RTC/install_linux.sh start</code> runs go2rtc + management API; host network for P2P LAN</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 See <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC module README</a> for details.
-</p>
-
 ### 🔌 EDGE: C# Edge Collection Runtime
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 On industrial and building sites, PLCs, meters, and sensors often hang on RS-485 or Ethernet while the cloud platform still needs a separate data-acquisition stack—protocols written one-off, every config change requiring a site visit. Long access chains, fragmented ops, and cloud-edge metric drift are the norm. yFeiEye adds a dedicated <strong>EDGE module</strong> (C#) as an <strong>independently deployable edge collection runtime</strong>: pluggable multi-protocol collectors, local scheduling, config-driven parsing, and MQTT integration with the yFeiEye cloud platform—lifting on-site Modbus RTU/TCP, OPC UA, and other points into a unified thing model uplink, with cloud config push and property writes reaching the edge for execution.
+</p>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0;">
+<strong>Difference from Device Management "gateway":</strong> In device management, a gateway is a cloud-side product/device type (GATEWAY + SUBSET sub-device topology) for provisioning, shadow, binding, and downlink. EDGE has no separate device page—it is the on-site process that <strong>acts as that gateway</strong>; collected data appears in the same device management UI. Another path is <strong>iot-sink cloud-side polling</strong> of Modbus/OPC UA (the platform must reach field devices); EDGE collects on site and uplinks via MQTT only—suited to OT isolation and RS-485. Gateway property uplink/downlink, sub-device property proxy reporting, and config push are already aligned for use as an on-site industrial gateway; proactive topology reporting, sub-device event/service passthrough, OTA, and the full gateway protocol surface are still evolving.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
@@ -164,16 +164,12 @@ On industrial and building sites, PLCs, meters, and sensors often hang on RS-485
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
   <li><strong>Plugin collection architecture</strong>: Implement <code>ICollector</code> to extend new protocols; the Host handles registration, scheduling, and result reporting—collection logic decoupled from the runtime</li>
   <li><strong>Dual config channels</strong>: Local <code>device-jobs.json</code> for offline operation; cloud MQTT <code>config/downstream/push</code> can remotely override collection jobs—no site visit to change config</li>
-  <li><strong>MQTT cloud-edge integration</strong>: Gateway property reporting, sub-device proxy reporting, cloud property write downlink—via EMQX to DEVICE/<strong>iot-sink</strong>, with sub-device auto-creation and shadow persistence</li>
+  <li><strong>MQTT cloud-edge integration</strong>: Joins as platform GATEWAY—gateway property reporting, sub-device property proxy reporting, cloud property write downlink via EMQX to DEVICE/<strong>iot-sink</strong>; sub-devices auto-created with shadow persistence; data shown in Device Management</li>
   <li><strong>Standalone packaging</strong>: <code>pack_linux.sh</code> produces x86_64 / ARM64 Linux deployment packages for industrial PCs and edge gateways—decoupled from the main platform stack</li>
   <li><strong>E2E integration out of the box</strong>: <code>bash EDGE/demo/run_e2e.sh</code> validates the full chain—collection → MQTT uplink → cloud persistence</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 See <a href="EDGE/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">EDGE module README</a> and <a href="EDGE/docs/PLATFORM_INTEGRATION.md" style="color: #3498db; text-decoration: none; font-weight: 600;">cloud platform integration guide</a> for details.
-</p>
-
-### 🎯 Three Hardware Tiers, One Platform
+### 🛰️ SENTINEL: Cluster-Node Sentinel—Onboard Ready, Schedule by Real Capability
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 Many intelligent IoT projects stall at deployment: <strong>full features won't fit on small machines; to make them fit, you cut capabilities, split versions, and maintain multiple deployment packages.</strong> yFeiEye resolves this with one platform—<strong>edge boxes for point intelligence, AI all-in-one cameras for on-wall analysis, AIoT full-stack all-in-ones for the complete stack in one box</strong>. Pick the tier that matches your field hardware; the same software runs from single-site pilots through floor coverage to full-stack delivery—no split versions.
@@ -181,17 +177,23 @@ Many intelligent IoT projects stall at deployment: <strong>full features won't f
 
 | Tier | Typical hardware (examples) | Recommended RAM | What you can do | Verified |
 | :-- | :-- | :--: | :-- | :--: |
+| **edge** Edge Standalone | <strong>Light edge standalone</strong> (2 GB industrial PC, old laptop, smallest cloud VM, store trial box) | ≥ 2 GB | <strong>One machine closes the loop first</strong>: WEB + VIDEO + RUNTIME; camera access, real-time analysis, smart alerts; zero DEVICE, login led by VIDEO | ~**1.02 GB**, nearly 1 GB headroom |
 | **mini** Edge Lite | <strong>Edge box</strong> (8 GB industrial PC, store security all-in-one, site gateway) | ≥ 8 GB | <strong>Intelligence at one point</strong>: camera access, real-time analysis, smart alerts, model inference; event plane same as standard/full (Gateway + iot-sink + EMQX) | ~4–6 GB used, ample headroom |
-| **standard** Standard | <strong>AI all-in-one camera</strong> (smart camera terminal, AI surveillance camera with compute, multi-sensor AI analyzer) | ≥ 16 GB | <strong>Each camera is a smart node</strong>: multiple cameras on the wall cover a floor/campus; devices, rules, and compute orchestrated together | ~10 GB, stable with headroom |
-| **full** Full (default) | <strong>AIoT full-stack all-in-one</strong> (enterprise full-stack control all-in-one, industry IoT full-stack host, cloud-edge-device smart platform all-in-one) | ≥ 20 GB | <strong>IoT + video + AI in one box</strong>: device management, massive access, intelligent analysis, command and judgment unified—full capabilities long-term | ~14 GB, full features with headroom |
+| **standard** Standard | <strong>AI all-in-one camera</strong> (smart camera terminal, AI surveillance camera with compute, multi-sensor AI analyzer) | ≥ 16 GB | <strong>Each camera is a smart node</strong>: multiple cameras on the wall cover a floor/campus; devices, rules, and compute orchestrated together; <strong>POST custom judgment</strong> makes alerts match field standards | ~10 GB, stable with headroom |
+| **full** Full (default) | <strong>AIoT full-stack all-in-one</strong> (enterprise full-stack control all-in-one, industry IoT full-stack host, cloud-edge-device smart platform all-in-one) | ≥ 20 GB | <strong>IoT + video + AI in one box</strong>: device management, massive access, intelligent analysis, command and judgment unified—full capabilities long-term; includes <strong>POST custom judgment</strong> and outbound business flow | ~14 GB, full features with headroom |
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+<strong>Install edge:</strong> <code>EASYAIOT_DEPLOY_PROFILE=edge sudo bash .scripts/docker/install_linux.sh install</code> (or <code>... install_linux.sh edge install</code>). First-time install can also pick the tier interactively; see <a href="#-quick-start">Quick Start</a> above.
+</p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
 <strong>Install tier selection and resource compliance (verified):</strong>
 </p>
 
-| | | |
-|:---:|:---:|:---:|
-| ![Edge box mini](.image/deploy-profile-mini.png) | ![AI all-in-one camera standard](.image/deploy-profile-standard.png) | ![Full-stack all-in-one full](.image/deploy-profile-full.png) |
+| | |
+|:---:|:---:|
+| ![Edge standalone edge](.image/deploy-profile-edge.png) | ![Edge box mini](.image/deploy-profile-mini.png) |
+| ![AI all-in-one camera standard](.image/deploy-profile-standard.png) | ![Full-stack all-in-one full](.image/deploy-profile-full.png) |
 
 <div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
   <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 yFeiEye Infinite Federated Edge Cluster</p>
@@ -220,8 +222,10 @@ Many intelligent IoT projects stall at deployment: <strong>full features won't f
   <li><strong>DJI dock / drone aerial view access</strong>: Breaks fixed-camera “ground-only, hard to cover wide areas” limits; brings DJI FlightHub dock and drone aerial video into the platform’s unified video and AI judgment loop. Streaming module offers “Connect DJI livestream”: supports <strong>FlightHub API start livestream</strong> and <strong>manual livestream source</strong> — API mode one-click pulls vendor livestream and auto-registers device; manual mode accepts RTSP / RTMP / HTTP-FLV / HLS sources. After connect, aerial views can share the same screen as GB28181/ONVIF fixed points. Operators can view dock/aircraft live like fixed cameras, and attach real-time AI analysis, alarm linkage and evidence retention—covering wide-area patrol, emergency survey, perimeter fill-in that fixed points cannot reach; shortens “detect—locate—respond”; upgrades security from planar deployment to sky–ground collaborative sensing.</li>
   <li><strong>RTC Consumer-Camera P2P Bridging</strong>: One integration for <strong>Tapo (TP-Link home/store IPC), Tuya (mass white-label devices), Ring / Nest (overseas doorbell ecosystems), Xiaomi Mi Home (domestic reuse), Wyze (low-cost fill-in), DoorBird (premium entry intercom), GoPro (mobile patrol views), Roborock (vacuum mobile cameras)</strong>—all nine brands natively lack standard RTSP. The RTC module, built on go2rtc, provides P2P bridging and a unified management API. Web console "Connect RTC camera" guides per-brand form fill or OAuth binding, one-click go2rtc stream registration, VIDEO device enrollment, and SRS relay; after bridging, consumer and GB28181/ONVIF pro cameras <strong>share one screen, AI tasks, and alert linkage</strong>, bringing home/store cameras and project-grade devices into one video judgment system at lower integration and reuse cost</li>
   <li><strong>Real-Time Intercom & PTZ Remote Control</strong>: Breaks through traditional surveillance's "watch-only, can't act" limitation. Operators can conduct voice broadcasting and PTZ control on the same real-time preview screen—no system switching, no on-site presence required. Remotely communicate, guide evacuations, or stop violations, compressing response from "dispatch personnel" to "speak and reach instantly." PTZ control lets cameras pan, tilt, and zoom on demand—quickly aim at incident areas and magnify details during emergencies, forming an integrated on-site response loop of "see clearly, aim precisely, speak and reach." Fully compatible with GB28181 and ONVIF devices, leveraging existing surveillance assets without additional intercom hardware or third-party software, instantly upgrading deployed cameras with remote communication and flexible dispatch capabilities, significantly reducing system silos and monitoring costs</li>
-  <li><strong>Orchestrable Algorithm Post-Processing</strong>: Breaks through the "detect but can't judge" bottleneck by adding an independent business judgment layer on top of object detection, transforming visual perception results into operable, accountable, and statistically trackable business events. Supports flexible per-task definition of scenario rules such as people counting, line-crossing, dwell timeout, area loitering, and multi-condition composite alerts—quickly adapting to differentiated needs in construction site safety supervision, campus security, and traffic control without repeatedly tuning models, forging general vision capabilities into field-ready management tools. Post-processing and real-time analysis run independently and in parallel—monitoring feeds continue smooth judgment while business logic scales elastically on demand; judgment results are automatically archived and drive precise alerts, significantly reducing false positives/negatives and manual review costs. Business users focus on rule expression while the platform handles distribution, execution, and scale—truly moving from "being able to see" to "judge clearly, control effectively, and put it to use"</li>
+  <li><strong>POST Custom Judgment (Orchestrable Post-Processing)</strong>: Breaks through the "detect but can't judge" bottleneck with a dedicated <strong>POST</strong> service as the business judgment layer, transforming visual perception into operable, accountable, and statistically trackable business events. Inside each algorithm task, orchestrate a rule chain: default filter by detection regions before alerting, and layer business scripts plus industry plugins for people counting, line-crossing, dwell timeout, area loitering, and multi-condition composite alerts—adapt to construction safety, campus security, and traffic control without repeatedly tuning models. Trial-run rules with sample events before go-live to see what is blocked and whether alerts fire; saving rules on a running task takes effect immediately without stopping analysis. Perception and judgment run independently in parallel—feeds keep analyzing smoothly while business logic scales on demand; judgment results archive automatically and drive precise alerts, cutting false positives/negatives and manual review. Business users focus on rules, integrators plug in industry capabilities, and the platform handles distribution, execution, and scale—from "being able to see" to "judge clearly, control effectively, and put it to use"</li>
   <li><strong>Multi-Central-Node × Multi-Worker-Node Federated Cluster</strong>: Designed for cross-region, multi-datacenter, and cloud-edge collaborative deployments, the platform adopts an "N central nodes + N worker nodes" federated architecture—central nodes provide unified orchestration while worker nodes carry compute and media execution, scaling horizontally. Each central node manages its domain worker nodes, supporting remote distribution and one-click deployment of streaming, AV transcoding, video analytics, model inference, and training capabilities; multiple central nodes can interconnect and synchronize; the cluster swimlane view intuitively presents "central—worker" topology and resource levels. Algorithm tasks, auto-labeling pipelines, and stream relay workloads are intelligently scheduled by node role and GPU capability—enabling massive stream ingestion, high-concurrency inference, and distributed training to run together in one cluster, truly delivering "onboard easily, schedule clearly, scale openly, govern completely"</li>
+  <li><strong>SENTINEL Cluster-Node Sentinel</strong>: Built for federated scale-out and cross-datacenter compute pools—solves the delivery pain of “the machine joined, but nobody knows if it can take work.” Continuously reveals each node’s readiness and schedulable capacity by business function, so jobs land only on truly ready machines; can request environment fill-in when gaps appear, and supports offline onboarding for air-gapped sites—so the cluster truly “onboards cleanly, recognizes clearly, dispatches accurately, and boards fewer servers”</li>
+
   <li><strong>SAM Zero-Start Auto-Labeling Orchestration Pipeline</strong>: Built for cold-start scenarios with no annotated samples and no usable detection model, the platform integrates SAM open-vocabulary segmentation to deliver a one-click, unattended labeling pipeline. Per strategy, the system automatically chains camera frame extraction, SAM text-prompt bootstrap labeling, YOLO fine-tuning once thresholds are met, production-phase YOLO high-speed inference with intelligent SAM fallback for missed detections, periodic iterative training, and automatic dataset packaging and export—closing the full "capture-annotate-train-export" loop. Supports pause/resume and elastic scheduling on local or cluster compute queues. With visual strategy configuration and run logs, users can grow a custom detection capability from zero samples and zero models, making "define categories in words, watch the model take shape" the default path for dataset building</li>
   <li><strong>Ten-Thousand-Node Elastic Compute Cluster & Horizontal Scaling Pool</strong>: Built for hyperscale AI and video workloads, the platform provides a cloud-edge-end distributed compute foundation that unifies algorithm tasks, stream relay, algorithm services, model training, and inference under one horizontal load-balancing and elastic scaling fabric. New servers join the fleet with one-click onboarding and immediately become schedulable compute units—the scheduling hub automatically dispatches tasks and balances load based on resource levels and business pressure, enabling linear scaling from hundreds to tens of thousands of camera streams and from a single machine to ten-thousand-node clusters without redeployment or manual tuning. Massive stream ingestion, high-concurrency inference, and distributed training run together in a shared compute pool—truly delivering "scale on demand, run reliably, govern with confidence"</li>
   <li><strong>Distributed Storage Driver (Compute + Storage Dual-Cluster Decoupling)</strong>: Moving beyond the legacy pattern of per-node local directory mounts, hard-coded paths, and config rewrites on every scale-out, the platform replaces raw local-directory drivers with a <strong>cluster event-driven</strong> storage fabric—Export readiness, client mount state, primary/standby failover, and multi-cluster bridge links are sensed and propagated as events, so snapshots, recordings, alert evidence, and model assets flow into a distributed NFS cluster without business layers tracking mount paths. Compute and storage form <strong>two independently scalable domains</strong>: the compute side fully embraces the <strong>C++ RUNTIME</strong> high-speed execution pipeline, while the storage side builds an NFS cluster pool that scales out horizontally without bound—compute and storage grow on their own watermarks, not locked together. With cluster swimlanes, topology views, and multi-cluster bridge sync, new nodes join the storage domain with one-click onboarding, so "compute scales" and "storage scales" advance in parallel under massive stream ingestion—truly delivering "decoupled compute and storage, independent scale-out, event-driven coordination, unified governance, limitless expansion"</li>
@@ -286,7 +290,7 @@ Many projects reduce IoT to a "device ledger + message relay"—devices connect 
   <li><strong>Modbus-TCP industrial Ethernet access</strong>: For meters, PLCs, VFDs and other Ethernet-side industrial devices, built-in Modbus-TCP master acquisition—configure access parameters and measurement points at product/device level to go live; polled reads flow into device shadow and online status; register writes and property downlink are connected, so industrial points share the same closed loop as IoT thing models, rule engine and alarms—no separate SCADA/acquisition tool required.</li>
   <li><strong>Modbus-RTU serial field access</strong>: Many field instruments remain on RS-485; TCP-gateway-only paths double cost and failure points. Platform supports Modbus-RTU serial master acquisition, works with virtual and real serial ports—bus-side devices enter unified management and uplink/downlink control, filling the gap where Ethernet cannot reach and serial was unmanaged.</li>
   <li><strong>OPC UA industrial interconnect access</strong>: For modern industrial control and upper-system interconnect, OPC UA client access—configure node address, namespace and point mapping for subscribe/read/write; complex device models map to platform thing-model properties; uplink acquisition and downlink write points seamlessly connect to device shadow, rule chains and message push—bringing OPC UA field assets into an AIoT ops system that can “see, control, and link”.</li>
-  <li><strong>EDGE C# edge collection runtime</strong>: An independently deployable edge collection module for industrial sites—C# pluggable collectors for Modbus RTU, Modbus TCP, OPC UA, and more; local scheduled acquisition and config-driven parsing; MQTT integration with DEVICE/<strong>iot-sink</strong> on the cloud platform; gateway property reporting, sub-device proxy reporting, cloud config push, and property writes; packagable for x86_64 / ARM64 Linux industrial PCs and edge gateways—"accurate on site, governed in the cloud" cloud-edge closed loop</li>
+  <li><strong>EDGE C# edge collection runtime</strong>: An independently deployable edge collection module for industrial sites—C# pluggable collectors for Modbus RTU, Modbus TCP, OPC UA, and more; local scheduled acquisition and config-driven parsing; MQTT integration with DEVICE/<strong>iot-sink</strong> on the cloud platform. It maps to the GATEWAY role in device management (not a separate device UI): on-site aggregation, cloud-side governance; gateway/sub-device property uplink-downlink and config push are covered; topology and sub-device event/service passthrough are still evolving. Packagable for x86_64 / ARM64 Linux industrial PCs and edge gateways—"accurate on site, governed in the cloud" cloud-edge closed loop</li>
   <li><strong>Thing Model Property Definition</strong>: If dashboards, rules, and alerts each invent their own metric names, they will never understand each other. Define reportable/readable-writable properties first, with standard templates and custom ones; edit as draft, publish to take effect—dashboards, rules, and alerts then share one field set. “What can be observed” has unified semantics, and inconsistent metric-name rework is cut at the root</li>
   <li><strong>Thing Model Service Definition</strong>: Writing a one-off API for every remote start/stop or reset fragments the control plane. Define callable services with input/output parameters as a contract; edit as draft, publish to take effect—“what can be done remotely” is invoked by filling contract parameters, without stacking one-off control APIs. Control becomes reusable and auditable</li>
   <li><strong>Thing Model Event Definition</strong>: Without agreeing upfront on which business events devices report, alert wording will conflict over time. Define event types first; after draft publish they take effect uniformly—event logs and rule triggers share the same semantics. “What can happen” has one vocabulary, and alerts no longer speak past each other</li>
@@ -345,6 +349,36 @@ Many projects reduce IoT to a "device ledger + message relay"—devices connect 
   <li><strong>Personal Center</strong>: Account, tenant, and app preferences in one place—convenient across devices</li>
   <li><strong>Smooth Viewing</strong>: Live feeds and alarm recordings play smoothly on mobile—low latency, no stutter, uncompromised duty experience</li>
   <li><strong>Stay Connected</strong>: Sessions stay active with less re-login—bringing cloud-edge-device intelligent control to phones and mini programs</li>
+</ul>
+
+#### 💻 IDEA Cloud IDE
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Develop in the browser</strong>: VS Code–style online IDE on code-server; clones the full yFeiEye repo by default—contributors can edit, run module-level checks, and open PRs without setting up a local toolchain first</li>
+  <li><strong>Standalone portal and multi-user</strong>: Ops console on <code>:9300</code>, decoupled from the WEB admin; one Docker workspace per person; port pool 13338–13437 for concurrent users; console floating ball jumps to the portal</li>
+  <li><strong>Six-language toolchain aligned with the host</strong>: Preinstalled <strong>JDK 21</strong>, Node 22, Python, Go, CMake/C++, and .NET 8—covers reading, light edits, and module-level checks for WEB / DEVICE / AI / RUNTIME / EDGE</li>
+  <li><strong>AI co-creation</strong>: GitHub Copilot preinstalled (sign in with your own GitHub account; the platform never holds keys); without a Copilot subscription, bring your own OpenAI-compatible API key via Continue; toolbar opens HARNESS AI Assistant in a split pane—drag files to auto <code>@</code>-mention while you edit</li>
+  <li><strong>Local publish</strong>: Suggests modules from workspace diffs, one-click build and replace running containers on the host—refresh to verify, shortening the edit-to-see loop</li>
+  <li><strong>OAuth and idle reclaim</strong>: Gitee / GitHub login (can be required), one account per workspace; idle auto-stop after 8 hours by default; heartbeat and opening the IDE refresh activity so compute is not left spinning</li>
+  <li><strong>Contribution loop</strong>: Bind your fork → branch → edit → push to the fork → open a PR to upstream</li>
+</ul>
+
+#### 🤖 HARNESS AI Assistant
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
+Many modules and long chains—checking health, asking about architecture, and finding configs often means digging through docs and SSH. HARNESS bundles platform knowledge and live probes into a <strong>conversational assistant</strong>: ask and check from the bottom-right corner of any business page, shortening troubleshooting and PoC cycles with less reliance on the vendor and tribal knowledge.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Ask and check</strong>: The Agent calls platform Tools to probe Gateway / video / AI service health and points to related config and source—compressing SSH + compose digging into one conversation</li>
+  <li><strong>Knows the ontology</strong>: Built-in <code>HARNESS/ontology/AGENTS.md</code> and full-repo workspace—architecture, ports, APIs, and install conventions in one place</li>
+  <li><strong>Chat in-page</strong>: Floating drawer iframe—no page switch or lost context while viewing alarms/devices; full-screen “AI Assistant” or new window also available</li>
+  <li><strong>IDEA split-pane co-creation</strong>: Toolbar opens the AI assistant on the right—editor and Agent side by side; or deep-link with <code>?file=path&harness=1</code> to open a file and split</li>
+  <li><strong>Drag to auto @</strong>: Drop explorer files onto the assistant pane to attach them as chat context</li>
+  <li><strong>Two-way jump</strong>: Agent can generate portal links via <code>easyaiot_open_in_idea</code>—from Q&amp;A back to a full IDE where you can edit and publish; IDEA for code and PRs, HARNESS for architecture and health</li>
+  <li><strong>MCP + Cursor Skill</strong>: Same <code>easyaiot_*</code> capabilities exposed via MCP to Cursor and other IDEs—what you can ask and check in the console, you can invoke in dev; Skills reusable across projects</li>
+  <li><strong>Ready in all profiles</strong>: Based on <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar (<code>:3080</code>); included by default in <code>mini / standard / full</code> (<code>EASYAIOT_ENABLE_HARNESS=0</code> to disable); DeepSeek / OpenAI-compatible endpoints; bring your own Key in <code>harness.env</code> or the UI</li>
+  <li><strong>Security note</strong>: Experimental module; upstream <code>dsh</code> is Developer Preview; restrict access in production and configure write/Shell approval; do not commit API Keys to Git</li>
 </ul>
 
 ### 📦 Built-in AI Models
@@ -472,8 +506,8 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>Official value entry</strong>: Standalone official website for visitors, integrators, and end customers—explain cloud-edge-device integration clearly, then guide people to download and deploy</li>
-    <li><strong>Shorter learning path</strong>: Features, three hardware tiers, installer entry, and docs on one site—less time hunting the repo or asking around for packages</li>
-    <li><strong>Supports tier selection</strong>: Present mini / standard / full for edge boxes, AI cameras, and full-stack appliances so sites pick the right tier once</li>
+    <li><strong>Shorter learning path</strong>: Features, four hardware tiers, installer entry, and docs on one site—less time hunting the repo or asking around for packages</li>
+    <li><strong>Supports tier selection</strong>: Present edge / mini / standard / full for light standalone, edge boxes, AI cameras, and full-stack appliances so sites pick the right tier once</li>
     <li><strong>From interest to install</strong>: Website, demo, open-source repos, and Releases form one loop—understand → try → download → install</li>
   </ul>
 </td>
@@ -504,6 +538,16 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>ANDROID / IOS / HARMONYOS Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>One frontend, three native shells</strong>: APP uni-app pages packaged into installable apps on Android (DCloud offline runtime + Gradle → APK), iOS (WKWebView shell + xcodebuild → .app / .ipa), and HarmonyOS (ArkWeb shell + hvigor → HAP)—same business logic on every mainstream phone OS</li>
+    <li><strong>One-command packaging</strong>: <code>make-apk.sh</code> / <code>make-ipa.sh</code> / <code>make-hap.sh</code> with version-consistency checks; prod / test / dev environments build independent artifacts</li>
+    <li><strong>Unified management</strong>: <code>.scripts/docker/mobile.sh</code> for status / build / bump / artifacts / clean; <code>bump</code> updates all five version fields at once and packaging refuses mismatched versions</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>DEVICE Module</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -525,23 +569,23 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>Why C#</strong>: Strong-typed point mapping, async multi-device concurrent polling, 7×24 long-running stability, Linux x86/ARM cross-platform self-contained publishing—mature industrial ecosystem, fast integrator onboarding</li>
     <li><strong>C# edge collection runtime</strong>: Independently deployable edge-side collection service—pluggable collectors + local scheduling + config-driven parsing</li>
     <li><strong>Multi-protocol collectors</strong>: Built-in Modbus RTU (RS485/serial), Modbus TCP, OPC UA collectors; extend via <code>ICollector</code> plugins per job</li>
-    <li><strong>MQTT cloud-edge integration</strong>: Property reporting, sub-device proxy reporting, cloud config push (<code>config/downstream/push</code>) and property write downlink—integrated with DEVICE/<strong>iot-sink</strong></li>
+    <li><strong>MQTT cloud-edge integration</strong>: Joins as device-management GATEWAY—property reporting, sub-device property proxy reporting, cloud config push (<code>config/downstream/push</code>) and property write downlink—integrated with DEVICE/<strong>iot-sink</strong>; data shown in the same device management UI, complementary to cloud-side industrial polling (platform reaches field devices directly)—EDGE suits OT isolation and RS-485 field sites</li>
     <li><strong>Dual config channels</strong>: Local <code>device-jobs.json</code> and cloud MQTT config push both drive collection jobs</li>
     <li><strong>Linux packaging</strong>: <code>pack_linux.sh</code> produces x86_64 / ARM64 standalone deployment packages for industrial PCs and edge gateways</li>
-    <li><strong>Integration & docs</strong>: Built-in E2E demo and cloud platform integration guide (see <a href="EDGE/README.md">EDGE/README.md</a>, <a href="EDGE/docs/PLATFORM_INTEGRATION.md">platform integration docs</a>)</li>
+    <li><strong>Out-of-box integration</strong>: Built-in E2E demo validates collection → MQTT uplink → cloud persistence; cloud platform integration included</li>
   </ul>
 </td>
 </tr>
 <tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>NODE Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>SENTINEL Module</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
-    <li><strong>Node Agent</strong>: Edge/remote node Agent; one-click install deploys and automatically joins the platform</li>
-    <li><strong>Status Reporting</strong>: Periodic heartbeats reporting CPU, memory, disk, GPU utilization, and active workload status in real time</li>
-    <li><strong>Remote Workloads</strong>: Receives deploy/stop commands from the platform, launching AI model services, algorithm tasks, FFmpeg transcoding, and other workloads locally on the node</li>
-    <li><strong>Media Node Pool</strong>: Supports remote deployment of streaming capabilities on nodes, enabling device-to-media-node binding and stream URL generation</li>
-    <li><strong>Node Roles</strong>: Supports compute, media, and hybrid roles for cross-node scheduling and elastic scaling; compute nodes can take center-dispatched realtime / snap / patrol and high-performance forward</li>
-    <li><strong>Offline-Friendly</strong>: Provides offline dependency bundling and Agent hot-update capabilities, suitable for batch node onboarding in air-gapped or restricted network environments</li>
+    <li><strong>Business-readiness sentinel</strong>: Travels with every schedulable node; continuously checks whether the box can truly take the selected workloads</li>
+    <li><strong>Monitor on onboard</strong>: Inspection starts automatically after join—accept readiness the same day of scale-out</li>
+    <li><strong>Schedulable capacity aggregation</strong>: Surfaces “can this node run this business?” in the console so dispatch follows real capability</li>
+    <li><strong>Self-serve gap fill-in</strong>: Requests platform fill-in when expected environment is missing—fewer on-site installs</li>
+    <li><strong>Air-gap friendly scale-out</strong>: Offline onboarding and environment sync for sites without public internet</li>
+    <li><strong>One delivery language</strong>: Component health and schedulable functions on one screen—less guessing during acceptance and troubleshooting</li>
   </ul>
 </td>
 </tr>
@@ -557,6 +601,7 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>Frame Extractor and Sorter</strong>: Supports flexible frame extraction strategies and result sorting mechanisms, each algorithm task can bind independent frame extractors and sorters</li>
     <li><strong>Defense Time Period</strong>: Supports time-based configuration for full defense mode and half defense mode</li>
     <li><strong>Orchestration vs Execution</strong>: VIDEO owns device orchestration, raw preview, alert archiving, and start/stop; heavy lifting goes to <strong>RUNTIME</strong> (inference and high-performance forward)—“governed” and “fast” stay separate so channel count and latency are not dragged by Python orchestration</li>
+    <li><strong>Handoff to POST judgment</strong>: Algorithm tasks can configure post-processing rules so detections enter standard alerting only after custom judgment—change rules without stopping analysis</li>
     <li><strong>Acceptance Preview</strong>: Side-by-side raw vs judgment views for faster on-site checks of latency and overlay quality</li>
   </ul>
 </td>
@@ -615,6 +660,19 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>POST Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>Custom judgment</strong>: Independent business judgment on top of object detection—turn “boxed targets” into “whether to alert and under which standard”</li>
+    <li><strong>Rules per task</strong>: Region filtering, pass-through, business scripts, and industry plugins compose into rule chains for sites, campuses, traffic, and more</li>
+    <li><strong>Fewer false alarms, ready to accept</strong>: Outside regions do not flood screens; trial-run rules before go-live to see what is blocked and whether alerts fire</li>
+    <li><strong>Change standards without stopping analysis</strong>: Saving rules on a running task takes effect immediately—no need to stop tasks to adjust forbidden zones or add a judgment step</li>
+    <li><strong>Perception and judgment decoupled</strong>: Video analysis keeps running while business logic scales on demand; industry capabilities are pluggable so one detection stack serves many projects</li>
+    <li><strong>Built-in plugins</strong>: <code>line_cross</code> line crossing, <code>region_enter_exit</code> zone enter/exit, <code>dwell_timer</code> dwell timeout, <code>headcount_gate</code> headcount threshold—select in algorithm task post-processing rules without plugin registration; line crossing, enter/exit, and dwell require target tracking (<code>track_id</code>)</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>VISUALIZE Module</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -645,6 +703,26 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>Same-Day Closed Loop</strong>: UI-driven install by tier with progress and results on the spot; bring up and hand over the appliance even before the business console is ready</li>
     <li><strong>Self-Serve Troubleshooting</strong>: Container health, resource levels, task logs, and image readiness at a glance—common start/stop, pull, and cache cleanup without waiting for developer commands</li>
     <li><strong>Reuse Across Sites</strong>: One entry across appliances and machine rooms—PoC and production delivery share the same playbook</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>IDEA Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>Community cloud IDE</strong>: Open a VS Code–style workspace in the browser, clones the full repo by default; one Docker workspace per person, with local publish and idle reclaim—turning open-source contribution from “set up an environment first” into “open and edit”</li>
+    <li><strong>Split-pane AI Assistant</strong>: Toolbar opens HARNESS on the right; drag files to auto <code>@</code>; deep-link with <code>?file=&harness=1</code></li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>HARNESS Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>Conversational assistant</strong>: Ask about health, architecture, and issues—shorter troubleshooting and PoC, less vendor dependency</li>
+    <li><strong>In-page floating drawer</strong>: Chat without leaving business pages; included by default in <code>mini / standard / full</code></li>
+    <li><strong>IDEA split-pane link</strong>: Assistant beside the editor; drag-to-<code>@</code>, deep links, and two-way jump</li>
+    <li><strong>MCP / Skill</strong>: Console and IDE share platform semantics; Skills reusable across projects</li>
   </ul>
 </td>
 </tr>
@@ -773,6 +851,12 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 
 | | | |
 |:---:|:---:|:---:|
+| ![Video Surveillance](.image/banner/banner1225.png) | ![Video Surveillance](.image/banner/banner1226.png) | ![Video Surveillance](.image/banner/banner1227.png) |
+| ![Video Surveillance](.image/banner/banner1228.png) | ![Video Surveillance](.image/banner/banner1229.png) | ![Video Surveillance](.image/banner/banner1230.png) |
+| ![Video Surveillance](.image/banner/banner1219.png) | ![Video Surveillance](.image/banner/banner1220.png) | ![Video Surveillance](.image/banner/banner1221.png) |
+| ![Video Surveillance](.image/banner/banner1222.png) | ![Video Surveillance](.image/banner/banner1223.png) | ![Video Surveillance](.image/banner/banner1224.png) |
+| ![Region Detection](.image/banner/banner1213.png) | ![Region Detection](.image/banner/banner1214.png) | ![Region Detection](.image/banner/banner1218.png) |
+| ![Post-processing Rule Chain](.image/banner/banner1216.png) | ![Post-processing Rule Chain](.image/banner/banner1217.png) | ![Post-processing Rule Chain](.image/banner/banner1215.png) |
 | ![Live Stream](.image/banner/banner1145.jpg) | ![Preview](.image/banner/banner1146.jpg) | ![Camera](.image/banner/banner1051.jpg) |
 | ![List](.image/banner/banner1053.jpg) | ![Stream Push](.image/banner/banner1083.jpg) | ![Relay](.image/banner/banner1084.jpg) |
 | ![Storage](.image/banner/banner1121.png) | ![Snapshot](.image/banner/banner1122.png) | ![Recording](.image/banner/banner1123.png) |
@@ -784,6 +868,13 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![Live View](.image/banner/banner1026.jpg) | ![Multi-Stream](.image/banner/banner1028.jpg) | ![Stream Push](.image/banner/banner1103.png) |
 | ![Preview](.image/banner/banner1104.png) | ![Access](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![Live View](.image/banner/banner1183.jpg) | ![Map](.image/banner/banner1184.jpg) |  |
+
+#### 🤖 AI Assistant
+
+| | | |
+|:---:|:---:|:---:|
+| ![IDEA Login](.image/banner/banner1203.png) | ![IDEA Workspace](.image/banner/banner1204.png) | ![IDEA Development](.image/banner/banner1205.png) |
+| ![AI Assistant Chat](.image/banner/banner1210.png) | ![AI Assistant Analysis](.image/banner/banner1211.png) | ![AI Assistant Collaboration](.image/banner/banner1212.png) |
 
 #### 🧠 AI Models
 
@@ -833,7 +924,8 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![Statistics](.image/banner/banner1176.jpg) | ![Overview](.image/banner/banner1177.jpg) | ![Dashboard](.image/banner/banner1178.jpg) |
 | ![Product](.image/banner/banner1006.jpg) | ![Device](.image/banner/banner1009.jpg) | ![OTA](.image/banner/banner1179.jpg) |
 | ![Firmware](.image/banner/banner1180.jpg) | ![Task](.image/banner/banner1181.jpg) | ![Progress](.image/banner/banner1182.jpg) |
-| ![Rules](.image/banner/banner1013.jpg) | ![Orchestration](.image/banner/banner1014.png) |  |
+| ![Rules](.image/banner/banner1013.jpg) | ![Orchestration](.image/banner/banner1014.png) | ![Forwarding](.image/banner/banner1206.png) |
+| ![Running](.image/banner/banner1209.png) | ![Destination](.image/banner/banner1207.png) | ![Delivery](.image/banner/banner1208.png) |
 
 #### 🖥️ Cluster
 
@@ -863,9 +955,13 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 
 | | | |
 |:---:|:---:|:---:|
-| ![Home](.image/banner/app/app_1000.jpg) | ![Monitoring](.image/banner/app/app_1001.jpg) | ![Preview](.image/banner/app/app_1002.jpg) |
-| ![Alerts](.image/banner/app/app_1003.jpg) | ![Playback](.image/banner/app/app_1004.jpg) | ![Device](.image/banner/app/app_1005.jpg) |
-| ![Messages](.image/banner/app/app_1006.jpg) | ![Profile](.image/banner/app/app_1007.jpg) |  |
+| ![APP Screenshot](.image/banner/app/app_1008.jpg) | ![APP Screenshot](.image/banner/app/app_1009.jpg) | ![APP Screenshot](.image/banner/app/app_1010.jpg) |
+| ![APP Screenshot](.image/banner/app/app_1011.jpg) | ![APP Screenshot](.image/banner/app/app_1012.jpg) | ![APP Screenshot](.image/banner/app/app_1013.jpg) |
+| ![APP Screenshot](.image/banner/app/app_2023.png) | ![APP Screenshot](.image/banner/app/app_2024.png) | ![APP Screenshot](.image/banner/app/app_2025.png) |
+| ![APP Screenshot](.image/banner/app/app_2026.png) | ![APP Screenshot](.image/banner/app/app_2027.png) | ![APP Screenshot](.image/banner/app/app_2028.png) |
+| ![APP Screenshot](.image/banner/app/app_1014.jpg) | ![APP Screenshot](.image/banner/app/app_1015.jpg) | ![APP Screenshot](.image/banner/app/app_1016.jpg) |
+| ![APP Screenshot](.image/banner/app/app_1017.jpg) | ![APP Screenshot](.image/banner/app/app_1018.jpg) | ![APP Screenshot](.image/banner/app/app_1019.jpg) |
+| ![APP Screenshot](.image/banner/app/app_1020.jpg) | ![APP Screenshot](.image/banner/app/app_1021.jpg) | ![APP Screenshot](.image/banner/app/app_1022.jpg) |
 
 ## 📞 Contact Information
 
@@ -1026,6 +1122,10 @@ The following are outstanding contributors who have made significant contributio
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">To advance yFeiEye toward "IoT data displayed on screen," proactively proposed the product vision of a visualization Board (drag-and-drop dashboard) module based on open-source GoView: traditional dashboards often require hand-written SQL for every screen and component, slowing delivery, making every change ripple across the stack, and leaving business users unable to self-serve. The Board approach puts charts, metrics, and layout on a drag-and-drop canvas and binds component variables directly to platform IoT thing-model metrics—real-time and historical values pulled from devices in one step, without bespoke queries per dashboard; campus situational awareness, production-line KPIs, equipment operations, and similar screens upgrade from "developers write SQL to get a screen" to "pick metrics, drag components, screen done," significantly shortening visualization delivery and turning IoT "data in the back office" into an operational "screens in the front office" capability. Previously also contributed sensor float data prediction, running-status property threshold configuration, threshold alarms with rule linkage, and one-screen running-status views for central-device associated sub-devices—closing the device operations loop of "predict—bound—alert—rule—one-screen control" so the device side can "see the numbers, govern the bounds, raise the alerts, and grasp the whole picture."</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>添旺</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">To advance yFeiEye in cloud-edge collaborative video ingestion and AI analytics, independently delivered several pivotal capabilities that confront the core pain points of real-world edge delivery—“can't get cameras in, can't schedule right, doesn't truly run, can't look back”: pioneered edge camera ingress with algorithm-node affinity—IPC/NVR devices can designate an online edge node as their “ingress node,” so discovery, subnet scanning, ONVIF probing, and NVR channel enumeration all run locally on that node while source streams are pushed back to the control-plane media service for unified distribution and playback; cameras in branch sites or cross-segment/private networks no longer need direct reachability to the central platform to be onboarded and streamed, and algorithm tasks are automatically pinned to their cameras' ingress node so workloads never land on nodes that cannot reach the source stream. Diagnosed and fixed the critical defect where multiple algorithm tasks or multi-model pipelines on one camera left only a single channel effective—isolating inference chains with task-scoped stream identities, reusing one shared decode across concurrent tasks via a dedicated camera-source service, and propagating task identity through alerts and runtime status end to end—one camera can now stably run multiple algorithm tasks and multi-model detection (face + vehicle in the same frame) in parallel, guarded by regression tests over the long term. Also contributed tiered storage for edge recordings with unified event replay—recordings retained in tiers at the edge while alert events and video evidence stay searchable and replayable through one cloud-edge unified entry, closing the evidence loop from “event happened” to “proof in hand.” Together these markedly strengthen the platform's delivery certainty in complex real-world network environments and the trustworthiness of its AI analytics results.</td>
 </tr>
 </tbody>
 </table>

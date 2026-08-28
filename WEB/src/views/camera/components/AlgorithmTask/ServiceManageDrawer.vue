@@ -202,7 +202,10 @@ import {
 } from '@ant-design/icons-vue';
 import { Tag, Empty, Spin } from 'ant-design-vue';
 import {useMessage} from '@/hooks/web/useMessage';
-import {rewriteStreamHostToPageHost} from '@/views/camera/utils/devicePlay';
+import {
+  rewriteStreamHostToPageHost,
+  setPreferredAiTaskForDevice,
+} from '@/views/camera/utils/devicePlay';
 import {
   type AlgorithmTask,
   type FrameExtractor,
@@ -1105,6 +1108,7 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
 
 // 播放摄像头推流
 const playCameraStream = (stream: CameraStreamInfo) => {
+  setPreferredAiTaskForDevice(stream.device_id, stream.task_id);
   // 优先使用AI HTTP流地址
   // 其次使用推送器的HTTP地址
   // 再次使用推送器的RTMP地址，转换为HTTP地址

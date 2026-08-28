@@ -14,6 +14,7 @@ from app.services.minio_service import ModelService, parse_minio_download_url
 
 minio_proxy_bp = Blueprint('minio_proxy', __name__)
 logger = logging.getLogger(__name__)
+_STREAM_CHUNK_SIZE = 1024 * 1024
 
 _PROTECTED_MEDIA_BUCKETS = frozenset({
     'record-space',
@@ -93,21 +94,23 @@ def download_bucket_object(bucket_name):
         }), 400
 
     from app.utils.service_urls import minio_storage_enabled
-    from app.services.local_storage_service import read_local_object
+    from app.services.local_storage_service import ensure_local_object
 
     if not minio_storage_enabled():
-        content, content_type, err = read_local_object(
-            normalized_bucket, object_name)
-        if err or content is None:
+        local_path = ensure_local_object(normalized_bucket, object_name)
+        if not local_path:
             logger.warning(
                 'Local object not found: %s/%s', normalized_bucket, object_name)
-            return Response(
-                err or 'Local object not found', status=404, mimetype='text/plain')
+            return Response('Local object not found', status=404, mimetype='text/plain')
         filename = os.path.basename(object_name) or 'download'
-        response = Response(
-            content, mimetype=content_type or 'application/octet-stream')
+        response = send_file(
+            local_path,
+            conditional=True,
+            as_attachment=False,
+            download_name=filename,
+        )
         response.headers['Content-Disposition'] = _build_content_disposition('inline', filename)
-        response.headers['Content-Length'] = str(len(content))
+        response.headers['Accept-Ranges'] = 'bytes'
         return response
 
     suffix = os.path.splitext(object_name)[1]

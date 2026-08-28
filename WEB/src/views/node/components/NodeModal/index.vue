@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { computed, ref, unref } from 'vue';
-import { Input, InputNumber, Spin } from 'ant-design-vue';
+import { Alert, Input, InputNumber, Spin } from 'ant-design-vue';
 import { formSchema } from '../../Data';
 import { useMessage } from '@/hooks/web/useMessage';
 import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 import { BasicForm, useForm } from '@/components/Form';
 import { Button } from '@/components/Button';
-import { createNode, updateNode, type ComputeNodeVO } from '@/api/device/node';
-import { generateDefaultAgentPort, generateRandomDeployPorts, SETUP_COPY, readMediaPortsFromTags, buildMediaPortTags, readStorageTagsFromTags, buildStorageTags, readMqttPortsFromTags, buildMqttPortTags } from '../../utils/constants';
+import { createNode, preflightRecordingStorage, updateNode, type ComputeNodeVO } from '@/api/device/node';
+import { generateDefaultAgentPort, generateRandomDeployPorts, SETUP_COPY, readMediaPortsFromTags, buildMediaPortTags, readStorageTagsFromTags, buildStorageTags, readMqttPortsFromTags, buildMqttPortTags, nodeHasAnyFunction } from '../../utils/constants';
 import {
   nodeFormHistoryToFields,
   saveNodeFormHistory,
@@ -35,18 +35,19 @@ const [registerForm, { setFieldsValue, resetFields, validate, clearValidate }] =
 });
 
 function handleGenerateRandomPorts(model: Record<string, unknown>) {
-  const ports = generateRandomDeployPorts(String(model.nodeRole || 'compute'));
+  const ports = generateRandomDeployPorts({
+    functions: model.functions as string[] | undefined,
+    nodeRole: String(model.nodeRole || ''),
+  });
   setFieldsValue(ports);
   createMessage.success(SETUP_COPY.generateRandomPortsSuccess);
-}
-
-function isComputeRole(role: unknown) {
-  return role !== 'media' && role !== 'hybrid' && role !== 'mqtt' && role !== 'storage';
 }
 
 function flattenNodeTags(record: ComputeNodeVO) {
   return {
     ...record,
+    recordingStorageMode: record.recordingStorageMode || 'central_shared',
+    functions: record.functions?.length ? record.functions : undefined,
     ...readMediaPortsFromTags(record.tags),
     ...readStorageTagsFromTags(record.tags),
     ...readMqttPortsFromTags(record.tags),
@@ -55,13 +56,14 @@ function flattenNodeTags(record: ComputeNodeVO) {
 
 function buildNodeTags(values: Record<string, unknown>) {
   const base = (values.tags as Record<string, string> | undefined) || {};
-  if (values.nodeRole === 'media' || values.nodeRole === 'hybrid') {
+  const functions = Array.isArray(values.functions) ? (values.functions as string[]) : [];
+  if (functions.includes('live') || functions.includes('forward')) {
     return { ...base, ...buildMediaPortTags(values) };
   }
-  if (values.nodeRole === 'storage') {
+  if (functions.includes('nfs')) {
     return { ...base, ...buildStorageTags(values) };
   }
-  if (values.nodeRole === 'mqtt') {
+  if (functions.includes('mqtt')) {
     return { ...base, ...buildMqttPortTags(values) };
   }
   return base;
@@ -77,6 +79,7 @@ const [registerDrawer, { closeDrawer }] = useDrawerInner(async (data) => {
     setFieldsValue({
       sshUsername: 'root',
       agentPort: generateDefaultAgentPort(),
+      recordingStorageMode: 'central_shared',
     });
   }
 });
@@ -99,31 +102,40 @@ async function handleSubmit() {
   let raw: ComputeNodeVO & Record<string, unknown>;
   try {
     raw = (await validate()) as ComputeNodeVO & Record<string, unknown>;
-  } catch {
+  } catch (error) {
+    console.warn('[NodeModal] node form validation failed', error);
+    createMessage.warning('请检查节点表单中的必填项和字段格式');
     return;
   }
   const values = {
     ...raw,
     tags: buildNodeTags(raw),
   };
-  if (values.nodeRole === 'compute' || values.nodeRole === 'storage' || values.nodeRole === 'mqtt') {
-    values.maxGpuCount = 0;
-  } else if (values.nodeRole === 'gpu') {
-    values.maxGpuCount = Number(values.maxGpuCount) > 0 ? Number(values.maxGpuCount) : 1;
-  }
+  delete (values as Record<string, unknown>).nodeRole;
   if (unref(isUpdate) && editRecord.value) {
-    if (values.nodeRole !== 'gpu') {
-      values.maxGpuCount =
-        values.nodeRole === 'compute' || values.nodeRole === 'storage' || values.nodeRole === 'mqtt'
-          ? 0
-          : (editRecord.value.maxGpuCount ?? 0);
-    }
     values.maxTaskCount = editRecord.value.maxTaskCount ?? 50;
     values.weight = editRecord.value.weight ?? 100;
   }
   submitting.value = true;
   try {
     if (unref(isUpdate)) {
+      const storageModeChanged = editRecord.value?.recordingStorageMode !== values.recordingStorageMode
+        || (editRecord.value?.mediaPublicUrl || '') !== (values.mediaPublicUrl || '');
+      if (storageModeChanged && values.id && values.recordingStorageMode) {
+        const preflight = await preflightRecordingStorage(
+          Number(values.id),
+          values.recordingStorageMode as 'central_shared' | 'edge_local',
+          String(values.mediaPublicUrl || ''),
+        );
+        const blockers = preflight.checks.filter((item) => item.required && !item.ok);
+        if (!preflight.ok || blockers.length) {
+          throw new Error(blockers.map((item) => `${item.name}：${item.detail}`).join('；') || preflight.message || '录像存储模式预检未通过');
+        }
+        const warnings = preflight.checks.filter((item) => !item.required && !item.ok);
+        if (warnings.length) {
+          createMessage.warning(warnings.map((item) => item.detail).join('；'));
+        }
+      }
       await updateNode(values);
       createMessage.success('更新成功');
       closeDrawer();
@@ -177,6 +189,14 @@ function handleCancel() {
     <Spin :spinning="submitting">
       <div class="node-drawer-content">
         <BasicForm @register="registerForm">
+          <template #centralStorageHint>
+            <Alert
+              type="warning"
+              show-icon
+              message="中心共享存储前置条件"
+              description="边缘节点的 /mnt/easyaiot-media 必须挂载与中心相同的 NFS/CephFS。仅创建本地目录或目录可写不会通过预检；未准备共享挂载时请选择“边缘本地存储”。"
+            />
+          </template>
           <template #name="{ model, field }">
             <NodeNameField
               v-model:value="model[field]"
@@ -194,7 +214,7 @@ function handleCancel() {
                 :max="65535"
                 class="field-with-action__control"
               />
-              <Button type="default" class="field-with-action__btn" @click="handleGenerateRandomPorts(model)">
+              <Button type="default" class="field-with-action__btn" @click="() => handleGenerateRandomPorts(model)">
                 {{ SETUP_COPY.generateRandomPortsBtn }}
               </Button>
             </div>
@@ -207,10 +227,10 @@ function handleCancel() {
                 class="field-with-action__control"
               />
               <Button
-                v-if="isComputeRole(model.nodeRole)"
+                v-if="nodeHasAnyFunction({ functions: model.functions }, ['live', 'forward'])"
                 type="default"
                 class="field-with-action__btn"
-                @click="handleGenerateRandomPorts(model)"
+                @click="() => handleGenerateRandomPorts(model)"
               >
                 {{ SETUP_COPY.generateRandomPortsBtn }}
               </Button>
@@ -225,10 +245,10 @@ function handleCancel() {
                 class="field-with-action__control"
               />
               <Button
-                v-if="isComputeRole(model.nodeRole)"
+                v-if="nodeHasAnyFunction({ functions: model.functions }, ['live', 'forward'])"
                 type="default"
                 class="field-with-action__btn"
-                @click="handleGenerateRandomPorts(model)"
+                @click="() => handleGenerateRandomPorts(model)"
               >
                 {{ SETUP_COPY.generateRandomPortsBtn }}
               </Button>

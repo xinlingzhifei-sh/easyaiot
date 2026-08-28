@@ -62,6 +62,28 @@ video_compose() {
         $COMPOSE_CMD --env-file "$VIDEO_COMPOSE_ENV_FILE" "${files[@]}" "$@"
 }
 
+# compose up；若媒体 bind 源 mkdir file exists 则修复后重试一次
+video_compose_up_or_fail() {
+    local compose_log _rc
+    compose_log=$(mktemp)
+    set +e
+    video_compose up "$@" >"$compose_log" 2>&1
+    _rc=$?
+    set -e
+    cat "$compose_log"
+    if [ "$_rc" -ne 0 ] && repair_media_bind_after_compose_error "$(cat "$compose_log")"; then
+        print_warning "媒体挂载源已修复（EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}），重试 VIDEO 启动..."
+        : >"$compose_log"
+        set +e
+        video_compose up "$@" >"$compose_log" 2>&1
+        _rc=$?
+        set -e
+        cat "$compose_log"
+    fi
+    rm -f "$compose_log"
+    return "$_rc"
+}
+
 # 打印带颜色的消息
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -455,6 +477,13 @@ create_env_file() {
     else
         print_info "${EASYAIOT_DEPLOY_PROFILE:-full} 形态：已配置网关部署（JAVA_BACKEND_URL=48080, MinIO 启用）"
     fi
+
+    # RTC / go2rtc（存量 .env.docker 可能缺项）
+    _set_env_docker_kv .env.docker RTC_SERVICE_URL "http://127.0.0.1:6100"
+    _set_env_docker_kv .env.docker RTC_GO2RTC_WEB_URL "/dev-api/go2rtc/"
+    _set_env_docker_kv .env.docker RTC_RTSP_HOST "127.0.0.1"
+    _set_env_docker_kv .env.docker RTC_RTSP_PORT "8554"
+
 }
 
 # 安装服务
@@ -514,7 +543,10 @@ install_service() {
     
     print_info "启动服务..."
     cleanup_renamed_containers
-    video_compose up -d --remove-orphans
+    if ! video_compose_up_or_fail -d --remove-orphans; then
+        print_error "VIDEO 服务启动失败"
+        exit 1
+    fi
 
     print_success "服务安装完成！"
     print_info "等待服务启动..."
@@ -548,7 +580,7 @@ start_service() {
     wire_cpp_runtime_override
 
     cleanup_renamed_containers
-    video_compose up -d --force-recreate --remove-orphans
+    video_compose_up_or_fail -d --force-recreate --remove-orphans
     print_success "服务已启动"
     check_status
 }
@@ -580,7 +612,7 @@ restart_service() {
     wire_cpp_runtime_override
 
     cleanup_renamed_containers
-    video_compose up -d --force-recreate --remove-orphans
+    video_compose_up_or_fail -d --force-recreate --remove-orphans
     print_success "服务已重启"
     check_status
 }
@@ -687,16 +719,42 @@ update_service() {
     check_network
     ensure_cpp_runtime
 
+    # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
+    if easyaiot_update_should_recreate_only video-service:latest; then
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        cleanup_renamed_containers
+        if ! video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service; then
+            print_error "VIDEO 服务更新失败"
+            return 1
+        fi
+        print_success "服务更新完成"
+        return 0
+    fi
+
+    if ! easyaiot_have_git; then
+        print_warning "未安装 git 且本地无 video-service 镜像，将基于当前目录源码构建"
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        if ! build_with_cache ""; then
+            exit 1
+        fi
+        cleanup_renamed_containers
+        video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service || return 1
+        print_success "服务更新完成"
+        return 0
+    fi
+
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
-    rev_before="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_before="$(easyaiot_git_rev_parse_head)"
 
     print_info "拉取最新代码..."
     # --ff-only：快进失败立即返回，不产生意外合并提交，比默认 pull 更快更安全
-    git pull --ff-only || print_warning "Git pull 失败，继续使用当前代码"
+    easyaiot_git_pull_ff_only
 
     local rev_after=""
-    rev_after="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_after="$(easyaiot_git_rev_parse_head)"
 
     # ---- 判断是否需要重建镜像 ----
     local needs_build=0
@@ -749,7 +807,7 @@ update_service() {
         local code_changed=0
         if [ -n "$rev_before" ] && [ "$rev_before" != "$rev_after" ]; then
             code_changed=1
-        elif ! git diff --quiet HEAD -- . 2>/dev/null; then
+        elif ! easyaiot_git_worktree_clean; then
             code_changed=1
         fi
 

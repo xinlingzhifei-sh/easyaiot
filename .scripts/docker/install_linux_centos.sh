@@ -51,7 +51,7 @@ DOCKER_MIRROR="${DOCKER_MIRROR:-https://docker.m.daocloud.io/}"
 
 # 对外常用端口（firewalld 放行；UDP 含媒体相关）
 FIREWALL_TCP_PORTS=(
-    8888 48080 5000 6000 6100 1984 8554 8555 9010 8002 48096 9200
+    8888 48080 5000 6000 6100 1984 8554 8555 9010 8002 48096 9200 9300 13338-13437
     8848 9000 9001 5432 6379 1880 1881 1883
     8080 1985 1935 9100
 )
@@ -96,6 +96,7 @@ CentOS 专用选项（须写在子命令之前）:
   sudo ./install_linux_centos.sh
   sudo ./install_linux_centos.sh install
   sudo ./install_linux_centos.sh --upgrade-docker-only
+  sudo EASYAIOT_DEPLOY_PROFILE=edge ./install_linux_centos.sh install
   sudo EASYAIOT_DEPLOY_PROFILE=mini ./install_linux_centos.sh install
 
 说明:

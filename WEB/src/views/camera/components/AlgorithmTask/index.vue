@@ -105,18 +105,10 @@
                     >
                       <Icon icon="ant-design:edit-filled" :size="15" color="#3B82F6" />
                     </div>
-                    <div 
-                      class="btn" 
-                      :class="{ disabled: item.is_enabled || !hasModels(item) || !hasCameras(item) }"
-                      @click="!item.is_enabled && hasModels(item) && hasCameras(item) && handleOpenRegionDetection(item)" 
-                      :title="item.is_enabled ? '任务运行中，无法配置' : !hasModels(item) ? '请先配置算法模型列表' : !hasCameras(item) ? '请先配置摄像头列表' : '区域检测配置'"
-                    >
-                      <Icon icon="ant-design:aim-outlined" :size="15" color="#3B82F6" />
-                    </div>
                     <div
                       class="btn"
                       @click="handleOpenPostProcess(item)"
-                      :title="item.post_process_enabled ? '编辑后处理脚本' : '编辑后处理脚本（需先在任务配置中开启后处理）'"
+                      :title="item.post_process_enabled ? '编辑业务脚本' : '编辑业务脚本（需先在任务配置中开启）'"
                     >
                       <Icon icon="ant-design:code-outlined" :size="15" color="#3B82F6" />
                     </div>
@@ -197,9 +189,6 @@
     <!-- 服务管理抽屉 -->
     <ServiceManageDrawer @register="registerServiceDrawer" @success="handleSuccess" />
     
-    <!-- 区域检测配置抽屉 -->
-    <DeviceRegionDetectionDrawer @register="registerRegionDrawer" />
-    
     <!-- 抓拍空间抽屉 -->
     <SnapSpaceDrawer @register="registerSnapSpaceDrawer" />
     
@@ -244,7 +233,6 @@ import {
 } from '@/api/device/algorithm_task';
 import AlgorithmTaskModal from './AlgorithmTaskModal.vue';
 import ServiceManageDrawer from './ServiceManageDrawer.vue';
-import DeviceRegionDetectionDrawer from './DeviceRegionDetectionDrawer.vue';
 import SnapSpaceDrawer from './SnapSpaceDrawer.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 import CameraStreamSelectModal from '../CameraStreamSelectModal/index.vue';
@@ -253,7 +241,10 @@ import AI_TASK_IMAGE from '@/assets/images/video/ai-task.png';
 import SNAP_TASK_IMAGE from '@/assets/images/video/snap-task.png';
 import { Button } from '@/components/Button'
 import { useGo } from '@/hooks/web/usePage';
-import { rewriteStreamHostToPageHost } from '@/views/camera/utils/devicePlay';
+import {
+  rewriteStreamHostToPageHost,
+  setPreferredAiTaskForDevice,
+} from '@/views/camera/utils/devicePlay';
 const ListItem = List.Item;
 
 defineOptions({ name: 'AlgorithmTask' });
@@ -282,7 +273,6 @@ const setTaskPending = (id: number, pending: boolean) => {
 };
 const [registerModal, { openDrawer }] = useDrawer();
 const [registerServiceDrawer, { openDrawer: openServiceDrawer }] = useDrawer();
-const [registerRegionDrawer, { openDrawer: openRegionDrawer }] = useDrawer();
 const [registerSnapSpaceDrawer, { openDrawer: openSnapSpaceDrawer }] = useDrawer();
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
 
@@ -306,15 +296,15 @@ const searchParams = ref<{
 function formatTaskTypeLabel(item: { task_type?: string; executor?: string }) {
   const base =
     item.task_type === 'realtime'
-      ? '实时算法任务'
+      ? '实时视频分析'
       : item.task_type === 'patrol'
-        ? '巡检算法任务'
-        : '抓拍算法任务';
+        ? '周期巡检分析'
+        : '事件抓拍分析';
   const ex = String(item.executor || 'python').toLowerCase();
   if (ex === 'cpp' || ex === 'c++' || ex === 'runtime' || ex === 'cxx') {
-    return `${base}（高性能）`;
+    return `${base}（低时延）`;
   }
-  return base;
+  return `${base}（全功能）`;
 }
 
 // 表格模式配置
@@ -355,11 +345,6 @@ const hasCameras = (record: AlgorithmTask) => {
          (record.device_names && record.device_names.length > 0);
 };
 
-// 检查任务是否有算法模型列表
-const hasModels = (record: AlgorithmTask) => {
-  return record.model_ids && Array.isArray(record.model_ids) && record.model_ids.length > 0;
-};
-
 // 复制摄像头名称
 const handleCopyDeviceNames = (item: AlgorithmTask) => {
   if (!item.device_names || item.device_names.length === 0) {
@@ -391,34 +376,8 @@ const getTableActions = (record: AlgorithmTask) => {
       },
     },
     {
-      icon: 'ant-design:aim-outlined',
-      tooltip: record.is_enabled
-        ? '任务运行中，无法配置'
-        : !hasModels(record) 
-        ? '请先配置算法模型列表' 
-        : !hasCameras(record) 
-        ? '请先配置摄像头列表' 
-        : '区域检测配置',
-      disabled: record.is_enabled || !hasModels(record) || !hasCameras(record),
-      onClick: () => {
-        if (record.is_enabled) {
-          createMessage.warning('任务运行中，无法配置，请先停止任务');
-          return;
-        }
-        if (!hasModels(record)) {
-          createMessage.warning('请先配置算法模型列表');
-          return;
-        }
-        if (!hasCameras(record)) {
-          createMessage.warning('请先配置摄像头列表');
-          return;
-        }
-        handleOpenRegionDetection(record);
-      },
-    },
-    {
       icon: 'ant-design:code-outlined',
-      tooltip: record.post_process_enabled ? '编辑后处理脚本' : '编辑后处理脚本（需先在任务配置中开启后处理）',
+      tooltip: record.post_process_enabled ? '编辑业务脚本' : '编辑业务脚本（需先在任务配置中开启）',
       onClick: () => handleOpenPostProcess(record),
     },
     {
@@ -574,8 +533,8 @@ const [registerForm, { validate }] = useForm({
         placeholder: '请选择任务类型',
         options: [
           { value: '', label: '全部' },
-          { value: 'realtime', label: '实时算法任务' },
-          { value: 'snap', label: '抓拍算法任务' },
+          { value: 'realtime', label: '实时视频分析' },
+          { value: 'snap', label: '事件抓拍分析' },
         ],
       },
     },
@@ -620,21 +579,6 @@ const handleEdit = (record: AlgorithmTask) => {
 
 const handleManageServices = (record: AlgorithmTask) => {
   openServiceDrawer(true, { taskId: record.id });
-};
-
-const handleOpenRegionDetection = (record?: AlgorithmTask) => {
-  // 校验：只有在停用状态下才能配置区域检测
-  if (record && record.is_enabled) {
-    createMessage.warning('任务运行中，无法配置，请先停止任务');
-    return;
-  }
-  if (record) {
-    // 传入任务ID，只显示该任务关联的摄像头
-    openRegionDrawer(true, { taskId: record.id });
-  } else {
-    // 兼容旧逻辑：不传入任务ID，显示所有摄像头
-    openRegionDrawer(true);
-  }
 };
 
 const handleOpenSnapSpace = (record: AlgorithmTask) => {
@@ -901,6 +845,7 @@ const convertRtmpToHttp = (rtmpUrl: string): string | null => {
 
 // 播放摄像头推流
 const playCameraStream = (stream: CameraStreamInfo) => {
+  setPreferredAiTaskForDevice(stream.device_id, stream.task_id);
   // 优先使用AI HTTP流地址
   // 其次使用推送器的HTTP地址
   // 再次使用推送器的RTMP地址，转换为HTTP地址

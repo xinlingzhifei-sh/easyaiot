@@ -181,15 +181,36 @@ export const updatePlateLibrary = (libraryId: number, data: Partial<PlateLibrary
 export const deletePlateLibrary = (libraryId: number) =>
   plateMutationApi('delete', `${PLATE_PREFIX}/libraries/${libraryId}`);
 
+/**
+ * 车牌条目列表。
+ * 后端返回 { code, msg, list, total }（列表字段为 list，无 data 包装），
+ * 与全局分页转换（只认 data 字段）不一致，故关闭 transform 直接读取原始响应体。
+ */
 export const listPlateEntries = (
   libraryId: number,
   params?: { search?: string; page?: number; page_size?: number },
-) =>
-  commonApi<{ code: number; msg: string; list: PlateEntry[]; total: number }>(
-    'get',
-    `${PLATE_PREFIX}/libraries/${libraryId}/entries`,
-    { params },
-  );
+) => {
+  defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
+  return defHttp
+    .get(
+      {
+        url: `${PLATE_PREFIX}/libraries/${libraryId}/entries`,
+        params,
+        headers: { // @ts-ignore
+          ignoreCancelToken: true,
+        },
+      },
+      { isTransformResponse: false, errorMessageMode: 'none' },
+    )
+    .then((res) => {
+      const body = ((res as { data?: { code: number; msg: string; list: PlateEntry[]; total: number } })?.data ??
+        res) as { code: number; msg: string; list: PlateEntry[]; total: number };
+      if (!PLATE_API_SUCCESS_CODES.has(body?.code)) {
+        throw new Error(body?.msg || '请求失败');
+      }
+      return body;
+    });
+};
 
 export const addPlateEntry = (libraryId: number, formData: FormData) => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });
@@ -336,6 +357,39 @@ export const listPlateMatchRecords = (params?: {
     `${PLATE_PREFIX}/matching/records`,
     { params },
   );
+
+/** 车牌出现轨迹点（某车牌在某天被各摄像头识别命中的地图坐标时间线） */
+export interface PlateTrajectoryPoint {
+  match_record_id: number;
+  time: string;
+  device_id: string;
+  device_name: string;
+  address?: string | null;
+  longitude: number;
+  latitude: number;
+  plate_no?: string | null;
+  plate_color?: string | null;
+  matched_owner_name?: string | null;
+  detect_conf?: number | null;
+  library_name?: string | null;
+  task_name?: string | null;
+  alert_id?: number | null;
+  plate_image_path?: string | null;
+  plate_image_url?: string | null;
+}
+
+export const getPlateTrajectory = (params: {
+  plate_no: string;
+  date: string;
+  device_id?: string;
+  limit?: number;
+}) => {
+  return commonApi<{
+    code: number;
+    msg: string;
+    data: { plate_no: string; date: string; points: PlateTrajectoryPoint[]; total: number };
+  }>('get', `${PLATE_PREFIX}/matching/trajectory`, { params });
+};
 
 export const recognizePlateImage = (formData: FormData) => {
   defHttp.setHeader({ 'X-Authorization': 'Bearer ' + localStorage.getItem('jwt_token') });

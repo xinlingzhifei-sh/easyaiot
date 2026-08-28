@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "yFeiEye 主模块（ArkWeb 壳）"
+    },
+    {
+      "name": "ability_desc",
+      "value": "yFeiEye 主入口"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "yFeiEye"
+    }
+  ]
+}

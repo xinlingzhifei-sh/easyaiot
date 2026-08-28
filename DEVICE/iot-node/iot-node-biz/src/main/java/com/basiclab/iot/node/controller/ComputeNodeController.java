@@ -5,6 +5,7 @@ import com.basiclab.iot.common.domain.PageResult;
 import com.basiclab.iot.node.domain.vo.ComputeNodePageReqVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
+import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
@@ -44,6 +45,21 @@ public class ComputeNodeController {
     private ControlPlaneEndpointResolver controlPlaneEndpointResolver;
     @Value("${easyaiot.agent.platform-bootstrap-token:}")
     private String platformAgentBootstrapToken;
+
+    @PostMapping("/preflight")
+    @Operation(summary = "添加节点前预检：SSH、Python、磁盘、端口、控制面连通（公网仅提示）")
+    public CommonResult<NodeOnboardPreflightRespVO> preflightNode(@Valid @RequestBody ComputeNodeSaveReqVO reqVO) {
+        return success(computeNodeService.preflightNode(reqVO));
+    }
+
+    @GetMapping("/recording-storage/preflight")
+    @Operation(summary = "切换节点录像存储模式前预检")
+    public CommonResult<NodeOnboardPreflightRespVO> preflightRecordingStorage(
+            @RequestParam("nodeId") Long nodeId,
+            @RequestParam("mode") String mode,
+            @RequestParam(value = "mediaPublicUrl", required = false) String mediaPublicUrl) {
+        return success(computeNodeService.preflightRecordingStorage(nodeId, mode, mediaPublicUrl));
+    }
 
     @PostMapping("/create")
     @Operation(summary = "创建服务器节点")

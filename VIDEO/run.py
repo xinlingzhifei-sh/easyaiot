@@ -37,7 +37,7 @@ for _p in (_repo_root, _lib_root, os.path.dirname(os.path.abspath(__file__))):
 # 解析命令行参数
 def parse_args():
     parser = argparse.ArgumentParser(description='VIDEO服务启动脚本')
-    parser.add_argument('--env', type=str, default='', 
+    parser.add_argument('--env', type=str, default='',
                        help='指定环境配置文件，例如: --env=prod 会加载 .env.prod，默认加载 .env')
     args = parser.parse_args()
     return args
@@ -133,19 +133,19 @@ def create_app(start_background_tasks=None):
     validate_record_export_signing_configuration()
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-    
+
     # 配置 CORS - 允许跨域请求
     CORS(app, resources={
         r"/video/*": {"origins": "*"},
         r"/actuator/*": {"origins": "*"}
     })
-    
+
     # 从环境变量获取数据库URL，优先使用Docker Compose传入的环境变量
     database_url = os.environ.get('DATABASE_URL')
-    
+
     if not database_url:
         raise ValueError("DATABASE_URL环境变量未设置，请检查docker-compose.yaml配置")
-    
+
     # 转换postgres://为postgresql://（SQLAlchemy要求）
     database_url = database_url.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -160,7 +160,7 @@ def create_app(start_background_tasks=None):
         }
     }
     app.config['TIMEZONE'] = 'Asia/Shanghai'
-    
+
     # MinIO对象存储配置
     app.config['MINIO_ENDPOINT'] = os.environ.get('MINIO_ENDPOINT', 'localhost:9000')
     app.config['MINIO_ACCESS_KEY'] = os.environ.get('MINIO_ACCESS_KEY', '')
@@ -168,7 +168,7 @@ def create_app(start_background_tasks=None):
     if not app.config['MINIO_ACCESS_KEY'] or not app.config['MINIO_SECRET_KEY']:
         raise RuntimeError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
     app.config['MINIO_SECURE'] = os.environ.get('MINIO_SECURE', 'false').lower() == 'true'
-    
+
     # Kafka配置
     # 重要：VIDEO服务使用 host 网络模式，必须使用 localhost 访问 Kafka
     # 如果环境变量中配置了容器名（如 Kafka:9092），需要强制覆盖为 Kafka EXTERNAL listener。
@@ -228,6 +228,7 @@ def create_app(start_background_tasks=None):
                 AlgorithmModelService, RegionModelService, DeviceStorageConfig, Playback,
                 RecordSpace,                 AlgorithmTask, FrameExtractor, Sorter, Pusher, DeviceDetectionRegion,
                 DeviceTrackSession, DeviceTrackPoint, PatrolSession, AlgorithmPostProcessResult,
+                AiModel, PostPlugin, PostPluginService,
             )
             db.create_all()
             from models import (
@@ -240,6 +241,9 @@ def create_app(start_background_tasks=None):
                 ensure_algorithm_task_detect_conf_column,
                 ensure_algorithm_task_executor_columns,
                 ensure_stream_forward_task_executor_columns,
+                ensure_camera_ingress_columns,
+                ensure_media_asset_compat_columns,
+                ensure_post_plugin_tables,
             )
             ensure_algorithm_task_sam_columns(db.engine)
             ensure_algorithm_task_pose_columns(db.engine)
@@ -250,7 +254,10 @@ def create_app(start_background_tasks=None):
             ensure_algorithm_task_detect_conf_column(db.engine)
             ensure_algorithm_task_executor_columns(db.engine)
             ensure_stream_forward_task_executor_columns(db.engine)
-            
+            ensure_camera_ingress_columns(db.engine)
+            ensure_media_asset_compat_columns(db.engine)
+            ensure_post_plugin_tables(db.engine)
+
             # 迁移：检查并添加缺失的列和表
             try:
                 # 确保所有表都存在（包括 device_directory）
@@ -259,67 +266,67 @@ def create_app(start_background_tasks=None):
                 applied_schema_migrations = apply_video_schema_migrations(db.session)
                 if applied_schema_migrations:
                     print(f"Video schema migrations applied: {', '.join(applied_schema_migrations)}")
-                
+
                 # 检查 device 表的 directory_id 列是否存在
                 result = db.session.execute(text("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.columns 
-                        WHERE table_schema = 'public' 
-                        AND table_name = 'device' 
+                        SELECT FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                        AND table_name = 'device'
                         AND column_name = 'directory_id'
                     );
                 """))
                 directory_id_exists = result.scalar()
-                
+
                 if not directory_id_exists:
                     print("⚠️  device.directory_id 列不存在，正在添加...")
                     # 确保 device_directory 表存在
                     db.create_all()
                     # 添加 directory_id 列
                     db.session.execute(text("""
-                        ALTER TABLE device 
-                        ADD COLUMN directory_id INTEGER 
+                        ALTER TABLE device
+                        ADD COLUMN directory_id INTEGER
                         REFERENCES device_directory(id) ON DELETE SET NULL;
                     """))
                     db.session.commit()
                     print("✅ device.directory_id 列添加成功")
-                
+
                 # 检查 device 表的 auto_snap_enabled 列是否存在
                 result = db.session.execute(text("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.columns 
-                        WHERE table_schema = 'public' 
-                        AND table_name = 'device' 
+                        SELECT FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                        AND table_name = 'device'
                         AND column_name = 'auto_snap_enabled'
                     );
                 """))
                 auto_snap_enabled_exists = result.scalar()
-                
+
                 if not auto_snap_enabled_exists:
                     print("⚠️  device.auto_snap_enabled 列不存在，正在添加...")
                     # 添加 auto_snap_enabled 列，默认值为 false
                     db.session.execute(text("""
-                        ALTER TABLE device 
+                        ALTER TABLE device
                         ADD COLUMN auto_snap_enabled BOOLEAN NOT NULL DEFAULT FALSE;
                     """))
                     db.session.commit()
                     print("✅ device.auto_snap_enabled 列添加成功")
-                
+
                 # 检查 device 表的 cover_image_path 列是否存在
                 result = db.session.execute(text("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.columns 
-                        WHERE table_schema = 'public' 
-                        AND table_name = 'device' 
+                        SELECT FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                        AND table_name = 'device'
                         AND column_name = 'cover_image_path'
                     );
                 """))
                 cover_image_path_exists = result.scalar()
-                
+
                 if not cover_image_path_exists:
                     print("⚠️  device.cover_image_path 列不存在，正在添加...")
                     db.session.execute(text("""
-                        ALTER TABLE device 
+                        ALTER TABLE device
                         ADD COLUMN cover_image_path VARCHAR(500);
                     """))
                     db.session.commit()
@@ -395,42 +402,65 @@ def create_app(start_background_tasks=None):
                         db.session.execute(text(f'ALTER TABLE device ADD COLUMN {col_name} {col_def};'))
                         db.session.commit()
                         print(f"✅ device.{col_name} 列添加成功")
-                
+
                 # 检查 device_detection_region 表是否存在
                 result = db.session.execute(text("""
                     SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE table_schema = 'public' 
+                        SELECT FROM information_schema.tables
+                        WHERE table_schema = 'public'
                         AND table_name = 'device_detection_region'
                     );
                 """))
                 device_detection_region_exists = result.scalar()
-                
+
                 if not device_detection_region_exists:
                     print("⚠️  device_detection_region 表不存在，正在创建...")
                     db.create_all()  # 这会创建所有缺失的表
                     print("✅ device_detection_region 表创建成功")
-                
+
                 # 检查 device_detection_region 表的 model_ids 列是否存在
                 if device_detection_region_exists:
                     result = db.session.execute(text("""
                         SELECT EXISTS (
-                            SELECT FROM information_schema.columns 
-                            WHERE table_schema = 'public' 
-                            AND table_name = 'device_detection_region' 
+                            SELECT FROM information_schema.columns
+                            WHERE table_schema = 'public'
+                            AND table_name = 'device_detection_region'
                             AND column_name = 'model_ids'
                         );
                     """))
                     model_ids_exists = result.scalar()
-                    
+
                     if not model_ids_exists:
                         print("⚠️  device_detection_region.model_ids 列不存在，正在添加...")
                         db.session.execute(text("""
-                            ALTER TABLE device_detection_region 
+                            ALTER TABLE device_detection_region
                             ADD COLUMN model_ids TEXT;
                         """))
                         db.session.commit()
                         print("✅ device_detection_region.model_ids 列添加成功")
+
+                    result = db.session.execute(text("""
+                        SELECT EXISTS (
+                            SELECT FROM information_schema.columns
+                            WHERE table_schema = 'public'
+                            AND table_name = 'device_detection_region'
+                            AND column_name = 'task_id'
+                        );
+                    """))
+                    task_id_exists = result.scalar()
+
+                    if not task_id_exists:
+                        print("⚠️  device_detection_region.task_id 列不存在，正在添加...")
+                        db.session.execute(text("""
+                            ALTER TABLE device_detection_region
+                            ADD COLUMN task_id INTEGER REFERENCES algorithm_task(id) ON DELETE CASCADE;
+                        """))
+                        db.session.execute(text("""
+                            CREATE INDEX IF NOT EXISTS idx_device_detection_region_task_device
+                            ON device_detection_region (task_id, device_id);
+                        """))
+                        db.session.commit()
+                        print("✅ device_detection_region.task_id 列添加成功")
 
                 # 轨迹回放表：device_track_session / device_track_point
                 for track_table in ('device_track_session', 'device_track_point'):
@@ -489,29 +519,29 @@ def create_app(start_background_tasks=None):
                     print(f"✅ 默认分组已就绪（已归入未分配设备 {synced} 台）")
                 except Exception as default_dir_err:
                     print(f"⚠️  初始化默认分组失败: {default_dir_err}")
-                
+
                 # 检查 algorithm_task 表的新字段
                 try:
                     # 检查 task_type 字段
                     result = db.session.execute(text("""
                         SELECT EXISTS (
-                            SELECT FROM information_schema.columns 
-                            WHERE table_schema = 'public' 
-                            AND table_name = 'algorithm_task' 
+                            SELECT FROM information_schema.columns
+                            WHERE table_schema = 'public'
+                            AND table_name = 'algorithm_task'
                             AND column_name = 'task_type'
                         );
                     """))
                     task_type_exists = result.scalar()
-                    
+
                     if not task_type_exists:
                         print("⚠️  algorithm_task.task_type 列不存在，正在添加...")
                         db.session.execute(text("""
-                            ALTER TABLE algorithm_task 
+                            ALTER TABLE algorithm_task
                             ADD COLUMN task_type VARCHAR(20) NOT NULL DEFAULT 'realtime';
                         """))
                         db.session.commit()
                         print("✅ algorithm_task.task_type 列添加成功")
-                    
+
                     # 检查其他新增字段
                     for col_name, col_def in [
                         ('space_id', 'INTEGER REFERENCES snap_space(id) ON DELETE CASCADE'),
@@ -539,21 +569,22 @@ def create_app(start_background_tasks=None):
                         ('prefer_gpu', 'BOOLEAN NOT NULL DEFAULT TRUE'),
                         ('target_node_id', 'BIGINT'),
                         ('node_id', 'BIGINT'),
+                        ('device_deployments', 'TEXT'),
                     ]:
                         result = db.session.execute(text(f"""
                             SELECT EXISTS (
-                                SELECT FROM information_schema.columns 
-                                WHERE table_schema = 'public' 
-                                AND table_name = 'algorithm_task' 
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                AND table_name = 'algorithm_task'
                                 AND column_name = '{col_name}'
                             );
                         """))
                         col_exists = result.scalar()
-                        
+
                         if not col_exists:
                             print(f"⚠️  algorithm_task.{col_name} 列不存在，正在添加...")
                             db.session.execute(text(f"""
-                                ALTER TABLE algorithm_task 
+                                ALTER TABLE algorithm_task
                                 ADD COLUMN {col_name} {col_def};
                             """))
                             db.session.commit()
@@ -616,40 +647,40 @@ def create_app(start_background_tasks=None):
                     import traceback
                     traceback.print_exc()
                     db.session.rollback()
-                
+
                 # 检查 alert 表的 task_type 字段
                 try:
                     result = db.session.execute(text("""
                         SELECT EXISTS (
-                            SELECT FROM information_schema.columns 
-                            WHERE table_schema = 'public' 
-                            AND table_name = 'alert' 
+                            SELECT FROM information_schema.columns
+                            WHERE table_schema = 'public'
+                            AND table_name = 'alert'
                             AND column_name = 'task_type'
                         );
                     """))
                     alert_task_type_exists = result.scalar()
-                    
+
                     if not alert_task_type_exists:
                         print("⚠️  alert.task_type 列不存在，正在添加...")
                         db.session.execute(text("""
-                            ALTER TABLE alert 
+                            ALTER TABLE alert
                             ADD COLUMN task_type VARCHAR(20) NULL;
                         """))
                         db.session.commit()
                         print("✅ alert.task_type 列添加成功")
-                        
+
                         # 尝试从 information 字段中提取 task_type 并填充（兼容旧数据）
                         try:
                             # 使用 PostgreSQL 的 JSON 函数提取 task_type
                             db.session.execute(text("""
-                                UPDATE alert 
+                                UPDATE alert
                                 SET task_type = (
-                                    CASE 
-                                        WHEN information IS NOT NULL 
-                                             AND information::text LIKE '%"task_type"%' 
+                                    CASE
+                                        WHEN information IS NOT NULL
+                                             AND information::text LIKE '%"task_type"%'
                                              AND information::text LIKE '%"realtime"%' THEN 'realtime'
-                                        WHEN information IS NOT NULL 
-                                             AND information::text LIKE '%"task_type"%' 
+                                        WHEN information IS NOT NULL
+                                             AND information::text LIKE '%"task_type"%'
                                              AND (information::text LIKE '%"snap"%' OR information::text LIKE '%"snapshot"%') THEN 'snap'
                                         ELSE 'realtime'
                                     END
@@ -661,11 +692,11 @@ def create_app(start_background_tasks=None):
                         except Exception as e:
                             print(f"⚠️  迁移 task_type 数据失败（不影响功能）: {str(e)}")
                             db.session.rollback()
-                            
+
                             # 如果迁移失败，至少设置默认值
                             try:
                                 db.session.execute(text("""
-                                    UPDATE alert 
+                                    UPDATE alert
                                     SET task_type = 'realtime'
                                     WHERE task_type IS NULL;
                                 """))
@@ -673,7 +704,7 @@ def create_app(start_background_tasks=None):
                                 print("✅ 已设置默认 task_type 值")
                             except:
                                 pass
-                    
+
                     # MinIO 告警图 URL、任务关联字段（与 models.Alert 一致；旧库缺列会导致列表/统计查询失败）
                     for col_name, col_def in [
                         ('image_url', 'VARCHAR(500)'),
@@ -728,16 +759,74 @@ def create_app(start_background_tasks=None):
                             """))
                             db.session.commit()
                             print(f"✅ {tbl}.correlation_id 列添加成功")
-                        db.session.execute(text(f"""
-                            CREATE INDEX IF NOT EXISTS idx_{tbl}_correlation_id
-                            ON {tbl} (correlation_id);
-                        """))
+                        if tbl == 'alert':
+                            # 历史重复事件保留最早记录的关联ID，其余业务记录仅清空重复键。
+                            db.session.execute(text("""
+                                UPDATE alert
+                                SET correlation_id = NULL
+                                WHERE correlation_id IS NOT NULL
+                                  AND BTRIM(correlation_id) = '';
+                            """))
+                            db.session.execute(text("""
+                                WITH ranked AS (
+                                    SELECT id,
+                                           ROW_NUMBER() OVER (
+                                               PARTITION BY correlation_id ORDER BY id ASC
+                                           ) AS duplicate_rank
+                                    FROM alert
+                                    WHERE correlation_id IS NOT NULL
+                                )
+                                UPDATE alert
+                                SET correlation_id = NULL
+                                FROM ranked
+                                WHERE alert.id = ranked.id
+                                  AND ranked.duplicate_rank > 1;
+                            """))
+                            db.session.execute(text("""
+                                DROP INDEX IF EXISTS idx_alert_correlation_id;
+                            """))
+                            db.session.execute(text("""
+                                CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_correlation_id
+                                ON alert (correlation_id)
+                                WHERE correlation_id IS NOT NULL;
+                            """))
+                        else:
+                            db.session.execute(text(f"""
+                                CREATE INDEX IF NOT EXISTS idx_{tbl}_correlation_id
+                                ON {tbl} (correlation_id);
+                            """))
                         db.session.commit()
                     print("✅ correlation_id 关联字段迁移检查完成")
                 except Exception as e:
                     print(f"⚠️  correlation_id 迁移检查失败: {str(e)}")
                     import traceback
                     traceback.print_exc()
+                    db.session.rollback()
+
+                # 任务级 AI 流录像需要保留 task_id，避免同摄像头多任务录像串联。
+                try:
+                    for tbl in ('playback', 'record_file'):
+                        result = db.session.execute(text(f"""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = '{tbl}'
+                                  AND column_name = 'task_id'
+                            );
+                        """))
+                        if not result.scalar():
+                            db.session.execute(text(f"""
+                                ALTER TABLE {tbl}
+                                ADD COLUMN task_id INTEGER NULL;
+                            """))
+                        db.session.execute(text(f"""
+                            CREATE INDEX IF NOT EXISTS idx_{tbl}_task_id
+                            ON {tbl} (task_id);
+                        """))
+                    db.session.commit()
+                    print("✅ 任务级录像 task_id 迁移检查完成")
+                except Exception as e:
+                    print(f"⚠️  任务级录像迁移检查失败: {str(e)}")
                     db.session.rollback()
 
                 # alert.time：列表排序、今日统计、时间范围筛选
@@ -872,7 +961,7 @@ def create_app(start_background_tasks=None):
                     import traceback
                     traceback.print_exc()
                     db.session.rollback()
-                
+
             except Exception as e:
                 print(f"⚠️  数据库迁移检查失败: {str(e)}")
                 import traceback
@@ -891,6 +980,15 @@ def create_app(start_background_tasks=None):
         traceback.print_exc()
 
     try:
+        from app.auth.auth_api import register_auth_blueprints
+        register_auth_blueprints(app)
+        print(f"✅ VIDEO Auth Blueprint 注册成功")
+    except Exception as e:
+        print(f"❌ VIDEO Auth Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+    try:
         from app.blueprints import audio_talk
         app.register_blueprint(audio_talk.audio_talk_bp, url_prefix='/video/camera/audio/talk')
         print(f"✅ Audio Talk Blueprint 注册成功")
@@ -905,7 +1003,16 @@ def create_app(start_background_tasks=None):
         print(f"❌ Media Hook Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
+    try:
+        from app.blueprints import media_asset
+        app.register_blueprint(media_asset.media_asset_bp, url_prefix='/video')
+        print('✅ Media Asset Blueprint 注册成功')
+    except Exception as e:
+        print(f'❌ Media Asset Blueprint 注册失败: {str(e)}')
+        import traceback
+        traceback.print_exc()
+
     try:
         app.register_blueprint(alert.alert_bp, url_prefix='/video/alert')
         print(f"✅ Alert Blueprint 注册成功")
@@ -913,7 +1020,7 @@ def create_app(start_background_tasks=None):
         print(f"❌ Alert Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
     try:
         app.register_blueprint(snap.snap_bp, url_prefix='/video/snap')
         app.register_blueprint(record.record_bp, url_prefix='/video/record')
@@ -922,7 +1029,7 @@ def create_app(start_background_tasks=None):
         print(f"❌ Snap Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
     try:
         app.register_blueprint(playback.playback_bp, url_prefix='/video/playback')
         print(f"✅ Playback Blueprint 注册成功")
@@ -930,7 +1037,7 @@ def create_app(start_background_tasks=None):
         print(f"❌ Playback Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
     try:
         app.register_blueprint(algorithm_task.algorithm_task_bp, url_prefix='/video/algorithm')
         print(f"✅ Algorithm Task Blueprint 注册成功")
@@ -945,7 +1052,7 @@ def create_app(start_background_tasks=None):
         print(f"❌ Patrol Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
     try:
         app.register_blueprint(stream_forward.stream_forward_bp, url_prefix='/video/stream-forward')
         print(f"✅ Stream Forward Blueprint 注册成功")
@@ -988,7 +1095,50 @@ def create_app(start_background_tasks=None):
         print(f"❌ Device Detection Region Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
-    
+
+    try:
+        from app.blueprints import post_plugin
+        app.register_blueprint(post_plugin.post_plugin_bp, url_prefix='/video/post')
+        print("✅ POST Plugin Blueprint 注册成功")
+    except Exception as e:
+        print(f"❌ POST Plugin Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+    try:
+        # 模型管理蓝图全形态注册：edge 形态替代 AI 服务；standard/full 形态供算法管线
+        # （AI_SERVICE_URL=…/video 时）读取模型信息与 MinIO 代理，缺注册会导致
+        # python 执行器「获取模型 XX 信息失败: HTTP 404」无法加载模型。
+        from app.blueprints import model as model_admin
+        from app.blueprints import minio_proxy
+        app.register_blueprint(minio_proxy.minio_proxy_bp)
+        app.register_blueprint(model_admin.model_bp, url_prefix='/video/model')
+        print("✅ VIDEO 模型管理 Blueprint 注册成功（edge/full 形态）")
+        try:
+            from app.services.edge_model_seed_service import ensure_edge_model_seed
+            with app.app_context():
+                seed_result = ensure_edge_model_seed()
+            if seed_result.get('skipped'):
+                print(f"ℹ️  edge 模型种子跳过: {seed_result.get('reason')}")
+            else:
+                print(
+                    "✅ edge 模型种子完成: "
+                    f"files_copied={seed_result.get('files_copied', 0)} "
+                    f"files_skipped={seed_result.get('files_skipped', 0)} "
+                    f"models_inserted={seed_result.get('models_inserted', 0)} "
+                    f"models_updated={seed_result.get('models_updated', 0)}"
+                )
+                if not seed_result.get('seed_root'):
+                    print("⚠️  未挂载模型种子目录 /model-seed-data，封面/权重可能需手动上传")
+        except Exception as seed_exc:
+                print(f"⚠️  edge 模型种子初始化失败: {seed_exc}")
+                import traceback
+                traceback.print_exc()
+    except Exception as e:
+        print(f"❌ VIDEO 模型管理 Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 
     # 健康检查路由初始化
     def init_health_check(app):
@@ -1117,7 +1267,7 @@ def create_app(start_background_tasks=None):
                 print(f"🔴 全局注销成功: {service_name}@{app.registered_ip}:{port}")
             except Exception as e:
                 print(f"❌ 注销异常: {str(e)}")
-        
+
         # 停止自动抽帧线程
         try:
             from app.services.auto_frame_extraction_service import stop_auto_frame_extraction
@@ -1169,7 +1319,7 @@ def create_app(start_background_tasks=None):
             auto_start_streaming()
         except Exception as e:
             print(f"❌ 自动启动推流设备失败: {str(e)}")
-    
+
     # 启动抓拍/录像空间自动清理任务
     with app.app_context():
         # 周期任务通用参数：合并错过的触发、避免并发堆积
@@ -1182,14 +1332,14 @@ def create_app(start_background_tasks=None):
         try:
             from app.services.camera_service import ensure_scheduler_running, scheduler
             from app.services.snap_space_service import auto_cleanup_all_spaces
-            
+
             ensure_scheduler_running()
-            
+
             # 创建包装函数，确保在应用上下文中执行
             def cleanup_wrapper():
                 """包装函数，确保传入app参数"""
                 return auto_cleanup_all_spaces(app=app)
-            
+
             # 每 30 分钟执行自动清理（默认保留 1 小时时需及时删除过期文件）
             scheduler.add_job(
                 cleanup_wrapper,
@@ -1339,7 +1489,7 @@ def create_app(start_background_tasks=None):
             print(f'❌ 启动算法任务健康监控失败: {str(e)}')
             import traceback
             traceback.print_exc()
-        
+
         # 初始化抓拍任务调度器
         try:
             from app.services.snap_task_service import init_all_tasks
@@ -1349,7 +1499,7 @@ def create_app(start_background_tasks=None):
             print(f"❌ 初始化抓拍任务调度器失败: {str(e)}")
             import traceback
             traceback.print_exc()
-        
+
         # 启动自动抽帧线程（每分钟从所有在线摄像头的RTSP流中抽帧）
         # 已禁用：由算法任务来处理抽帧，不再单独启动自动抽帧
         # try:
@@ -1360,14 +1510,14 @@ def create_app(start_background_tasks=None):
         #     print(f"❌ 启动自动抽帧线程失败: {str(e)}")
         #     import traceback
         #     traceback.print_exc()
-        
+
         # 启动心跳超时检查任务（每分钟检查一次）
         try:
             from app.services.camera_service import ensure_scheduler_running, scheduler
             from models import FrameExtractor, Sorter, Pusher
-            
+
             ensure_scheduler_running()
-            
+
             def check_heartbeat_timeout():
                 """定时检查心跳超时，超过1分钟没上报则更新状态为stopped"""
                 try:
@@ -1375,67 +1525,67 @@ def create_app(start_background_tasks=None):
                         from datetime import datetime, timedelta
                         from models import db, AlgorithmTask
                         from sqlalchemy.exc import OperationalError, DisconnectionError
-                        
+
                         timeout_threshold = datetime.utcnow() - timedelta(minutes=1)
-                        
+
                         try:
                             # 检查抽帧器
                             timeout_extractors = FrameExtractor.query.filter(
                                 FrameExtractor.status.in_(['running']),
                                 (FrameExtractor.last_heartbeat < timeout_threshold) | (FrameExtractor.last_heartbeat.is_(None))
                             ).all()
-                            
+
                             for extractor in timeout_extractors:
                                 old_status = extractor.status
                                 extractor.status = 'stopped'
                                 logger.info(f"抽帧器心跳超时，状态从 {old_status} 更新为 stopped: {extractor.extractor_name}")
-                            
+
                             # 检查排序器
                             timeout_sorters = Sorter.query.filter(
                                 Sorter.status.in_(['running']),
                                 (Sorter.last_heartbeat < timeout_threshold) | (Sorter.last_heartbeat.is_(None))
                             ).all()
-                            
+
                             for sorter in timeout_sorters:
                                 old_status = sorter.status
                                 sorter.status = 'stopped'
                                 logger.info(f"排序器心跳超时，状态从 {old_status} 更新为 stopped: {sorter.sorter_name}")
-                            
+
                             # 检查推送器
                             timeout_pushers = Pusher.query.filter(
                                 Pusher.status.in_(['running']),
                                 (Pusher.last_heartbeat < timeout_threshold) | (Pusher.last_heartbeat.is_(None))
                             ).all()
-                            
+
                             for pusher in timeout_pushers:
                                 old_status = pusher.status
                                 pusher.status = 'stopped'
                                 logger.info(f"推送器心跳超时，状态从 {old_status} 更新为 stopped: {pusher.pusher_name}")
-                            
+
                             # 检查算法任务（实时算法任务）
                             timeout_algorithm_tasks = AlgorithmTask.query.filter(
                                 AlgorithmTask.run_status.in_(['running', 'restarting']),
                                 AlgorithmTask.task_type == 'realtime',
                                 ((AlgorithmTask.service_last_heartbeat < timeout_threshold) | (AlgorithmTask.service_last_heartbeat.is_(None)))
                             ).all()
-                            
+
                             for task in timeout_algorithm_tasks:
                                 old_status = task.run_status
                                 task.run_status = 'stopped'
                                 logger.info(f"算法任务心跳超时，状态从 {old_status} 更新为 stopped: task_id={task.id}, task_name={task.task_name}")
-                            
+
                             if timeout_extractors or timeout_sorters or timeout_pushers or timeout_algorithm_tasks:
                                 db.session.commit()
                                 total = len(timeout_extractors) + len(timeout_sorters) + len(timeout_pushers) + len(timeout_algorithm_tasks)
                                 logger.info(f"已更新 {total} 个服务状态为stopped")
-                            
+
                             # 清理已停止的进程
                             try:
                                 from app.services.algorithm_task_launcher_service import cleanup_stopped_processes
                                 cleanup_stopped_processes()
                             except Exception as e:
                                 logger.warning(f"清理已停止的进程失败: {str(e)}")
-                                
+
                         except (OperationalError, DisconnectionError) as db_error:
                             # 数据库连接异常，尝试回滚并记录错误
                             logger.warning(f"数据库连接异常，尝试重新连接: {str(db_error)}")
@@ -1455,7 +1605,7 @@ def create_app(start_background_tasks=None):
                             db.session.rollback()
                     except:
                         pass
-            
+
             # 每分钟执行一次心跳超时检查
             scheduler.add_job(
                 check_heartbeat_timeout,
@@ -1480,7 +1630,7 @@ def create_app(start_background_tasks=None):
             print(f"❌ 启动心跳超时检查任务失败: {str(e)}")
             import traceback
             traceback.print_exc()
-        
+
         # 自动启动所有启用的算法任务的服务
         try:
             from app.services.algorithm_task_launcher_service import auto_start_all_tasks
@@ -1490,7 +1640,7 @@ def create_app(start_background_tasks=None):
             print(f"❌ 自动启动算法任务服务失败: {str(e)}")
             import traceback
             traceback.print_exc()
-        
+
         # 自动启动所有启用的推流转发任务的服务
         try:
             from app.services.stream_forward_launcher_service import auto_start_all_tasks
@@ -1560,7 +1710,7 @@ if __name__ == '__main__':
             signal.signal(_sig, _graceful_shutdown)
         except Exception:
             pass
-    
+
     # 检查端口是否可用
     if not check_port_available(host, port):
         print(f"❌ 错误: 端口 {port} 已被占用")
@@ -1569,11 +1719,11 @@ if __name__ == '__main__':
         print(f"   2. 停止占用端口的进程")
         print(f"   3. 或者修改环境变量 FLASK_RUN_PORT 使用其他端口")
         sys.exit(1)
-    
+
     # 获取实际IP地址
     ip = getattr(app, 'registered_ip', None) or get_local_ip()
     print(f"🚀 服务启动: http://{ip}:{port}")
-    
+
     try:
         app.run(host=host, port=port)
     except OSError as e:

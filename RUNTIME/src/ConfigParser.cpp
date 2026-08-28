@@ -3,10 +3,12 @@
  */
 
 #include "ConfigParser.h"
+#include "AlertClassFilter.h"
 #include "AlgoMqttBus.h"
 #include <json/json.h>
 #include <sstream>
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <cctype>
 
@@ -27,6 +29,29 @@ bool ConfigParser::parseBool(const std::string& value) {
 int ConfigParser::parseInt(const std::string& value) {
     try {
         return std::stoi(trim(value));
+    } catch (...) {
+        return 0;
+    }
+}
+
+int64_t ConfigParser::parseBitRate(const std::string& value) {
+    std::string v = trim(value);
+    if (v.empty()) return 0;
+    std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+    try {
+        if (!v.empty() && (v.back() == 'k' || v.back() == 'm')) {
+            const char unit = v.back();
+            const double n = std::stod(v.substr(0, v.size() - 1));
+            if (n <= 0) return 0;
+            if (unit == 'k') return static_cast<int64_t>(n * 1000.0);
+            return static_cast<int64_t>(n * 1000000.0);
+        }
+        const int64_t n = static_cast<int64_t>(std::stoll(v));
+        // Bare numbers < 100000 are treated as kbps (e.g. 4500 → 4500k).
+        if (n > 0 && n < 100000) {
+            return n * 1000;
+        }
+        return n > 0 ? n : 0;
     } catch (...) {
         return 0;
     }
@@ -144,6 +169,12 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
             } else if (key == "fps") {
                 config.rtmpFps = parseInt(value);
                 if (config.rtmpFps <= 0) config.rtmpFps = 25;
+            } else if (key == "bitrate" || key == "video_bitrate") {
+                int64_t br = parseBitRate(value);
+                if (br > 0) config.videoBitRate = br;
+            } else if (key == "gop" || key == "gop_size") {
+                int g = parseInt(value);
+                if (g > 0) config.videoGopSize = g;
             } else if (key == "devices_json") {
                 parseDevicesJson(value, config.devices);
             }
@@ -154,9 +185,26 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
             } else if (key == "model_path") {
                 currentModel = "default";
                 config.modelPaths[currentModel] = value;
+                if (std::find(config.modelKeys.begin(), config.modelKeys.end(), currentModel)
+                    == config.modelKeys.end()) {
+                    config.modelKeys.push_back(currentModel);
+                }
+            } else if (key.rfind("model_path_", 0) == 0) {
+                // 多模型：model_path_<key> / classes_path_<key>（key 如模型 ID）
+                currentModel = key.substr(std::strlen("model_path_"));
+                if (currentModel.empty()) currentModel = "default";
+                config.modelPaths[currentModel] = value;
+                if (std::find(config.modelKeys.begin(), config.modelKeys.end(), currentModel)
+                    == config.modelKeys.end()) {
+                    config.modelKeys.push_back(currentModel);
+                }
             } else if (key == "classes_path") {
                 if (currentModel.empty()) currentModel = "default";
                 config.modelClasses[currentModel] = value;
+            } else if (key.rfind("classes_path_", 0) == 0) {
+                std::string clsModel = key.substr(std::strlen("classes_path_"));
+                if (clsModel.empty()) clsModel = "default";
+                config.modelClasses[clsModel] = value;
             } else if (key == "threads") {
                 config.threadNums = parseInt(value);
                 if (config.threadNums <= 0) config.threadNums = 3;
@@ -198,6 +246,12 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
                 }
             } else if (key == "image_dir") {
                 config.alertImageDir = value;
+            } else if (key == "alert_class_names") {
+                config.alertClassNames = AlertClassFilter::parseAlertClassNames(value);
+                if (!config.alertClassNames.empty()) {
+                    LOG(INFO) << "[CONFIG] alert_class_names loaded: "
+                              << config.alertClassNames.size() << " labels";
+                }
             }
         }
         else if (currentSection == "task") {
@@ -259,6 +313,10 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
                 if (config.frameSkip <= 0) config.frameSkip = 8;
             } else if (key == "alert_image_dir") {
                 config.alertImageDir = value;
+            } else if (key == "face_matching_enabled") {
+                config.faceMatchingEnabled = parseBool(value);
+            } else if (key == "plate_matching_enabled") {
+                config.plateMatchingEnabled = parseBool(value);
             } else if (key == "algo_bus_transport") {
                 config.algoBusTransport = value;
             } else if (key == "mqtt_broker_urls") {
@@ -453,6 +511,24 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
         std::string s = trim(v);
         if (!s.empty()) config.nvencPreset = s;
     }
+    // Bitrate / GOP: RUNTIME_* first, then shared FFMPEG_* used by VIDEO
+    if (const char* v = std::getenv("RUNTIME_VIDEO_BITRATE")) {
+        int64_t br = parseBitRate(v);
+        if (br > 0) config.videoBitRate = br;
+    } else if (const char* v = std::getenv("FFMPEG_VIDEO_BITRATE")) {
+        int64_t br = parseBitRate(v);
+        if (br > 0) config.videoBitRate = br;
+    } else if (const char* v = std::getenv("VIEW_FFMPEG_VIDEO_BITRATE")) {
+        int64_t br = parseBitRate(v);
+        if (br > 0) config.videoBitRate = br;
+    }
+    if (const char* v = std::getenv("RUNTIME_GOP_SIZE")) {
+        int g = parseInt(v);
+        if (g > 0) config.videoGopSize = g;
+    } else if (const char* v = std::getenv("FFMPEG_GOP_SIZE")) {
+        int g = parseInt(v);
+        if (g > 0) config.videoGopSize = g;
+    }
     // No GPU for inference → also avoid NVDEC/NVENC contention on CPU-only tasks
     if (config.forceCpu || !config.preferGpu) {
         config.forceSoftAv = true;
@@ -468,7 +544,9 @@ bool ConfigParser::parse(const std::string& filename, Config& config) {
               << " prefer_hwaccel=" << (config.preferHwaccel ? "true" : "false")
               << " force_soft_av=" << (config.forceSoftAv ? "true" : "false")
               << " hwaccel_device_id=" << config.hwaccelDeviceId
-              << " nvenc_preset=" << config.nvencPreset;
+              << " nvenc_preset=" << config.nvencPreset
+              << " video_bitrate=" << (config.videoBitRate > 0 ? config.videoBitRate / 1000 : 0) << "k"
+              << " gop=" << config.videoGopSize;
 
     return true;
 }

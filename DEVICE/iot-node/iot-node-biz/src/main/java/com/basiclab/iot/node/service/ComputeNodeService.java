@@ -5,6 +5,7 @@ import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
 import com.basiclab.iot.node.domain.vo.ComputeNodePageReqVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
+import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
@@ -13,6 +14,10 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendRespVO;
 import com.basiclab.iot.node.domain.vo.PlatformAgentBootstrapRespVO;
 
 public interface ComputeNodeService {
+
+    NodeOnboardPreflightRespVO preflightNode(ComputeNodeSaveReqVO reqVO);
+
+    NodeOnboardPreflightRespVO preflightRecordingStorage(Long nodeId, String mode, String mediaPublicUrl);
 
     ComputeNodeRespVO createNode(ComputeNodeSaveReqVO createReqVO);
 

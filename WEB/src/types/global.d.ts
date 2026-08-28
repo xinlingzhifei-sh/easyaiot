@@ -93,6 +93,8 @@ declare global {
     VITE_TIANDITU_KEY: string
     /** 部署形态：mini | standard | full */
     VITE_GLOB_DEPLOY_PROFILE?: string
+    /** edge 单机合装标识（与 mini 前端裁剪区分） */
+    VITE_GLOB_EDGE_STANDALONE?: string
     /** 数据集批量上传最大并发数 */
     VITE_UPLOAD_MAX_CONCURRENCY?: string
     /** VISUALIZE 大屏编辑器基址 */
@@ -101,6 +103,14 @@ declare global {
     VITE_GLOB_FUXA_URL?: string
     /** yFeiEye PANEL 运维控制台（留空则使用当前访问域名 + 9200 端口） */
     VITE_PANEL_URL?: string
+    /** yFeiEye IDEA 门户（留空则使用当前访问域名 + 9300 端口） */
+    VITE_IDEA_URL?: string
+    /** IDEA 门户令牌（与 IDEA_TOKEN 一致；浏览器可见，仅作轻量防护） */
+    VITE_IDEA_TOKEN?: string
+    /** yFeiEye HARNESS AI 助手（留空则使用当前访问域名 + 3080 端口） */
+    VITE_HARNESS_URL?: string
+    VITE_HARNESS_APP_NAME?: string
+    VITE_HARNESS_LOGO?: string
   }
 
   declare function parseInt(s: string | number, radix?: number): number

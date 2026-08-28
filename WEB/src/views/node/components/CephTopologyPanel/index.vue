@@ -401,6 +401,7 @@ import {
   type NfsOpLogItem,
 } from '@/api/device/node';
 import { navigateToStorageSubTab } from '../../utils/nodeNavigation';
+import { formatNodeFunctions } from '../../utils/constants';
 
 defineOptions({ name: 'CephTopologyPanel' });
 
@@ -1055,7 +1056,7 @@ function buildChartOption(data: CephTopologyResult) {
         if (!n) return p?.name || '';
         return [
           `<b>${n.name || ''}</b> (#${n.nodeId})`,
-          `角色: ${kindLabel(n)} / ${n.nodeRole || '-'}`,
+          `功能: ${kindLabel(n)} / ${formatNodeFunctions(n)}`,
           `主机: ${n.host}`,
           `挂载: ${(n.nfsMountReady ?? n.cephMountReady) ? '就绪' : '未就绪'}`,
           `路径: ${n.nfsMountPath || n.cephMountPath || '-'}`,

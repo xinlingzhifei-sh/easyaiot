@@ -48,6 +48,7 @@ import {
 } from '../deviceCreateForm';
 
 const emit = defineEmits<{ success: [] }>();
+const props = defineProps<{ ingressNodeId?: number }>();
 
 const { createMessage } = useMessage();
 const submitting = ref(false);
@@ -202,6 +203,7 @@ async function handleSubmit() {
       source,
       stream: 0,
       cameraType: 'custom',
+      ingress_node_id: props.ingressNodeId,
     });
     const deviceId = resolveRegisteredDeviceId(response);
     createMessage.success('设备注册成功');

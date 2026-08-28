@@ -601,7 +601,11 @@ def get_alert_record():
     try:
         from urllib.parse import unquote
 
-        from app.services.media_dvr_utils import resolve_playback_absolute_path
+        from app.services.media_dvr_utils import (
+            discover_srs_host_data_root,
+            resolve_playback_absolute_path,
+        )
+        from app.utils.media_path_security import resolve_allowed_media_file
 
         alert_id = request.args.get('alert_id') or request.args.get('alertId')
         path = unquote((request.args.get('path') or '').strip()) \

@@ -19,7 +19,7 @@ import com.basiclab.iot.node.domain.vo.NodeMediaStackCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeSchedulerAllocateReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSchedulerAllocateRespVO;
-import com.basiclab.iot.node.enums.NodeRoleEnum;
+import com.basiclab.iot.node.util.NodeFunctions;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.NodeMediaService;
@@ -30,6 +30,7 @@ import com.basiclab.iot.node.util.MediaStackDeployUtil.DeployPhase;
 import com.basiclab.iot.node.util.MediaUrlBuilder;
 import com.basiclab.iot.node.util.RemotePortCheckUtil;
 import com.basiclab.iot.node.util.SshSessionHelper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Arrays;
@@ -78,6 +80,7 @@ public class NodeMediaServiceImpl implements NodeMediaService {
             "install_media_stack.sh",
             "install_docker.sh",
             "docker-compose.media-node.yml",
+            "edge_media_agent.py",
             "srs/cluster.conf.template",
             "zlm/config.ini.template",
     };
@@ -218,9 +221,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (!NodeRoleEnum.MEDIA.getRole().equals(node.getNodeRole())
-                && !NodeRoleEnum.HYBRID.getRole().equals(node.getNodeRole())) {
-            throw new IllegalStateException("仅 media / hybrid 节点支持媒体栈 SSH 部署");
+        if (!NodeFunctions.isLive(node)) {
+            throw new IllegalStateException("仅勾选「直播接入」或「推流转发」的节点支持媒体栈部署");
         }
         NodeSshCredential sshCredential = loadSshCredential(nodeId);
 
@@ -235,21 +237,29 @@ public class NodeMediaServiceImpl implements NodeMediaService {
 
             steps.add(runStep("SSH 连接", "success", "已连接 " + node.getHost() + ":" + sshPort));
 
+            ExistingMediaCheck existingCheck = checkExistingMediaServices(ssh, node);
+            steps.add(existingCheck.step);
+            if (existingCheck.srsRunning && existingCheck.zlmRunning) {
+                NodeMediaRemoteDeployRespVO.DeployStep syncStep = syncMediaClusterScripts(ssh, sourceRoot);
+                steps.add(syncStep);
+                NodeMediaRemoteDeployRespVO.DeployStep refreshStep = runRemoteDeployPhase(
+                        ssh, sshCredential, node, DeployPhase.DEPLOY_SERVICES, "刷新媒体 Hook 配置", 180000);
+                steps.add(refreshStep);
+                NodeMediaRemoteDeployRespVO.DeployStep verifyStep = verifyServices(ssh, node);
+                steps.add(verifyStep);
+                boolean ok = "success".equals(refreshStep.getStatus()) && "success".equals(verifyStep.getStatus());
+                resp.setSuccess(ok);
+                resp.setMessage(ok
+                        ? "SRS 与 ZLMediaKit 均已运行，已刷新 Hook 配置"
+                        : "Hook 配置刷新失败");
+                return resp;
+            }
+
             NodePortCheckRespVO portCheck = checkMediaPortsOnSession(ssh, node);
             steps.add(portCheck.getSteps().get(0));
             if (!Boolean.TRUE.equals(portCheck.getPortsReady())) {
                 resp.setSuccess(false);
                 resp.setMessage(portCheck.getMessage());
-                return resp;
-            }
-
-            ExistingMediaCheck existingCheck = checkExistingMediaServices(ssh, node);
-            steps.add(existingCheck.step);
-            if (existingCheck.srsRunning && existingCheck.zlmRunning) {
-                NodeMediaRemoteDeployRespVO.DeployStep verifyStep = verifyServices(ssh, node);
-                steps.add(verifyStep);
-                resp.setSuccess("success".equals(verifyStep.getStatus()));
-                resp.setMessage("SRS 与 ZLMediaKit 均已运行，无需重复部署");
                 return resp;
             }
 
@@ -300,7 +310,7 @@ public class NodeMediaServiceImpl implements NodeMediaService {
 
             if (needSrsTar || needZlmTar) {
                 NodeMediaRemoteDeployRespVO.DeployStep importStep = runRemoteDeployPhase(
-                        ssh, node, DeployPhase.PREPARE_IMAGES, "导入镜像", 600000);
+                        ssh, sshCredential, node, DeployPhase.PREPARE_IMAGES, "导入镜像", 600000);
                 steps.add(importStep);
                 if (!"success".equals(importStep.getStatus())) {
                     resp.setSuccess(false);
@@ -312,7 +322,7 @@ public class NodeMediaServiceImpl implements NodeMediaService {
             }
 
             NodeMediaRemoteDeployRespVO.DeployStep startStep = runRemoteDeployPhase(
-                    ssh, node, DeployPhase.DEPLOY_SERVICES, "启动服务", 300000);
+                    ssh, sshCredential, node, DeployPhase.DEPLOY_SERVICES, "启动服务", 300000);
             steps.add(startStep);
             if (!"success".equals(startStep.getStatus())) {
                 resp.setSuccess(false);
@@ -338,6 +348,35 @@ public class NodeMediaServiceImpl implements NodeMediaService {
             resp.setSuccess(false);
             resp.setMessage(fail.getOutput());
             return resp;
+        } finally {
+            updateRecordingStorageApplyStatus(node, resp);
+        }
+    }
+
+    private void updateRecordingStorageApplyStatus(ComputeNodeDO node, NodeMediaRemoteDeployRespVO resp) {
+        boolean success = Boolean.TRUE.equals(resp.getSuccess());
+        if (!"applying".equals(node.getRecordingStorageState())
+                && !"failed".equals(node.getRecordingStorageState())) {
+            if (success && node.getRecordingStorageError() != null
+                    && !node.getRecordingStorageError().isBlank()) {
+                computeNodeMapper.update(null, new LambdaUpdateWrapper<ComputeNodeDO>()
+                        .eq(ComputeNodeDO::getId, node.getId())
+                        .set(ComputeNodeDO::getRecordingStorageError, null)
+                        .set(ComputeNodeDO::getRecordingStorageUpdatedAt, LocalDateTime.now()));
+            }
+            return;
+        }
+        ComputeNodeDO update = new ComputeNodeDO();
+        update.setId(node.getId());
+        update.setRecordingStorageState(success ? "active" : "failed");
+        update.setRecordingStorageError(success ? null : trimOutput(resp.getMessage(), 500));
+        update.setRecordingStorageUpdatedAt(LocalDateTime.now());
+        if (success) {
+            computeNodeMapper.update(update, new LambdaUpdateWrapper<ComputeNodeDO>()
+                    .eq(ComputeNodeDO::getId, node.getId())
+                    .set(ComputeNodeDO::getRecordingStorageError, null));
+        } else {
+            computeNodeMapper.updateById(update);
         }
     }
 
@@ -511,9 +550,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (!NodeRoleEnum.MEDIA.getRole().equals(node.getNodeRole())
-                && !NodeRoleEnum.HYBRID.getRole().equals(node.getNodeRole())) {
-            throw new IllegalStateException("仅 media / hybrid 节点支持媒体栈端口检测");
+        if (!NodeFunctions.isLive(node)) {
+            throw new IllegalStateException("仅勾选「直播接入」或「推流转发」的节点支持媒体栈端口检测");
         }
         NodeSshCredential credential = loadSshCredential(nodeId);
         int sshPort = ComputeNodeServiceImpl.resolveSshPort(node);
@@ -557,9 +595,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (!NodeRoleEnum.MEDIA.getRole().equals(node.getNodeRole())
-                && !NodeRoleEnum.HYBRID.getRole().equals(node.getNodeRole())) {
-            throw new IllegalStateException("仅 media / hybrid 节点支持媒体栈 SSH 检测");
+        if (!NodeFunctions.isLive(node)) {
+            throw new IllegalStateException("仅勾选「直播接入」或「推流转发」的节点支持媒体栈 SSH 检测");
         }
         NodeSshCredentialDO credential = nodeSshCredentialMapper.selectByNodeId(nodeId);
         if (credential == null) {
@@ -805,9 +842,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (!NodeRoleEnum.MEDIA.getRole().equals(node.getNodeRole())
-                && !NodeRoleEnum.HYBRID.getRole().equals(node.getNodeRole())) {
-            throw new IllegalStateException("仅 media / hybrid 节点支持媒体栈 SSH 操作");
+        if (!NodeFunctions.isLive(node)) {
+            throw new IllegalStateException("仅勾选「直播接入」或「推流转发」的节点支持媒体栈 SSH 操作");
         }
     }
 
@@ -1034,7 +1070,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
     }
 
     private NodeMediaRemoteDeployRespVO.DeployStep runRemoteDeployPhase(
-            SshSessionHelper ssh, ComputeNodeDO node, DeployPhase phase, String stepName, int timeoutMs)
+            SshSessionHelper ssh, NodeSshCredential credential, ComputeNodeDO node,
+            DeployPhase phase, String stepName, int timeoutMs)
             throws Exception {
         String remoteScript = MediaStackDeployUtil.buildDeployScript(
                 node,
@@ -1042,13 +1079,19 @@ public class NodeMediaServiceImpl implements NodeMediaService {
                 controlPlaneEndpointResolver.resolveHookPort(),
                 controlPlaneEndpointResolver.resolveHookPathPrefix(),
                 phase);
+        String stdin = null;
+        if (credential.password != null && !credential.password.isBlank()) {
+            remoteScript = "export EASYAIOT_SUDO_STDIN=1\n" + remoteScript;
+            stdin = (credential.password + "\n").repeat(4);
+        }
         String encoded = Base64.getEncoder().encodeToString(remoteScript.getBytes(StandardCharsets.UTF_8));
         String tmpScript = "/tmp/easyaiot-media-" + phase.name().toLowerCase(Locale.ROOT) + ".sh";
         SshSessionHelper.SshExecResult result = ssh.exec(
                 "echo " + encoded + " | base64 -d > " + tmpScript
                         + " && chmod +x " + tmpScript
                         + " && bash " + tmpScript,
-                timeoutMs);
+                timeoutMs,
+                stdin);
         NodeMediaRemoteDeployRespVO.DeployStep step = new NodeMediaRemoteDeployRespVO.DeployStep();
         step.setName(stepName);
         step.setOutput(trimOutput(result.combinedOutput(), 8000));

@@ -15,8 +15,10 @@ import org.springframework.util.StringUtils;
 
 import com.basiclab.iot.sink.config.NfsMediaProperties;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -26,6 +28,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -47,6 +50,12 @@ public class DvrUploadServiceImpl implements DvrUploadService {
     @Value("${YFEIEYE_DVR_TENANT_ID:}")
     private String configuredTenantId;
 
+    @Value("${easyaiot.media.dvr-default-duration-seconds:${SINK_DVR_DEFAULT_DURATION_SECONDS:60}}")
+    private int defaultDvrDurationSeconds;
+
+    @Value("${easyaiot.media.ffprobe-path:${FFPROBE_PATH:ffprobe}}")
+    private String ffprobePath;
+
     @Override
     public boolean processDvrEvent(Map<String, Object> event) {
         if (event == null || event.isEmpty()) {
@@ -64,6 +73,10 @@ public class DvrUploadServiceImpl implements DvrUploadService {
         }
         String cwd = stringVal(event.get("cwd"));
         String deviceId = stringVal(event.get("device_id"));
+        Integer taskId = integerVal(event.get("task_id"));
+        if (taskId == null) {
+            taskId = integerVal(event.get("taskId"));
+        }
         if (!StringUtils.hasText(deviceId)) {
             deviceId = stream;
         }
@@ -109,7 +122,9 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             recordTime = LocalDateTime.now(SHANGHAI);
         }
         String dateDir = recordTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        String objectName = "tenants/" + tenantId + "/" + resolvedDeviceId + "/" + dateDir + "/" + filename;
+        String taskPrefix = taskId == null ? "" : "task_" + taskId + "/";
+        String objectName = "tenants/" + tenantId + "/" + resolvedDeviceId + "/"
+                + taskPrefix + dateDir + "/" + filename;
 
         if (minioClient == null) {
             log.warn("MinIO 不可用，跳过 DVR 上传 device={} file={}", resolvedDeviceId, absolute);
@@ -129,9 +144,13 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             }
             String minioUrl = "/api/v1/buckets/" + bucketName + "/objects/download?prefix="
                     + URLEncoder.encode(objectName, StandardCharsets.UTF_8);
-            int duration = 30;
-            upsertPlayback(tenantId, resolvedDeviceId, minioUrl, objectName, recordTime, fileSize, duration);
-            patchAlertsRecord(tenantId, resolvedDeviceId, recordTime, duration, minioUrl);
+            int duration = resolveDurationSeconds(event, absolute);
+            upsertPlayback(tenantId, resolvedDeviceId, taskId, minioUrl, objectName, recordTime, fileSize, duration);
+            // 录像空间前端读 record_file，必须与 Playback 同步写入，否则「录像回放」一直为空
+            upsertRecordFile(
+                    tenantId, resolvedDeviceId, taskId, bucketName, objectName,
+                    minioUrl, recordTime, fileSize, duration);
+            patchAlertsRecord(tenantId, resolvedDeviceId, taskId, recordTime, duration, minioUrl);
             if (mediaProperties.isRemoveLocalAfterUpload()) {
                 tryDelete(absolute);
             }
@@ -201,7 +220,7 @@ public class DvrUploadServiceImpl implements DvrUploadService {
     }
 
     private void upsertPlayback(
-            Long tenantId, String deviceId, String filePathUrl, String objectName,
+            Long tenantId, String deviceId, Integer taskId, String filePathUrl, String objectName,
             LocalDateTime recordTime, long fileSize, int duration) {
         if (jdbcTemplate == null) {
             return;
@@ -219,22 +238,74 @@ public class DvrUploadServiceImpl implements DvrUploadService {
                     tenantId, deviceId, filePathUrl, objectName);
             if (existing != null) {
                 jdbcTemplate.update(
-                        "UPDATE playback SET file_path = ?, file_size = ?, event_time = ?, duration = ?, updated_at = NOW() "
+                        "UPDATE playback SET task_id = ?, file_path = ?, file_size = ?, event_time = ?, duration = ?, updated_at = NOW() "
                                 + "WHERE id = ? AND tenant_id = ?",
-                        filePathUrl, fileSize, recordTime, duration, existing, tenantId);
+                        taskId, filePathUrl, fileSize, recordTime, duration, existing, tenantId);
             } else {
                 jdbcTemplate.update(
-                        "INSERT INTO playback (tenant_id, file_path, event_time, device_id, device_name, duration, file_size, created_at, updated_at) "
-                                + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
-                        tenantId, filePathUrl, recordTime, deviceId, deviceName, duration, fileSize);
+                        "INSERT INTO playback (tenant_id, file_path, event_time, device_id, task_id, device_name, duration, file_size, created_at, updated_at) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+                        tenantId, filePathUrl, recordTime, deviceId, taskId, deviceName, duration, fileSize);
             }
         } finally {
             DynamicDataSourceContextHolder.clear();
         }
     }
 
+    /**
+     * 写入录像空间元数据表 record_file（WEB「录像回放」按此表查询，不能只写 playback）。
+     */
+    private void upsertRecordFile(
+            Long tenantId, String deviceId, Integer taskId, String bucketName, String objectName,
+            String filePathUrl, LocalDateTime recordTime, long fileSize, int duration) {
+        if (jdbcTemplate == null || !StringUtils.hasText(deviceId) || !StringUtils.hasText(objectName)) {
+            return;
+        }
+        try {
+            DynamicDataSourceContextHolder.push("video");
+            Integer spaceId = jdbcTemplate.query(
+                    "SELECT id FROM record_space WHERE tenant_id = ? AND device_id = ? LIMIT 1",
+                    rs -> rs.next() ? rs.getInt(1) : null,
+                    tenantId, deviceId);
+            if (spaceId == null) {
+                log.warn("设备无录像空间，跳过 record_file tenant={} device={}", tenantId, deviceId);
+                return;
+            }
+            String filename = objectName.contains("/")
+                    ? objectName.substring(objectName.lastIndexOf('/') + 1)
+                    : objectName;
+            String fileExt = filename.contains(".")
+                    ? filename.substring(filename.lastIndexOf('.'))
+                    : ".flv";
+            Integer existing = jdbcTemplate.query(
+                    "SELECT id FROM record_file WHERE tenant_id = ? AND bucket_name = ? AND object_name = ? LIMIT 1",
+                    rs -> rs.next() ? rs.getInt(1) : null,
+                    tenantId, bucketName, objectName);
+            if (existing != null) {
+                jdbcTemplate.update(
+                        "UPDATE record_file SET space_id = ?, device_id = ?, task_id = ?, filename = ?, file_size = ?, "
+                                + "content_type = ?, url = ?, duration = ?, event_time = ?, source = ?, updated_at = NOW() "
+                                + "WHERE id = ? AND tenant_id = ?",
+                        spaceId, deviceId, taskId, filename, fileSize, contentTypeForExt(fileExt),
+                        filePathUrl, duration, recordTime, "dvr", existing, tenantId);
+            } else {
+                jdbcTemplate.update(
+                        "INSERT INTO record_file (tenant_id, space_id, device_id, task_id, object_name, bucket_name, filename, file_size, "
+                                + "content_type, url, duration, event_time, source, created_at, updated_at) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+                        tenantId, spaceId, deviceId, taskId, objectName, bucketName, filename, fileSize,
+                        contentTypeForExt(fileExt), filePathUrl, duration, recordTime, "dvr");
+            }
+        } catch (Exception e) {
+            log.warn("写入 record_file 失败 tenant={} device={} object={}: {}",
+                    tenantId, deviceId, objectName, e.getMessage());
+        } finally {
+            DynamicDataSourceContextHolder.clear();
+        }
+    }
+
     private void patchAlertsRecord(
-            Long tenantId, String deviceId, LocalDateTime eventTime,
+            Long tenantId, String deviceId, Integer taskId, LocalDateTime eventTime,
             int duration, String filePathUrl) {
         if (jdbcTemplate == null || !StringUtils.hasText(filePathUrl)) {
             return;
@@ -243,11 +314,16 @@ public class DvrUploadServiceImpl implements DvrUploadService {
             DynamicDataSourceContextHolder.push("video");
             LocalDateTime legacyStart = eventTime.minusSeconds(Math.max(duration, 1));
             LocalDateTime endTime = eventTime.plusSeconds(Math.max(duration, 1));
+            String taskClause = taskId == null ? "" : "AND task_id = ? ";
+            Object[] args = taskId == null
+                    ? new Object[]{filePathUrl, tenantId, deviceId, legacyStart, endTime}
+                    : new Object[]{filePathUrl, tenantId, deviceId, legacyStart, endTime, taskId};
             int updated = jdbcTemplate.update(
                     "UPDATE alert SET record_path = ? WHERE tenant_id = ? AND device_id = ? "
                             + "AND time >= ? AND time <= ? "
+                            + taskClause
                             + "AND (record_path IS NULL OR TRIM(record_path) = '')",
-                    filePathUrl, tenantId, deviceId, legacyStart, endTime);
+                    args);
             if (updated > 0) {
                 log.info("已回写 {} 条告警 record_path device={}", updated, deviceId);
             }
@@ -309,8 +385,90 @@ public class DvrUploadServiceImpl implements DvrUploadService {
         };
     }
 
+    private int resolveDurationSeconds(Map<String, Object> event, Path mediaFile) {
+        Double hookDuration = positiveDouble(event.get("duration"));
+        if (hookDuration == null) {
+            hookDuration = positiveDouble(event.get("dvr_duration"));
+        }
+        if (hookDuration != null) {
+            return Math.max(1, (int) Math.ceil(hookDuration));
+        }
+
+        Double durationMs = positiveDouble(event.get("duration_ms"));
+        if (durationMs == null) {
+            durationMs = positiveDouble(event.get("durationMs"));
+        }
+        if (durationMs != null) {
+            return Math.max(1, (int) Math.ceil(durationMs / 1000.0d));
+        }
+
+        Double probed = probeDurationSeconds(mediaFile);
+        if (probed != null) {
+            return Math.max(1, (int) Math.ceil(probed));
+        }
+        int fallback = Math.max(1, defaultDvrDurationSeconds);
+        log.warn("无法获取 DVR 真实时长，使用配置兜底 duration={}s file={}", fallback, mediaFile);
+        return fallback;
+    }
+
+    private Double probeDurationSeconds(Path mediaFile) {
+        Process process = null;
+        try {
+            process = new ProcessBuilder(
+                    StringUtils.hasText(ffprobePath) ? ffprobePath : "ffprobe",
+                    "-v", "error",
+                    "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1",
+                    mediaFile.toString())
+                    .redirectErrorStream(true)
+                    .start();
+            if (!process.waitFor(15, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return null;
+            }
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                return positiveDouble(reader.readLine());
+            }
+        } catch (Exception e) {
+            log.debug("ffprobe DVR 时长失败 file={} error={}", mediaFile, e.getMessage());
+            return null;
+        } finally {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
+        }
+    }
+
+    private static Double positiveDouble(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            double parsed = value instanceof Number
+                    ? ((Number) value).doubleValue()
+                    : Double.parseDouble(String.valueOf(value).trim());
+            return Double.isFinite(parsed) && parsed > 0 ? parsed : null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
     private static String stringVal(Object o) {
         return o == null ? "" : String.valueOf(o).trim();
+    }
+
+    private static Integer integerVal(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return value instanceof Number
+                    ? ((Number) value).intValue()
+                    : Integer.valueOf(String.valueOf(value).trim());
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private Long resolveTenantId(Map<String, Object> event) {

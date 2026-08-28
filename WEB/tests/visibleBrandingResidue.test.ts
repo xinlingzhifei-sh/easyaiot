@@ -17,6 +17,7 @@ const protectedLiterals = [
   'EasyAIoT2025',
   'EasyAIoT.Edge',
   'urn:EasyAIoT:Edge:OpcUa',
+  'EasyAIoT-*',
 ]
 const protectedPathPrefixes = [
   'EDGE/EasyAIoT.Edge.sln',

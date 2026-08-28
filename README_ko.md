@@ -29,7 +29,7 @@
 
 yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 
-제품 소개, 기능 설명, 3단계 하드웨어 선택, 설치 패키지 다운로드와 문서 진입점을 제공하여 플랫폼 가치를 빠르게 이해하고 배포를 시작할 수 있습니다.
+제품 소개, 기능 설명, 4단계 하드웨어 선택, 설치 패키지 다운로드와 문서 진입점을 제공하여 플랫폼 가치를 빠르게 이해하고 배포를 시작할 수 있습니다.
 
 ## 📖 프로젝트 소개
 
@@ -42,7 +42,7 @@ yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-플랫폼은 <strong>WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, 오케스트레이션 가능한 업무 후처리, 연합 연산 클러스터 스케줄링, 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리와 <strong>EDGE C# 엣지 수집 런타임</strong>이 현장에서 Modbus RTU/TCP, OPC UA 등 산업 프로토콜 수집, 로컬 스케줄링, MQTT 클라우드-엣지 연동을 플러그인형 수집기로 담당하며, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·3단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다.
+플랫폼은 <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TRANSFORM, PANEL, IDEA, HARNESS, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, <strong>POST 맞춤 판정</strong>(검출 후 현장 규칙으로 필터·복합 판단 후 경보, 규칙 변경에 재학습 불필요), 연합 연산 클러스터 스케줄링, <strong>SENTINEL 클러스터 노드 센티널</strong>(업무별로 노드 준비도와 스케줄 가능 역량을 지속적으로 파악하고, 결손 시 환경 보완을 요청하며, 실제 역량에 따라 작업을 배정), 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리와 <strong>EDGE C# 엣지 수집 런타임</strong>이 현장에서 Modbus RTU/TCP, OPC UA 등 산업 프로토콜 수집, 로컬 스케줄링, MQTT 클라우드-엣지 연동을 플러그인형 수집기로 담당하며, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>POST 맞춤 판정 서비스</strong>로 검출 결과를 현장에 맞는 업무 이벤트로 단련하고—오경보 감소·규칙 구성·상선 전 시운전; 함께 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·4단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 하며; <strong>IDEA 커뮤니티 온라인 IDE</strong>로 기여자가 브라우저에서 전체 저장소를 열고 GitHub Copilot으로 공동 창작하며, 변경분을 로컬에 배포하고 PR을 제출할 수 있게 해 오픈소스 협업을 「먼저 환경 구성」에서 「열고 바로 수정」으로 바꿉니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다. 여기에 더해 새로운 <strong>ANDROID / IOS / HARMONYOS 셸 패키징 엔지니어링</strong>이 이 모바일 경험을 APK / IPA / HAP 설치 패키지 형태로 주류 휴대폰 OS에 전달합니다. 하나의 프런트엔드, 원클릭 빌드, 통합 버전 관리.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -68,7 +68,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>인수 주기 단축</strong>: 도착 후 mini / standard / full 중 하나를 골라 설치하고 진행·결과를 현장에서 확인 — 명령 누락·단계 누락으로 「중간에 멈춤」 감소; PoC와 정식 납품 모두 인수에 더 빨리 도달</li>
+  <li><strong>인수 주기 단축</strong>: 도착 후 edge / mini / standard / full 중 하나를 골라 설치하고 진행·결과를 현장에서 확인 — 명령 누락·단계 누락으로 「중간에 멈춤」 감소; PoC와 정식 납품 모두 인수에 더 빨리 도달</li>
   <li><strong>상주·원격 비용 절감</strong>: 컨테이너 가동·자원 압박·로그 정체 지점이 한눈에 — 문서부터 뒤지거나 개발 지원을 기다리지 않고 재시작·캐시 정리·이미지 pull; 당직자가 흔한 장애를 자체 처리</li>
   <li><strong>다수 프로젝트 동일 기준</strong>: 동일 설치·운영 진입점을 다수 일체형·다수 기기에 재사용 — 납품·당직·인수인계 기준을 맞추고 「현장마다 구두 전승」을 피함</li>
 </ul>
@@ -110,14 +110,14 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>Docker 올인원</strong>: <code>bash RTC/install_linux.sh start</code>로 go2rtc + Python 관리 서비스 실행; P2P LAN용 host network</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 자세한 내용: <a href="RTC/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">RTC 모듈 README</a>
-</p>
-
 ### 🔌 EDGE: C# 엣지 수집 런타임 — 산업 현장에서 「정확히 수집, 안정적으로 업링크」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 공정·빌딩 현장에서는 PLC, 전력량계, 센서가 RS-485나 이더넷에 연결되어 있지만, 클라우드 플랫폼에는 별도 수집 소프트웨어가 필요하고 프로토콜을 각각 따로 작성하며, 설정을 바꿀 때마다 현장에 사람을 보내야 하는 경우가 많습니다. 접속 경로가 길고, 운영이 파편화되며, 클라우드-엣지 지표가 어긋납니다. yFeiEye는 독립 <strong>EDGE 모듈</strong>(C#)을 <strong>독립 배포 가능한 엣지 수집 런타임</strong>으로 추가합니다 — 다중 프로토콜 수집기 플러그인, 로컬 스케줄링, 설정 기반 파싱, yFeiEye 클라우드 플랫폼과 MQTT 연동으로 Modbus RTU/TCP, OPC UA 등 현장 측정점을 통합 사물 모델로 업링크하고, 클라우드 설정 하행·속성 쓰기가 엣지에서 바로 실행됩니다.
+</p>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0;">
+<strong>디바이스 관리 「게이트웨이」와의 차이:</strong> 디바이스 관리의 게이트웨이는 클라우드의 제품/디바이스 유형(GATEWAY + 하위 장치 SUBSET 토폴로지)으로, 등록·섀도우·바인딩·하행을 담당합니다. EDGE는 별도 디바이스 페이지가 없고, 현장에서 <strong>그 게이트웨이 역할</strong>을 하는 수집 프로세스입니다 — 수집 데이터는 동일한 디바이스 관리에 표시됩니다. 또 다른 경로는 iot-sink가 <strong>클라우드에서 직접 폴링</strong>하는 Modbus/OPC UA(플랫폼이 현장 장치에 접근 가능해야 함)입니다. EDGE는 현장에서 수집 후 MQTT로만 업링크하므로 OT 격리·RS-485에 적합합니다. 현재 게이트웨이 속성 상하행, 하위 장치 속성 대리 보고, 설정 하행이 정렬되어 현장 산업 게이트웨이로 사용 가능합니다. 토폴로지 능동 신고, 하위 장치 이벤트/서비스 투과, OTA 등 전체 게이트웨이 프로토콜은 아직 진화 중입니다.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
@@ -155,16 +155,12 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
   <li><strong>플러그인형 수집 아키텍처</strong>: <code>ICollector</code> 구현으로 신규 프로토콜 확장; Host가 등록·스케줄링·결과 보고를 통합하고 수집 로직과 런타임을 분리합니다</li>
   <li><strong>설정 이중 채널</strong>: 로컬 <code>device-jobs.json</code>으로 오프라인 운영; 클라우드 MQTT <code>config/downstream/push</code>로 원격 수집 작업 덮어쓰기 — 현장 설정 변경에 사람을 보낼 필요가 없습니다</li>
-  <li><strong>MQTT 클라우드-엣지 일체</strong>: 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 속성 쓰기 하행 — EMQX로 DEVICE/<strong>iot-sink</strong> 연동, 하위 장치 자동 생성·섀도우 입고</li>
+  <li><strong>MQTT 클라우드-엣지 일체</strong>: 플랫폼 GATEWAY로 접속 — 게이트웨이 속성 보고, 하위 장치 속성 대리 보고, 클라우드 속성 쓰기 하행, EMQX로 DEVICE/<strong>iot-sink</strong> 연동; 하위 장치 자동 생성·섀도우 입고; 데이터는 「디바이스 관리」에 표시</li>
   <li><strong>독립 패키징·납품</strong>: <code>pack_linux.sh</code>로 x86_64 / ARM64 Linux 배포 패키지 생성 — 공업용 PC·엣지 게이트웨이에 설치, 플랫폼 메인 스택과 분리 배포</li>
   <li><strong>E2E 연동 즉시 사용</strong>: <code>bash EDGE/demo/run_e2e.sh</code>로 수집 → MQTT 업링크 → 클라우드 입고 전체 체인을 원클릭 검증</li>
 </ul>
 
-<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
-📖 자세한 문서: <a href="EDGE/README.md" style="color: #3498db; text-decoration: none; font-weight: 600;">EDGE 모듈 README</a>, <a href="EDGE/docs/PLATFORM_INTEGRATION.md" style="color: #3498db; text-decoration: none; font-weight: 600;">클라우드 플랫폼 연동 가이드</a>
-</p>
-
-### 🎯 세 가지 하드웨어, 하나의 플랫폼
+### 🛰️ SENTINEL: 클러스터 노드 센티널 — 「등록 즉시 준비, 실제 역량으로 스케줄」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 많은 지능형 IoT 프로젝트가 배포 단계에서 막힙니다. <strong>기능을 모두 넣으면 작은 기기에 안 들어가고, 들어가게 하려면 기능을 줄이고 버전을 나누고 여러 배포 패키지를 유지해야 합니다.</strong> yFeiEye는 하나의 플랫폼으로 이 딜레마를 해결합니다 — <strong>엣지 박스로 점 단위 지능, AI 일체형 카메라로 벽면 즉시 분석, AIoT 풀스택 일체기로 한 박스에 전체 스택</strong>. 현장 하드웨어에 맞는 등급을 선택하면, 단일 지점 시범부터 층면 커버리지, 풀스택 납품까지 동일 소프트웨어로 진행 — 버전 분리 없음.
@@ -172,17 +168,23 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 
 | 등급 | 대표 하드웨어 (예) | 권장 메모리 | 할 수 있는 것 | 실측 검증 |
 | :-- | :-- | :--: | :-- | :--: |
+| **edge** 엣지 단기기 | <strong>경량 엣지 단기기</strong> (2 GB 산업용 PC, 낡은 노트북, 클라우드 최소 사양, 매장 시범기) | ≥ 2 GB | <strong>한 대로 먼저 폐루프</strong>: WEB + VIDEO + RUNTIME; 카메라 접속·실시간 분석·스마트 경보; DEVICE 없음, 로그인은 VIDEO 주도 | 약 **1.02 GB**, 여유 거의 1 GB |
 | **mini** 엣지 경량판 | <strong>엣지 박스</strong> (8 GB 산업용 PC, 매장 보안 일체기, 현장 게이트웨이) | ≥ 8 GB | <strong>한 지점에 지능 설치</strong>: 카메라 접속·실시간 분석·스마트 경보·모델 추론; 이벤트 평면은 standard/full과 동일(Gateway + iot-sink + EMQX) | 약 4–6 GB, 여유 충분 |
-| **standard** 표준판 | <strong>AI 일체형 카메라</strong> (스마트 카메라 단말, 연산 내장 AI 감시 카메라, 다목 AI 분석 일체기) | ≥ 16 GB | <strong>각 카메라가 스마트 노드</strong>: 다수 카메라 벽면 배치로 층/단지 커버, 장치·규칙·연산 통합 오케스트레이션 | 약 10 GB, 안정적 여유 |
-| **full** 완전판 (기본) | <strong>AIoT 풀스택 일체기</strong> (엔터프라이즈 풀스택 지능관제 일체기, 산업 IoT 풀스택 호스트, 클라우드-엣지-디바이스 통합 플랫폼) | ≥ 20 GB | <strong>한 박스에 IoT + 영상 + AI</strong>: 장치 통합관리·대량 접속·지능 분석·지휘 판단 일체화, 전량 역량 장기 안정 | 약 14 GB, 전 기능 여유 확보 |
+| **standard** 표준판 | <strong>AI 일체형 카메라</strong> (스마트 카메라 단말, 연산 내장 AI 감시 카메라, 다목 AI 분석 일체기) | ≥ 16 GB | <strong>각 카메라가 스마트 노드</strong>: 다수 카메라 벽면 배치로 층/단지 커버, 장치·규칙·연산 통합 오케스트레이션; <strong>POST 맞춤 판정</strong>으로 경보를 현장 기준에 맞춤 | 약 10 GB, 안정적 여유 |
+| **full** 완전판 (기본) | <strong>AIoT 풀스택 일체기</strong> (엔터프라이즈 풀스택 지능관제 일체기, 산업 IoT 풀스택 호스트, 클라우드-엣지-디바이스 통합 플랫폼) | ≥ 20 GB | <strong>한 박스에 IoT + 영상 + AI</strong>: 장치 통합관리·대량 접속·지능 분석·지휘 판단 일체화, 전량 역량 장기 안정; <strong>POST 맞춤 판정</strong>과 대외 업무 흐름 포함 | 약 14 GB, 전 기능 여유 확보 |
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0 8px 0;">
+<strong>edge 설치:</strong> <code>EASYAIOT_DEPLOY_PROFILE=edge sudo bash .scripts/docker/install_linux.sh install</code> (또는 <code>... install_linux.sh edge install</code>). 최초 설치 대화형 메뉴에서도 선택 가능; 자세한 내용은 위 <a href="#-빠른-시작">빠른 시작</a> 참고.
+</p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
 <strong>설치 등급 선택 및 리소스 적합성 (실측):</strong>
 </p>
 
-| | | |
-|:---:|:---:|:---:|
-| ![엣지 박스 mini](.image/deploy-profile-mini.png) | ![AI 일체형 카메라 standard](.image/deploy-profile-standard.png) | ![풀스택 일체형 full](.image/deploy-profile-full.png) |
+| | |
+|:---:|:---:|
+| ![엣지 단기기 edge](.image/deploy-profile-edge.png) | ![엣지 박스 mini](.image/deploy-profile-mini.png) |
+| ![AI 일체형 카메라 standard](.image/deploy-profile-standard.png) | ![풀스택 일체형 full](.image/deploy-profile-full.png) |
 
 <div style="margin: 20px 0; padding: 18px 22px; border-radius: 10px; border: 1px solid rgba(52, 152, 219, 0.25); background: linear-gradient(120deg, #f0f7ff 0%, #ffffff 55%, #eef9f4 100%);">
   <p style="font-size: 16px; font-weight: 700; color: #1a5276; margin: 0 0 8px 0;">🚀 yFeiEye 무한 연합 엣지 클러스터 모드</p>
@@ -211,8 +213,10 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>DJI 도크 / 드론 공중 시야 접속</strong>: 고정 카메라의 「지면만 보고 광역 커버가 어렵다」는 한계를 넘어, DJI FlightHub 체계의 도크·드론 고공 영상을 플랫폼 통합 영상·AI 판정 루프에 포함합니다. 스트리밍 모듈의 「DJI 라이브 접속」: <strong>FlightHub API로 라이브 시작</strong>과 <strong>수동 라이브 소스</strong> 두 가지 접속 방식을 지원 — API 모드에서 원클릭으로 제조사 라이브 스트림을 수신하고 장치를 자동 등록; 수동 모드는 RTSP / RTMP / HTTP-FLV / HLS 등 라이브 소스를 직접 입력. 접속 후 공중 화면은 GB28181/ONVIF 고정 포인트와 동일 화면으로 공관할 수 있으며, 관리자는 고정 카메라처럼 도크·기체 실황을 조회하고 실시간 AI 분석, 경보 연동, 증거 보관을 추가로 연결할 수 있습니다 — 광역 순찰, 비상 정찰, 주경계 보완 등 고정 포인트로는 닿기 어려운 시나리오를 빠르게 커버하고 「발견—위치 확정—대응」 응답 체인을 크게 단축하여, 스마트 보안을 평면 배치에서 천지일체 협동 감지로 고도화합니다.</li>
   <li><strong>RTC 소비자급 카메라 P2P 브리지</strong>: <strong>Tapo, Tuya, Ring/Nest, Xiaomi Mi Home, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드를 한 번에 — 표준 RTSP 미지원. go2rtc 기반 RTC 모듈이 P2P 브리지와 통합 관리 API 제공. Web 콘솔 「RTC 카메라 접속」브랜드별 폼/OAuth; 브리지 후 소비자급·GB28181/ONVIF 전문 카메라 <strong>동일 화면·AI 작업·경보 연동</strong></li>
   <li><strong>실시간 인터콤 및 PTZ 원격 제어</strong>: 전통적인 감시의 「볼 수만 있고, 관리할 수 없는」 한계를 돌파합니다. 감시 담당자는 실시간 미리보기 화면에서 음성 방송과 PTZ 제어를 동시에 수행할 수 있습니다 — 시스템 전환 없이, 현장 방문 없이 원격 소통, 대피 유도, 위반 행위 제지가 가능하며, 대응을 「현장 파견」에서 「말하면 즉시 도달」로 압축합니다. PTZ 제어로 카메라를 자유롭게 회전·줌·포커스할 수 있어, 돌발 상황 시 사고 지역을 신속히 조준하고 세부 사항을 확대하여 「잘 보고, 정확히 지시하고, 말하면 전달된다」는 일체화된 현장 대응 선순환을 형성합니다. GB28181 및 ONVIF 장치와 완벽 호환, 기존 감시 자산을 활용하고 별도의 인터콤 장비나 서드파티 소프트웨어 없이 배포된 카메라에 즉시 원격 소통 및 유연한 디스패치 기능을 부여하여, 시스템 사일로와 감시 비용을 크게 절감합니다</li>
-  <li><strong>오케스트레이션 가능한 알고리즘 후처리</strong>: 「검출은 되지만 판단이 어렵다」는 역량 병목을 돌파하여, 객체 감지 위에 독립적인 업무 판단 계층을 추가하고 화면 인식 결과를 운영·추적·통계 가능한 업무 이벤트로 전환합니다. 작업별로 인원 집계, 경계선 통과, 체류 시간 초과, 구역 장기 체류, 다중 조건 복합 경보 등 시나리오 규칙을 유연하게 정의할 수 있어, 모델을 반복 조정하지 않고도 건설 현장 안전 감독, 단지 보안, 교통 통제 등 차별화된 요구에 빠르게 적응하고, 범용 시각 역량을 현장에 밀착한 관리 도구로 단련합니다. 후처리와 실시간 분석은 서로 독립적으로 병렬 운영됩니다 — 감시 화면은 끊김 없이 판단을 지속하고, 업무 로직은 필요에 따라 탄력적으로 확장되며, 판단 결과는 자동으로 축적·보관되어 정밀 경보를 구동하여 오탐·미탐과 수동 검토 비용을 크게 절감합니다. 업무 담당자는 규칙 표현에 집중하고, 플랫폼이 배포·실행·규모 확장을 담당하여 「볼 수 있다」에서 「명확히 판단하고, 통제하며, 실제로 활용한다」로 나아갑니다</li>
+  <li><strong>POST 맞춤 판정(오케스트레이션 가능 후처리)</strong>: 「검출은 되지만 판단이 어렵다」는 병목을 독립 <strong>POST</strong> 서비스가 업무 판정 계층으로 돌파해, 화면 인식 결과를 운영·추적·통계 가능한 업무 이벤트로 전환합니다. 알고리즘 작업 안에서 규칙 체인을 편성: 기본은 검출 구역 필터 후 경보, 업무 스크립트와 산업 플러그인으로 인원 집계·선 넘기·체류 초과·구역 체류·다중 조건 복합 경보를 구성 — 모델 반복 조정 없이 공사장 안전·단지 보안·교통 통제에 맞춤. 상선 전 샘플 이벤트로 규칙을 시운전하고, 실행 중 규칙 저장은 즉시 반영되어 분석을 멈출 필요 없음. 인식과 판정은 독립 병렬 — 오경보·미경보와 수동 검토 비용을 줄이고 「보이는」 데서 「판단·통제·활용」으로</li>
   <li><strong>다중 센터 노드 × 다중 워커 노드 연합 클러스터</strong>: 지역 간·다중 데이터센터·클라우드-엣지 협업 배포를 위해 플랫폼은 「N개 센터 노드 + N개 워커 노드」 연합 아키텍처를 채택합니다 — 센터 노드가 통합 오케스트레이션을, 워커 노드가 연산·미디어 실행을 담당하며 수평 확장이 가능합니다. 각 센터 노드는 소속 워커 노드를 관리하고, 스트리밍, 오디오·비디오 트랜스코딩, 영상 분석, 모델 추론·학습 등 역량의 원격 배포와 원클릭 배치를 지원합니다. 다중 센터 노드 간 상호 연동·동기화가 가능하며, 클러스터 스윔레인 뷰에서 「센터—워커」 토폴로지와 자원 수위를 직관적으로 표시합니다. 알고리즘 태스크, 자동 라벨링 파이프라인, 스트림 릴레이 등 워크로드는 노드 역할과 GPU 역량에 따라 지능적으로 스케줄링되어, 대량 스트림 접속·고동시성 추론·분산 학습이 동일 클러스터에서 협력 실행됩니다 — 「등록 용이, 스케줄 명확, 확장 유연, 통합 관리」를 실현합니다</li>
+  <li><strong>SENTINEL 클러스터 노드 센티널</strong>: 연합 확장과 다중 전산실 연산 풀을 위해 「머신은 들어왔지만 일을 받을 수 있는지 모른다」는 납품 통증을 해결합니다 — 업무 기능별로 각 노드의 준비도와 스케줄 가능 역량을 지속적으로 파악해, 진짜 준비된 머신에만 작업을 배정합니다. 결손 시 환경 보완을 요청할 수 있고, 공인망 없는 현장도 오프라인 등록·확장이 가능하여 클러스터가 「등록 용이, 인식 명확, 배정 정확, 서버 접속 감소」를 실현합니다</li>
+
   <li><strong>SAM 제로 스타트 자동 라벨링 오케스트레이션 파이프라인</strong>: 라벨링 샘플과 사용 가능한 검출 모델이 없는 콜드 스타트 시나리오를 위해, 플랫폼은 SAM 개방 어휘 분할 기능을 통합하여 원클릭 무인 라벨링 파이프라인을 제공합니다. 전략에 따라 시스템은 카메라 프레임 추출, SAM 텍스트 프롬프트 초기 라벨링, 기준 달성 시 YOLO 미세 조정 학습 자동 트리거, 양산 단계에서 YOLO 고속 추론을 주력으로 하되 누락 검출에 SAM 지능 보완, 주기적 반복 학습 및 데이터셋 자동 패키징·보내기를 자동으로 연결하여 「수집—라벨링—학습—보내기」 전 과정을 완결합니다. 작업 일시정지·재개 및 로컬/클러스터 컴퓨팅 탄력 스케줄링을 지원하며, 시각적 전략 설정과 실행 로그와 함께, 사용자는 제로 샘플·제로 모델에서 출발하여 맞춤형 검출 역량을 빠르게 축적할 수 있습니다 — 「카테고리를 말로 정의하고 모델이 완성되기를 기다리기」가 데이터셋 구축의 기본 경로가 됩니다</li>
   <li><strong>만 노드급 탄력적 컴퓨팅 클러스터 및 수평 확장 풀</strong>: 초대규모 AI·영상 비즈니스를 위해 클라우드-엣지-디바이스 통합 분산 컴퓨팅 기반을 구축하고, 알고리즘 태스크·스트림 릴레이·알고리즘 서비스·모델 학습·추론을 수평 부하 분산과 탄력적 확장 체계로 통합합니다. 신규 서버는 원클릭으로 등록·연동되어 즉시 스케줄 가능한 컴퓨팅 단위가 되며, 스케줄러가 자원 수위와 업무 부하에 따라 작업을 자동 분배·균형 조정합니다. 수백~수만 대 카메라, 단일 머신~만 노드급까지 선형 확장이 가능하며, 재배포나 수동 튜닝 없이 대량 스트림 접속·고동시성 추론·분산 학습이 동일 컴퓨팅 풀에서 협력 실행되어 「확장 가능, 안정 운영, 통합 관리」를 실현합니다</li>
   <li><strong>분산 스토리지 드라이버(연산 + 스토리지 이중 클러스터 분리)</strong>: 노드별 로컬 디렉터리 마운트, 경로 고정, 확장 시마다 설정 변경이 필요했던 기존 방식을 넘어, 플랫폼은 원시 로컬 디렉터리 드라이버 대신 <strong>클러스터 이벤트 구동</strong> 방식을 채택합니다 — Export 준비, 클라이언트 마운트, 주·백 전환, 다중 클러스터 브리지 등 스토리지 상태 변경이 이벤트로 자동 감지·연동되며, 스냅샷·녹화·알람 증거·모델 자산이 분산 NFS 클러스터에 통합 저장되어 업무 계층은 마운트 세부사항을 신경 쓸 필요가 없습니다. 연산과 스토리지는 <strong>이중 클러스터로 분리</strong> — 연산 측은 <strong>C++ RUNTIME</strong> 고속 실행 체인을 전면 채택하고, 스토리지 측은 수평 무한 확장 가능한 NFS 클러스터 풀을 독립 구축하여 연산 확장과 스토리지 확장이 서로 묶이지 않고 각자 수위에 따라 탄력적으로 스케일합니다. 클러스터 스윔레인, 토폴로지 뷰, 다중 클러스터 브리지 동기화를 갖추고, 신규 노드는 원클릭 등록으로 스토리지 도메인에 즉시 합류 — 대량 스트림 접속 환경에서 「연산 가능」과 「저장 가능」이 동시에 성립, 「연산·스토리지 분리, 각자 확장, 이벤트 연동, 통합 관리, 무한 확장」을 실현합니다</li>
@@ -277,7 +281,7 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>Modbus-TCP 산업 이더넷 접속</strong>: 전력량계·PLC·인버터 등 이더넷 측 산업 장치를 위해 플랫폼에 내장 Modbus-TCP 마스터 수집 역량을 제공합니다. 제품/장치에서 접속 파라미터와 측정점을 구성하면 즉시 가동할 수 있으며 — 읽기 값이 장치 섀도·온라인 상태로 자동 유입되고, 쓰기 값·속성 하행이 연결되어 산업 측정점이 IoT 사물 모델, 규칙 엔진, 경보와 동일한 폐루프로 운영됩니다. 별도 수집 소프트웨어를 두지 않아도 됩니다.</li>
   <li><strong>Modbus-RTU 시리얼 현장 접속</strong>: 현장 계측기가 여전히 RS-485 버스에 있을 때 TCP 게이트웨이만 쓰면 접속 비용과 장애점이 배가됩니다. 플랫폼은 Modbus-RTU 시리얼 마스터 수집을 지원하며, 가상·실제 시리얼 시나리오 모두에 적합합니다 — 버스 측 장치도 통합 관리·상하행 제어에 편입되어 「이더넷으로는 들어가기 어렵고, 시리얼은 관리되지 않던」 현장 공백을 보완합니다.</li>
   <li><strong>OPC UA 산업 상호접속</strong>: 현대화된 공정·상위 시스템 상호연동 시나리오를 위해 플랫폼은 OPC UA 클라이언트 접속을 지원하며, 구독/읽기/쓰기 구성을 완료할 수 있습니다 — 복잡한 장치 모델을 플랫폼 사물 모델 속성으로 매핑하고, 상행 수집·하행 쓰기가 기존 장치 섀도, 규칙 체인, 메시지 푸시와 원활히 연결되어 OPC UA 현장 자산이 진정으로 「보고·제어·연동」 가능한 AIoT 운영 체계에 편입됩니다.</li>
-  <li><strong>EDGE C# 엣지 수집 런타임</strong>: 공정 현장에 독립 배포 가능한 엣지 수집 모듈 — C# 플러그인형 수집기로 Modbus RTU, Modbus TCP, OPC UA 등 프로토콜을 담당하고, 로컬 스케줄 수집·설정 기반 파싱, DEVICE/<strong>iot-sink</strong> 클라우드 플랫폼과 MQTT 연동; 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 설정 하행·속성 쓰기 지원; x86_64 / ARM64 Linux 공업용 PC·엣지 게이트웨이에 패키징 배포 가능 — 「현장에서 정확히 수집, 클라우드에서 확실히 관리」하는 클라우드-엣지 협업 폐루프</li>
+  <li><strong>EDGE C# 엣지 수집 런타임</strong>: 공정 현장에 독립 배포 가능한 엣지 수집 모듈 — C# 플러그인형 수집기로 Modbus RTU, Modbus TCP, OPC UA 등 프로토콜을 담당하고, 로컬 스케줄 수집·설정 기반 파싱, DEVICE/<strong>iot-sink</strong> 클라우드 플랫폼과 MQTT 연동. 디바이스 관리의 GATEWAY 역할에 해당(별도 디바이스 페이지 없음): 현장 집약, 클라우드 통합 관리; 게이트웨이/하위 장치 속성 상하행·설정 하행을 포함; 토폴로지와 하위 장치 이벤트/서비스 투과는 아직 진화 중. x86_64 / ARM64 Linux 공업용 PC·엣지 게이트웨이에 패키징 배포 가능 — 「현장에서 정확히 수집, 클라우드에서 확실히 관리」하는 클라우드-엣지 협업 폐루프</li>
   <li><strong>사물 모델 속성 정의</strong>: 대시보드·규칙·경보가 각자 측정점명을 쓰면 나중에는 서로 알아듣지 못합니다. 보고/읽기·쓰기 가능한 측정점을 먼저 확정하고 표준 템플릿·커스텀을 지원, 초안 편집 후 게시 — 대시보드·규칙·경보가 동일 필드를 공유; 「무엇을 볼 수 있는지」에 통일된 의미, 측정점명 제각각의 재작업을 뿌리부터 차단</li>
   <li><strong>사물 모델 서비스 정의</strong>: 원격 시작/중지·리셋을 동작마다 일회성 API로 만들면 제어면이 파편화됩니다. 원격 호출 가능한 서비스와 입·출력 파라미터를 계약으로 작성, 초안 편집 후 게시 — 「원격으로 무엇을 할 수 있는지」는 계약에 따라 파라미터만 채우면 됨; 동작마다 일회성 인터페이스를 쌓지 않고, 제어 능력을 재사용·감사 가능하게</li>
   <li><strong>사물 모델 이벤트 정의</strong>: 디바이스가 보고할 업무 이벤트를 미리 합의하지 않으면 경보 표현이 앞뒤로 충돌합니다. 이벤트 유형을 먼저 약속하고 초안 게시 후 통일 적용 — 이벤트 로그·규칙 트리거가 동일 의미를 공유; 「어떤 일이 발생할 수 있는지」에 통일된 표현, 경보가 제각각이 되지 않음</li>
@@ -336,6 +340,36 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>개인 센터</strong>: 계정·테넌트·앱 설정 일원 관리 — 여러 단말에서 편리하게 이용</li>
   <li><strong>원활한 시청</strong>: 실시간 화면·경보 녹화를 모바일에서 끊김 없이 재생 — 저지연·부드러운 근무 경험</li>
   <li><strong>지속 연결</strong>: 로그인 상태 자동 유지, 재로그인 최소화 — 클라우드-엣지-디바이스 지능형 제어를 스마트폰·미니 프로그램까지</li>
+</ul>
+
+#### 💻 IDEA 온라인 IDE
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>브라우저에서 바로 개발</strong>: code-server 기반 VS Code 스타일 온라인 IDE, 기본적으로 yFeiEye 전체 저장소를 clone — 기여자가 로컬 환경을 먼저 구성하지 않아도 코드 수정, 모듈 검증, PR 제출 가능</li>
+  <li><strong>독립 포털과 다중 사용자</strong>: 운영 콘솔은 <code>:9300</code>에서 WEB 관리 콘솔과 분리; 1인 1 Docker 워크스페이스; 포트 풀 13338–13437로 동시 접속; 콘솔 플로팅 볼로 포털 원클릭 이동</li>
+  <li><strong>6개 언어 도구 체인을 호스트와 정렬</strong>: <strong>JDK 21</strong>, Node 22, Python, Go, CMake/C++, .NET 8 사전 설치 — WEB / DEVICE / AI / RUNTIME / EDGE의 열람·경량 수정·모듈 검증 지원</li>
+  <li><strong>AI 공동 창작</strong>: GitHub Copilot 사전 설치(본인 GitHub 계정 로그인, 플랫폼이 키를 보관하지 않음); Copilot 구독이 없으면 OpenAI 호환 API Key를 Continue로 사용; 툴바로 HARNESS AI 어시스턴트를 분할 화면으로 열고, 파일을 끌어 자동 <code>@</code> 하며 수정과 질의를 병행</li>
+  <li><strong>로컬 배포</strong>: 워크스페이스 변경 경로로 대상 모듈을 제안하고, 원클릭으로 빌드 후 호스트에서 실행 중인 동일 컨테이너를 교체 — 새로고침으로 검증해 「수정 → 확인」 루프를 단축</li>
+  <li><strong>OAuth와 유휴 회수</strong>: Gitee / GitHub 로그인(필수화 가능), 1인 1존 계정 바인딩; 기본 8시간 유휴 시 자동 중지, 하트비트와 IDE 열기가 활성 시간을 갱신해 연산 낭비 방지</li>
+  <li><strong>기여 루프</strong>: 개인 fork 연결 → 브랜치 → 코드 수정 → fork로 푸시 → 공식 저장소에 PR</li>
+</ul>
+
+#### 🤖 HARNESS AI 어시스턴트
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
+모듈이 많고 체인이 길어 — 상태 확인, 아키텍처 질의, 설정 찾기는 문서와 SSH가 흔합니다. HARNESS는 플랫폼 지식과 실시간 탐지를 <strong>대화형 어시스턴트</strong>로 묶습니다 — 업무 페이지 우하단에서 즉시 질문·확인, 장애 대응과 PoC 주기 단축, 벤더·구전 지식 의존 감소.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>물으면 바로 확인</strong>: Agent가 플랫폼 Tool로 Gateway / 영상 / AI 서비스 상태를 탐지하고 관련 설정·소스를 안내 — SSH + compose 확인을 한 번의 대화로</li>
+  <li><strong>온톨로지 내장</strong>: <code>HARNESS/ontology/AGENTS.md</code>와 전체 저장소 워크스페이스 — 아키텍처, 포트, API, 설치 규약을 한곳에서</li>
+  <li><strong>페이지 내 대화</strong>: 플로팅 서랍 iframe — 알람/장치 화면에서 페이지 전환·컨텍스트 손실 없음; 전체 화면 「AI 어시스턴트」 또는 새 창도 가능</li>
+  <li><strong>IDEA 분할 화면 공동 창작</strong>: 툴바로 오른쪽 AI 어시스턴트 원클릭 — 에디터와 Agent 동시 화면; <code>?file=경로&harness=1</code> 딥링크도 지원</li>
+  <li><strong>드래그 자동 @</strong>: 탐색기 파일을 어시스턴트 패널에 놓으면 대화 컨텍스트로 자동 연결</li>
+  <li><strong>양방향 점프</strong>: Agent가 <code>easyaiot_open_in_idea</code>로 포털 링크를 생성 — Q&amp;A에서 수정·배포 가능한 전체 IDE로; IDEA는 코드·PR, HARNESS는 아키텍처·상태 확인</li>
+  <li><strong>MCP + Cursor Skill</strong>: 동일 <code>easyaiot_*</code> 능력을 MCP로 Cursor 등 IDE에 노출 — 콘솔에서 묻고 확인하는 것을 개발 환경에서도 호출; Skill은 프로젝트 간 재사용</li>
+  <li><strong>전 프로필 기본 포함</strong>: <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar(<code>:3080</code>), <code>mini / standard / full</code> 기본 배포 포함(<code>EASYAIOT_ENABLE_HARNESS=0</code>로 비활성화); DeepSeek / OpenAI 호환 엔드포인트; Key는 <code>harness.env</code> 또는 UI에서 자체 제공</li>
+  <li><strong>보안 안내</strong>: 실험 모듈, upstream <code>dsh</code> Developer Preview; 운영 환경은 접근 제한 및 쓰기/Shell 승인 설정; API Key는 Git에 커밋 금지</li>
 </ul>
 
 ### 📦 내장 AI 모델
@@ -463,8 +497,8 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
     <li><strong>공식 가치 진입점</strong>: 방문자·통합사·최종 고객을 위한 독립 공식 웹사이트 — 클라우드-엣지-디바이스 통합 가치를 명확히 설명한 뒤 다운로드와 배포로 안내</li>
-    <li><strong>인지 경로 단축</strong>: 제품 특성, 3단계 하드웨어 선택, 설치 패키지, 문서를 한 사이트에서 제공 — 저장소 검색·문의·패키지 찾기 비용 감소</li>
-    <li><strong>선택 의사결정 지원</strong>: mini / standard / full로 엣지 박스, AI 일체형 카메라, 풀스택 일체기 시나리오를 제시해 현장에서 한 번에 맞는 등급을 선택</li>
+    <li><strong>인지 경로 단축</strong>: 제품 특성, 4단계 하드웨어 선택, 설치 패키지, 문서를 한 사이트에서 제공 — 저장소 검색·문의·패키지 찾기 비용 감소</li>
+    <li><strong>선택 의사결정 지원</strong>: edge / mini / standard / full로 경량 단기기, 엣지 박스, AI 일체형 카메라, 풀스택 일체기 시나리오를 제시해 현장에서 한 번에 맞는 등급을 선택</li>
     <li><strong>관심에서 설치까지</strong>: 공식 사이트, 데모, 오픈소스 저장소, Releases가 하나의 흐름을 형성 — 이해 → 체험 → 다운로드 → 설치</li>
   </ul>
 </td>
@@ -495,6 +529,16 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>ANDROID / IOS / HARMONYOS 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>하나의 프런트엔드, 세 개의 네이티브 셸</strong>: APP의 uni-app 페이지를 Android(DCloud 오프라인 런타임 + Gradle → APK), iOS(WKWebView 셸 + xcodebuild → .app / .ipa), HarmonyOS(ArkWeb 셸 + hvigor → HAP) 설치형 앱으로 패키징 — 주류 휴대폰 OS에서 동일한 업무 로직</li>
+    <li><strong>원클릭 패키징</strong>: <code>make-apk.sh</code> / <code>make-ipa.sh</code> / <code>make-hap.sh</code>가 버전 일치 검증 포함; prod / test / dev 환경이 각각 독립 산출물 생성</li>
+    <li><strong>통합 관리</strong>: <code>.scripts/docker/mobile.sh</code>가 status / build / bump / artifacts / clean 담당; <code>bump</code>가 다섯 곳의 버전 번호를 한 번에 정렬하며, 버전이 일치하지 않으면 패키징을 거부합니다</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>DEVICE 모듈</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -516,23 +560,23 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
     <li><strong>왜 C#인가</strong>: 강타입 측정점 매핑, 비동기 다중 장치 동시 폴링, 7×24 장기 상주 안정성, Linux x86/ARM 크로스 플랫폼 자체 포함 배포 — 공정 생태계 성숙, 통합사 빠른 온보딩</li>
     <li><strong>C# 엣지 수집 런타임</strong>: 독립 배포 가능한 엣지 측 수집 서비스 — 플러그인형 수집기 + 로컬 스케줄링 + 설정 기반 파싱</li>
     <li><strong>다중 프로토콜 수집기</strong>: 내장 Modbus RTU(RS485/시리얼), Modbus TCP, OPC UA 수집기; 작업별 <code>ICollector</code> 플러그인 확장</li>
-    <li><strong>MQTT 클라우드-엣지 연동</strong>: 게이트웨이 속성 보고, 하위 장치 대리 보고, 클라우드 설정 하행(<code>config/downstream/push</code>)·속성 쓰기 — DEVICE/<strong>iot-sink</strong> 연동</li>
+    <li><strong>MQTT 클라우드-엣지 연동</strong>: 디바이스 관리 GATEWAY로 접속 — 속성 보고, 하위 장치 속성 대리 보고, 클라우드 설정 하행(<code>config/downstream/push</code>)·속성 쓰기 — DEVICE/<strong>iot-sink</strong> 연동; 동일한 디바이스 관리에 표시, 클라우드 산업 폴링(플랫폼이 현장 장치에 직접 접근)과 상호 보완 — EDGE는 OT 격리·RS-485 현장에 적합</li>
     <li><strong>설정 이중 채널</strong>: 로컬 <code>device-jobs.json</code>과 클라우드 MQTT 설정 푸시 모두 수집 작업을 구동</li>
     <li><strong>Linux 패키징</strong>: <code>pack_linux.sh</code>로 x86_64 / ARM64 독립 배포 패키지 생성 — 공업용 PC·엣지 게이트웨이용</li>
-    <li><strong>연동·문서</strong>: 내장 E2E Demo와 클라우드 플랫폼 연동 가이드(<a href="EDGE/README.md">EDGE/README.md</a>, <a href="EDGE/docs/PLATFORM_INTEGRATION.md">플랫폼 연동 문서</a>)</li>
+    <li><strong>연동 바로 사용</strong>: 내장 E2E Demo로 수집 → MQTT 업링크 → 클라우드 저장 검증; 클라우드 플랫폼 연동 지원</li>
   </ul>
 </td>
 </tr>
 <tr>
-<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>NODE 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>SENTINEL 모듈</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
-    <li><strong>노드 에이전트</strong>: 엣지/원격 노드 Agent로, 원클릭 설치·배포 후 플랫폼에 자동 접속</li>
-    <li><strong>상태 보고</strong>: 주기적 하트비트로 CPU·메모리·디스크·GPU 사용률 및 실행 중인 워크로드 상태를 실시간 보고</li>
-    <li><strong>원격 워크로드</strong>: 플랫폼에서 내려보낸 배포/중지 명령을 수신하여, 노드 로컬에서 AI 모델 서비스, 알고리즘 태스크, FFmpeg 트랜스코딩 등 워크로드 실행</li>
-    <li><strong>미디어 노드 풀</strong>: 노드에서 스트리밍 역량을 원격 배포할 수 있으며, 장치와 미디어 노드 바인딩 및 스트림 URL 생성 지원</li>
-    <li><strong>노드 역할</strong>: compute / media / hybrid 역할로 크로스 노드 스케줄링·탄력 확장; 연산 노드는 센터가 하달한 실시간 / 캡처 / 순찰·고성능 전달을 수용</li>
-    <li><strong>오프라인 친화</strong>: 오프라인 의존성 패키징 및 Agent 핫 업데이트 지원, 외부망 없음 또는 제한된 네트워크 환경에서의 대량 노드 통합에 적합</li>
+    <li><strong>업무 준비도 센티널</strong>: 스케줄 가능한 각 노드를 따라가며, 선택한 업무를 실제로 받을 수 있는지 지속적으로 확인</li>
+    <li><strong>등록 즉시 모니터링</strong>: 편입 후 자동 점검 시작 — 확장 당일 준비도 인수 가능</li>
+    <li><strong>스케줄 가능 역량 집약</strong>: 「이 노드가 해당 업무를 돌릴 수 있는가」를 콘솔에 모아 실제 역량으로 배정</li>
+    <li><strong>결손 자가 보완</strong>: 기대 환경 결손 시 플랫폼에 보완 요청 — 현장 설치 감소</li>
+    <li><strong>단절망 친화 확장</strong>: 공인망 없는 현장도 오프라인 등록·환경 동기화</li>
+    <li><strong>납품 언어 통일</strong>: 컴포넌트 상태와 스케줄 가능 기능을 한 화면에서 — 인수·장애 대응 시 추측 감소</li>
   </ul>
 </td>
 </tr>
@@ -548,6 +592,7 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
     <li><strong>프레임 추출기 및 정렬기</strong>: 유연한 프레임 추출 전략과 결과 정렬 메커니즘을 지원하며, 각 알고리즘 태스크는 독립적인 프레임 추출기와 정렬기에 바인딩할 수 있습니다</li>
     <li><strong>방범 시간대</strong>: 전체 방범 모드 및 반방범 모드의 시간대별 구성 지원</li>
     <li><strong>오케스트레이션과 실행 분담</strong>: VIDEO는 장치 오케스트레이션·원본 미리보기·경보 아카이브·시작/중지; 무거운 일은 <strong>RUNTIME</strong>(추론·고성능 전달) — 「관리」와 「속도」를 분리해 채널·지연이 Python 오케스트레이션에 끌려가지 않음</li>
+    <li><strong>POST 판정 연계</strong>: 알고리즘 작업에 후처리 규칙을 구성해 검출 결과가 맞춤 판정 후 표준 경보로 진입 — 규칙 변경에 분석 중단 불필요</li>
     <li><strong>인수 미리보기</strong>: 원본과 판정 화면을 나란히 대조해 현장 지연·표기 품질을 빠르게 확인</li>
   </ul>
 </td>
@@ -594,6 +639,19 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>POST 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>맞춤 판정</strong>: 객체 검출 위에서 독립 업무 판단 — 「목표를 박스」에서 「경보할지·어떤 기준으로」로</li>
+    <li><strong>작업별 규칙</strong>: 구역 필터·통과·업무 스크립트·산업 플러그인을 규칙 체인으로 편성</li>
+    <li><strong>오경보 감소·인수 가능</strong>: 구역 밖 폭주 없음; 상선 전 규칙 시운전</li>
+    <li><strong>기준 변경해도 분석 유지</strong>: 실행 중 규칙 저장이 즉시 반영</li>
+    <li><strong>인식·판정 분리</strong>: 화면 분석은 계속, 업무 로직은 확장; 산업 능력 플러그형</li>
+    <li><strong>내장 플러그인</strong>: <code>line_cross</code> 선 넘기, <code>region_enter_exit</code> 구역 진입/이탈, <code>dwell_timer</code> 체류 초과, <code>headcount_gate</code> 인원 임계값 — 알고리즘 작업 「후처리 규칙」에서 바로 선택, 등록 불필요; 선 넘기/진입·이탈/체류는 목표 추적(<code>track_id</code>) 필요</li>
+  </ul>
+</td>
+</tr>
+<tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>VISUALIZE 모듈</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -624,6 +682,26 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
     <li><strong>당일 폐쇄 루프</strong>: UI로 등급별 설치, 진행·결과를 현장에서 확인 — 업무 콘솔 준비 전에도 장비를 올리고 넘겨줄 수 있음</li>
     <li><strong>자체 장애 대응</strong>: 컨테이너 건강·자원 수위·작업 로그·이미지 준비도가 한눈에 — 흔한 기동/정지·pull·캐시 정리를 개발자 명령 없이 처리</li>
     <li><strong>다수 현장 재사용</strong>: 동일 진입점이 다수 일체형·다수 기기를 관통 — PoC와 양산 납품 기준 일치</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>IDEA 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>커뮤니티 온라인 IDE</strong>: 브라우저에서 VS Code 스타일 워크스페이스를 열고 기본적으로 전체 저장소를 clone; 1인 1 Docker 존, 로컬 배포와 유휴 회수 지원 — 오픈소스 기여를 「먼저 환경 구성」에서 「열면 바로 수정」으로</li>
+    <li><strong>분할 화면 AI 어시스턴트</strong>: 툴바로 오른쪽 HARNESS 열기, 드래그 자동 <code>@</code>; <code>?file=&harness=1</code> 딥링크</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>HARNESS 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>대화형 어시스턴트</strong>: 상태·아키텍처·문제 파악 — 장애 대응과 PoC 단축, 벤더 의존 감소</li>
+    <li><strong>페이지 내 플로팅 서랍</strong>: 업무 페이지 이탈 없이 대화; <code>mini / standard / full</code> 기본 포함</li>
+    <li><strong>IDEA 분할 화면 연동</strong>: 에디터 오른쪽에 어시스턴트; 드래그-<code>@</code>, 딥링크, 양방향 점프</li>
+    <li><strong>MCP / Skill</strong>: 콘솔과 IDE가 플랫폼 시맨틱 공유, Skill 프로젝트 간 재사용</li>
   </ul>
 </td>
 </tr>
@@ -749,6 +827,12 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 
 | | | |
 |:---:|:---:|:---:|
+| ![영상 모니터링](.image/banner/banner1225.png) | ![영상 모니터링](.image/banner/banner1226.png) | ![영상 모니터링](.image/banner/banner1227.png) |
+| ![영상 모니터링](.image/banner/banner1228.png) | ![영상 모니터링](.image/banner/banner1229.png) | ![영상 모니터링](.image/banner/banner1230.png) |
+| ![영상 모니터링](.image/banner/banner1219.png) | ![영상 모니터링](.image/banner/banner1220.png) | ![영상 모니터링](.image/banner/banner1221.png) |
+| ![영상 모니터링](.image/banner/banner1222.png) | ![영상 모니터링](.image/banner/banner1223.png) | ![영상 모니터링](.image/banner/banner1224.png) |
+| ![영역 검출](.image/banner/banner1213.png) | ![영역 검출](.image/banner/banner1214.png) | ![영역 검출](.image/banner/banner1218.png) |
+| ![후처리 규칙 체인](.image/banner/banner1216.png) | ![후처리 규칙 체인](.image/banner/banner1217.png) | ![후처리 규칙 체인](.image/banner/banner1215.png) |
 | ![라이브](.image/banner/banner1145.jpg) | ![미리보기](.image/banner/banner1146.jpg) | ![카메라](.image/banner/banner1051.jpg) |
 | ![목록](.image/banner/banner1053.jpg) | ![푸시](.image/banner/banner1083.jpg) | ![전달](.image/banner/banner1084.jpg) |
 | ![저장](.image/banner/banner1121.png) | ![스냅샷](.image/banner/banner1122.png) | ![녹화](.image/banner/banner1123.png) |
@@ -760,6 +844,13 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![실황](.image/banner/banner1026.jpg) | ![다채널](.image/banner/banner1028.jpg) | ![푸시](.image/banner/banner1103.png) |
 | ![미리보기](.image/banner/banner1104.png) | ![접속](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![실황](.image/banner/banner1183.jpg) | ![지도](.image/banner/banner1184.jpg) |  |
+
+#### 🤖 AI 어시스턴트
+
+| | | |
+|:---:|:---:|:---:|
+| ![IDEA 로그인](.image/banner/banner1203.png) | ![IDEA 워크스페이스](.image/banner/banner1204.png) | ![IDEA 개발](.image/banner/banner1205.png) |
+| ![AI 어시스턴트 대화](.image/banner/banner1210.png) | ![AI 어시스턴트 분석](.image/banner/banner1211.png) | ![AI 어시스턴트 협업](.image/banner/banner1212.png) |
 
 #### 🧠 AI 모델
 
@@ -809,7 +900,8 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![통계](.image/banner/banner1176.jpg) | ![개요](.image/banner/banner1177.jpg) | ![대시보드](.image/banner/banner1178.jpg) |
 | ![제품](.image/banner/banner1006.jpg) | ![디바이스](.image/banner/banner1009.jpg) | ![OTA](.image/banner/banner1179.jpg) |
 | ![펌웨어](.image/banner/banner1180.jpg) | ![작업](.image/banner/banner1181.jpg) | ![진행](.image/banner/banner1182.jpg) |
-| ![규칙](.image/banner/banner1013.jpg) | ![오케스트레이션](.image/banner/banner1014.png) |  |
+| ![규칙](.image/banner/banner1013.jpg) | ![오케스트레이션](.image/banner/banner1014.png) | ![포워딩](.image/banner/banner1206.png) |
+| ![실행](.image/banner/banner1209.png) | ![목적지](.image/banner/banner1207.png) | ![전달](.image/banner/banner1208.png) |
 
 #### 🖥️ 클러스터
 
@@ -839,9 +931,13 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 
 | | | |
 |:---:|:---:|:---:|
-| ![홈](.image/banner/app/app_1000.jpg) | ![모니터링](.image/banner/app/app_1001.jpg) | ![미리보기](.image/banner/app/app_1002.jpg) |
-| ![경보](.image/banner/app/app_1003.jpg) | ![재생](.image/banner/app/app_1004.jpg) | ![디바이스](.image/banner/app/app_1005.jpg) |
-| ![메시지](.image/banner/app/app_1006.jpg) | ![마이](.image/banner/app/app_1007.jpg) |  |
+| ![APP 스크린샷](.image/banner/app/app_1008.jpg) | ![APP 스크린샷](.image/banner/app/app_1009.jpg) | ![APP 스크린샷](.image/banner/app/app_1010.jpg) |
+| ![APP 스크린샷](.image/banner/app/app_1011.jpg) | ![APP 스크린샷](.image/banner/app/app_1012.jpg) | ![APP 스크린샷](.image/banner/app/app_1013.jpg) |
+| ![APP 스크린샷](.image/banner/app/app_2023.png) | ![APP 스크린샷](.image/banner/app/app_2024.png) | ![APP 스크린샷](.image/banner/app/app_2025.png) |
+| ![APP 스크린샷](.image/banner/app/app_2026.png) | ![APP 스크린샷](.image/banner/app/app_2027.png) | ![APP 스크린샷](.image/banner/app/app_2028.png) |
+| ![APP 스크린샷](.image/banner/app/app_1014.jpg) | ![APP 스크린샷](.image/banner/app/app_1015.jpg) | ![APP 스크린샷](.image/banner/app/app_1016.jpg) |
+| ![APP 스크린샷](.image/banner/app/app_1017.jpg) | ![APP 스크린샷](.image/banner/app/app_1018.jpg) | ![APP 스크린샷](.image/banner/app/app_1019.jpg) |
+| ![APP 스크린샷](.image/banner/app/app_1020.jpg) | ![APP 스크린샷](.image/banner/app/app_1021.jpg) | ![APP 스크린샷](.image/banner/app/app_1022.jpg) |
 
 ## 🛠️ 서비스 및 지원
 
@@ -1039,6 +1135,10 @@ yFeiEye 플랫폼과 코드를 깊이 이해하실 수 있도록 다양한 서�
 <tr style="background-color: #f8f9fa;">
 <td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>狗娃</nobr></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 「IoT 데이터를 화면으로 전시」 방향 발전을 위해, 오픈소스 GoView 기반 시각화 Board(드래그 대시보드) 모듈 제품 구상을 선제적으로 제안: 전통 대형 화면은 화면마다·컴포넌트마다 SQL을 따로 작성해야 해 납품이 느리고 한 번 수정하면 전체가 움직이며, 업무 담당자가 스스로 화면을 만들기 거의 불가능. Board 방안은 차트, 지표, 레이아웃을 드래그 캔버스로 구성하고, 컴포넌트 변수를 플랫폼 IoT 사물 모델 측정점에 직접 연결 — 실시간·이력 값을 장치 측에서 원클릭 취득, 대시보드마다 쿼리를 따로 짤 필요 없음; 단지 상황, 생산라인 KPI, 장비 운영 등 대형 화면을 「개발이 SQL을 써야 화면이 나옴」에서 「측정점 선택·컴포넌트 드래그로 화면 완성」으로 업그레이드, 시각화 납품 주기를 크게 단축, IoT 「백엔드에 데이터」를 「프론트에 화면」 운영 역량으로. 이전에도 센서 부동 데이터 예측, 운행 상태 속성 상·하한 임계값 설정, 임계값 알람·규칙 연동, 중심 장치 연관 하위 장치 운행 상태 한 화면 표시를 기여해 「예측—경계—알람—규칙—한 화면 장악」 장치 운행 폐루프를 열었으며, 플랫폼 장치 측이 「숫자를 보고, 경계를 관리하고, 알람을 내고, 전체를 파악하는」 역량을 갖추게 하였습니다.</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; width: 32%; min-width: 9rem;"><nobr>添旺</nobr></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; color: #444; line-height: 1.8;">yFeiEye의 클라우드-엣지 협업 영상 수집과 AI 분석 방향의 발전을 위해 여러 핵심 역량을 독자적으로 기여하여, 실제 엣지 현장의 핵심 난제 — 「카메라를 못 넣는다, 스케줄링이 빗나간다, 실제로는 한 경로만 동작한다, 과거를 다시 볼 수 없다」 — 에 정면으로 응했습니다. 첫째, 엣지 카메라 접속과 알고리즘 노드 어피니티를 개척하여, IPC/NVR 장치가 온라인 엣지 노드를 「접속 노드」로 지정하면 장치 발견·대역 스캔·ONVIF 탐색·NVR 채널 열거가 모두 해당 노드에서 로컬로 수행되고 원본 스트림은 컨트롤 플레인 미디어 서비스로 회수되어 통일된 배포·재생이 이루어지므로, 지점이나 크로스 세그먼트/사설망의 카메라도 중앙 플랫폼과 직접 연결될 필요 없이 온보딩·출류할 수 있으며, 알고리즘 작업은 카메라가 등록된 접속 노드에 자동 고정되어 소스 스트림에 도달할 수 없는 노드에 배정되어 헛돌 일을 원천 차단하고 연산 자력이 카메라 가까이에서 오케스트레이션되도록 했습니다. 둘째, 같은 카메라에 여러 작업 및 멀티 모델 파이프라인이 있을 때 단일 경로만 유효한 치명적 결함을 진단하고 수정하여 — 작업별 스트림 식별자로 추론 체인을 격리하고, 전용 카메라 소스 서비스로 공유 디코딩을 재사용해 동시 작업을 지원하며, 작업 식별자를 알림과 실행 상태까지 종단 간 전파함으로써 — 하나의 카메라가 여러 알고리즘 작업과 멀티 모델 검출(예: 얼굴+차량 동시 인식)을 안정적으로 병렬 수행할 수 있게 하고 독립 스트림 서비스와 회귀 테스트로 이를 장기 보호했습니다. 셋째, 엣지 녹화의 계층화 저장과 통합 이벤트 리플레이를 지원하여, 녹화본은 엣지에 계층별로 현지 보존하고 알림 이벤트와 영상 증거는 클라우드-엣지 통합 입구에서 검색·재생할 수 있게 함으로써 「이벤트는 근거 있게 조회되고 증거는 신뢰할 수 있게 재생되는」 증거 폐루프를 완성했습니다. 이러한 성과는 복잡한 실제 네트워크 환경에서 플랫폼의 전달 확실성과 AI 분석 결과의 신뢰도를 크게 높였습니다.</td>
 </tr>
 </tbody>
 </table>

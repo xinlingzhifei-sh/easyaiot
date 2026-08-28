@@ -88,6 +88,8 @@ const agentParams = computed(() => ({
   agentToken: props.agentToken || props.node?.agentToken,
   host: props.node?.host,
   controlPlaneUrl: controlPlaneUrl.value,
+  functions: props.node?.functions,
+  nodeRole: props.node?.nodeRole,
 }));
 
 const envContent = computed(() =>
