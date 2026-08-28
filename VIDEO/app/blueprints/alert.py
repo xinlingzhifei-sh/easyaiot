@@ -56,6 +56,24 @@ def api_response(code=200, message="success", data=None):
     return jsonify(response), 200
 
 
+@alert_bp.route('/hook', methods=['POST'])
+def alert_hook():
+    """edge/mini：RUNTIME HTTP 告警入口 → 直连落库（无 MQTT/iot-sink）。"""
+    try:
+        alert_data = request.get_json(silent=True) or {}
+        if not isinstance(alert_data, dict) or not alert_data:
+            return api_response(400, '告警数据不能为空')
+        from app.services.alert_hook_service import process_alert_hook
+        result = process_alert_hook(alert_data)
+        status = (result or {}).get('status')
+        if status in ('failed', 'error'):
+            return api_response(500, (result or {}).get('error') or '告警处理失败', result)
+        return api_response(200, 'success', result)
+    except Exception as e:
+        logger.error(f'处理告警 hook 失败: {str(e)}', exc_info=True)
+        return api_response(500, f'处理失败: {str(e)}')
+
+
 @alert_bp.route('/page')
 def get_alert_list_route():
     """获取报警列表"""
@@ -195,10 +213,16 @@ def get_alert_image():
                 return api_response(500, f'从MinIO获取失败: {str(e)}')
         else:
             # 本地文件路径
-            file_path = Path(path)
-            if not file_path.exists():
-                return api_response(400, f'文件不存在: {path}')
-            
+            from app.utils.alert_images_paths import resolve_alert_images_root
+            from app.utils.media_path_security import resolve_allowed_media_file
+
+            project_video_root = str(Path(__file__).resolve().parents[2])
+            alert_root = resolve_alert_images_root(project_video_root)
+            file_path = resolve_allowed_media_file(path, extra_roots=(alert_root,))
+            if file_path is None:
+                logger.warning('拒绝访问媒体根目录外的告警图片 path=%s', path)
+                return api_response(403, '图片路径不在允许的媒体目录内')
+
             return send_file(str(file_path))
     except Exception as e:
         logger.error(f'获取报警图片失败: {str(e)}')
@@ -211,18 +235,26 @@ def get_alert_record():
     try:
         from urllib.parse import unquote
 
-        from app.services.media_dvr_utils import resolve_playback_absolute_path
+        from app.services.media_dvr_utils import (
+            discover_srs_host_data_root,
+            resolve_playback_absolute_path,
+        )
+        from app.utils.media_path_security import resolve_allowed_media_file
 
         path = unquote((request.args.get('path') or '').strip())
         if not path:
             return jsonify({'code': 400, 'message': '路径参数不能为空', 'data': None}), 400
 
-        file_path = resolve_playback_absolute_path(path)
-        if not file_path or not Path(file_path).exists():
-            logger.warning('告警录像不存在 path=%s resolved=%s', path, file_path)
-            return jsonify({'code': 404, 'message': f'文件不存在: {path}', 'data': None}), 404
+        resolved_path = resolve_playback_absolute_path(path)
+        file_path = resolve_allowed_media_file(
+            resolved_path,
+            extra_roots=(discover_srs_host_data_root(),),
+        )
+        if file_path is None:
+            logger.warning('拒绝访问媒体根目录外或不存在的告警录像 path=%s resolved=%s', path, resolved_path)
+            return jsonify({'code': 403, 'message': '录像路径不在允许的媒体目录内或文件不存在', 'data': None}), 403
 
-        ext = Path(file_path).suffix.lower()
+        ext = file_path.suffix.lower()
         mimetype_map = {
             '.flv': 'video/x-flv',
             '.mp4': 'video/mp4',
@@ -371,6 +403,4 @@ def clear_all_alerts_route():
     except Exception as e:
         logger.error(f'清空所有告警失败: {str(e)}', exc_info=True)
         return api_response(500, f'清空失败: {str(e)}')
-
-
 

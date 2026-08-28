@@ -10,7 +10,16 @@ from datetime import datetime
 from typing import List, Optional, Dict
 from sqlalchemy.orm import joinedload
 
-from models import db, AlgorithmTask, Device, SnapSpace, algorithm_task_device, Pusher
+from models import (
+    db,
+    AlgorithmTask,
+    AlgorithmTaskStreamRuntime,
+    Device,
+    Pusher,
+    SnapSpace,
+    algorithm_task_device,
+)
+from app.utils.algorithm_task_runtime import mark_stream_runtime_stopped
 from app.utils.cron_utils import validate_snap_cron_min_interval
 # 注意：已移除冲突检查，推流转发任务和算法任务可以共存
 # 推流转发任务使用 rtmp_stream/http_stream，算法任务使用 ai_rtmp_stream/ai_http_stream
@@ -25,8 +34,42 @@ ALARM_SUPPRESS_MAX = 86400
 _USERLESS_NOTIFY_METHODS = frozenset({'http', 'webhook'})
 
 
+def _normalize_task_model_ids(raw_model_ids) -> List[int]:
+    """解析任务模型 ID，供执行器能力判断复用。"""
+    if raw_model_ids in (None, ''):
+        return []
+    try:
+        values = json.loads(raw_model_ids) if isinstance(raw_model_ids, str) else raw_model_ids
+        return list(dict.fromkeys(int(value) for value in (values or [])))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+
+
 def _full_defense_schedule_json() -> str:
     return json.dumps([[1] * 24 for _ in range(7)])
+
+
+def _serialize_post_pipeline(raw) -> Optional[str]:
+    if raw is None or raw == '':
+        return None
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+            if parsed is not None and not isinstance(parsed, list):
+                raise ValueError('post_pipeline 必须是 JSON 数组')
+            return raw
+        except json.JSONDecodeError as e:
+            raise ValueError(f'post_pipeline JSON 无效: {e}') from e
+    if isinstance(raw, list):
+        return json.dumps(raw, ensure_ascii=False)
+    raise ValueError('post_pipeline 类型不支持')
+
+
+def _resolve_post_pipeline_for_alert(post_pipeline, alert_event_enabled: bool) -> Optional[str]:
+    """后处理规则链仅在启用告警事件时保存与生效。"""
+    if not alert_event_enabled:
+        return None
+    return _serialize_post_pipeline(post_pipeline)
 
 
 def _parse_defense_schedule_matrix(defense_schedule) -> Optional[list]:
@@ -189,6 +232,42 @@ def _normalize_detect_conf(value) -> float:
 
 def _has_library_matching_scope(library_ids) -> bool:
     return bool(_normalize_library_ids(library_ids))
+
+
+def validate_algorithm_device_ingress_schedule(
+        devices,
+        schedule_policy: str,
+        target_node_id: Optional[int],
+) -> None:
+    """确保算法任务与摄像头的实际接入节点一致。"""
+    if not devices:
+        return
+
+    ingress_node_ids = {
+        int(device.ingress_node_id) if getattr(device, 'ingress_node_id', None) else None
+        for device in devices
+    }
+    if len(ingress_node_ids) > 1:
+        raise ValueError(
+            '所选摄像头属于不同接入节点，请按接入节点分别创建算法任务'
+        )
+
+    ingress_node_id = next(iter(ingress_node_ids))
+    if ingress_node_id is None:
+        return
+
+    if (schedule_policy or 'local') != 'node':
+        raise ValueError(
+            f'摄像头通过边缘节点 #{ingress_node_id} 接入，调度策略必须为指定节点'
+        )
+    try:
+        normalized_target_node_id = int(target_node_id) if target_node_id is not None else None
+    except (TypeError, ValueError):
+        normalized_target_node_id = None
+    if normalized_target_node_id != ingress_node_id:
+        raise ValueError(
+            f'摄像头通过边缘节点 #{ingress_node_id} 接入，目标节点必须选择该接入节点'
+        )
 
 
 def _has_userless_channel(channels: List[Dict]) -> bool:
@@ -787,6 +866,7 @@ def create_algorithm_task(task_name: str,
                          pose_intent_config=None,
                          post_process_enabled: bool = False,
                          post_process_replicas: int = 1,
+                         post_pipeline=None,
                          executor: str = 'cpp',
                          runtime_bin_path: Optional[str] = None,
                          runtime_control_port: Optional[int] = None) -> AlgorithmTask:
@@ -795,6 +875,14 @@ def create_algorithm_task(task_name: str,
         # 验证任务类型
         if task_type not in ['realtime', 'snap', 'patrol']:
             raise ValueError(f"无效的任务类型: {task_type}，必须是 'realtime'、'snap' 或 'patrol'")
+
+        device_id_list = device_ids or []
+        devices = [Device.query.get_or_404(dev_id) for dev_id in device_id_list]
+        validate_algorithm_device_ingress_schedule(
+            devices,
+            schedule_policy,
+            target_node_id,
+        )
 
         from app.services.runtime_config_service import normalize_executor, ensure_runtime_bin_ready
         executor = normalize_executor(executor)
@@ -813,12 +901,6 @@ def create_algorithm_task(task_name: str,
         if alert_event_enabled and not parse_alert_class_names(alert_class_names):
             raise ValueError('启用告警事件时必须指定至少一个告警触发标签')
         
-        device_id_list = device_ids or []
-        
-        # 验证所有设备是否存在
-        for dev_id in device_id_list:
-            Device.query.get_or_404(dev_id)
-        
         # 注意：推流转发任务和算法任务可以共存，因为它们使用不同的流地址
         # 推流转发任务使用 rtmp_stream/http_stream，算法任务使用 ai_rtmp_stream/ai_http_stream
         
@@ -836,7 +918,8 @@ def create_algorithm_task(task_name: str,
                 # 调用AI模块API获取模型信息（仅对正数ID，即数据库中的模型）
                 import requests
                 import os
-                ai_service_url = os.getenv('AI_SERVICE_URL', 'http://localhost:5000')
+                from app.utils.service_urls import resolve_model_service_base_url
+                ai_service_url = resolve_model_service_base_url()
                 for model_id in model_ids:
                     # 如果是负数ID，表示默认模型
                     if model_id < 0:
@@ -1069,6 +1152,7 @@ def create_algorithm_task(task_name: str,
             pose_intent_config=_serialize_pose_intent_config(pose_intent_config),
             post_process_enabled=bool(post_process_enabled),
             post_process_replicas=max(1, int(post_process_replicas or 1)),
+            post_pipeline=_resolve_post_pipeline_for_alert(post_pipeline, alert_event_enabled),
             executor=executor or 'cpp',
             runtime_bin_path=(runtime_bin_path or None),
             runtime_control_port=runtime_control_port,
@@ -1079,7 +1163,6 @@ def create_algorithm_task(task_name: str,
         
         # 关联多个摄像头
         if device_id_list:
-            devices = Device.query.filter(Device.id.in_(device_id_list)).all()
             task.devices = devices
         
         # 提交所有更改（包括任务和算法服务）
@@ -1104,7 +1187,23 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
         
         task_type = kwargs.get('task_type', task.task_type)
 
-        if 'executor' in kwargs or 'task_type' in kwargs or 'schedule_policy' in kwargs:
+        # 先校验最终的设备与调度组合，避免错误配置触发不必要的本机运行时准备。
+        device_id_list = kwargs.pop('device_ids', None)
+        selected_devices = list(task.devices or [])
+        if device_id_list is not None:
+            selected_devices = [Device.query.get_or_404(dev_id) for dev_id in device_id_list]
+        validate_algorithm_device_ingress_schedule(
+            selected_devices,
+            kwargs.get('schedule_policy', getattr(task, 'schedule_policy', None) or 'local'),
+            kwargs.get('target_node_id', getattr(task, 'target_node_id', None)),
+        )
+
+        if (
+                'executor' in kwargs
+                or 'task_type' in kwargs
+                or 'schedule_policy' in kwargs
+                or 'model_ids' in kwargs
+        ):
             from app.services.runtime_config_service import normalize_executor, ensure_runtime_bin_ready
             if 'executor' in kwargs:
                 kwargs['executor'] = normalize_executor(kwargs.get('executor'))
@@ -1126,20 +1225,8 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
                 raise ValueError('runtime_control_port 必须在 8000-9000 之间')
             kwargs['runtime_control_port'] = port
         
-        # 处理设备ID列表
-        device_id_list = kwargs.pop('device_ids', None)
-        
         # 处理模型ID列表
         model_ids = kwargs.pop('model_ids', None)
-        
-        # 验证所有设备是否存在（如果提供）
-        if device_id_list is not None:
-            for dev_id in device_id_list:
-                Device.query.get_or_404(dev_id)
-            
-            # 注意：推流转发任务和算法任务可以共存，因为它们使用不同的流地址
-            # 推流转发任务使用 rtmp_stream/http_stream，算法任务使用 ai_rtmp_stream/ai_http_stream
-            # 已移除冲突检查，允许同一个摄像头同时用于推流转发和算法任务
         
         # 处理模型ID列表（实时和抓拍算法任务都支持）
         if model_ids is not None:
@@ -1156,7 +1243,8 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
                     # 调用AI模块API获取模型信息（仅对正数ID，即数据库中的模型）
                     import requests
                     import os
-                    ai_service_url = os.getenv('AI_SERVICE_URL', 'http://localhost:5000')
+                    from app.utils.service_urls import resolve_model_service_base_url
+                    ai_service_url = resolve_model_service_base_url()
                     for model_id in model_ids:
                         # 如果是负数ID，表示默认模型
                         if model_id < 0:
@@ -1271,6 +1359,7 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
             'pose_analysis_enabled', 'pose_analysis_config',
             'pose_intent_enabled', 'pose_library_ids', 'pose_intent_threshold', 'pose_intent_config',
             'post_process_enabled', 'post_process_script', 'post_process_replicas',
+            'post_pipeline',
             'executor', 'runtime_bin_path', 'runtime_control_port',
         ]
         
@@ -1377,6 +1466,9 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
         if 'alert_class_names' in kwargs:
             kwargs['alert_class_names'] = _serialize_alert_class_names(kwargs['alert_class_names'])
 
+        if 'post_pipeline' in kwargs and not kwargs.get('alert_event_enabled', task.alert_event_enabled):
+            kwargs['post_pipeline'] = None
+
         if 'alert_event_enabled' in kwargs or 'alert_class_names' in kwargs:
             from app.utils.alert_class_filter import parse_alert_class_names
             alert_enabled = kwargs.get('alert_event_enabled', task.alert_event_enabled)
@@ -1441,6 +1533,11 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
         )
         kwargs['defense_mode'] = merged_defense_mode
         kwargs['defense_schedule'] = merged_defense_schedule
+
+        if not alert_event_on:
+            kwargs['post_pipeline'] = None
+        elif 'post_pipeline' in kwargs:
+            kwargs['post_pipeline'] = _serialize_post_pipeline(kwargs['post_pipeline'])
         
         for field in updatable_fields:
             if field in kwargs:
@@ -1448,8 +1545,7 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
         
         # 更新多对多关系
         if device_id_list is not None:
-            devices = Device.query.filter(Device.id.in_(device_id_list)).all() if device_id_list else []
-            task.devices = devices
+            task.devices = selected_devices
         
         task.updated_at = datetime.utcnow()
         db.session.flush()  # 先flush以获取最新的task状态
@@ -1482,13 +1578,28 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
                 if task_devices:
                     from models import DeviceDetectionRegion
                     for device in task_devices:
-                        # 禁用该设备的所有区域检测配置
-                        regions = DeviceDetectionRegion.query.filter_by(device_id=device.id).all()
+                        regions = DeviceDetectionRegion.query.filter_by(
+                            device_id=device.id,
+                            task_id=task.id,
+                        ).all()
                         for region in regions:
                             region.is_enabled = False
                         logger.info(f"算法任务模型列表为空，自动禁用设备 {device.id} 的所有区域检测配置")
         
         db.session.commit()
+
+        if getattr(task, 'is_enabled', False) and (
+            'post_pipeline' in kwargs or 'alert_event_enabled' in kwargs
+        ):
+            try:
+                if task.alert_event_enabled:
+                    from app.services.post_template_client import put_template
+                    put_template(task.id, task=task)
+                else:
+                    from app.services.post_template_client import push_template_on_stop
+                    push_template_on_stop(task.id)
+            except Exception as e:
+                logger.warning('后处理规则链/告警开关变更后同步 POST 模板失败 task=%s: %s', task_id, e)
         
         logger.info(f"更新算法任务成功: task_id={task_id}, task_type={task_type}, device_ids={device_id_list}, model_ids={model_ids}")
         return task
@@ -1619,9 +1730,15 @@ def start_algorithm_task(task_id: int):
             else:
                 service_message = msg
                 logger.warning(f"启动任务 {task_id} 的服务失败: {msg}")
+                _rollback_failed_algorithm_start(task, service_message)
+                raise RuntimeError(service_message)
         except Exception as e:
+            if not task.is_enabled:
+                raise
             logger.warning(f"启动任务 {task_id} 的服务时出错: {str(e)}", exc_info=True)
             service_message = f"服务启动异常: {str(e)}"
+            _rollback_failed_algorithm_start(task, service_message)
+            raise RuntimeError(service_message) from e
         
         logger.info(f"启动算法任务成功: task_id={task_id}, message={service_message}, already_running={already_running}")
         try:
@@ -1638,15 +1755,60 @@ def start_algorithm_task(task_id: int):
         raise RuntimeError(f"启动算法任务失败: {str(e)}")
 
 
+def _rollback_failed_algorithm_start(task: AlgorithmTask, message: str) -> None:
+    """Keep control-plane state truthful when worker deployment fails."""
+    task.is_enabled = False
+    task.run_status = 'stopped'
+    task.exception_reason = message
+    task.updated_at = datetime.utcnow()
+    try:
+        _stop_remote_workload_before_background_teardown(task)
+    except Exception as e:
+        logger.warning('启动失败后清理远程 workload 失败 task_id=%s: %s', task.id, e)
+    db.session.commit()
+
+
+def _stop_remote_workload_before_background_teardown(task: AlgorithmTask) -> bool:
+    """Stop remote work synchronously so the HTTP response cannot precede edge cleanup."""
+    from app.services.algorithm_task_launcher_service import (
+        _resolve_remote_task_node_id,
+        _stop_remote_task,
+    )
+
+    remote_node_id = _resolve_remote_task_node_id(task)
+    if not (remote_node_id or getattr(task, 'device_deployments', None)):
+        return False
+
+    _stop_remote_task(task.id, remote_node_id)
+    task.node_id = None
+    task.service_process_id = None
+    task.run_status = 'stopped'
+    if hasattr(task, 'device_deployments'):
+        task.device_deployments = None
+    db.session.commit()
+    logger.info('算法任务远程 workload 已同步停止: task_id=%s', task.id)
+    return True
+
+
 def stop_algorithm_task(task_id: int):
     """停止算法任务"""
     try:
         task = AlgorithmTask.query.get_or_404(task_id)
         device_ids = [d.id for d in (task.devices or [])]
+        stopped_at = datetime.utcnow()
         task.is_enabled = False
         task.run_status = 'stopped'
-        task.updated_at = datetime.utcnow()
+        task.updated_at = stopped_at
+        for runtime in AlgorithmTaskStreamRuntime.query.filter_by(task_id=task_id).all():
+            mark_stream_runtime_stopped(runtime, stopped_at)
         db.session.commit()
+
+        # 远程 Agent 停止通常小于 1 秒，必须在返回前完成；否则页面虽显示已停止，
+        # 边缘进程仍可能继续推理/推流。较慢的本地守护进程与后处理清理仍在后台执行。
+        try:
+            _stop_remote_workload_before_background_teardown(task)
+        except Exception as e:
+            logger.warning('同步停止远程算法 workload 失败，转后台重试 task_id=%s: %s', task_id, e)
 
         # 停止任务相关的服务（抽帧器、推送器、排序器）放到后台线程执行。
         # 进程清理（daemon.stop 的 SIGTERM 等待最长 10s + 孤儿进程 cleanup）耗时较长，
@@ -1741,4 +1903,3 @@ def restart_algorithm_task(task_id: int):
         db.session.rollback()
         logger.error(f"重启算法任务失败: {str(e)}", exc_info=True)
         raise RuntimeError(f"重启算法任务失败: {str(e)}")
-

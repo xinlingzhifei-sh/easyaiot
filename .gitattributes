@@ -21,6 +21,10 @@ WEB/docker-build-logs/** -diff
 # FUXA 运行时数据目录：不参与 diff
 .scripts/docker/fuxa_data/** -diff
 
+# modbus demo 运行结果：不参与 diff
+.scripts/modbus-rtu-demo/results/** -diff
+.scripts/modbus-tcp-demo/results/** -diff
+
 # ZLMediaKit 运行时配置：不参与 diff
 .scripts/zlmediakit/conf/config.ini -diff
 
@@ -50,6 +54,12 @@ env.example    text eol=lf
 *.nsi          text eol=lf
 panel.env      text eol=lf
 panel.env.*    text eol=lf
+# IDEA 门户环境文件（install.sh 会 cp idea.env.example → idea.env；CRLF 会污染 TOKEN / OAuth 回调地址）
+idea.env       text eol=lf
+idea.env.*     text eol=lf
+# HARNESS 环境文件（install.sh 会 cp harness.env.example → harness.env；CRLF 会污染 API Key / trusted-host）
+harness.env       text eol=lf
+harness.env.*     text eol=lf
 # deb 维护脚本无扩展名，CRLF 会导致 dpkg 钩子失败
 COMPILE/platforms/ubuntu/deb/postinst  text eol=lf
 COMPILE/platforms/ubuntu/deb/postrm    text eol=lf
@@ -80,6 +90,10 @@ COMPILE/platforms/ubuntu/deb/copyright text eol=lf
 *.cmake        text eol=lf
 CMakeLists.txt text eol=lf
 *.ini          text eol=lf
+# Go 源码与模块定义（POST 等；Linux 构建，强制 LF）
+*.go           text eol=lf
+go.mod         text eol=lf
+go.sum         text eol=lf
 
 *.png binary
 *.jpg binary
@@ -93,9 +107,12 @@ CMakeLists.txt text eol=lf
 *.deb binary -diff
 .offline-debs/** -diff
 
-# Node Agent 离线 pip wheel（体积大，本地/export 下载，不参与 diff）
-NODE/pip-wheels/** -diff
-NODE/get-pip.py -diff
+# Sentinel Agent 离线 pip wheel（体积大，本地/export 下载，不参与 diff）
+SENTINEL/pip-wheels/** -diff
+SENTINEL/get-pip.py -diff
+
+# Sentinel Agent 运行时环境文件（强制 LF，避免 CRLF 污染 token）
+SENTINEL/agent.env text eol=lf
 
 # VIDEO 人脸特征模型（体积大，本地/install 下载，不参与 diff）
 VIDEO/face_rec.onnx binary -diff
@@ -126,6 +143,20 @@ RUNTIME/models/**/*.names -diff
 RUNTIME/models/**/*.names.json -diff
 RUNTIME/.bundle-runtime/** -diff
 RUNTIME/.bundle-runtime/**/*.tar.gz binary -diff
+RUNTIME/.local-install/** binary -diff
+RUNTIME/build-edgehub/** -diff
+RUNTIME/build-edgehub/**/EDGE_HUB binary -diff
+RUNTIME/build-host/** -diff
+# 本机媒体根目录（录像/告警图等，体积大；与 .gitignore 对齐）
+.runtime-media/** binary -diff
+# VIDEO 离线 ffmpeg 运行时打包产物（体积大，不参与 diff；与 .gitignore 对齐）
+VIDEO/.bundle-ffmpeg/** -diff
+VIDEO/.bundle-ffmpeg/**/*.tar.gz binary -diff
+VIDEO/.bundle-ffmpeg/**/*.tar.xz binary -diff
+VIDEO/.bundle-ffmpeg/**/*.zip binary -diff
+# VIDEO 离线 pip wheels 缓存（体积大，不参与 diff；与 .gitignore 对齐）
+VIDEO/.bundle-wheels/** -diff
+VIDEO/.bundle-wheels/**/*.whl binary -diff
 RUNTIME/build/** -diff
 RUNTIME/build-mqtt/** -diff
 RUNTIME/build-linux/** -diff
@@ -135,7 +166,10 @@ RUNTIME/.test-hwaccel/** -diff
 RUNTIME/.test-yolo-link/** -diff
 RUNTIME/.test-*/** -diff
 
-# WEB 预构建前端缓存（runtime_image.sh 提取，体积大，不参与 diff）
+# WEB 构建产物与预构建前端缓存（runtime_image.sh 提取，体积大，不参与 diff）
+WEB/dist/** -diff
+WEB/dist-prebuilt/** -diff
+WEB/dist-prebuilt-edge/** -diff
 WEB/dist-prebuilt-full/** -diff
 WEB/dist-prebuilt-mini/** -diff
 WEB/dist-prebuilt-standard/** -diff
@@ -153,6 +187,8 @@ SITE/.pnpm-store/** -diff
 
 # IDE / 包管理器缓存 / 测试缓存：不参与 diff
 .vscode/** -diff
+# IDEA 工作区模板的 VS Code 配置需要参与 diff（覆盖上面的 .vscode/** -diff）
+IDEA/workspace-template/.vscode/** text eol=lf
 .pnpm-store/** -diff
 **/.pytest_cache/** -diff
 
@@ -161,6 +197,14 @@ SITE/.pnpm-store/** -diff
 # TRANSFORM 运行时数据与离线构建产物：不参与 diff
 TRANSFORM/data/** -diff
 TRANSFORM/dist/** -diff
+
+# POST 本地构建产物 / vendor：不参与 diff（与 .gitignore 对齐，防误加入仓库）
+POST/bin/** -diff
+POST/out/** binary -diff
+POST/vendor/** -diff
+# POST 契约 schema / 示例 JSON（Linux 解析，强制 LF）
+POST/schemas/** text eol=lf
+POST/examples/**/*.json text eol=lf
 
 # RTC 运行时数据与 vendor 源码：不参与 diff（vendor 含嵌套 .git，体积大）
 RTC/data/** -diff
@@ -178,3 +222,46 @@ COMPILE/work/** -diff
 COMPILE/.venv-build/** -diff
 COMPILE/.venv-build-*/** -diff
 COMPILE/.panel-version -diff
+
+# IDEA 运行时数据 / 虚拟环境（工作区全仓 clone 与 git-reference 体积大；与 .gitignore 对齐，防误加入仓库）
+IDEA/.data/** -diff
+IDEA/.venv/** -diff
+IDEA/workspaces/** -diff
+IDEA/logs/** -diff
+
+# HARNESS 运行时数据（dsh-home / Sidecar 状态；与 .gitignore 对齐，防误加入仓库）
+HARNESS/.data/** -diff
+
+# ── ANDROID / IOS / HARMONYOS 移动端工程 ──
+# 打包成品与构建产物（体积大；与 .gitignore 对齐，防误加入仓库）
+*.apk binary -diff
+*.ipa binary -diff
+*.hap binary -diff
+# 内置 SDK 依赖（.aar 为 zip 归档，随仓库分发）与签名文件（demo 库，make-apk.sh 依赖）
+*.aar binary
+*.jks binary
+ANDROID/.gradle/** -diff
+ANDROID/**/build/** -diff
+IOS/build/** -diff
+IOS/DerivedData/** -diff
+IOS/**/xcuserdata/** -diff
+IOS/EasyAIoT/www/** -diff
+HARMONYOS/.hvigor/** -diff
+HARMONYOS/**/build/** -diff
+HARMONYOS/**/oh_modules/** -diff
+HARMONYOS/entry/src/main/resources/rawfile/www/** -diff
+
+# 移动端源码与工程配置（构建/解析敏感，强制 LF；.bat 供 Windows 使用，强制 CRLF）
+gradlew                 text eol=lf
+hvigorw                 text eol=lf
+*.gradle                text eol=lf
+*.pbxproj               text eol=lf
+*.plist                 text eol=lf
+*.json5                 text eol=lf
+*.ets                   text eol=lf
+HARMONYOS/**/*.json     text eol=lf
+ANDROID/*.properties    text eol=lf
+ANDROID/**/*.xml        text eol=lf
+ANDROID/**/*.pro        text eol=lf
+ANDROID/*.bat           text eol=crlf
+HARMONYOS/*.bat         text eol=crlf

@@ -5,6 +5,7 @@
 #include <glog/logging.h>
 #include <opencv2/geometry.hpp>
 
+#include "AlgoMqttBus.h"
 #include "YoloThreadPool.h"
 
 namespace runtime {
@@ -135,25 +136,35 @@ void PatrolScheduler::processDevice(const DeviceStreamConfig& device, const cv::
         }
     }
 
-    pool_->submitTask(frame, inputId, fid);
+    const size_t modelCount = pool_->modelCount();
+    for (size_t m = 0; m < modelCount; ++m) {
+        pool_->submitTask(frame, static_cast<int>(m), inputId, fid);
+    }
     std::vector<DetectObject> detections;
-    if (pool_->getTargetResult(detections, inputId, fid) != 0) {
-        return;
+    for (size_t m = 0; m < modelCount; ++m) {
+        std::vector<DetectObject> modelDets;
+        if (pool_->getTargetResult(modelDets, static_cast<int>(m), inputId, fid) != 0) {
+            return;
+        }
+        detections.insert(detections.end(), modelDets.begin(), modelDets.end());
     }
 
     std::vector<DetectObject> alarmDetections;
     std::string regionName = "全画面";
+    const bool skipRegionGate = AlgoMqttBus::postEnabled();
     for (const auto& det : detections) {
         if (config_.enableAlarm && det.class_score < config_.alarmConfidenceThreshold) {
             continue;
         }
-        int cx = (static_cast<int>(det.x1) + static_cast<int>(det.x2)) / 2;
-        int cy = (static_cast<int>(det.y1) + static_cast<int>(det.y2)) / 2;
-        std::string matched;
-        if (!pointInRegions(config_, cx, cy, frame.cols, frame.rows, matched)) {
-            continue;
+        if (!skipRegionGate) {
+            int cx = (static_cast<int>(det.x1) + static_cast<int>(det.x2)) / 2;
+            int cy = (static_cast<int>(det.y1) + static_cast<int>(det.y2)) / 2;
+            std::string matched;
+            if (!pointInRegions(config_, cx, cy, frame.cols, frame.rows, matched)) {
+                continue;
+            }
+            regionName = matched;
         }
-        regionName = matched;
         alarmDetections.push_back(det);
     }
 

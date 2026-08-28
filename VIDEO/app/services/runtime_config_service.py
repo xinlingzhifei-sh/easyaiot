@@ -18,10 +18,15 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from models import AlgorithmTask, Device, DeviceDetectionRegion
+from app.utils.gb28181_source import (
+    resolve_gb28181_alternate_pull_url,
+    resolve_gb28181_source,
+)
+from app.utils.algorithm_task_identity import rewrite_task_stream_url
 from app.utils.service_urls import resolve_video_service_base_url
 
 logger = logging.getLogger(__name__)
@@ -203,7 +208,7 @@ def ensure_runtime_on_video_startup() -> None:
     if existing:
         os.environ.setdefault('RUNTIME_BIN', existing)
         lib = runtime_library_path_env()
-        if lib and not (os.getenv('LD_LIBRARY_PATH') or '').strip():
+        if lib:
             os.environ['LD_LIBRARY_PATH'] = lib
         logger.info('RUNTIME 已就绪: %s', existing)
         return
@@ -312,7 +317,10 @@ def _resolve_rtsp_url(device: Device) -> str:
         val = (getattr(device, attr, None) or '').strip()
         if val.startswith('rtsp://') or val.startswith('rtsps://') or val.startswith('rtmp://'):
             return val
-    return (device.source or '').strip()
+    source = (device.source or '').strip()
+    if source.lower().startswith('gb28181://'):
+        return resolve_gb28181_source(source, logger=logger) or ''
+    return source
 
 
 def _device_has_active_cpp_realtime_algo(device_id: str) -> bool:
@@ -408,7 +416,40 @@ def resolve_algo_rtsp_url(device: Device) -> str:
     算法 realtime（AI ai/）RTSP：与 VIDEO 一致使用主码流，保证叠框清晰、坐标准确。
     forward copy 与 AI 解码争用主码流时，NVR 通常可承受单路双连接。
     """
-    return _resolve_rtsp_url(device)
+    url = _resolve_rtsp_url(device)
+    source = (getattr(device, 'source', None) or '').strip()
+    if (
+        source.lower().startswith('gb28181://')
+        and url.lower().startswith(('rtmp://', 'rtmps://'))
+    ):
+        rtsp_url = resolve_gb28181_alternate_pull_url(
+            source,
+            url,
+            prefer_schemes=('rtsp', 'rtsps'),
+            logger=logger,
+        )
+        if rtsp_url:
+            return rtsp_url
+    return url
+
+
+def _resolve_available_device_urls(
+    devices: List[Device],
+) -> Tuple[List[Device], Dict[str, str]]:
+    available: List[Device] = []
+    resolved: Dict[str, str] = {}
+    for device in devices:
+        url = resolve_algo_rtsp_url(device)
+        if not url:
+            logger.warning(
+                '跳过无可用视频流的设备 device_id=%s name=%s',
+                getattr(device, 'id', None),
+                getattr(device, 'name', None),
+            )
+            continue
+        available.append(device)
+        resolved[str(device.id)] = url
+    return available, resolved
 
 
 def resolve_forward_rtsp_url(device: Device) -> str:
@@ -594,24 +635,64 @@ def _resolve_dir_to_onnx(model_dir: Path, default_names: Path) -> Optional[Tuple
     return None
 
 
-def _resolve_model_paths(task: AlgorithmTask, prefer_cluster: bool = False) -> Tuple[str, str]:
-    """Resolve task.model_ids → (onnx_path, names_path) for RUNTIME.
+def _resolve_single_model_path(
+    mid_int: int, *, prefer_cluster: bool, default_names: Path
+) -> Optional[Tuple[str, str]]:
+    """Resolve one model id → (onnx_path, names_path); None if unresolvable."""
+    root = _repo_root()
+    builtin = _default_builtin_model_name(mid_int)
+    if builtin:
+        if prefer_cluster:
+            remote_models = Path('/opt/easyaiot/RUNTIME/models')
+            return str(remote_models / f'{builtin}.onnx'), str(remote_models / 'coco.names')
+        try:
+            return _resolve_builtin_onnx(builtin)
+        except Exception as e:
+            logger.warning('builtin model %s resolve failed: %s', builtin, e)
+            return None
+
+    if mid_int <= 0:
+        return None
+
+    # cluster resolver may return a file path directly
+    if prefer_cluster:
+        try:
+            lib = str((root / '.scripts' / 'lib').resolve())
+            if lib not in sys.path:
+                sys.path.insert(0, lib)
+            from model_resolver import try_resolve_cluster_model_path  # type: ignore
+            found = try_resolve_cluster_model_path(mid_int)
+            if found:
+                found_p = Path(found)
+                if found_p.suffix.lower() == '.onnx' and found_p.is_file():
+                    return str(found_p), _pick_names(found_p, default_names)
+                if found_p.suffix.lower() == '.pt' and found_p.is_file():
+                    onnx_out = found_p.with_suffix('.onnx')
+                    exported = _export_pt_to_onnx(found_p, onnx_out)
+                    if exported and exported.is_file():
+                        return str(exported), _pick_names(exported, default_names)
+        except Exception as e:
+            logger.debug('cluster file resolve skip: %s', e)
+
+    model_dir = _resolve_custom_model_dir(mid_int, prefer_cluster=prefer_cluster)
+    if model_dir is not None:
+        resolved = _resolve_dir_to_onnx(model_dir, default_names)
+        if resolved:
+            return resolved
+    return None
+
+
+def _resolve_model_paths(task: AlgorithmTask, prefer_cluster: bool = False) -> List[Tuple[str, str]]:
+    """Resolve task.model_ids → [(onnx_path, names_path), ...] in model order for RUNTIME.
 
     Supports:
       - builtin ids: -1 yolo11n, -2 yolov8n, -3 yolo26n (.pt auto-exported to onnx)
       - custom positive ids: cluster/local dir, prefer .onnx else export .pt
+    Returns at least one model; unresolvable ids are skipped (首个模型即 [ai] 主模型，
+    其余按 model_path_<i> / classes_path_<i> 写入，RUNTIME 内多模型聚合推理）。
     """
     root = _repo_root()
-    default_onnx = root / 'RUNTIME' / 'models' / 'yolo11n.onnx'
-    if not default_onnx.is_file():
-        # backward-compatible filename
-        legacy = root / 'RUNTIME' / 'models' / 'yolov11n.onnx'
-        if legacy.is_file():
-            default_onnx = legacy
     default_names = root / 'RUNTIME' / 'models' / 'coco.names'
-    remote_default_onnx = Path('/opt/easyaiot/RUNTIME/models/yolo11n.onnx')
-    if not remote_default_onnx.is_file():
-        remote_default_onnx = Path('/opt/easyaiot/RUNTIME/models/yolov11n.onnx')
     remote_default_names = Path('/opt/easyaiot/RUNTIME/models/coco.names')
     env_model = (os.getenv('RUNTIME_MODEL_PATH') or '').strip()
     env_names = (os.getenv('RUNTIME_CLASSES_PATH') or '').strip()
@@ -624,69 +705,46 @@ def _resolve_model_paths(task: AlgorithmTask, prefer_cluster: bool = False) -> T
         except Exception:
             model_ids = []
 
+    resolved: List[Tuple[str, str]] = []
     for mid in model_ids:
         try:
             mid_int = int(mid)
         except Exception:
             continue
+        pair = _resolve_single_model_path(mid_int, prefer_cluster=prefer_cluster, default_names=default_names)
+        if pair:
+            resolved.append(pair)
 
-        builtin = _default_builtin_model_name(mid_int)
-        if builtin:
-            try:
-                return _resolve_builtin_onnx(builtin)
-            except Exception as e:
-                logger.warning('builtin model %s resolve failed: %s', builtin, e)
-                continue
+    if resolved:
+        return resolved
 
-        if mid_int <= 0:
-            continue
-
-        # cluster resolver may return a file path directly
-        if prefer_cluster:
-            try:
-                lib = str((root / '.scripts' / 'lib').resolve())
-                if lib not in sys.path:
-                    sys.path.insert(0, lib)
-                from model_resolver import try_resolve_cluster_model_path  # type: ignore
-                found = try_resolve_cluster_model_path(mid_int)
-                if found:
-                    found_p = Path(found)
-                    if found_p.suffix.lower() == '.onnx' and found_p.is_file():
-                        return str(found_p), _pick_names(found_p, default_names)
-                    if found_p.suffix.lower() == '.pt' and found_p.is_file():
-                        onnx_out = found_p.with_suffix('.onnx')
-                        exported = _export_pt_to_onnx(found_p, onnx_out)
-                        if exported and exported.is_file():
-                            return str(exported), _pick_names(exported, default_names)
-            except Exception as e:
-                logger.debug('cluster file resolve skip: %s', e)
-
-        model_dir = _resolve_custom_model_dir(mid_int, prefer_cluster=prefer_cluster)
-        if model_dir is not None:
-            resolved = _resolve_dir_to_onnx(model_dir, default_names)
-            if resolved:
-                return resolved
-
-    if prefer_cluster and remote_default_onnx.is_file():
-        names = str(remote_default_names if remote_default_names.is_file() else (env_names or remote_default_names))
-        return str(remote_default_onnx), names
+    if prefer_cluster:
+        remote_default_onnx = Path('/opt/easyaiot/RUNTIME/models/yolo11n.onnx')
+        if not remote_default_onnx.is_file():
+            remote_default_onnx = Path('/opt/easyaiot/RUNTIME/models/yolov11n.onnx')
+        if remote_default_onnx.is_file():
+            names = str(remote_default_names if remote_default_names.is_file() else (env_names or remote_default_names))
+            return [(str(remote_default_onnx), names)]
 
     if env_model:
         p = Path(env_model)
         if p.suffix.lower() == '.pt':
             exported = _export_pt_to_onnx(p, p.with_suffix('.onnx'))
             if exported and exported.is_file():
-                return str(exported), (env_names or _pick_names(exported, default_names))
-        return env_model, (env_names or str(default_names))
+                return [(str(exported), (env_names or _pick_names(exported, default_names)))]
+        return [(env_model, (env_names or str(default_names)))]
 
     # Final fallback: ensure yolo11n onnx exists
     try:
-        return _resolve_builtin_onnx('yolo11n')
+        return [_resolve_builtin_onnx('yolo11n')]
     except Exception:
         pass
-    onnx = str(default_onnx)
-    names = env_names or str(default_names)
-    return onnx, names
+    default_onnx = root / 'RUNTIME' / 'models' / 'yolo11n.onnx'
+    if not default_onnx.is_file():
+        legacy = root / 'RUNTIME' / 'models' / 'yolov11n.onnx'
+        if legacy.is_file():
+            default_onnx = legacy
+    return [(str(default_onnx), env_names or str(default_names))]
 
 
 def _control_port(task: AlgorithmTask) -> int:
@@ -694,6 +752,13 @@ def _control_port(task: AlgorithmTask) -> int:
     if custom and 8000 <= int(custom) <= 9000:
         return int(custom)
     return 8000 + (int(task.id) % 1000)
+
+
+def _realtime_device_control_port(task_id: int, device_index: int) -> int:
+    """realtime 多路：每设备独立控制端口（8000–9000）。"""
+    # 与 stream_forward 错开：8200 段起，每任务最多 10 路（device_index % 10）
+    port = 8200 + (int(task_id) % 70) * 10 + (int(device_index) % 10)
+    return max(8000, min(9000, port))
 
 
 def runtime_config_dir() -> Path:
@@ -706,12 +771,12 @@ def runtime_config_dir() -> Path:
     return path
 
 
-def _regions_ini_block(devices: List[Device]) -> str:
+def _regions_ini_block(devices: List[Device], task_id: int) -> str:
     lines: List[str] = []
     for device in devices:
         try:
             regions = DeviceDetectionRegion.query.filter_by(
-                device_id=device.id, is_enabled=True
+                device_id=device.id, task_id=task_id, is_enabled=True
             ).order_by(DeviceDetectionRegion.sort_order.asc()).all()
         except Exception as e:
             logger.warning('load regions for %s failed: %s', device.id, e)
@@ -729,10 +794,13 @@ def _regions_ini_block(devices: List[Device]) -> str:
     return '\n'.join(lines)
 
 
-def _devices_json(devices: List[Device]) -> str:
+def _devices_json(
+    devices: List[Device],
+    resolved_urls: Optional[Dict[str, str]] = None,
+) -> str:
     items = []
     for d in devices:
-        url = resolve_algo_rtsp_url(d)
+        url = (resolved_urls or {}).get(str(d.id)) or resolve_algo_rtsp_url(d)
         if not url:
             continue
         items.append({
@@ -785,7 +853,7 @@ def _resolve_ai_rtmp_url(device: Device, task: AlgorithmTask) -> str:
                 raw,
             )
             continue
-        return raw
+        return rewrite_task_stream_url(raw, task.id, device.id) or ''
 
     try:
         from app.services.camera_service import _default_stream_urls
@@ -822,144 +890,77 @@ def _resolve_ai_rtmp_url(device: Device, task: AlgorithmTask) -> str:
                     db.session.rollback()
                 except Exception:
                     pass
-        return ai_rtmp
+        return rewrite_task_stream_url(ai_rtmp, task.id, device.id) or ''
     except Exception as e:
         logger.warning('生成 ai_rtmp 失败 device_id=%s: %s', getattr(device, 'id', None), e)
         return ''
 
 
-def generate_runtime_ini(
+def _build_runtime_ini_text(
     task: AlgorithmTask,
-    log_path: str,
     *,
-    prefer_cluster_model: bool = False,
-    write_local: bool = True,
-    remote_ini_path: Optional[str] = None,
+    task_type: str,
+    device: Device,
+    devices_for_json: List[Device],
+    rtsp_url: str,
+    rtmp_out: str,
+    enable_rtmp: bool,
+    models: List[Tuple[str, str]],
+    log_path: str,
+    alert_image_dir: str,
+    control_port: int,
+    frame_skip: int,
+    conf: float,
+    cooldown: int,
+    algo_name: str,
+    prefer_gpu: bool,
+    force_cpu: bool,
+    gpu_device_id: int,
+    cron: str,
+    patrol_mode: str,
+    patrol_interval: int,
+    patrol_pool: int,
+    hook_tt: str,
+    mqtt_broker_urls: str,
+    mqtt_username: str,
+    mqtt_password: str,
+    mqtt_client_id: str,
+    mqtt_tenant: str,
+    algo_bus_transport: str,
+    alert_hook_url: str,
+    compute_node_id: str,
+    resolved_urls: Dict[str, str],
+    heartbeat_url: str,
 ) -> str:
-    """Generate RUNTIME ini for realtime/snap/patrol; returns path (local or intended remote)."""
-    task_type = (getattr(task, 'task_type', None) or 'realtime').strip().lower()
-    if task_type == 'snapshot':
-        task_type = 'snap'
-    if task_type not in ('realtime', 'snap', 'patrol'):
-        raise ValueError(f'executor=cpp 不支持任务类型: {task_type}')
-
-    devices = _task_devices(task)
-    if not devices:
-        raise ValueError(f'任务 {task.id} 未绑定设备，无法生成 RUNTIME 配置')
-
-    primary = devices[0]
-    rtsp_url = resolve_algo_rtsp_url(primary)
-    if not rtsp_url:
-        raise ValueError(f'设备 {primary.id} 无可用 RTSP/source 地址')
-
-    for d in devices:
-        if not resolve_algo_rtsp_url(d):
-            raise ValueError(f'设备 {d.id} 无可用 RTSP/source 地址')
-
-    model_path, classes_path = _resolve_model_paths(task, prefer_cluster=prefer_cluster_model)
-    if write_local and not os.path.isfile(model_path):
-        raise ValueError(f'模型文件不存在: {model_path}（cpp 需要 .onnx；.pt 应已自动导出）')
-    if write_local and not str(model_path).lower().endswith('.onnx'):
-        raise ValueError(f'RUNTIME 最终需要 .onnx，当前为: {model_path}')
-    if prefer_cluster_model and not str(model_path).lower().endswith('.onnx'):
-        raise ValueError(
-            f'远程 cpp 需要 ONNX 模型，当前解析到: {model_path}。'
-            f'请确保模型已同步至集群，或允许控制面执行 .pt→onnx 导出'
-        )
-
-    video_base = resolve_video_service_base_url().rstrip('/')
-    heartbeat = _heartbeat_url(task_type, video_base)
-    control_port = _control_port(task)
-    conf = float(task.detect_conf if task.detect_conf is not None else 0.5)
-    cooldown = int(task.alert_event_suppress_time or 30)
-    algo_name = (task.model_names or 'detection').split(',')[0].strip() or 'detection'
-    # realtime 默认必推独立 ai/ 检测流；禁止占用 live/ 预览地址
-    rtmp_out = _resolve_ai_rtmp_url(primary, task)
-    enable_rtmp = False
-    if task_type == 'realtime':
-        if rtmp_out:
-            enable_rtmp = True
-        else:
-            raise ValueError(
-                f'realtime 任务 {task.id} 无法解析 AI 推流地址（ai_rtmp）。'
-                f'请为设备 {primary.id} 配置 ai_rtmp_stream，或确保 SRS/媒体节点可用以便自动生成 rtmp://…/ai/{primary.id}'
-            )
-    elif rtmp_out:
-        # snap/patrol：有独立 ai 地址时也可推，但不强制
-        enable_rtmp = True
-
-    frame_skip = int(getattr(task, 'extract_interval', None) or getattr(task, 'frame_skip', None) or 8)
-    if frame_skip <= 0:
-        frame_skip = 8
-
-    cron = (getattr(task, 'cron_expression', None) or '').strip()
-    patrol_mode = (getattr(task, 'patrol_mode', None) or 'pool').strip() or 'pool'
-    patrol_interval = max(3, int(getattr(task, 'patrol_interval_sec', None) or 10))
-    patrol_pool = max(1, min(int(getattr(task, 'patrol_pool_size', None) or 4), 16))
-
-    log_dir = os.path.dirname(log_path) if log_path else str(runtime_config_dir())
-    # Prefer shared Ceph/FS mount when set (ALGO_MEDIA_REF_MODE=shared_fs)
-    alert_image_dir = (os.getenv('ALERT_IMAGES_DIR') or '').strip() or os.path.join(log_dir, 'alerts')
-    if write_local:
-        os.makedirs(alert_image_dir, exist_ok=True)
-
-    # host 网络下默认本机 EMQX；生产可通过 MQTT_BROKER_URLS 覆盖
-    mqtt_broker_urls = (os.getenv('MQTT_BROKER_URLS') or '').strip() or '127.0.0.1:1883'
-    mqtt_username = (os.getenv('MQTT_ALGO_USERNAME') or '').strip()
-    mqtt_password = (os.getenv('MQTT_ALGO_PASSWORD') or '').strip()
-    mqtt_client_id = (os.getenv('MQTT_ALGO_CLIENT_ID') or f'algo-runtime-{task.id}').strip()
-    mqtt_tenant = (os.getenv('MQTT_ALGO_TENANT') or 'default').strip()
-    algo_bus_transport = (os.getenv('ALGO_BUS_TRANSPORT') or 'mqtt').strip() or 'mqtt'
-    compute_node_id = (os.getenv('COMPUTE_NODE_ID') or os.getenv('NODE_ID') or '').strip()
-
-    devices_json = _devices_json(devices)
-    # Escape for ini single-line: keep as JSON, no raw newlines
-    devices_json_one_line = devices_json.replace('\n', '')
-
-    regions_block = _regions_ini_block(devices)
-
-    hook_tt = _hook_task_type(task_type)
-
-    # GPU default on; USE_GPU=false / RUNTIME_FORCE_CPU forces CPU
-    use_gpu_env = (os.getenv('USE_GPU') or '').strip().lower()
-    force_cpu_env = (os.getenv('RUNTIME_FORCE_CPU') or '').strip().lower()
-    prefer_gpu = True
-    force_cpu = False
-    if force_cpu_env in ('1', 'true', 'yes', 'on'):
-        prefer_gpu = False
-        force_cpu = True
-    elif use_gpu_env in ('false', '0', 'no', 'off'):
-        prefer_gpu = False
-    prefer_gpu_env = (os.getenv('RUNTIME_PREFER_GPU') or '').strip().lower()
-    if prefer_gpu_env in ('false', '0', 'no', 'off'):
-        prefer_gpu = False
-    elif prefer_gpu_env in ('true', '1', 'yes', 'on'):
-        prefer_gpu = True
-    # Task-level prefer_gpu
-    if hasattr(task, 'prefer_gpu') and task.prefer_gpu is not None:
-        prefer_gpu = bool(task.prefer_gpu)
-        if not prefer_gpu:
-            force_cpu = True
-    try:
-        gpu_device_id = int(os.getenv('RUNTIME_GPU_DEVICE_ID') or '0')
-    except Exception:
-        gpu_device_id = 0
-    if gpu_device_id < 0:
-        gpu_device_id = 0
-
-    if remote_ini_path:
-        ini_path = Path(remote_ini_path)
-    else:
-        ini_path = runtime_config_dir() / f'task_{task.id}.ini'
-    if task_type == 'realtime':
-        logger.info(
-            'RUNTIME realtime 默认推检测流 task_id=%s device_id=%s rtmp_url=%s enable_rtmp=%s',
-            task.id,
-            primary.id,
-            rtmp_out,
-            enable_rtmp,
-        )
-    content = f"""# Auto-generated by VIDEO for executor=cpp — do not edit by hand while task is running
+    devices_json_one_line = _devices_json(devices_for_json, resolved_urls).replace('\n', '')
+    regions_block = _regions_ini_block(devices_for_json, task.id)
+    device_name = (device.name or device.id or '').replace('\n', ' ')
+    from app.utils.alert_class_filter import parse_alert_class_names
+    alert_class_names = parse_alert_class_names(getattr(task, 'alert_class_names', None))
+    alert_class_names_ini = json.dumps(alert_class_names, ensure_ascii=False, separators=(',', ':'))
+    # RUNTIME 人脸链路桥：仅 realtime 且启用人脸匹配且配置了人脸库时开启，
+    # C++ 在 MQTT/InferEvent 告警路径下会额外向 alert_hook_url 投递 face_feed_only 告警
+    face_matching_ini = 'true' if (
+        task_type == 'realtime'
+        and bool(getattr(task, 'face_matching_enabled', False))
+        and AlgorithmTask._parse_library_ids(getattr(task, 'face_library_ids', None))
+    ) else 'false'
+    # RUNTIME 车牌链路桥：仅 realtime 且启用车牌匹配且配置了车牌库时开启，
+    # C++ 在 MQTT/InferEvent 告警路径下会额外向 alert_hook_url 投递 plate_feed_only 告警
+    plate_matching_ini = 'true' if (
+        task_type == 'realtime'
+        and bool(getattr(task, 'plate_matching_enabled', False))
+        and AlgorithmTask._parse_library_ids(getattr(task, 'plate_library_ids', None))
+    ) else 'false'
+    # 多模型：首模型写 model_path/classes_path，其余写 model_path_<i>/classes_path_<i>
+    ai_model_lines: List[str] = []
+    for i, (onnx_path, names_path) in enumerate(models):
+        prefix = 'model_path' if i == 0 else f'model_path_{i}'
+        class_prefix = 'classes_path' if i == 0 else f'classes_path_{i}'
+        ai_model_lines.append(f'{prefix}={onnx_path}')
+        ai_model_lines.append(f'{class_prefix}={names_path}')
+    ai_model_block = '\n'.join(ai_model_lines)
+    return f"""# Auto-generated by VIDEO for executor=cpp — do not edit by hand while task is running
 [video]
 rtsp_url={rtsp_url}
 rtmp_url={rtmp_out}
@@ -969,8 +970,7 @@ fps=25
 
 [ai]
 enable=true
-model_path={model_path}
-classes_path={classes_path}
+{ai_model_block}
 threads=2
 frame_skip={frame_skip}
 prefer_gpu={'true' if prefer_gpu else 'false'}
@@ -986,21 +986,26 @@ enable={'true' if task.alert_event_enabled else 'false'}
 confidence_threshold={conf}
 cooldown_time={cooldown}
 image_dir={alert_image_dir}
+alert_hook_url={alert_hook_url}
+alert_class_names={alert_class_names_ini}
 
 [task]
 id={task.id}
 control_port={control_port}
 
 [video_task]
-device_id={primary.id}
-device_name={primary.name or primary.id}
+device_id={device.id}
+device_name={device_name}
 task_type={hook_tt}
 algorithm_name={algo_name}
-heartbeat_url={heartbeat}
+heartbeat_url={heartbeat_url}
 heartbeat_interval_sec={'15' if task_type == 'patrol' else '10'}
 log_path={log_path}
 alert_image_dir={alert_image_dir}
+face_matching_enabled={face_matching_ini}
+plate_matching_enabled={plate_matching_ini}
 algo_bus_transport={algo_bus_transport}
+alert_hook_url={alert_hook_url}
 mqtt_broker_urls={mqtt_broker_urls}
 mqtt_username={mqtt_username}
 mqtt_password={mqtt_password}
@@ -1031,21 +1036,327 @@ enable_alarm={'true' if task.alert_event_enabled else 'false'}
 [regions]
 {regions_block}
 """
-    if write_local:
-        ini_path.parent.mkdir(parents=True, exist_ok=True)
-        ini_path.write_text(content, encoding='utf-8')
-        logger.info(
-            '已生成 RUNTIME 配置: %s (task_id=%s, type=%s, devices=%s)',
-            ini_path, task.id, task_type, len(devices),
-        )
+
+
+def generate_runtime_inis(
+    task: AlgorithmTask,
+    log_path: str,
+    *,
+    prefer_cluster_model: bool = False,
+    write_local: bool = True,
+    only_device_ids: Optional[List[str]] = None,
+    force_per_device: bool = False,
+    remote_ini_dir: Optional[str] = None,
+    heartbeat_url: Optional[str] = None,
+    compute_node_id: Optional[str] = None,
+    mqtt_broker_urls: Optional[str] = None,
+) -> List[str]:
+    """生成 RUNTIME ini 路径列表。
+
+    - realtime：每路摄像头一份 ini / 一个进程（推各自 ai/{{device_id}}）
+    - snap / patrol：仍为一份 ini（进程内多路调度）
+    - only_device_ids：仅生成指定设备（集群分片）
+    - force_per_device：分片场景下即使单路也使用 task_{id}_{deviceId}.ini
+    - remote_ini_dir：远程节点上的 ini 目录（write_local=False 时用于路径）
+    - compute_node_id：远程部署时传入目标节点 id（默认取本机环境变量）
+    - mqtt_broker_urls：远程部署时传入控制面可达的告警总线地址（默认取本机环境变量）
+    """
+    task_type = (getattr(task, 'task_type', None) or 'realtime').strip().lower()
+    if task_type == 'snapshot':
+        task_type = 'snap'
+    if task_type not in ('realtime', 'snap', 'patrol'):
+        raise ValueError(f'executor=cpp 不支持任务类型: {task_type}')
+
+    all_devices = _task_devices(task)
+    if not all_devices:
+        raise ValueError(f'任务 {task.id} 未绑定设备，无法生成 RUNTIME 配置')
+
+    device_index_map = {str(d.id): i for i, d in enumerate(all_devices)}
+    if only_device_ids:
+        by_id = {str(d.id): d for d in all_devices}
+        devices: List[Device] = []
+        for raw_id in only_device_ids:
+            did = str(raw_id)
+            if did not in by_id:
+                raise ValueError(f'任务 {task.id} 未绑定设备 {did}，无法生成分片配置')
+            devices.append(by_id[did])
     else:
-        # stash content for remote deploy callers
-        generate_runtime_ini.last_content = content  # type: ignore[attr-defined]
-        logger.info(
-            '已生成 RUNTIME 远程配置内容 (task_id=%s, type=%s, remote=%s)',
-            task.id, task_type, ini_path,
+        devices = list(all_devices)
+
+    devices, resolved_urls = _resolve_available_device_urls(devices)
+    if not devices:
+        raise ValueError(f'任务 {task.id} 的设备均无可用 RTSP/source 地址')
+
+    models = _resolve_model_paths(task, prefer_cluster=prefer_cluster_model)
+    for onnx_path, _names_path in models:
+        if write_local and not os.path.isfile(onnx_path):
+            raise ValueError(f'模型文件不存在: {onnx_path}（cpp 需要 .onnx；.pt 应已自动导出）')
+        if write_local and not str(onnx_path).lower().endswith('.onnx'):
+            raise ValueError(f'RUNTIME 最终需要 .onnx，当前为: {onnx_path}')
+        if prefer_cluster_model and not str(onnx_path).lower().endswith('.onnx'):
+            raise ValueError(
+                f'远程 cpp 需要 ONNX 模型，当前解析到: {onnx_path}。'
+                f'请确保模型已同步至集群，或允许控制面执行 .pt→onnx 导出'
+            )
+
+    conf = float(task.detect_conf if task.detect_conf is not None else 0.5)
+    cooldown = int(task.alert_event_suppress_time or 30)
+    algo_name = (task.model_names or 'detection').split(',')[0].strip() or 'detection'
+
+    frame_skip = int(getattr(task, 'extract_interval', None) or getattr(task, 'frame_skip', None) or 8)
+    if frame_skip <= 0:
+        frame_skip = 8
+
+    cron = (getattr(task, 'cron_expression', None) or '').strip()
+    patrol_mode = (getattr(task, 'patrol_mode', None) or 'pool').strip() or 'pool'
+    patrol_interval = max(3, int(getattr(task, 'patrol_interval_sec', None) or 10))
+    patrol_pool = max(1, min(int(getattr(task, 'patrol_pool_size', None) or 4), 16))
+
+    log_dir = log_path if log_path else str(runtime_config_dir())
+    alert_image_dir = (os.getenv('ALERT_IMAGES_DIR') or '').strip() or os.path.join(log_dir, 'alerts')
+    if write_local:
+        os.makedirs(alert_image_dir, exist_ok=True)
+
+    # 远程部署时控制面显式传入可达地址（如 192.168.1.10:1883）；
+    # 未传时回退控制面环境变量，最后兜底回环（仅适用于本机 RUNTIME）
+    mqtt_broker_urls = (
+        (mqtt_broker_urls or '').strip()
+        or (os.getenv('MQTT_BROKER_URLS') or '').strip()
+        or '127.0.0.1:1883'
+    )
+    mqtt_username = (os.getenv('MQTT_ALGO_USERNAME') or '').strip()
+    mqtt_password = (os.getenv('MQTT_ALGO_PASSWORD') or '').strip()
+    mqtt_tenant = (os.getenv('MQTT_ALGO_TENANT') or 'default').strip()
+    algo_bus_transport = (os.getenv('ALGO_BUS_TRANSPORT') or 'mqtt').strip() or 'mqtt'
+    alert_hook_url = ''
+    # RUNTIME 人脸/车牌链路桥：realtime + 启用人脸/车牌匹配 + 配置对应库 → C++ 需向 VIDEO hook
+    # 补投 face_feed_only / plate_feed_only 告警（MQTT/InferEvent 路径下 hook 不参与主告警流），
+    # 始终填 hook 地址
+    face_matching_enabled = bool(
+        task_type == 'realtime'
+        and getattr(task, 'face_matching_enabled', False)
+        and AlgorithmTask._parse_library_ids(getattr(task, 'face_library_ids', None))
+    )
+    plate_matching_enabled = bool(
+        task_type == 'realtime'
+        and getattr(task, 'plate_matching_enabled', False)
+        and AlgorithmTask._parse_library_ids(getattr(task, 'plate_library_ids', None))
+    )
+    matching_enabled = face_matching_enabled or plate_matching_enabled
+    # edge：无 EMQX/iot-sink，强制 HTTP → VIDEO /video/alert/hook 直连落库
+    try:
+        from app.utils.service_urls import is_edge_deploy_profile, resolve_alert_hook_url
+        if is_edge_deploy_profile() and algo_bus_transport.lower() in (
+            'off', '0', 'false', 'no', 'mqtt', '',
+        ):
+            algo_bus_transport = 'http'
+        if algo_bus_transport.lower() in ('http', 'off'):
+            alert_hook_url = resolve_alert_hook_url()
+        elif matching_enabled:
+            alert_hook_url = resolve_alert_hook_url()
+    except Exception:
+        if algo_bus_transport.lower() in ('http', 'off'):
+            alert_hook_url = f'{resolve_video_service_base_url().rstrip("/")}/video/alert/hook'
+        elif matching_enabled:
+            alert_hook_url = f'{resolve_video_service_base_url().rstrip("/")}/video/alert/hook'
+    compute_node_id = (
+        (compute_node_id or '').strip()
+        or (os.getenv('COMPUTE_NODE_ID') or os.getenv('NODE_ID') or '').strip()
+    )
+
+    hook_tt = _hook_task_type(task_type)
+    resolved_heartbeat_url = (heartbeat_url or '').strip() or _heartbeat_url(
+        task_type,
+        resolve_video_service_base_url().rstrip('/'),
+    )
+
+    use_gpu_env = (os.getenv('USE_GPU') or '').strip().lower()
+    force_cpu_env = (os.getenv('RUNTIME_FORCE_CPU') or '').strip().lower()
+    prefer_gpu = True
+    force_cpu = False
+    if force_cpu_env in ('1', 'true', 'yes', 'on'):
+        prefer_gpu = False
+        force_cpu = True
+    elif use_gpu_env in ('false', '0', 'no', 'off'):
+        prefer_gpu = False
+    prefer_gpu_env = (os.getenv('RUNTIME_PREFER_GPU') or '').strip().lower()
+    if prefer_gpu_env in ('false', '0', 'no', 'off'):
+        prefer_gpu = False
+    elif prefer_gpu_env in ('true', '1', 'yes', 'on'):
+        prefer_gpu = True
+    if hasattr(task, 'prefer_gpu') and task.prefer_gpu is not None:
+        prefer_gpu = bool(task.prefer_gpu)
+        if not prefer_gpu:
+            force_cpu = True
+    try:
+        gpu_device_id = int(os.getenv('RUNTIME_GPU_DEVICE_ID') or '0')
+    except Exception:
+        gpu_device_id = 0
+    if gpu_device_id < 0:
+        gpu_device_id = 0
+
+    # realtime：一路一进程；snap/patrol：单进程多设备（分片时仅包含 only_device_ids）
+    targets: List[Tuple[Device, int, List[Device]]]
+    if task_type == 'realtime':
+        targets = [
+            (d, device_index_map.get(str(d.id), i), [d])
+            for i, d in enumerate(devices)
+        ]
+    else:
+        primary_index = device_index_map.get(str(devices[0].id), 0)
+        targets = [(devices[0], primary_index, devices)]
+
+    per_device = force_per_device or (task_type == 'realtime' and (
+        len(all_devices) > 1 or bool(only_device_ids)
+    ))
+    # snap/patrol 分片：单 ini，但需独立端口/文件名，避免同节点多 workload 冲突
+    shard_mode = bool(only_device_ids) and task_type in ('snap', 'patrol')
+    ini_base = Path(remote_ini_dir) if remote_ini_dir else runtime_config_dir()
+
+    paths: List[str] = []
+    contents: List[str] = []
+    for device, device_index, devices_for_json in targets:
+        rtsp_url = resolved_urls[str(device.id)]
+        rtmp_out = _resolve_ai_rtmp_url(device, task)
+        enable_rtmp = False
+        if task_type == 'realtime':
+            if rtmp_out:
+                enable_rtmp = True
+            else:
+                raise ValueError(
+                    f'realtime 任务 {task.id} 无法解析 AI 推流地址（ai_rtmp）。'
+                    f'请为设备 {device.id} 配置 ai_rtmp_stream，或确保 SRS/媒体节点可用以便自动生成 rtmp://…/ai/{device.id}'
+                )
+        elif rtmp_out:
+            enable_rtmp = True
+
+        if task_type == 'realtime' and per_device:
+            control_port = _realtime_device_control_port(int(task.id), device_index)
+            ini_path = ini_base / f'task_{task.id}_{device.id}.ini'
+            device_log = os.path.join(log_dir, f'runtime_{device.id}')
+            if write_local:
+                os.makedirs(device_log, exist_ok=True)
+            mqtt_client_id = (
+                os.getenv('MQTT_ALGO_CLIENT_ID') or f'algo-runtime-{task.id}-{device.id}'
+            ).strip()
+        elif shard_mode:
+            shard_key = '_'.join(str(d.id) for d in devices_for_json[:3])
+            if len(devices_for_json) > 3:
+                shard_key = f'{shard_key}_n{len(devices_for_json)}'
+            control_port = _realtime_device_control_port(int(task.id), device_index)
+            ini_path = ini_base / f'task_{task.id}_shard_{shard_key}.ini'
+            device_log = os.path.join(log_dir, f'runtime_shard_{shard_key}')
+            if write_local:
+                os.makedirs(device_log, exist_ok=True)
+            mqtt_client_id = (
+                os.getenv('MQTT_ALGO_CLIENT_ID') or f'algo-runtime-{task.id}-shard-{shard_key}'
+            ).strip()
+        else:
+            control_port = _control_port(task)
+            ini_path = ini_base / f'task_{task.id}.ini'
+            device_log = log_path
+            mqtt_client_id = (os.getenv('MQTT_ALGO_CLIENT_ID') or f'algo-runtime-{task.id}').strip()
+
+        if task_type == 'realtime':
+            logger.info(
+                'RUNTIME realtime 推检测流 task_id=%s device_id=%s rtmp_url=%s enable_rtmp=%s port=%s',
+                task.id,
+                device.id,
+                rtmp_out,
+                enable_rtmp,
+                control_port,
+            )
+
+        content = _build_runtime_ini_text(
+            task,
+            task_type=task_type,
+            device=device,
+            devices_for_json=devices_for_json,
+            rtsp_url=rtsp_url,
+            rtmp_out=rtmp_out or '',
+            enable_rtmp=enable_rtmp,
+            models=models,
+            log_path=device_log,
+            alert_image_dir=alert_image_dir,
+            control_port=control_port,
+            frame_skip=frame_skip,
+            conf=conf,
+            cooldown=cooldown,
+            algo_name=algo_name,
+            prefer_gpu=prefer_gpu,
+            force_cpu=force_cpu,
+            gpu_device_id=gpu_device_id,
+            cron=cron,
+            patrol_mode=patrol_mode,
+            patrol_interval=patrol_interval,
+            patrol_pool=patrol_pool,
+            hook_tt=hook_tt,
+            mqtt_broker_urls=mqtt_broker_urls,
+            mqtt_username=mqtt_username,
+            mqtt_password=mqtt_password,
+            mqtt_client_id=mqtt_client_id,
+            mqtt_tenant=mqtt_tenant,
+            algo_bus_transport=algo_bus_transport,
+            alert_hook_url=alert_hook_url,
+            compute_node_id=compute_node_id,
+            resolved_urls=resolved_urls,
+            heartbeat_url=resolved_heartbeat_url,
         )
-    return str(ini_path)
+        contents.append(content)
+        if write_local:
+            ini_path.parent.mkdir(parents=True, exist_ok=True)
+            ini_path.write_text(content, encoding='utf-8')
+            logger.info(
+                '已生成 RUNTIME 配置: %s (task_id=%s, type=%s, device=%s)',
+                ini_path, task.id, task_type, device.id,
+            )
+        paths.append(str(ini_path))
+
+    generate_runtime_inis.last_contents = contents  # type: ignore[attr-defined]
+    generate_runtime_ini.last_ini_paths = paths  # type: ignore[attr-defined]
+    if contents:
+        generate_runtime_ini.last_content = contents[0]  # type: ignore[attr-defined]
+    return paths
+
+
+def generate_runtime_ini(
+    task: AlgorithmTask,
+    log_path: str,
+    *,
+    prefer_cluster_model: bool = False,
+    write_local: bool = True,
+    remote_ini_path: Optional[str] = None,
+    heartbeat_url: Optional[str] = None,
+    compute_node_id: Optional[str] = None,
+    mqtt_broker_urls: Optional[str] = None,
+) -> str:
+    """Generate RUNTIME ini；realtime 多路时写多份并返回第一路路径（完整列表见 generate_runtime_inis）。"""
+    if remote_ini_path and write_local is False:
+        # 远程单文件兼容：仍按旧逻辑生成「主设备」一份内容
+        paths = generate_runtime_inis(
+            task,
+            log_path,
+            prefer_cluster_model=prefer_cluster_model,
+            write_local=False,
+            heartbeat_url=heartbeat_url,
+            compute_node_id=compute_node_id,
+            mqtt_broker_urls=mqtt_broker_urls,
+        )
+        # 覆盖远程路径名（调用方指定）
+        generate_runtime_ini.last_content = (  # type: ignore[attr-defined]
+            getattr(generate_runtime_inis, 'last_contents', ['']) or ['']
+        )[0]
+        return remote_ini_path
+    paths = generate_runtime_inis(
+        task,
+        log_path,
+        prefer_cluster_model=prefer_cluster_model,
+        write_local=write_local,
+        heartbeat_url=heartbeat_url,
+        compute_node_id=compute_node_id,
+        mqtt_broker_urls=mqtt_broker_urls,
+    )
+    return paths[0]
 
 
 def generate_runtime_ini_content(
@@ -1054,19 +1365,68 @@ def generate_runtime_ini_content(
     *,
     prefer_cluster_model: bool = True,
     remote_ini_path: Optional[str] = None,
+    only_device_ids: Optional[List[str]] = None,
+    force_per_device: bool = False,
+    heartbeat_url: Optional[str] = None,
+    compute_node_id: Optional[str] = None,
+    mqtt_broker_urls: Optional[str] = None,
 ) -> Tuple[str, str]:
-    """Return (remote_ini_path, ini_content) without requiring local model file."""
-    path = generate_runtime_ini(
+    """Return (remote_ini_path, ini_content) without requiring local model file.
+
+    远程多路时返回第一路内容；完整列表见 generate_runtime_inis.last_contents。
+    """
+    remote_dir = None
+    if remote_ini_path:
+        remote_dir = os.path.dirname(remote_ini_path) or None
+    paths = generate_runtime_inis(
         task,
         log_path,
         prefer_cluster_model=prefer_cluster_model,
         write_local=False,
-        remote_ini_path=remote_ini_path or f'/opt/easyaiot/RUNTIME/config/task_{task.id}.ini',
+        only_device_ids=only_device_ids,
+        force_per_device=force_per_device,
+        remote_ini_dir=remote_dir,
+        heartbeat_url=heartbeat_url,
+        compute_node_id=compute_node_id,
+        mqtt_broker_urls=mqtt_broker_urls,
     )
-    content = getattr(generate_runtime_ini, 'last_content', '') or ''
-    if not content:
+    contents = getattr(generate_runtime_inis, 'last_contents', None) or []
+    if not contents:
         raise ValueError('生成 RUNTIME ini 内容失败')
-    return path, content
+    path = remote_ini_path or paths[0]
+    generate_runtime_ini.last_content = contents[0]  # type: ignore[attr-defined]
+    return path, contents[0]
+
+
+def generate_runtime_inis_content(
+    task: AlgorithmTask,
+    log_path: str,
+    *,
+    prefer_cluster_model: bool = True,
+    only_device_ids: Optional[List[str]] = None,
+    force_per_device: bool = False,
+    remote_ini_dir: Optional[str] = None,
+    heartbeat_url: Optional[str] = None,
+    compute_node_id: Optional[str] = None,
+    mqtt_broker_urls: Optional[str] = None,
+) -> List[Tuple[str, str]]:
+    """返回 [(ini_path, content), ...]，供远程分片多路部署。"""
+    paths = generate_runtime_inis(
+        task,
+        log_path,
+        prefer_cluster_model=prefer_cluster_model,
+        write_local=False,
+        only_device_ids=only_device_ids,
+        force_per_device=force_per_device,
+        remote_ini_dir=remote_ini_dir,
+        heartbeat_url=heartbeat_url,
+        compute_node_id=compute_node_id,
+        mqtt_broker_urls=mqtt_broker_urls,
+    )
+    contents = getattr(generate_runtime_inis, 'last_contents', None) or []
+    if len(contents) != len(paths):
+        raise ValueError('生成 RUNTIME ini 内容数量与路径不一致')
+    return list(zip(paths, contents))
 
 
 def _stream_forward_control_port(task_id: int, device_index: int) -> int:
@@ -1083,8 +1443,12 @@ def _stream_forward_runtime_ini_content(
     *,
     device_index: int = 0,
 ) -> str:
-    video_base = resolve_video_service_base_url().rstrip('/')
-    heartbeat = f'{video_base}/video/stream-forward/heartbeat'
+    heartbeat_env = (os.getenv('VIDEO_HEARTBEAT_URL') or '').strip()
+    if heartbeat_env:
+        heartbeat = heartbeat_env
+    else:
+        video_base = resolve_video_service_base_url().rstrip('/')
+        heartbeat = f'{video_base}/video/stream-forward/heartbeat'
     control_port = _stream_forward_control_port(int(task.id), device_index)
     log_dir = os.path.dirname(log_path) if log_path else str(runtime_config_dir())
     device_log = os.path.join(log_dir, f'forward_{device.id}')
@@ -1184,16 +1548,60 @@ def normalize_executor(value) -> str:
     return 'cpp'
 
 
+def _deploy_env_library_paths() -> List[str]:
+    """从 RUNTIME/deploy.env 读取库目录（不依赖进程 env，避免被 nvidia 路径抢先占位）。"""
+    deploy_env = _repo_root() / 'RUNTIME' / 'deploy.env'
+    if not deploy_env.is_file():
+        return []
+    kv: Dict[str, str] = {}
+    try:
+        for line in deploy_env.read_text(encoding='utf-8', errors='ignore').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, _, value = line.partition('=')
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key:
+                kv[key] = value
+    except Exception as e:
+        logger.warning('解析 RUNTIME/deploy.env 库路径失败: %s', e)
+        return []
+
+    paths: List[str] = []
+    for key in (
+        'RUNTIME_CONDA_LIB_HOST',
+        'RUNTIME_ORT_LIB_HOST',
+        'RUNTIME_CUDA_LIB_HOST',
+    ):
+        raw = (kv.get(key) or '').strip()
+        if not raw:
+            continue
+        for segment in raw.split(':'):
+            segment = segment.strip()
+            if segment and os.path.isdir(segment):
+                paths.append(segment)
+
+    ld = (kv.get('LD_LIBRARY_PATH') or '').strip()
+    if ld:
+        for segment in ld.split(':'):
+            segment = segment.strip()
+            if segment and os.path.isdir(segment):
+                paths.append(segment)
+    return paths
+
+
 def runtime_library_path_env() -> str:
     """Build LD_LIBRARY_PATH hint for conda + ORT SDK + CUDA (host or Docker mounts)."""
-    parts = []
-    existing = (os.getenv('LD_LIBRARY_PATH') or '').strip()
-    if existing:
-        parts.append(existing)
+    apply_runtime_deploy_env()
+    parts: List[str] = []
+    # deploy.env 中的 OpenCV/ORT 路径优先（须在 nvidia pip 库之前）
+    parts.extend(_deploy_env_library_paths())
     for mounted in (
         '/opt/easyaiot/runtime-conda-lib',
         '/opt/easyaiot/ort-lib',
         '/opt/easyaiot/cuda-lib',
+        '/opt/easyaiot/RUNTIME/lib',
     ):
         if os.path.isdir(mounted):
             parts.append(mounted)
@@ -1202,6 +1610,9 @@ def runtime_library_path_env() -> str:
         parts.append(os.path.join(conda, 'lib'))
     # common local ORT layout (gpu preferred)
     root = _repo_root()
+    runtime_bundle_lib = root / 'RUNTIME' / 'lib'
+    if runtime_bundle_lib.is_dir():
+        parts.append(str(runtime_bundle_lib))
     for arch in ('x64', 'aarch64'):
         for name in (
             f'onnxruntime-linux-{arch}-gpu-1.23.2',
@@ -1214,6 +1625,12 @@ def runtime_library_path_env() -> str:
         else:
             continue
         break
+    existing = (os.getenv('LD_LIBRARY_PATH') or '').strip()
+    if existing:
+        for segment in existing.split(':'):
+            segment = segment.strip()
+            if segment:
+                parts.append(segment)
     for cuda_path in (
         '/usr/local/cuda/lib64',
         '/usr/local/cuda/lib',

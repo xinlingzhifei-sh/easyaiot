@@ -38,6 +38,8 @@ print_warning() { warn "$1"; }
 print_error() { err "$1"; }
 # shellcheck source=docker_mirror_common.sh
 source "${SCRIPT_DIR}/docker_mirror_common.sh"
+# shellcheck source=clear_iot_node_seed_data.sh
+source "${SCRIPT_DIR}/clear_iot_node_seed_data.sh"
 
 ensure_env_var() {
   local key="$1" value="$2"
@@ -617,6 +619,17 @@ post_start_hooks() {
   update_nacos_password || warn "自动修改 Nacos 密码失败，请稍后手动确认"
   sleep 3
   bash "${SCRIPT_DIR}/set_permanent_token.sh" >/dev/null 2>&1 || true
+  # 与 Linux 中间件对齐：历史卷/首次 initdb 后清掉 iot-node 样例节点（含改写 host 后的指纹）
+  wait_postgres_for_node_seed_clear || true
+  clear_iot_node_seed_data
+  if [ "${EASYAIOT_KEEP_NODE_SEED:-0}" != "1" ]; then
+    local _left=0
+    _left="$(_count_iot_node_seed_fingerprints 2>/dev/null || echo 0)"
+    if [ "${_left:-0}" -gt 0 ] 2>/dev/null; then
+      warn "仍检测到 ${_left} 条样例指纹，强制清空..."
+      clear_iot_node_seed_data force
+    fi
+  fi
 }
 
 cmd_install() {
@@ -713,6 +726,7 @@ EasyAIoT 中间件脚本（macOS / Windows · 仅镜像部署）
   help      查看帮助
 
 说明：本脚本不支持本地 docker build；业务运行时镜像请用上级 install_mac / install_windows 的 pull。
+部署形态：EASYAIOT_DEPLOY_PROFILE=edge|mini|standard|full（默认沿用已保存规格或 full）
 USAGE
 }
 

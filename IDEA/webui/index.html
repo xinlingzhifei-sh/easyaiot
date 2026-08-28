@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EasyAIoT IDEA</title>
+  <style>
+    :root {
+      --bar-h: 30px;
+      --icon: 15px;
+      --hit: 26px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #eef1f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    #app { position: relative; width: 100%; height: 100%; }
+
+    /* 隐藏提示：顶中细灰线，不抢眼 */
+    #glow {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 2px;
+      z-index: 48;
+      border-radius: 0 0 2px 2px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        #c5ccd6 18%,
+        #e8ebf0 50%,
+        #c5ccd6 82%,
+        transparent 100%);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    body.bar-hidden #glow { opacity: 1; }
+
+    #hotzone {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 260px;
+      height: 14px;
+      z-index: 50;
+    }
+
+    #toolbar {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, calc(-100% - 2px));
+      z-index: 40;
+      height: var(--bar-h);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0 5px 0 7px;
+      background: linear-gradient(180deg, #fafbfc 0%, #f0f2f5 100%);
+      border: 1px solid #d8dee6;
+      border-top: none;
+      border-radius: 0 0 7px 7px;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.85) inset,
+        0 4px 14px rgba(15, 23, 42, 0.1);
+      transition: transform .18s ease;
+    }
+    body.bar-open #toolbar,
+    body.bar-pinned #toolbar {
+      transform: translate(-50%, 0);
+    }
+
+    .led {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin: 0 4px 0 2px;
+      background: #16a34a;
+      flex-shrink: 0;
+    }
+    .led.off { background: #cbd5e1; }
+
+    .ws-chip {
+      position: relative;
+      height: 20px;
+      max-width: 118px;
+      display: flex;
+      align-items: center;
+    }
+    .ws-chip select {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 20px;
+      padding: 0 14px 0 2px;
+      border: 0;
+      background: transparent;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+    }
+    .ws-chip::after {
+      content: "";
+      position: absolute;
+      right: 2px;
+      top: 50%;
+      width: 5px;
+      height: 5px;
+      border-right: 1.3px solid #94a3b8;
+      border-bottom: 1.3px solid #94a3b8;
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events: none;
+    }
+
+    .sep {
+      width: 1px;
+      height: 12px;
+      margin: 0 4px;
+      background: #d5dbe3;
+      flex-shrink: 0;
+    }
+
+    .ibtn {
+      width: var(--hit);
+      height: var(--hit);
+      border: 0;
+      background: transparent;
+      border-radius: 4px;
+      color: #64748b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .ibtn svg {
+      width: var(--icon);
+      height: var(--icon);
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.55;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ibtn:hover { background: rgba(15, 23, 42, 0.05); color: #1e293b; }
+    .ibtn:active { background: rgba(15, 23, 42, 0.09); }
+    .ibtn:disabled { opacity: .3; cursor: default; }
+    .ibtn.pinned { color: #334155; background: rgba(15, 23, 42, 0.06); }
+
+    .ibtn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: calc(100% + 7px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #334155;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1;
+      padding: 5px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .1s;
+      z-index: 60;
+    }
+    .ibtn:hover::after { opacity: 1; }
+
+    #auth-box { display: flex; align-items: center; }
+    #auth-box a.ibtn { text-decoration: none; color: inherit; }
+
+    #frame-wrap {
+      position: absolute;
+      inset: 0;
+      background: #f8fafc;
+      display: flex;
+      min-width: 0;
+      overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+    #ide-pane {
+      flex: 1 1 auto;
+      min-width: 480px;
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+    }
+    #ide { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+    #harness-split {
+      display: none;
+      width: 6px;
+      flex-shrink: 0;
+      cursor: col-resize;
+      position: relative;
+      z-index: 30;
+      background: transparent;
+    }
+    #harness-split::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 2px;
+      width: 1px;
+      background: transparent;
+    }
+    #harness-split:hover::after,
+    body.resizing-harness #harness-split::after {
+      left: 1px;
+      width: 3px;
+      background: #005fb8;
+    }
+    body.harness-open #harness-split { display: block; }
+    #harness-pane {
+      display: none;
+      width: min(42vw, 720px);
+      min-width: 420px;
+      max-width: min(50vw, 820px);
+      height: 100%;
+      border-left: 0;
+      background: #fff;
+      flex-direction: column;
+      position: relative;
+      flex: 0 0 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+    body.harness-open #harness-pane { display: flex; }
+    #harness-pane .h-head {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #3b3b3b;
+      background: #f3f3f3;
+      border-bottom: 0;
+      flex-shrink: 0;
+    }
+    #harness-pane .h-head .h-sub {
+      font-weight: 400;
+      color: #8b8b8b;
+      margin-left: 8px;
+      font-size: 10px;
+    }
+    #harness-pane .h-head button {
+      border: 0;
+      background: transparent;
+      color: #6c6c6c;
+      cursor: pointer;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    #harness-pane .h-head button:hover { background: #e8e8e8; color: #3b3b3b; }
+    #harness-body { flex: 1; min-height: 0; position: relative; }
+    #harness {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+    #harness-drop {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: rgba(0, 95, 184, 0.06);
+      border: 2px dashed #005fb8;
+      color: #3b3b3b;
+      font-size: 13px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      pointer-events: none;
+    }
+    body.dragging-files #harness-drop {
+      display: flex;
+      pointer-events: auto;
+    }
+    #harness-toast {
+      display: none;
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      z-index: 8;
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-left: 3px solid #005fb8;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #3b3b3b;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    #harness-toast.show { display: block; }
+    .ibtn.on { color: #0f172a; background: rgba(15, 23, 42, 0.08); }
+    body.resizing-harness { cursor: col-resize; user-select: none; }
+    /* 拖拽时两侧 iframe 都不吃事件，避免助手里 React 跟着每帧重排 */
+    body.resizing-harness iframe { pointer-events: none; }
+
+    /* 工具栏收起时仍可见：右侧 AI 拉手 */
+    #ai-tab {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      z-index: 55;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 0.12em;
+      padding: 14px 7px;
+      border: 1px solid #d8dee6;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      background: linear-gradient(180deg, #fafbfc 0%, #f0f2f5 100%);
+      color: #334155;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: -2px 2px 10px rgba(15, 23, 42, 0.08);
+    }
+    #ai-tab:hover { background: #eef2f7; color: #0f172a; }
+    body.harness-open #ai-tab { display: none; }
+
+    #empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #64748b;
+      text-align: center;
+      z-index: 5;
+    }
+    #empty h2 { margin: 0; color: #0f172a; font-size: 16px; font-weight: 600; }
+    #empty p { margin: 0; max-width: 360px; line-height: 1.6; font-size: 13px; }
+    #empty button {
+      margin-top: 8px;
+      height: 30px;
+      padding: 0 14px;
+      border: 0;
+      background: #334155;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .panel {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(420px, calc(100vw - 24px));
+      max-height: min(70vh, 520px);
+      overflow: auto;
+      z-index: 45;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+      display: none;
+      color: #0f172a;
+    }
+    .panel.open { display: block; }
+    .panel h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+    .panel .muted { color: #64748b; font-size: 12px; line-height: 1.55; }
+    .mods { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; font-size: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .row button, .row .btn, .row input[type=text] {
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      font-size: 12px;
+      padding: 0 10px;
+    }
+    .row button.primary { background: #334155; border-color: #334155; color: #fff; cursor: pointer; }
+    .row button, .row .btn { cursor: pointer; }
+    .row input[type=text] { flex: 1; min-width: 180px; }
+    pre.job {
+      margin: 10px 0 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      max-height: 180px;
+      overflow: auto;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body class="bar-open">
+  <div id="app">
+    <div id="glow"></div>
+    <div id="hotzone" title="显示控制条"></div>
+    <button type="button" id="ai-tab" title="打开 AI 助手 (HARNESS)">AI 助手</button>
+    <div id="toolbar">
+      <span class="led off" id="status-dot"></span>
+      <div class="ws-chip">
+        <select id="ws-select" title="选择编辑器实例"></select>
+      </div>
+      <span class="sep"></span>
+      <button class="ibtn" id="btn-copy-pwd" data-tip="复制登录密码" aria-label="复制登录密码">
+        <svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="3"/><path d="M11 15h8v-2a2 2 0 0 0-2-2h-1"/><path d="M16 11V8.5"/></svg>
+      </button>
+      <button class="ibtn" id="btn-refresh" data-tip="刷新编辑器" aria-label="刷新编辑器">
+        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v6h-6"/></svg>
+      </button>
+      <button class="ibtn" id="btn-enter" data-tip="启动编辑器" aria-label="启动编辑器">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+      <span class="sep"></span>
+      <button class="ibtn" id="btn-publish-panel" data-tip="部署到本机" aria-label="部署到本机">
+        <svg viewBox="0 0 24 24"><path d="M12 16V5"/><path d="M7.5 9.5 12 5l4.5 4.5"/><path d="M5 19h14"/></svg>
+      </button>
+      <button class="ibtn" id="btn-live" data-tip="打开本机网站" aria-label="打开本机网站">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.2 2.3 3.3 5.1 3.3 8S14.2 17.7 12 20C9.8 17.7 8.7 14.9 8.7 12S9.8 6.3 12 4z"/></svg>
+      </button>
+      <button class="ibtn" id="btn-contrib-panel" data-tip="推送代码 / 提合并请求" aria-label="推送代码">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.8"/><circle cx="18" cy="6" r="1.8"/><circle cx="12" cy="18" r="1.8"/><path d="M7.8 7.3C9 10 10.1 13.4 11.1 16M16.2 7.3C15 10 13.9 13.4 12.9 16"/></svg>
+      </button>
+      <button class="ibtn" id="btn-harness" data-tip="AI 助手 (HARNESS)" aria-label="AI 助手">
+        <svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v1h2a3 3 0 0 1 3 3v2"/><path d="M4 10V9a3 3 0 0 1 3-3h2V6a3 3 0 0 1 3-3"/><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M9 14h.01M15 14h.01M9.5 17h5"/></svg>
+      </button>
+      <span class="sep"></span>
+      <div id="auth-box"></div>
+      <button class="ibtn" id="btn-pin" data-tip="固定工具栏" aria-label="固定工具栏">
+        <svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 3.8h6l-.8 6.2h2.6L12 16.4 7.2 10H9.8L9 3.8z"/></svg>
+      </button>
+    </div>
+
+    <div id="frame-wrap">
+      <div id="ide-pane">
+        <div id="empty">
+          <h2>编辑器尚未启动</h2>
+          <p>将鼠标移到顶部中间细线，唤出工具栏，再点「启动编辑器」。</p>
+          <button id="btn-enter-empty">启动编辑器</button>
+        </div>
+        <iframe id="ide" title="IDEA workspace" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+      </div>
+      <div id="harness-split" title="拖拽调节助手宽度" aria-hidden="true"></div>
+      <aside id="harness-pane" aria-label="HARNESS AI 助手">
+        <div class="h-head">
+          <span>AI 助手<span class="h-sub">拖入文件自动 @ 引用</span></span>
+          <span>
+            <button type="button" id="btn-harness-refresh" title="刷新">刷新</button>
+          </span>
+        </div>
+        <div id="harness-body">
+          <iframe id="harness" title="EasyAIoT HARNESS" allow="clipboard-read; clipboard-write"></iframe>
+          <div id="harness-drop">将资源管理器中的文件拖到此处<br/>自动关联为对话上下文</div>
+          <div id="harness-toast"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="panel" id="panel-publish">
+      <h3>部署到本机</h3>
+      <p class="muted" id="suggest-line">根据本地改动建议模块；确认后会构建镜像并替换本机正在运行的服务。</p>
+      <div class="mods" id="mod-list"></div>
+      <div class="row">
+        <button class="primary" id="btn-publish">部署所选模块</button>
+        <button id="btn-restart">只重启服务</button>
+        <button id="btn-close-pub">关闭</button>
+      </div>
+      <p class="muted" id="job-status"></p>
+      <pre class="job" id="job-log">等待任务…</pre>
+    </div>
+
+    <div class="panel" id="panel-contrib">
+      <h3>推送代码 / 提合并请求</h3>
+      <p class="muted">填写你的个人仓库地址（Gitee / GitHub / GitLab）。登录令牌请在编辑器终端里配置。</p>
+      <div class="row">
+        <input type="text" id="origin-url" placeholder="https://gitee.com/你的账号/easyaiot.git" />
+      </div>
+      <div class="row">
+        <button class="primary" id="btn-save-origin">保存仓库地址</button>
+        <a class="btn" id="btn-pr" href="#" target="_blank" rel="noopener">打开合并请求页</a>
+        <button id="btn-close-contrib">关闭</button>
+      </div>
+      <p class="muted" id="remote-info"></p>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const PIN_KEY = 'easyaiot.idea.shell.pinned';
+    const HARNESS_KEY = 'easyaiot.idea.harness.open';
+    const REPO_FOLDER = '/home/coder/easyaiot';
+    let session = localStorage.getItem('easyaiot.idea.session') || '';
+    let workspaces = [];
+    let current = null;
+    let hideTimer = null;
+    let jobTimer = null;
+    let pinned = localStorage.getItem(PIN_KEY) === '1';
+    let barOpen = true;
+    let harnessOpen = localStorage.getItem(HARNESS_KEY) === '1';
+    let pendingFile = '';
+
+    function harnessBaseUrl() {
+      return `${location.protocol}//${location.hostname}:3080`;
+    }
+
+    function harnessEmbedUrl(bust) {
+      let url = harnessBaseUrl() + '/?embed=idea';
+      if (bust) url += '&t=' + Date.now();
+      return url;
+    }
+
+    function toIdeAbs(filePath) {
+      if (!filePath) return '';
+      let p = String(filePath).trim().replace(/\\/g, '/');
+      if (!p) return '';
+      if (p.startsWith(REPO_FOLDER)) return p;
+      p = p.replace(/^\/+/, '').replace(/^(workspace\/)?easyaiot\//, '');
+      return `${REPO_FOLDER}/${p}`;
+    }
+
+    /** code-server 打开单文件：folder + payload openFile（hash 方式无效） */
+    function buildIdeSrc(wsUrl, filePath) {
+      const base = String(wsUrl || '').replace(/\/$/, '');
+      if (!base) return '';
+      const folder = encodeURIComponent(REPO_FOLDER);
+      const abs = toIdeAbs(filePath || pendingFile);
+      if (!abs) return `${base}/?folder=${folder}`;
+      // vscode-remote:///abs/path — code-server / VS Code web 约定
+      const remote = 'vscode-remote://' + abs;
+      const payload = encodeURIComponent(JSON.stringify([['openFile', remote]]));
+      return `${base}/?folder=${folder}&payload=${payload}`;
+    }
+
+    const ICO = {
+      login: '<svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l4-4-4-4"/><path d="M14 12H3"/></svg>',
+      logout: '<svg viewBox="0 0 24 24"><path d="M10 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/><path d="M16 16l4-4-4-4"/><path d="M20 12H9"/></svg>',
+    };
+
+    function headers() {
+      const h = { 'Content-Type': 'application/json' };
+      if (session) h['X-IDEA-Session'] = session;
+      return h;
+    }
+    async function api(path, opt = {}) {
+      const resp = await fetch(path, { ...opt, headers: { ...headers(), ...(opt.headers || {}) } });
+      const json = await resp.json().catch(() => ({}));
+      if (!resp.ok || json.ok === false) throw new Error(json.error || resp.statusText);
+      return json.data;
+    }
+
+    function applyBar() {
+      document.body.classList.toggle('bar-pinned', pinned);
+      document.body.classList.toggle('bar-open', barOpen || pinned);
+      document.body.classList.toggle('bar-hidden', !pinned && !barOpen);
+      $('btn-pin').classList.toggle('pinned', pinned);
+      $('btn-pin').setAttribute('data-tip', pinned ? '取消固定' : '固定工具栏');
+      localStorage.setItem(PIN_KEY, pinned ? '1' : '0');
+    }
+    function showBar() {
+      barOpen = true;
+      applyBar();
+    }
+    function scheduleHide(delay) {
+      if (pinned) return;
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (!pinned) {
+          barOpen = false;
+          applyBar();
+        }
+      }, delay == null ? 480 : delay);
+    }
+
+    const HARNESS_WIDTH_KEY = 'easyaiot.idea.harness.width.v4';
+    let harnessWidth = parseInt(localStorage.getItem(HARNESS_WIDTH_KEY) || '', 10);
+    // 默认约 42% 屏宽，给 IDE 留足空间；清掉会挤扁编辑器的旧缓存
+    try {
+      localStorage.removeItem('easyaiot.idea.harness.width');
+      localStorage.removeItem('easyaiot.idea.harness.width.v3');
+    } catch (_) { /* ignore */ }
+    if (!Number.isFinite(harnessWidth) || harnessWidth < 420 || harnessWidth > window.innerWidth * 0.55) {
+      harnessWidth = Math.max(480, Math.round(window.innerWidth * 0.42));
+    }
+    let toastTimer = null;
+    let dragClearTimer = null;
+    let pendingDragPaths = [];
+    let dragOverHarness = false;
+    let bridgeReady = false;
+
+    function setIdePointerPassThrough(on) {
+      const ide = $('ide');
+      if (ide) ide.style.pointerEvents = on ? 'none' : '';
+    }
+
+    function clampHarnessWidth(px) {
+      const split = 6;
+      // IDE 至少约 45% / 480px，再窄编辑器操作按钮会被挤没
+      const ideMin = Math.max(480, Math.round(window.innerWidth * 0.42));
+      const hardMax = Math.max(420, window.innerWidth - ideMin - split);
+      const softMax = Math.min(hardMax, Math.round(window.innerWidth * 0.5), 820);
+      const min = Math.min(420, softMax);
+      return Math.max(min, Math.min(softMax, Math.round(px)));
+    }
+
+    function applyHarnessWidth() {
+      const pane = $('harness-pane');
+      if (!pane) return;
+      harnessWidth = clampHarnessWidth(harnessWidth);
+      pane.style.width = harnessWidth + 'px';
+      pane.style.flex = '0 0 auto';
+      localStorage.setItem(HARNESS_WIDTH_KEY, String(harnessWidth));
+    }
+
+    function nudgeIdeLayout() {
+      // 只通知 IDE iframe 重排，绝不能再 dispatch window.resize
+      // （resize 监听里若再调用本函数会 Maximum call stack size exceeded）
+      const ide = $('ide');
+      if (!ide || !ide.contentWindow) return;
+      try {
+        ide.contentWindow.dispatchEvent(new Event('resize'));
+      } catch (_) { /* ignore */ }
+      requestAnimationFrame(() => {
+        try {
+          ide.contentWindow.dispatchEvent(new Event('resize'));
+        } catch (_) { /* ignore */ }
+      });
+    }
+
+    function showHarnessToast(msg) {
+      const el = $('harness-toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function toHarnessRel(raw) {
+      if (!raw) return '';
+      let p = String(raw).trim().replace(/\\/g, '/');
+      if (!p) return '';
+      if (/^[a-z][a-z0-9+.-]*:/i.test(p)) {
+        try {
+          if (/^vscode-/i.test(p)) {
+            const m = p.match(/^[^:]+:\/\/[^/]*(\/.*)$/);
+            p = m ? decodeURIComponent(m[1]) : p;
+          } else {
+            const u = new URL(p);
+            p = decodeURIComponent(u.pathname || '');
+          }
+        } catch (_) { /* keep */ }
+      }
+      p = p.replace(/#.*$/, '');
+      const prefixes = [
+        REPO_FOLDER + '/',
+        '/workspace/easyaiot/',
+        '/home/coder/project/',
+        '/workspaces/easyaiot/',
+      ];
+      for (const pre of prefixes) {
+        if (p.startsWith(pre)) { p = p.slice(pre.length); break; }
+      }
+      p = p.replace(/^\/+/, '').replace(/^(workspace\/)?easyaiot\//, '');
+      return p.replace(/\/$/, '');
+    }
+
+    function extractDropPaths(dt) {
+      if (!dt) return [];
+      const out = [];
+      const push = (s) => String(s || '').split(/[\r\n]+/).forEach((line) => {
+        const t = line.trim();
+        if (t && !t.startsWith('#')) out.push(t);
+      });
+      const get = (mime) => {
+        try { return dt.getData(mime) || ''; } catch (_) { return ''; }
+      };
+      ['text/uri-list', 'application/vnd.code.uri-list', 'resourceurls', 'text/plain'].forEach((m) => push(get(m)));
+      try {
+        const raw = get('resourceurls');
+        if (raw && raw.trim().startsWith('[')) JSON.parse(raw).forEach((u) => out.push(String(u)));
+      } catch (_) { /* ignore */ }
+      if (dt.files && dt.files.length) {
+        for (const f of dt.files) if (f.name) out.push(f.name);
+      }
+      return [...new Set(out.map(toHarnessRel).filter(Boolean))];
+    }
+
+    let lastPointerX = 0;
+    let attachInFlight = false;
+
+    function uniqPaths(list) {
+      const out = [];
+      const seen = new Set();
+      (list || []).forEach((p) => {
+        const rel = toHarnessRel(p) || String(p || '').trim();
+        if (!rel || seen.has(rel)) return;
+        seen.add(rel);
+        out.push(rel);
+      });
+      return out;
+    }
+
+    function attachPathsToHarness(paths) {
+      const rels = uniqPaths(paths);
+      if (!rels.length) {
+        showHarnessToast('未能解析文件路径：请从资源管理器拖到右侧助手区域');
+        return;
+      }
+      if (attachInFlight) return;
+      attachInFlight = true;
+      setTimeout(() => { attachInFlight = false; }, 800);
+
+      if (!harnessOpen) setHarness(true);
+      const frame = $('harness');
+      const payload = { type: 'easyaiot-attach-files', paths: rels, once: true };
+      const send = () => {
+        try {
+          frame.contentWindow.postMessage(payload, '*');
+        } catch (_) { /* ignore */ }
+      };
+      send();
+      // 仅当输入框未就绪时，由 attach-result 触发一次补发
+      pendingDragPaths = [];
+    }
+
+    function applyHarness() {
+      document.body.classList.toggle('harness-open', harnessOpen);
+      $('btn-harness').classList.toggle('on', harnessOpen);
+      localStorage.setItem(HARNESS_KEY, harnessOpen ? '1' : '0');
+      applyHarnessWidth();
+      const frame = $('harness');
+      if (harnessOpen) {
+        const cur = frame.getAttribute('src') || '';
+        // 未加载、或仍是旧空白缓存时强制换新 URL
+        if (!cur || !/embed=idea/.test(cur) || frame.dataset.needReload === '1') {
+          frame.dataset.needReload = '';
+          frame.src = harnessEmbedUrl(true);
+        }
+      }
+    }
+
+    function setHarness(open) {
+      harnessOpen = !!open;
+      applyHarness();
+    }
+
+    function beginHarnessResize(ev) {
+      if (!harnessOpen) return;
+      ev.preventDefault();
+      document.body.classList.add('resizing-harness');
+      const startX = ev.clientX;
+      const startW = harnessWidth;
+      let raf = 0;
+      const notifyHarness = (type) => {
+        try {
+          $('harness').contentWindow.postMessage({ type }, '*');
+        } catch (_) { /* ignore */ }
+      };
+      notifyHarness('easyaiot-harness-resize-start');
+      const onMove = (e) => {
+        const next = clampHarnessWidth(startW + (startX - e.clientX));
+        if (next === harnessWidth) return;
+        harnessWidth = next;
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          applyHarnessWidth();
+        });
+      };
+      const endResize = () => {
+        if (!document.body.classList.contains('resizing-harness')) return;
+        document.body.classList.remove('resizing-harness');
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', endResize);
+        window.removeEventListener('pointerup', endResize);
+        window.removeEventListener('blur', endResize);
+        document.removeEventListener('mouseleave', endResize);
+        if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+        applyHarnessWidth();
+        notifyHarness('easyaiot-harness-resize-end');
+        nudgeIdeLayout();
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', endResize);
+      window.addEventListener('pointerup', endResize);
+      window.addEventListener('blur', endResize);
+      document.addEventListener('mouseleave', endResize);
+      try {
+        ev.target.setPointerCapture?.(ev.pointerId);
+      } catch (_) { /* ignore */ }
+    }
+
+    function markDragging(on) {
+      clearTimeout(dragClearTimer);
+      // 只有拿到真实路径才显示蓝色遮罩，避免「假可拖」
+      if (on && pendingDragPaths.length) {
+        document.body.classList.add('dragging-files');
+        setIdePointerPassThrough(true);
+      } else if (!on) {
+        dragClearTimer = setTimeout(() => {
+          document.body.classList.remove('dragging-files');
+          setIdePointerPassThrough(false);
+          dragOverHarness = false;
+        }, 120);
+      }
+    }
+
+    function finishDrop(dt) {
+      const fromPending = pendingDragPaths.slice();
+      const fromDt = dt ? extractDropPaths(dt) : [];
+      const paths = uniqPaths(fromPending.length ? fromPending : fromDt);
+      pendingDragPaths = [];
+      markDragging(false);
+      if (paths.length) attachPathsToHarness(paths);
+    }
+
+    function pointerOverHarnessZone(x) {
+      const pane = $('harness-pane');
+      if (!pane || !harnessOpen) return false;
+      const r = pane.getBoundingClientRect();
+      // 分隔条略向左扩一点，更容易命中
+      return x >= (r.left - 8);
+    }
+
+    function askIdeForPaths() {
+      const ide = $('ide');
+      try {
+        ide.contentWindow.postMessage({ type: 'easyaiot-ide-request-paths' }, '*');
+      } catch (_) { /* ignore */ }
+    }
+
+    window.addEventListener('message', (ev) => {
+      const data = ev.data;
+      if (!data || typeof data !== 'object') return;
+      if (data.type === 'easyaiot-ide-bridge-ready') {
+        bridgeReady = true;
+        console.info('[idea] ide-bridge ready', data);
+      } else if (data.type === 'easyaiot-ide-dragstart' && Array.isArray(data.paths)) {
+        pendingDragPaths = uniqPaths(data.paths);
+        if (!pendingDragPaths.length && Array.isArray(data.paths)) {
+          pendingDragPaths = uniqPaths(data.paths.map((p) => String(p || '').trim()));
+        }
+        if (!pendingDragPaths.length) return;
+        if (!harnessOpen) setHarness(true);
+        markDragging(true);
+      } else if (data.type === 'easyaiot-ide-dragend') {
+        // 助手已打开且捕获到路径：松手即写入，不再弹出确认条
+        if (pendingDragPaths.length && harnessOpen) {
+          finishDrop(null);
+          return;
+        }
+        markDragging(false);
+      } else if (data.type === 'easyaiot-ide-hotkey-attach') {
+        if (pendingDragPaths.length) attachPathsToHarness(pendingDragPaths);
+        else askIdeForPaths();
+      } else if (data.type === 'easyaiot-attach-result') {
+        if (data.ok) {
+          pendingDragPaths = [];
+        } else if (data.reason === 'no-composer') {
+          if (Array.isArray(data.paths) && data.paths.length) {
+            setTimeout(() => {
+              try {
+                $('harness').contentWindow.postMessage(
+                  { type: 'easyaiot-attach-files', paths: uniqPaths(data.paths), once: true },
+                  '*',
+                );
+              } catch (_) { /* ignore */ }
+            }, 600);
+          }
+        }
+      } else if (data.type === 'easyaiot-open-in-idea') {
+        openFileInIde(data.path || data.file || '');
+      } else if (data.type === 'easyaiot-open-external') {
+        const url = String(data.url || '').trim();
+        if (/^https?:\/\//i.test(url)) {
+          try { window.open(url, '_blank', 'noopener,noreferrer'); }
+          catch (_) { location.assign(url); }
+        }
+      }
+    });
+
+    function openFileInIde(raw) {
+      const rel = toHarnessRel(raw) || String(raw || '').trim().replace(/^@/, '');
+      if (!rel) return;
+      if (!current || !current.id || current.status !== 'running') {
+        showHarnessToast('请先启动编辑器后再打开文件');
+        return;
+      }
+      // 走门户 API → 容器内 code CLI/IPC，避免 iframe 刷新与 window.open 弹窗拦截
+      api('/api/workspaces/' + encodeURIComponent(current.id) + '/open-file', {
+        method: 'POST',
+        body: JSON.stringify({ path: rel }),
+      }).then(() => {
+        /* 静默打开，不弹提示 */
+      }).catch((e) => {
+        showHarnessToast('打开失败：' + (e.message || e) + '（尝试刷新编辑器）');
+        // 最后兜底：仍尝试 payload URL（可能短暂弹窗）
+        try {
+          $('ide').src = buildIdeSrc(current.url, rel) + '&_t=' + Date.now();
+        } catch (_) { /* ignore */ }
+      });
+    }
+
+    function consumeOauth() {
+      const u = new URL(location.href);
+      const token = u.searchParams.get('idea_token');
+      const err = u.searchParams.get('idea_error');
+      const file = u.searchParams.get('file') || u.searchParams.get('path') || '';
+      const harness = u.searchParams.get('harness') || u.searchParams.get('panel') || '';
+      if (token) {
+        session = token;
+        localStorage.setItem('easyaiot.idea.session', token);
+      }
+      if (file) pendingFile = file;
+      if (harness === '1' || harness === 'harness' || harness === 'open') harnessOpen = true;
+      if (token || err || file || harness) {
+        u.searchParams.delete('idea_token');
+        u.searchParams.delete('idea_error');
+        u.searchParams.delete('file');
+        u.searchParams.delete('path');
+        u.searchParams.delete('harness');
+        u.searchParams.delete('panel');
+        history.replaceState({}, '', u.pathname + u.search);
+      }
+      if (err) alert('登录失败：' + err);
+    }
+
+    async function renderAuth() {
+      const box = $('auth-box');
+      const me = await api('/api/auth/me').catch(() => null);
+      const providers = await api('/api/auth/providers').catch(() => ({ providers: [] }));
+      if (me) {
+        box.innerHTML = `<button class="ibtn" id="btn-logout" data-tip="退出 ${me.login || me.workspace_user}">${ICO.logout}</button>`;
+        $('btn-logout').onclick = async () => {
+          await api('/api/auth/logout', { method: 'POST' });
+          localStorage.removeItem('easyaiot.idea.session');
+          session = '';
+          location.reload();
+        };
+      } else {
+        box.innerHTML = (providers.providers || []).filter(p => p.enabled).map(p =>
+          `<a class="ibtn" href="/api/auth/login/${p.id}" data-tip="${p.name} 登录">${ICO.login}</a>`
+        ).join('');
+      }
+    }
+
+    function paintSelect() {
+      const sel = $('ws-select');
+      const curId = current && current.id;
+      sel.innerHTML = workspaces.length
+        ? workspaces.map(w => `<option value="${w.id}">${w.user} · ${w.port}</option>`).join('')
+        : '<option value="">暂无实例</option>';
+      if (curId) sel.value = curId;
+    }
+
+    function loadIde(ws) {
+      current = ws;
+      paintSelect();
+      const empty = $('empty');
+      const ide = $('ide');
+      if (!ws || !ws.url || ws.status !== 'running') {
+        ide.removeAttribute('src');
+        empty.style.display = 'flex';
+        $('status-dot').classList.add('off');
+        return;
+      }
+      empty.style.display = 'none';
+      $('status-dot').classList.remove('off');
+      const next = buildIdeSrc(ws.url, pendingFile);
+      if (ide.getAttribute('src') !== next) ide.src = next;
+      pendingFile = '';
+      api(`/api/workspaces/${ws.id}/heartbeat`, { method: 'POST' }).catch(() => {});
+    }
+
+    async function loadWs(preferId) {
+      workspaces = await api('/api/workspaces').catch(() => []);
+      let pick = null;
+      if (preferId) pick = workspaces.find(w => w.id === preferId);
+      if (!pick) pick = workspaces.find(w => w.status === 'running') || workspaces[0] || null;
+      paintSelect();
+      loadIde(pick);
+    }
+
+    async function enterIde() {
+      // 已有运行中工作区：直接载入，不重复创建
+      const running = workspaces.find(w => w.status === 'running');
+      if (running) {
+        loadIde(running);
+        return;
+      }
+      $('btn-enter').disabled = true;
+      try {
+        const ws = await api('/api/workspaces', { method: 'POST', body: '{}' });
+        await loadWs(ws.id);
+        loadIde(ws);
+      } catch (e) {
+        alert(e.message);
+      }
+      $('btn-enter').disabled = false;
+    }
+
+    function selectedMods() {
+      return [...document.querySelectorAll('#mod-list input:checked')].map(i => i.value);
+    }
+
+    async function loadPublish() {
+      const [sug, live] = await Promise.all([
+        api('/api/publish/suggest').catch(() => ({ suggested: [], modules: [] })),
+        api('/api/publish/meta').catch(() => ({ live_url: '' })),
+      ]);
+      if (live && live.live_url) $('btn-live').dataset.url = live.live_url;
+      const suggested = new Set((sug.suggested || []).map(s => s.id));
+      const line = (sug.suggested || []).map(s => `${s.id}(${s.files})`).join('、');
+      $('suggest-line').textContent = line
+        ? '检测到改动模块：' + line
+        : '未检测到模块改动，请手动勾选。部署会替换本机正在运行的对应服务。';
+      const mods = (sug.modules || []).filter(m => m.publishable);
+      $('mod-list').innerHTML = mods.map(m => {
+        const checked = suggested.has(m.id) ? 'checked' : '';
+        const dis = m.host_ready ? '' : 'disabled';
+        return `<label><input type="checkbox" value="${m.id}" ${checked} ${dis}/> ${m.id}</label>`;
+      }).join('');
+    }
+
+    async function startPublish(action) {
+      const modules = selectedMods();
+      if (!modules.length) { alert('请先勾选模块'); return; }
+      const msg = action === 'publish'
+        ? `将用编辑器里的代码部署到本机：${modules.join(', ')}。继续？`
+        : `只重启本机服务：${modules.join(', ')}。继续？`;
+      if (!confirm(msg)) return;
+      try {
+        const job = await api('/api/publish', {
+          method: 'POST',
+          body: JSON.stringify({ modules, action }),
+        });
+        pollJob(job.id);
+      } catch (e) { alert(e.message); }
+    }
+
+    async function pollJob(id) {
+      if (jobTimer) clearInterval(jobTimer);
+      const tick = async () => {
+        try {
+          const job = await api('/api/publish/jobs/' + id);
+          $('job-status').textContent = `${job.id} · ${job.status}`;
+          $('job-log').textContent = job.log || '';
+          $('job-log').scrollTop = $('job-log').scrollHeight;
+          if (job.status === 'success' || job.status === 'error') clearInterval(jobTimer);
+        } catch (e) {
+          $('job-status').textContent = e.message;
+        }
+      };
+      await tick();
+      jobTimer = setInterval(tick, 2000);
+    }
+
+    async function loadRemotes() {
+      const r = await api('/api/git/remotes').catch(() => null);
+      if (!r) { $('remote-info').textContent = '编辑器尚未就绪'; return; }
+      $('origin-url').value = r.origin || '';
+      $('remote-info').textContent = `官方仓库：${r.upstream || '-'} · 当前分支：${r.branch || '-'}`;
+      if (r.pr_url) $('btn-pr').href = r.pr_url;
+    }
+
+    function closePanels() {
+      $('panel-publish').classList.remove('open');
+      $('panel-contrib').classList.remove('open');
+    }
+
+    $('btn-pin').onclick = () => { pinned = !pinned; applyBar(); if (!pinned) scheduleHide(); };
+    $('btn-harness').onclick = () => setHarness(!harnessOpen);
+    $('ai-tab').onclick = () => setHarness(true);
+    $('btn-harness-refresh').onclick = () => {
+      const frame = $('harness');
+      frame.dataset.needReload = '1';
+      frame.src = harnessEmbedUrl(true);
+      frame.dataset.needReload = '';
+    };
+    $('harness-split').addEventListener('mousedown', beginHarnessResize);
+    window.addEventListener('resize', () => {
+      if (harnessOpen) applyHarnessWidth();
+      // 注意：这里不要调用 nudgeIdeLayout，否则与内部 resize 形成死循环
+    });
+
+    window.addEventListener('dragenter', (e) => {
+      if (!pendingDragPaths.length) return;
+      e.preventDefault();
+      markDragging(true);
+    }, true);
+    window.addEventListener('dragover', (e) => {
+      if (!pendingDragPaths.length) return;
+      e.preventDefault();
+      try { e.dataTransfer.dropEffect = 'copy'; } catch (_) {}
+      lastPointerX = e.clientX || lastPointerX;
+      dragOverHarness = pointerOverHarnessZone(lastPointerX);
+      markDragging(true);
+    }, true);
+    window.addEventListener('dragleave', (e) => {
+      if (e.relatedTarget == null) dragOverHarness = false;
+    }, true);
+    window.addEventListener('drop', (e) => {
+      if (!pendingDragPaths.length && !document.body.classList.contains('dragging-files')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      finishDrop(e.dataTransfer);
+    }, true);
+    $('harness-drop').addEventListener('dragover', (e) => {
+      if (!pendingDragPaths.length) return;
+      e.preventDefault();
+      dragOverHarness = true;
+      markDragging(true);
+    });
+    $('harness-drop').addEventListener('drop', (e) => {
+      e.preventDefault();
+      finishDrop(e.dataTransfer);
+    });
+    // 点击遮罩也可写入（避免松手事件丢失）
+    $('harness-drop').addEventListener('click', () => {
+      if (pendingDragPaths.length) finishDrop(null);
+    });
+    $('hotzone').onmouseenter = () => { showBar(); };
+    $('toolbar').onmouseenter = () => { clearTimeout(hideTimer); showBar(); };
+    $('toolbar').onmouseleave = () => scheduleHide();
+    $('btn-enter').onclick = enterIde;
+    $('btn-enter-empty').onclick = enterIde;
+    $('btn-refresh').onclick = () => {
+      if (current && current.url) {
+        $('ide').src = buildIdeSrc(current.url, pendingFile);
+        pendingFile = '';
+      } else {
+        loadWs(current && current.id);
+      }
+    };
+    $('ws-select').onchange = () => {
+      const w = workspaces.find(x => x.id === $('ws-select').value);
+      loadIde(w || null);
+    };
+    $('btn-copy-pwd').onclick = async () => {
+      try {
+        let pwd = current && current.password;
+        if ((!pwd || !String(pwd).trim()) && current && current.id) {
+          const detail = await api('/api/workspaces/' + current.id);
+          if (detail && detail.password) {
+            pwd = detail.password;
+            current.password = pwd;
+            const idx = workspaces.findIndex(w => w.id === current.id);
+            if (idx >= 0) workspaces[idx].password = pwd;
+          }
+        }
+        if (!pwd) {
+          alert('当前没有登录密码，请先启动编辑器');
+          return;
+        }
+        await navigator.clipboard.writeText(pwd);
+        $('btn-copy-pwd').setAttribute('data-tip', '已复制');
+        setTimeout(() => $('btn-copy-pwd').setAttribute('data-tip', '复制登录密码'), 1200);
+      } catch (e) {
+        if (current && current.password) {
+          prompt('登录密码', current.password);
+        } else {
+          alert(e.message || '复制失败');
+        }
+      }
+    };
+    $('btn-live').onclick = () => {
+      window.open($('btn-live').dataset.url || 'http://127.0.0.1:8888', '_blank', 'noopener');
+    };
+    $('btn-publish-panel').onclick = async () => {
+      closePanels();
+      $('panel-publish').classList.add('open');
+      showBar();
+      await loadPublish();
+    };
+    $('btn-contrib-panel').onclick = async () => {
+      closePanels();
+      $('panel-contrib').classList.add('open');
+      showBar();
+      await loadRemotes();
+    };
+    $('btn-close-pub').onclick = () => $('panel-publish').classList.remove('open');
+    $('btn-close-contrib').onclick = () => $('panel-contrib').classList.remove('open');
+    $('btn-publish').onclick = () => startPublish('publish');
+    $('btn-restart').onclick = () => startPublish('restart');
+    $('btn-save-origin').onclick = async () => {
+      try {
+        const r = await api('/api/git/remotes', {
+          method: 'PUT',
+          body: JSON.stringify({ origin: $('origin-url').value.trim() }),
+        });
+        if (r.pr_url) $('btn-pr').href = r.pr_url;
+        $('remote-info').textContent = '已保存个人仓库：' + r.origin;
+      } catch (e) { alert(e.message); }
+    };
+
+    consumeOauth();
+    // 启动自愈：清掉可能卡住的拖拽态 / 过大的助手宽度
+    document.body.classList.remove('resizing-harness', 'dragging-files');
+    try {
+      const ide = $('ide');
+      if (ide) ide.style.pointerEvents = '';
+      const oldW = parseInt(localStorage.getItem(HARNESS_WIDTH_KEY) || '', 10);
+      if (Number.isFinite(oldW) && oldW > window.innerWidth * 0.5) {
+        harnessWidth = Math.max(480, Math.round(window.innerWidth * 0.42));
+      }
+    } catch (_) { /* ignore */ }
+    applyBar();
+    applyHarness();
+    if (!pinned) scheduleHide(5000);
+    renderAuth()
+      .then(() => loadWs())
+      .then(() => loadPublish().catch(() => {}));
+    setInterval(() => {
+      if (current && current.id) {
+        api(`/api/workspaces/${current.id}/heartbeat`, { method: 'POST' }).catch(() => {});
+      }
+    }, 5 * 60 * 1000);
+  </script>
+</body>
+</html>

@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -115,7 +116,7 @@ public class AlertServiceImpl implements AlertService {
                     deviceId, deviceName, imagePath);
 
             // 检查是否在布防时段内
-            if (!checkDefenseSchedule(deviceId, alert.getTime())) {
+            if (!checkDefenseSchedule(notificationMessage.getTaskId(), deviceId, alert.getTime())) {
                 log.info("告警不在布防时段内，跳过处理: deviceId={}", deviceId);
                 return null;
             }
@@ -151,6 +152,8 @@ public class AlertServiceImpl implements AlertService {
             if (minioPath != null && alertId != null) {
                 // 更新数据库中的图片路径
                 updateAlertImagePath(alertId, minioPath);
+                // 同步写入抓拍空间元数据，否则「抓拍图库」为空（算法告警 Tab 仍可读 alert 表）
+                upsertSnapImage(deviceId, minioPath, "algorithm");
                 // 将 MinIO 下载地址回写到消息，使下游通知（HTTP/Webhook 等）推送可访问的图片 URL，而非本地磁盘路径
                 alert.setImagePath(minioPath);
                 log.debug("告警 {} 图片路径已更新: {}", alertId, minioPath);
@@ -197,7 +200,7 @@ public class AlertServiceImpl implements AlertService {
                     deviceId, deviceName, imagePath);
 
             // 检查是否在布防时段内
-            if (!checkDefenseSchedule(deviceId, alert.getTime())) {
+            if (!checkDefenseSchedule(notificationMessage.getTaskId(), deviceId, alert.getTime())) {
                 log.info("抓拍算法任务告警不在布防时段内，跳过处理: deviceId={}", deviceId);
                 return null;
             }
@@ -276,6 +279,8 @@ public class AlertServiceImpl implements AlertService {
             if (minioPath != null && alertId != null) {
                 // 更新数据库中的图片路径
                 updateAlertImagePath(alertId, minioPath);
+                // 同步写入抓拍图库元数据（snap_image），与 MinIO 对象对应
+                upsertSnapImage(deviceId, minioPath, "snap");
                 // 将 MinIO 下载地址回写到消息，使下游通知（HTTP/Webhook 等）推送可访问的图片 URL，而非本地磁盘路径
                 alert.setImagePath(minioPath);
                 log.debug("抓拍算法任务告警 {} 图片路径已更新: {}", alertId, minioPath);
@@ -890,12 +895,20 @@ public class AlertServiceImpl implements AlertService {
      */
     private Integer saveAlertToDatabase(AlertNotificationMessage notificationMessage) {
         if (alertMapper == null) {
-            log.warn("AlertMapper不可用，跳过数据库存储");
-            return null;
+            throw new IllegalStateException("AlertMapper不可用，无法存储告警");
         }
 
         try {
             AlertNotificationMessage.AlertInfo alert = notificationMessage.getAlert();
+            String correlationId = StringUtils.hasText(notificationMessage.getCorrelationId())
+                    ? notificationMessage.getCorrelationId() : notificationMessage.getEventId();
+            if (StringUtils.hasText(correlationId)) {
+                AlertDO existingAlert = alertMapper.selectByCorrelationId(correlationId.trim());
+                if (existingAlert != null && existingAlert.getId() != null) {
+                    log.info("告警幂等命中: correlationId={}, alertId={}", correlationId, existingAlert.getId());
+                    return existingAlert.getId();
+                }
+            }
             
             // 构建AlertDO对象
             AlertDO alertDO = new AlertDO();
@@ -1033,7 +1046,7 @@ public class AlertServiceImpl implements AlertService {
             // 设置通知发送状态（初始为false，后续由iot-message服务更新）
             alertDO.setNotificationSent(false);
             alertDO.setNotificationSentTime(null);
-            alertDO.setCorrelationId(notificationMessage.getCorrelationId());
+            alertDO.setCorrelationId(StringUtils.hasText(correlationId) ? correlationId.trim() : null);
             alertDO.setTaskId(notificationMessage.getTaskId());
             alertDO.setTaskName(notificationMessage.getTaskName());
             alertDO.setEdgeNodeId(notificationMessage.getEdgeNodeId());
@@ -1047,14 +1060,20 @@ public class AlertServiceImpl implements AlertService {
                 log.info("告警存储成功: alertId={}, deviceId={}", alertDO.getId(), alertDO.getDeviceId());
                 return alertDO.getId();
             } else {
-                log.warn("告警存储失败: result={}, alertId={}", result, alertDO.getId());
-                return null;
+                if (StringUtils.hasText(correlationId)) {
+                    AlertDO existingAlert = alertMapper.selectByCorrelationId(correlationId.trim());
+                    if (existingAlert != null && existingAlert.getId() != null) {
+                        log.info("并发告警幂等命中: correlationId={}, alertId={}", correlationId, existingAlert.getId());
+                        return existingAlert.getId();
+                    }
+                }
+                throw new IllegalStateException("告警写入未生效且未命中幂等记录");
             }
             
         } catch (Exception e) {
             log.error("存储告警到数据库失败: deviceId={}, error={}", 
                     notificationMessage.getDeviceId(), e.getMessage(), e);
-            return null;
+            throw new IllegalStateException("存储告警到数据库失败", e);
         }
     }
 
@@ -1091,6 +1110,76 @@ public class AlertServiceImpl implements AlertService {
     }
 
     /**
+     * 将告警/抓拍图片登记到 snap_image，供抓拍空间「抓拍图库」分页查询。
+     * minioPath 形如 /api/v1/buckets/{bucket}/objects/download?prefix={objectName}
+     */
+    private void upsertSnapImage(String deviceId, String minioPath, String source) {
+        if (jdbcTemplate == null || !StringUtils.hasText(deviceId) || !StringUtils.hasText(minioPath)) {
+            return;
+        }
+        try {
+            String bucketName = null;
+            String objectName = null;
+            // /api/v1/buckets/{bucket}/objects/download?prefix=...
+            String marker = "/api/v1/buckets/";
+            int bStart = minioPath.indexOf(marker);
+            if (bStart >= 0) {
+                int bEnd = minioPath.indexOf('/', bStart + marker.length());
+                if (bEnd > bStart) {
+                    bucketName = minioPath.substring(bStart + marker.length(), bEnd);
+                }
+            }
+            int pIdx = minioPath.indexOf("prefix=");
+            if (pIdx >= 0) {
+                String encoded = minioPath.substring(pIdx + "prefix=".length());
+                int amp = encoded.indexOf('&');
+                if (amp >= 0) {
+                    encoded = encoded.substring(0, amp);
+                }
+                objectName = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
+            }
+            if (!StringUtils.hasText(bucketName) || !StringUtils.hasText(objectName)) {
+                log.warn("无法从 minioPath 解析 bucket/object，跳过 snap_image: {}", minioPath);
+                return;
+            }
+
+            DynamicDataSourceContextHolder.push("video");
+            Integer spaceId = jdbcTemplate.query(
+                    "SELECT id FROM snap_space WHERE device_id = ? LIMIT 1",
+                    rs -> rs.next() ? rs.getInt(1) : null,
+                    deviceId);
+            if (spaceId == null) {
+                log.warn("设备无抓拍空间，跳过 snap_image device={}", deviceId);
+                return;
+            }
+            String filename = objectName.contains("/")
+                    ? objectName.substring(objectName.lastIndexOf('/') + 1)
+                    : objectName;
+            Integer existing = jdbcTemplate.query(
+                    "SELECT id FROM snap_image WHERE bucket_name = ? AND object_name = ? LIMIT 1",
+                    rs -> rs.next() ? rs.getInt(1) : null,
+                    bucketName, objectName);
+            if (existing != null) {
+                jdbcTemplate.update(
+                        "UPDATE snap_image SET space_id = ?, device_id = ?, filename = ?, url = ?, source = ?, "
+                                + "captured_at = COALESCE(captured_at, NOW()) WHERE id = ?",
+                        spaceId, deviceId, filename, minioPath, source, existing);
+            } else {
+                jdbcTemplate.update(
+                        "INSERT INTO snap_image (space_id, device_id, object_name, bucket_name, filename, "
+                                + "content_type, url, captured_at, source, created_at) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW())",
+                        spaceId, deviceId, objectName, bucketName, filename,
+                        "image/jpeg", minioPath, source);
+            }
+        } catch (Exception e) {
+            log.warn("写入 snap_image 失败 device={}: {}", deviceId, e.getMessage());
+        } finally {
+            DynamicDataSourceContextHolder.clear();
+        }
+    }
+
+    /**
      * 删除本地告警图片文件
      * 上传成功后调用，避免本地文件堆积撑爆硬盘
      * 
@@ -1123,85 +1212,76 @@ public class AlertServiceImpl implements AlertService {
      * 检查是否在布防时段内
      * 使用DynamicDataSourceContextHolder切换到VIDEO数据库
      */
-    private boolean checkDefenseSchedule(String deviceId, String alertTimeStr) {
+    private boolean checkDefenseSchedule(Integer taskId, String deviceId, String alertTimeStr) {
         try {
-            if (jdbcTemplate == null) {
-                log.warn("JdbcTemplate不可用，跳过布防时段检测");
-                return true; // 默认通过
+            if (alertMapper == null) {
+                log.warn("AlertMapper不可用，跳过布防时段检测");
+                // 默认通过，避免基础设施异常阻断告警主链路。
+                return true;
             }
 
-            // 切换到video数据源
-            DynamicDataSourceContextHolder.push("video");
-            try {
-                // 获取设备的算法任务
-                String sql = "SELECT at.defense_mode, at.defense_schedule " +
-                        "FROM algorithm_task at " +
-                        "INNER JOIN algorithm_task_device atd ON at.id = atd.task_id " +
-                        "WHERE atd.device_id = ? AND at.alert_event_enabled = true AND at.is_enabled = true " +
-                        "LIMIT 1";
-                Map<String, Object> task = jdbcTemplate.queryForMap(sql, deviceId);
+            // 优先按消息携带的任务ID读取布防配置，旧消息才退回设备唯一任务。
+            Map<String, Object> task = alertMapper.selectDefenseConfig(taskId, deviceId);
 
-                if (task == null || task.isEmpty()) {
-                    return true; // 没有算法任务，默认通过
-                }
+            if (task == null || task.isEmpty()) {
+                // 没有匹配任务时默认通过。
+                return true;
+            }
 
-                String defenseMode = (String) task.get("defense_mode");
-                if ("full".equals(defenseMode)) {
-                    // 全防模式：全天布防
-                    return true;
-                }
+            String defenseMode = (String) task.get("defense_mode");
+            if ("full".equals(defenseMode)) {
+                // 全防模式：全天布防
+                return true;
+            }
 
-                String defenseScheduleStr = (String) task.get("defense_schedule");
-                if (defenseScheduleStr == null || defenseScheduleStr.isEmpty()) {
-                    return true; // 没有配置布防时段，默认通过
-                }
+            String defenseScheduleStr = (String) task.get("defense_schedule");
+            if (defenseScheduleStr == null || defenseScheduleStr.isEmpty()) {
+                // 没有配置布防时段时默认通过。
+                return true;
+            }
 
-                // 解析布防时段配置
-                JsonNode scheduleNode = objectMapper.readTree(defenseScheduleStr);
-                if (!scheduleNode.isArray() || scheduleNode.size() != 7) {
-                    log.warn("布防时段配置格式错误");
-                    return true;
-                }
+            // 解析布防时段配置
+            JsonNode scheduleNode = objectMapper.readTree(defenseScheduleStr);
+            if (!scheduleNode.isArray() || scheduleNode.size() != 7) {
+                log.warn("布防时段配置格式错误");
+                return true;
+            }
 
-                // 解析告警时间（布防按东八区墙钟小时/星期）
-                LocalDateTime alertTime;
-                if (StringUtils.hasText(alertTimeStr)) {
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        alertTime = LocalDateTime.parse(alertTimeStr.trim(), formatter);
-                    } catch (Exception e) {
-                        log.warn("解析告警时间失败，使用当前时间(Asia/Shanghai): timeStr={}, error={}", alertTimeStr, e.getMessage());
-                        alertTime = ZonedDateTime.now(ALERT_EVENT_ZONE).toLocalDateTime();
-                    }
-                } else {
+            // 解析告警时间（布防按东八区墙钟小时/星期）
+            LocalDateTime alertTime;
+            if (StringUtils.hasText(alertTimeStr)) {
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    alertTime = LocalDateTime.parse(alertTimeStr.trim(), formatter);
+                } catch (Exception e) {
+                    log.warn("解析告警时间失败，使用当前时间(Asia/Shanghai): timeStr={}, error={}", alertTimeStr, e.getMessage());
                     alertTime = ZonedDateTime.now(ALERT_EVENT_ZONE).toLocalDateTime();
                 }
-
-                // 获取当前是星期几（0=周一，6=周日）
-                int weekday = alertTime.getDayOfWeek().getValue() - 1; // Java的DayOfWeek: 1=Monday, 7=Sunday
-                // 获取当前小时
-                int hour = alertTime.getHour();
-
-                // 检查该时段是否布防
-                if (weekday < scheduleNode.size() && hour < scheduleNode.get(weekday).size()) {
-                    int isDefense = scheduleNode.get(weekday).get(hour).asInt();
-                    if (isDefense != 1) {
-                        log.info("告警不在布防时段内: deviceId={}, weekday={}, hour={}", deviceId, weekday, hour);
-                        return false;
-                    }
-                }
-
-                return true;
-            } finally {
-                // 恢复数据源
-                DynamicDataSourceContextHolder.clear();
+            } else {
+                alertTime = ZonedDateTime.now(ALERT_EVENT_ZONE).toLocalDateTime();
             }
 
+            // 获取当前是星期几（0=周一，6=周日）
+            int weekday = alertTime.getDayOfWeek().getValue() - 1;
+            // 获取当前小时
+            int hour = alertTime.getHour();
+
+            // 检查该时段是否布防
+            if (weekday < scheduleNode.size() && hour < scheduleNode.get(weekday).size()) {
+                int isDefense = scheduleNode.get(weekday).get(hour).asInt();
+                if (isDefense != 1) {
+                    log.info("告警不在布防时段内: taskId={}, deviceId={}, weekday={}, hour={}",
+                            taskId, deviceId, weekday, hour);
+                    return false;
+                }
+            }
+
+            return true;
+
         } catch (Exception e) {
-            log.error("检查布防时段失败: deviceId={}, error={}", deviceId, e.getMessage(), e);
+            log.error("检查布防时段失败: taskId={}, deviceId={}, error={}", taskId, deviceId, e.getMessage(), e);
             // 出错时默认通过，避免影响正常流程
             return true;
         }
     }
 }
-

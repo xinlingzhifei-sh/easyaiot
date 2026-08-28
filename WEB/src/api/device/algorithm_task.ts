@@ -130,6 +130,15 @@ export interface AlgorithmTask {
   post_process_script?: string;
   /** 后处理 Worker 副本数 */
   post_process_replicas?: number;
+  /** POST 定制后处理 pipeline JSON */
+  post_pipeline?: Array<{
+    plugin: string;
+    version?: string;
+    enabled?: boolean;
+    params?: Record<string, unknown>;
+    fail_strategy?: string;
+    endpoint?: string;
+  }> | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -657,6 +666,10 @@ export const getTaskRealtimeLogs = (task_id: number, params?: {
 
 // ====================== 推流地址查询接口 ======================
 export interface CameraStreamInfo {
+  task_id: number;
+  task_name?: string;
+  model_names?: string;
+  stream_key: string;
   device_id: string;
   device_name: string;
   http_stream?: string;
@@ -664,9 +677,21 @@ export interface CameraStreamInfo {
   source?: string;
   pusher_rtmp_url?: string;
   pusher_http_url?: string;
-  ai_http_stream?: string;  // AI HTTP流地址
-  ai_rtmp_stream?: string;  // AI RTMP流地址
-  cover_image_path?: string;  // 设备封面图路径
+  // 任务级 AI HTTP 流地址
+  ai_http_stream?: string;
+  // 任务级 AI RTMP 流地址
+  ai_rtmp_stream?: string;
+  // 设备封面图路径
+  cover_image_path?: string;
+  source_mode?: 'pending' | 'shared' | 'direct' | 'direct_fallback';
+  configured_source_mode?: 'shared' | 'direct';
+  source_status?: 'starting' | 'source_waiting' | 'inferencing' | 'publishing' | 'degraded' | 'stopped' | 'failed';
+  source_subscriber_count?: number;
+  source_decode_fps?: number;
+  last_frame_time?: string;
+  last_detection_time?: string;
+  last_alert_time?: string;
+  runtime_error?: string;
 }
 
 export interface TaskStreamsResponse {
@@ -680,6 +705,39 @@ export const getTaskStreams = (task_id: number) => {
     'get',
     `${ALGORITHM_PREFIX}/task/${task_id}/streams`
   );
+};
+
+/** 查询摄像头所有运行中算法任务的独立画框流 */
+export const getDeviceTaskStreams = (device_id: string) => {
+  return commonApi<TaskStreamsResponse>(
+    'get',
+    `${ALGORITHM_PREFIX}/device/${encodeURIComponent(device_id)}/task-streams`
+  );
+};
+
+export interface CameraSourceRuntimeStatus {
+  source_id: string;
+  device_id: string;
+  status: 'starting' | 'source_waiting' | 'streaming' | 'stopped' | 'failed';
+  subscriber_count: number;
+  subscriber_task_ids: string[];
+  decode_fps: number;
+  frame_count: number;
+  last_frame_time?: number;
+  reconnect_count: number;
+  error_message?: string;
+}
+
+export const getCameraSourceStatus = async (device_id?: string): Promise<CameraSourceRuntimeStatus[]> => {
+  const response = await commonApi<CameraSourceRuntimeStatus[] | { code: number; msg: string; data: CameraSourceRuntimeStatus[] }>(
+    'get',
+    `${ALGORITHM_PREFIX}/source/status`,
+    { params: { device_id } }
+  );
+  if (Array.isArray(response)) {
+    return response;
+  }
+  return Array.isArray(response?.data) ? response.data : [];
 };
 
 // ====================== AI 后处理 ======================
@@ -780,4 +838,62 @@ export const listPostProcessResults = (
     errorMessageMode: 'none',
   });
 };
+// ====================== POST 后处理规则链 ======================
+export interface PostPipelineCatalogResponse {
+  builtins: Array<{
+    id: string;
+    name: string;
+    kinds: string[];
+    builtin: boolean;
+    description?: string;
+    params_schema?: Record<string, unknown>;
+    version?: string;
+  }>;
+  externals: Array<{
+    id: string;
+    name: string;
+    kinds: string[];
+    builtin: boolean;
+    description?: string;
+    params_schema?: Record<string, unknown>;
+    version?: string;
+    service?: Record<string, unknown>;
+  }>;
+}
 
+export interface PostPipelineDebugPayload {
+  pipeline_override?: AlgorithmTask['post_pipeline'];
+  until_plugin?: string;
+  task_id?: number;
+  task_name?: string;
+  task_type?: string;
+  device_ids?: string[];
+  event?: Record<string, unknown>;
+  regions?: Record<string, unknown>[];
+}
+
+export interface PostPipelineDebugResponse {
+  result?: string;
+  drop_reason?: string;
+  trace?: Array<Record<string, unknown>>;
+  alert_payload?: Record<string, unknown> | null;
+  error?: string;
+}
+
+export const getPostPipelineCatalog = () => {
+  return commonApi<PostPipelineCatalogResponse>(
+    'get',
+    `${ALGORITHM_PREFIX}/task/post-pipeline/catalog`,
+    { errorMessageMode: 'none' },
+  );
+};
+
+export const debugPostPipeline = (payload: PostPipelineDebugPayload, taskId?: number | null) => {
+  const url = taskId
+    ? `${ALGORITHM_PREFIX}/task/${taskId}/post-pipeline/debug`
+    : `${ALGORITHM_PREFIX}/task/post-pipeline/debug`;
+  return commonApi<PostPipelineDebugResponse>('post', url, {
+    data: payload,
+    errorMessageMode: 'none',
+  });
+};

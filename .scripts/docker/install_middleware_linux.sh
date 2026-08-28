@@ -2642,32 +2642,87 @@ wait_for_zlmediakit() {
 }
 
 # 在安装 SRS 之前确保 NFS 媒体栈（单机默认本机 export；集群挂载远程 NFS_SERVER）
+# NFS 挂载有超时与单机本地回退，避免服务端不可达时一键部署无限卡死
 ensure_nfs_media_before_srs() {
     local nfs_script="${SCRIPT_DIR}/../media-cluster/nfs/ensure_nfs_media_stack.sh"
     local resolve_helper="${SCRIPT_DIR}/../media-cluster/nfs/resolve_media_root.sh"
     local mount_root
+    local nfs_stack_timeout="${NFS_STACK_TIMEOUT:-180}"
+    local ensure_log
     # shellcheck source=/dev/null
     [ -f "$resolve_helper" ] && source "$resolve_helper"
     mount_root="$(resolve_easyaiot_media_root 2>/dev/null || echo "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}")"
     export EASYAIOT_MEDIA_ROOT="$mount_root"
-    print_info "安装 SRS 前准备 NFS 媒体栈（挂载点 ${mount_root}）..."
+    print_info "安装 SRS 前准备 NFS 媒体栈（挂载点 ${mount_root}，超时 ${nfs_stack_timeout}s）..."
+    print_info "若 NFS 不可用将自动回退本地目录，可用 EASYAIOT_MEDIA_LOCAL_BIND=1 强制跳过 NFS"
     if [ ! -f "$nfs_script" ]; then
         print_error "未找到 NFS 脚本: ${nfs_script}"
         return 1
     fi
-    if run_priv env \
-        EASYAIOT_MEDIA_ROOT="$mount_root" \
-        NFS_SERVER="${NFS_SERVER:-}" \
-        NFS_EXPORT="${NFS_EXPORT:-}" \
-        bash "$nfs_script"; then
-        mount_root="$(resolve_easyaiot_media_root 2>/dev/null || echo "$mount_root")"
-        export EASYAIOT_MEDIA_ROOT="$mount_root"
+
+    ensure_log="$(mktemp /tmp/easyaiot-nfs-ensure.XXXXXX 2>/dev/null || echo /tmp/easyaiot-nfs-ensure.$$)"
+    local ensure_rc=0
+    set +e
+    if command -v timeout >/dev/null 2>&1; then
+        if timeout --help 2>&1 | grep -q -- '--foreground'; then
+            timeout --foreground -k 10 "${nfs_stack_timeout}" env \
+                EASYAIOT_MEDIA_ROOT="$mount_root" \
+                NFS_SERVER="${NFS_SERVER:-}" \
+                NFS_EXPORT="${NFS_EXPORT:-}" \
+                NFS_STACK_TIMEOUT="$nfs_stack_timeout" \
+                NFS_MOUNT_TIMEOUT="${NFS_MOUNT_TIMEOUT:-45}" \
+                bash "$nfs_script" >"$ensure_log" 2>&1
+        else
+            timeout -k 10 "${nfs_stack_timeout}" env \
+                EASYAIOT_MEDIA_ROOT="$mount_root" \
+                NFS_SERVER="${NFS_SERVER:-}" \
+                NFS_EXPORT="${NFS_EXPORT:-}" \
+                NFS_STACK_TIMEOUT="$nfs_stack_timeout" \
+                NFS_MOUNT_TIMEOUT="${NFS_MOUNT_TIMEOUT:-45}" \
+                bash "$nfs_script" >"$ensure_log" 2>&1
+        fi
+        ensure_rc=$?
+    else
+        env \
+            EASYAIOT_MEDIA_ROOT="$mount_root" \
+            NFS_SERVER="${NFS_SERVER:-}" \
+            NFS_EXPORT="${NFS_EXPORT:-}" \
+            bash "$nfs_script" >"$ensure_log" 2>&1
+        ensure_rc=$?
+    fi
+    set -e
+    if [ -s "$ensure_log" ]; then
+        cat "$ensure_log"
+    fi
+
+    local parsed_root
+    parsed_root="$(grep -E '^MEDIA_ROOT_FINAL=' "$ensure_log" 2>/dev/null | tail -1 | cut -d= -f2- || true)"
+    if [ -z "$parsed_root" ]; then
+        parsed_root="$(grep -E '^LOCAL_BIND_FALLBACK mount=' "$ensure_log" 2>/dev/null | tail -1 | sed -n 's/^LOCAL_BIND_FALLBACK mount=\([^ ]*\).*/\1/p' || true)"
+    fi
+    rm -f "$ensure_log" 2>/dev/null || true
+    if [ -n "$parsed_root" ]; then
+        mount_root="$parsed_root"
+    fi
+    export EASYAIOT_MEDIA_ROOT="$mount_root"
+
+    if [ "$ensure_rc" -eq 0 ]; then
         run_priv chmod 777 "$mount_root" "${mount_root}/playbacks" 2>/dev/null || true
         print_success "媒体栈已就绪: ${mount_root}"
-    else
-        print_error "媒体栈准备失败（集群模式需 sudo mount；单机无 sudo 时应 fallback 到 \$HOME/easyaiot/media）"
-        return 1
+        return 0
     fi
+
+    if [ "$ensure_rc" -eq 124 ]; then
+        print_warning "NFS 媒体栈准备超时（${nfs_stack_timeout}s），尝试本地目录回退…"
+    else
+        print_warning "NFS 媒体栈准备失败（exit=${ensure_rc}），尝试本地目录回退…"
+    fi
+    local fallback_root="${HOME}/easyaiot/media"
+    mkdir -p "${fallback_root}/playbacks/live" "${fallback_root}/alert_images" \
+        "${fallback_root}/snaps" "${fallback_root}/logs" 2>/dev/null || true
+    chmod 777 "${fallback_root}" "${fallback_root}/playbacks" 2>/dev/null || true
+    export EASYAIOT_MEDIA_ROOT="$fallback_root"
+    print_success "已回退本地媒体目录: ${fallback_root}（可稍后手动修复 NFS）"
 }
 
 # 兼容旧名（内部仍可能被引用）
@@ -2680,10 +2735,17 @@ _apply_srs_http_hooks() {
     local srs_config_file="$1"
     local gateway_ip="$2"
     local on_publish_url on_dvr_url
+    local video_port="${FLASK_RUN_PORT:-6000}"
+    local host_ip
+    host_ip=$(get_host_ip)
+    [ -z "$host_ip" ] && host_ip="127.0.0.1"
 
-    if is_mini_deploy_profile; then
-        local video_port="${FLASK_RUN_PORT:-6000}"
-        local host_ip=$(get_host_ip)
+    if is_edge_deploy_profile; then
+        # 零 DEVICE：on_publish / on_dvr 均直连 VIDEO 本地消化
+        on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
+        on_dvr_url="http://${host_ip}:${video_port}/video/media/hook/srs/on_dvr"
+        print_info "edge 形态：推流/录像回调走本地闭环（本地存储）"
+    elif is_mini_deploy_profile; then
         on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
         on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
         print_info "mini 形态：on_publish 直连 VIDEO；on_dvr 经 Gateway→iot-sink"
@@ -2752,8 +2814,11 @@ prepare_srs_config() {
     # 如果复制失败或源文件不存在，创建默认配置文件
     print_info "创建默认 SRS 配置文件..."
     local on_publish_url on_dvr_url
-    if is_mini_deploy_profile; then
-        local video_port="${FLASK_RUN_PORT:-6000}"
+    local video_port="${FLASK_RUN_PORT:-6000}"
+    if is_edge_deploy_profile; then
+        on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
+        on_dvr_url="http://${host_ip}:${video_port}/video/media/hook/srs/on_dvr"
+    elif is_mini_deploy_profile; then
         on_publish_url="http://${host_ip}:${video_port}/video/camera/callback/on_publish"
         on_dvr_url="http://${gateway_ip}:48080/admin-api/sink/media/hook/srs/on_dvr"
     else
@@ -4048,6 +4113,10 @@ init_minio() {
     return $init_result
 }
 
+# 清空 iot-node 仓库样例节点数据（Linux / 桌面端共用实现）
+# shellcheck source=clear_iot_node_seed_data.sh
+source "${SCRIPT_DIR}/clear_iot_node_seed_data.sh"
+
 # 初始化数据库
 init_databases() {
     print_section "初始化数据库"
@@ -4133,11 +4202,18 @@ init_databases() {
             else
                 if execute_sql_script "$db_name" "$sql_file"; then
                     success_count=$((success_count + 1))
+                    # 刚导入仓库 *10.sql：强制清掉演示节点，避免集群概览显示样例机
+                    if [ "$db_name" = "iot-node20" ]; then
+                        clear_iot_node_seed_data force
+                    fi
                 fi
             fi
         fi
         echo ""
     done
+
+    # 已初始化库也可能残留样例节点（历史部署）；检测到仓库样例主机则清理
+    clear_iot_node_seed_data
     
     # Nacos 账号配置：先自动初始化 admin（新库无内置账号），再用 API 实测登录验证；
     # 全部通过则零人工介入。仅当验证失败（已有 admin 但密码与预期不一致）才回退人工确认。
@@ -5698,6 +5774,7 @@ install_middleware() {
     
     # 清理残留容器
     cleanup_stale_containers
+    cleanup_profile_excluded_containers
     
     # 检查端口占用
     check_and_clean_ports
@@ -5893,6 +5970,7 @@ start_middleware() {
     
     # 清理残留容器
     cleanup_stale_containers
+    cleanup_profile_excluded_containers
     
     # 检查端口占用
     check_and_clean_ports
@@ -6004,8 +6082,50 @@ restart_middleware() {
     # 准备 ZLMediaKit 配置文件
     prepare_zlmediakit_config
 
-    print_info "重启所有中间件服务..."
-    $COMPOSE_CMD -f "$COMPOSE_FILE" restart 2>&1 | tee -a "$LOG_FILE"
+    cleanup_profile_excluded_containers
+
+    local -a _skip_optional=()
+    read -r -a _skip_optional <<< "$(collect_skippable_optional_services)"
+
+    local -a up_services=()
+    local svc should_skip
+    while IFS= read -r svc; do
+        [ -z "$svc" ] && continue
+        should_skip=0
+        for skip in "${_skip_optional[@]}"; do
+            if [ "$svc" = "$skip" ]; then
+                should_skip=1
+                break
+            fi
+        done
+        if [ "$should_skip" -eq 0 ]; then
+            up_services+=("$svc")
+        fi
+    done < <(mw_compose config --services 2>/dev/null)
+
+    if [ ${#_skip_optional[@]} -gt 0 ]; then
+        local -a lingering_skips=()
+        local skip_svc
+        for skip_svc in "${_skip_optional[@]}"; do
+            [ -z "$skip_svc" ] && continue
+            if mw_compose ps -q "$skip_svc" 2>/dev/null | grep -q .; then
+                lingering_skips+=("$skip_svc")
+            fi
+        done
+        if [ ${#lingering_skips[@]} -gt 0 ]; then
+            print_info "停止并移除当前形态不部署的中间件: $(_format_service_list "${lingering_skips[@]}")"
+            mw_compose stop "${lingering_skips[@]}" >/dev/null 2>&1 || true
+            mw_compose rm -f "${lingering_skips[@]}" >/dev/null 2>&1 || true
+        fi
+    fi
+
+    if [ ${#up_services[@]} -eq 0 ]; then
+        print_error "没有可重启的中间件服务"
+        return 1
+    fi
+
+    print_info "重启中间件服务: $(_format_service_list "${up_services[@]}")"
+    mw_compose restart "${up_services[@]}" 2>&1 | tee -a "$LOG_FILE"
     
     print_success "所有中间件重启完成"
     echo ""
@@ -6385,6 +6505,22 @@ update_middleware() {
         show_unhealthy_containers
     fi
     echo ""
+    # update 也要清样例节点：历史数据卷 / 旧安装包不会再跑 initdb；host 被改写后仍靠指纹识别
+    if wait_for_postgresql; then
+        clear_iot_node_seed_data
+        # 再扫一次：若仍残留样例容量指纹则强制清空
+        if [ "${EASYAIOT_KEEP_NODE_SEED:-0}" != "1" ]; then
+            local _left=0
+            _left="$(_count_iot_node_seed_fingerprints 2>/dev/null || echo 0)"
+            if [ "${_left:-0}" -gt 0 ] 2>/dev/null; then
+                print_warning "仍检测到 ${_left} 条样例指纹，强制清空..."
+                clear_iot_node_seed_data force
+            fi
+        fi
+    else
+        print_warning "PostgreSQL 未就绪，跳过 iot-node 样例节点清空"
+    fi
+    echo ""
     if middleware_service_enabled "Milvus"; then
         print_section "检查 Milvus 向量数据库"
         wait_for_milvus || print_warning "Milvus 未就绪"
@@ -6419,7 +6555,7 @@ show_help() {
     echo "  help            - 显示此帮助信息"
     echo ""
     echo "环境变量:"
-    echo "  EASYAIOT_DEPLOY_PROFILE   - 部署规格: mini(1,≥4GB) | standard(2,≥16GB) | full(3,≥20GB，默认)"
+    echo "  EASYAIOT_DEPLOY_PROFILE   - 部署规格: edge(0,≥2GB) | mini(1,≥4GB) | standard(2,≥16GB) | full(3,≥20GB，默认)"
     echo "  EASYAIOT_ENABLE_TDENGINE  - 完整版自动为 1；mini/standard 为 0"
     echo "  EASYAIOT_ENABLE_EMQX      - mini/standard/完整版均为 1；显式 0 可关闭"
     echo "  FORCE_CHMOD=true    - 对已存在的数据目录强制完整递归 chmod 修复（默认只设顶层，数据量大时慢）"

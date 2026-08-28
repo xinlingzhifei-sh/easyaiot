@@ -88,6 +88,8 @@ iot:
       - node_storage_op_log
       - nfs_cluster
       - nfs_cluster_bridge
+      - node_sentinel_snapshot
+      - node_sentinel_remediate_log
 
 easyaiot:
   scheduler:
@@ -117,10 +119,20 @@ easyaiot:
     remote-root: ${EASYAIOT_AI_REMOTE_ROOT:/opt/easyaiot/AI}
     auto-sync-before-deploy: ${EASYAIOT_AI_AUTO_SYNC:true}
   agent:
-    # Agent 源码目录（含 export_pip_wheels.sh）；未设置时自动探测 repo/NODE，优于 /opt/easyaiot/node-agent 运行时目录
+    # Agent 源码目录（含 export_pip_wheels.sh）；未设置时自动探测 repo/SENTINEL
     source-path: ${EASYAIOT_AGENT_SOURCE_PATH:}
     # 可选：显式指定控制面 URL；留空则与 media.hook-host 同样自动探测
     control-plane-url: ${EASYAIOT_AGENT_CONTROL_PLANE_URL:}
+  sentinel:
+    enabled: ${EASYAIOT_SENTINEL_ENABLED:true}
+    scheduling-enabled: ${EASYAIOT_SENTINEL_SCHEDULING_ENABLED:true}
+    # 节点纳管（含 SSH）完成后自动下发全量 Sentinel 离线包并启动监测
+    auto-deploy-on-create: ${EASYAIOT_SENTINEL_AUTO_DEPLOY:true}
+    # 控制面兜底：快照过期时主动触发节点 L1 探测
+    probe-stale-enabled: ${EASYAIOT_SENTINEL_PROBE_STALE:true}
+    probe-stale-interval-ms: ${EASYAIOT_SENTINEL_PROBE_STALE_MS:180000}
+    resource-degrade-cpu-percent: ${EASYAIOT_SENTINEL_DEGRADE_CPU:85}
+    resource-degrade-mem-percent: ${EASYAIOT_SENTINEL_DEGRADE_MEM:95}
   edge:
     # EDGE 模块自助纳管：生产请设置 join-token，并关闭开放纳管
     join-token: ${EASYAIOT_EDGE_JOIN_TOKEN:}

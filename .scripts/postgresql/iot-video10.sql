@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict BUJ0b6OsGwccB9i0XKq3q6YZ9R9y7YTnYp39VDN8piFdiSwLhDVCoH5W560gKc7
+\restrict E3WsAYvddKwRlIv0hj4lfff9sF4j3KqAd4QGlnoy84lOPhGD9xt7B5sbjSb2frl
 
 -- Dumped from database version 18.4 (Debian 18.4-1.pgdg13+1)
 -- Dumped by pg_dump version 18.4 (Debian 18.4-1.pgdg13+1)
@@ -27,10 +27,10 @@ DROP DATABASE IF EXISTS "iot-video20";
 CREATE DATABASE "iot-video20" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
 
 
-\unrestrict BUJ0b6OsGwccB9i0XKq3q6YZ9R9y7YTnYp39VDN8piFdiSwLhDVCoH5W560gKc7
+\unrestrict E3WsAYvddKwRlIv0hj4lfff9sF4j3KqAd4QGlnoy84lOPhGD9xt7B5sbjSb2frl
 \encoding SQL_ASCII
 \connect -reuse-previous=on "dbname='iot-video20'"
-\restrict BUJ0b6OsGwccB9i0XKq3q6YZ9R9y7YTnYp39VDN8piFdiSwLhDVCoH5W560gKc7
+\restrict E3WsAYvddKwRlIv0hj4lfff9sF4j3KqAd4QGlnoy84lOPhGD9xt7B5sbjSb2frl
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -76,7 +76,9 @@ CREATE TABLE public.alert (
     edge_node_id bigint,
     edge_node_name character varying(128),
     edge_node_host character varying(128),
-    node_id bigint
+    node_id bigint,
+    image_asset_id character varying(36),
+    record_asset_id character varying(36)
 );
 
 
@@ -552,7 +554,12 @@ CREATE TABLE public.algorithm_task (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     face_library_id integer,
-    plate_library_id integer
+    plate_library_id integer,
+    executor character varying(20) DEFAULT 'cpp'::character varying,
+    runtime_bin_path character varying(500),
+    runtime_control_port integer,
+    device_deployments text,
+    post_pipeline text
 );
 
 
@@ -1047,6 +1054,13 @@ COMMENT ON COLUMN public.algorithm_task.defense_schedule IS '布防时段配置�
 
 
 --
+-- Name: COLUMN algorithm_task.post_pipeline; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task.post_pipeline IS 'POST 定制后处理 pipeline JSON';
+
+
+--
 -- Name: algorithm_task_device; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1096,6 +1110,144 @@ CREATE SEQUENCE public.algorithm_task_id_seq
 --
 
 ALTER SEQUENCE public.algorithm_task_id_seq OWNED BY public.algorithm_task.id;
+
+
+--
+-- Name: algorithm_task_notification_state; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.algorithm_task_notification_state (
+    task_id integer NOT NULL,
+    device_id character varying(100) NOT NULL,
+    channel_key character varying(255) NOT NULL,
+    last_notify_time timestamp without time zone,
+    last_event_id character varying(36),
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN algorithm_task_notification_state.task_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_notification_state.task_id IS '算法任务ID';
+
+
+--
+-- Name: COLUMN algorithm_task_notification_state.device_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_notification_state.device_id IS '设备ID';
+
+
+--
+-- Name: COLUMN algorithm_task_notification_state.channel_key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_notification_state.channel_key IS '通知渠道稳定键';
+
+
+--
+-- Name: COLUMN algorithm_task_notification_state.last_notify_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_notification_state.last_notify_time IS '最后通知时间';
+
+
+--
+-- Name: COLUMN algorithm_task_notification_state.last_event_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_notification_state.last_event_id IS '最后通知事件ID';
+
+
+--
+-- Name: algorithm_task_stream_runtime; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.algorithm_task_stream_runtime (
+    task_id integer NOT NULL,
+    device_id character varying(100) NOT NULL,
+    node_id bigint,
+    stream_key character varying(255) NOT NULL,
+    source_mode character varying(20) NOT NULL,
+    status character varying(20) NOT NULL,
+    last_frame_time timestamp with time zone,
+    last_detection_time timestamp with time zone,
+    last_alert_time timestamp with time zone,
+    error_message character varying(500),
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.task_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.task_id IS '算法任务ID';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.device_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.device_id IS '设备ID';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.node_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.node_id IS '运行节点ID';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.stream_key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.stream_key IS '任务级 SRS stream key';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.source_mode; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.source_mode IS '实际源流模式';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.status IS '任务设备运行状态';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.last_frame_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.last_frame_time IS '最后读取帧时间';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.last_detection_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.last_detection_time IS '最后推理时间';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.last_alert_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.last_alert_time IS '最后告警时间';
+
+
+--
+-- Name: COLUMN algorithm_task_stream_runtime.error_message; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.algorithm_task_stream_runtime.error_message IS '最近错误信息';
 
 
 --
@@ -1472,7 +1624,8 @@ CREATE TABLE public.device_detection_region (
     sort_order integer NOT NULL,
     model_ids text,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    task_id integer
 );
 
 
@@ -1544,6 +1697,13 @@ COMMENT ON COLUMN public.device_detection_region.sort_order IS '排序顺序';
 --
 
 COMMENT ON COLUMN public.device_detection_region.model_ids IS '关联的算法模型ID列表（JSON格式，如[1,2,3]）';
+
+
+--
+-- Name: COLUMN device_detection_region.task_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.device_detection_region.task_id IS '算法任务ID';
 
 
 --
@@ -2749,6 +2909,51 @@ ALTER SEQUENCE public.image_id_seq OWNED BY public.image.id;
 
 
 --
+-- Name: model; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.model (
+    id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    description text,
+    model_path character varying(500),
+    image_url character varying(500),
+    version character varying(20),
+    status integer NOT NULL,
+    class_names text,
+    selected_class_names text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    onnx_model_path character varying(500),
+    torchscript_model_path character varying(500),
+    tensorrt_model_path character varying(500),
+    openvino_model_path character varying(500),
+    model_origin character varying(32),
+    origin_ref character varying(128)
+);
+
+
+--
+-- Name: model_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.model_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: model_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.model_id_seq OWNED BY public.model.id;
+
+
+--
 -- Name: nvr; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3477,7 +3682,8 @@ CREATE TABLE public.playback (
     thumbnail_path character varying(500),
     file_size bigint,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone
+    updated_at timestamp with time zone,
+    task_id integer
 );
 
 
@@ -3558,6 +3764,94 @@ CREATE SEQUENCE public.pose_intent_match_record_id_seq
 --
 
 ALTER SEQUENCE public.pose_intent_match_record_id_seq OWNED BY public.pose_intent_match_record.id;
+
+
+--
+-- Name: post_plugin; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_plugin (
+    id character varying(128) NOT NULL,
+    name character varying(256) NOT NULL,
+    latest_version character varying(32),
+    runtime character varying(16) NOT NULL,
+    enabled boolean NOT NULL,
+    manifest_json text NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN post_plugin.id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin.id IS '插件 id，如 acme.echo';
+
+
+--
+-- Name: COLUMN post_plugin.name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin.name IS '显示名';
+
+
+--
+-- Name: COLUMN post_plugin.latest_version; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin.latest_version IS '当前版本';
+
+
+--
+-- Name: COLUMN post_plugin.runtime; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin.runtime IS 'builtin|http|grpc|script';
+
+
+--
+-- Name: COLUMN post_plugin.manifest_json; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin.manifest_json IS 'plugin.json 全文';
+
+
+--
+-- Name: post_plugin_service; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.post_plugin_service (
+    plugin_id character varying(128) NOT NULL,
+    version character varying(32) NOT NULL,
+    replicas integer NOT NULL,
+    status character varying(32) NOT NULL,
+    endpoint text,
+    deploy_mode character varying(16),
+    binding_json text,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN post_plugin_service.endpoint; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin_service.endpoint IS 'http://host:port';
+
+
+--
+-- Name: COLUMN post_plugin_service.deploy_mode; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin_service.deploy_mode IS 'endpoint|docker';
+
+
+--
+-- Name: COLUMN post_plugin_service.binding_json; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.post_plugin_service.binding_json IS '节点绑定 JSON';
 
 
 --
@@ -3783,11 +4077,13 @@ CREATE TABLE public.record_file (
     etag character varying(128),
     url character varying(500) NOT NULL,
     thumbnail_url character varying(500),
-    duration smallint,
+    duration integer,
     event_time timestamp without time zone NOT NULL,
     source character varying(50) NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    task_id integer,
+    asset_id character varying(36)
 );
 
 
@@ -5068,7 +5364,9 @@ CREATE TABLE public.stream_forward_task (
     last_success_time timestamp without time zone,
     description character varying(500),
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    executor character varying(20) DEFAULT 'cpp'::character varying,
+    runtime_bin_path character varying(500)
 );
 
 
@@ -5541,6 +5839,13 @@ ALTER TABLE ONLY public.image ALTER COLUMN id SET DEFAULT nextval('public.image_
 
 
 --
+-- Name: model id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.model ALTER COLUMN id SET DEFAULT nextval('public.model_id_seq'::regclass);
+
+
+--
 -- Name: nvr id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5715,7 +6020,7 @@ COPY public.algorithm_post_process_result (id, task_id, task_name, task_code, ta
 -- Data for Name: algorithm_task; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.algorithm_task (id, task_name, task_code, task_type, model_ids, model_names, detect_conf, extract_interval, rtmp_input_url, rtmp_output_url, tracking_enabled, tracking_similarity_threshold, tracking_max_age, tracking_smooth_alpha, alert_event_enabled, alert_event_suppress_time, alert_class_names, face_detection_enabled, plate_detection_enabled, face_matching_enabled, face_library_ids, face_matching_threshold, plate_matching_enabled, plate_library_ids, matching_business_tags, alert_notification_enabled, alert_notification_config, alarm_suppress_time, last_notify_time, space_id, cron_expression, frame_skip, patrol_mode, patrol_interval_sec, patrol_pool_size, focus_device_id, status, is_enabled, run_status, exception_reason, schedule_policy, prefer_gpu, target_node_id, node_id, service_server_ip, service_port, service_process_id, service_last_heartbeat, service_log_path, total_frames, total_detections, total_captures, last_process_time, last_success_time, last_capture_time, description, sam_supplement_enabled, sam_supplement_config, motion_gate_enabled, motion_gate_config, pose_analysis_enabled, pose_analysis_config, pose_intent_enabled, pose_library_ids, pose_intent_threshold, pose_intent_config, post_process_enabled, post_process_script, post_process_replicas, defense_mode, defense_schedule, created_at, updated_at, face_library_id, plate_library_id) FROM stdin;
+COPY public.algorithm_task (id, task_name, task_code, task_type, model_ids, model_names, detect_conf, extract_interval, rtmp_input_url, rtmp_output_url, tracking_enabled, tracking_similarity_threshold, tracking_max_age, tracking_smooth_alpha, alert_event_enabled, alert_event_suppress_time, alert_class_names, face_detection_enabled, plate_detection_enabled, face_matching_enabled, face_library_ids, face_matching_threshold, plate_matching_enabled, plate_library_ids, matching_business_tags, alert_notification_enabled, alert_notification_config, alarm_suppress_time, last_notify_time, space_id, cron_expression, frame_skip, patrol_mode, patrol_interval_sec, patrol_pool_size, focus_device_id, status, is_enabled, run_status, exception_reason, schedule_policy, prefer_gpu, target_node_id, node_id, service_server_ip, service_port, service_process_id, service_last_heartbeat, service_log_path, total_frames, total_detections, total_captures, last_process_time, last_success_time, last_capture_time, description, sam_supplement_enabled, sam_supplement_config, motion_gate_enabled, motion_gate_config, pose_analysis_enabled, pose_analysis_config, pose_intent_enabled, pose_library_ids, pose_intent_threshold, pose_intent_config, post_process_enabled, post_process_script, post_process_replicas, defense_mode, defense_schedule, created_at, updated_at, face_library_id, plate_library_id, executor, runtime_bin_path, runtime_control_port, device_deployments, post_pipeline) FROM stdin;
 \.
 
 
@@ -5724,6 +6029,22 @@ COPY public.algorithm_task (id, task_name, task_code, task_type, model_ids, mode
 --
 
 COPY public.algorithm_task_device (task_id, device_id, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: algorithm_task_notification_state; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.algorithm_task_notification_state (task_id, device_id, channel_key, last_notify_time, last_event_id, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: algorithm_task_stream_runtime; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.algorithm_task_stream_runtime (task_id, device_id, node_id, stream_key, source_mode, status, last_frame_time, last_detection_time, last_alert_time, error_message, updated_at) FROM stdin;
 \.
 
 
@@ -5747,7 +6068,7 @@ COPY public.device (id, name, source, rtmp_stream, http_stream, ai_rtmp_stream, 
 -- Data for Name: device_detection_region; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.device_detection_region (id, device_id, region_name, region_type, points, image_id, color, opacity, is_enabled, sort_order, model_ids, created_at, updated_at) FROM stdin;
+COPY public.device_detection_region (id, device_id, region_name, region_type, points, image_id, color, opacity, is_enabled, sort_order, model_ids, created_at, updated_at, task_id) FROM stdin;
 \.
 
 
@@ -5756,7 +6077,7 @@ COPY public.device_detection_region (id, device_id, region_name, region_type, po
 --
 
 COPY public.device_directory (id, name, parent_id, description, sort_order, snap_save_time, record_save_time, created_at, updated_at) FROM stdin;
-1	默认分组	\N	未手动分组的摄像头（含直连与国标）	-1000	1	1	2026-07-20 02:02:38.950451	2026-07-20 02:02:38.95046
+2	默认分组	\N	未手动分组的摄像头（含直连与国标）	-1000	1	1	2026-08-25 09:49:30.210958	2026-08-25 09:49:30.210961
 \.
 
 
@@ -5841,6 +6162,14 @@ COPY public.image (id, filename, original_filename, path, width, height, created
 
 
 --
+-- Data for Name: model; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.model (id, name, description, model_path, image_url, version, status, class_names, selected_class_names, created_at, updated_at, onnx_model_path, torchscript_model_path, tensorrt_model_path, openvino_model_path, model_origin, origin_ref) FROM stdin;
+\.
+
+
+--
 -- Data for Name: nvr; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -5892,7 +6221,7 @@ COPY public.plate_match_record (id, task_id, task_name, device_id, device_name, 
 -- Data for Name: playback; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.playback (id, file_path, event_time, device_id, device_name, duration, thumbnail_path, file_size, created_at, updated_at) FROM stdin;
+COPY public.playback (id, file_path, event_time, device_id, device_name, duration, thumbnail_path, file_size, created_at, updated_at, task_id) FROM stdin;
 \.
 
 
@@ -5901,6 +6230,22 @@ COPY public.playback (id, file_path, event_time, device_id, device_name, duratio
 --
 
 COPY public.pose_intent_match_record (id, task_id, task_name, device_id, device_name, library_id, library_name, entry_id, entry_name, similarity, intent_event, matched, pose_snapshot, alert_id, correlation_id, task_type, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: post_plugin; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.post_plugin (id, name, latest_version, runtime, enabled, manifest_json, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: post_plugin_service; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.post_plugin_service (plugin_id, version, replicas, status, endpoint, deploy_mode, binding_json, updated_at) FROM stdin;
 \.
 
 
@@ -5916,7 +6261,7 @@ COPY public.pusher (id, pusher_name, pusher_code, video_stream_enabled, video_st
 -- Data for Name: record_file; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.record_file (id, space_id, device_id, object_name, bucket_name, filename, file_size, content_type, etag, url, thumbnail_url, duration, event_time, source, created_at, updated_at) FROM stdin;
+COPY public.record_file (id, space_id, device_id, object_name, bucket_name, filename, file_size, content_type, etag, url, thumbnail_url, duration, event_time, source, created_at, updated_at, task_id) FROM stdin;
 \.
 
 
@@ -5996,7 +6341,7 @@ COPY public.space_group_save_policy (id, group_type, group_key, snap_save_time, 
 -- Data for Name: stream_forward_task; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.stream_forward_task (id, task_name, task_code, output_format, output_quality, output_bitrate, status, is_enabled, exception_reason, service_server_ip, service_port, service_process_id, service_last_heartbeat, service_log_path, schedule_policy, prefer_gpu, target_node_id, node_id, device_deployments, total_streams, last_process_time, last_success_time, description, created_at, updated_at) FROM stdin;
+COPY public.stream_forward_task (id, task_name, task_code, output_format, output_quality, output_bitrate, status, is_enabled, exception_reason, service_server_ip, service_port, service_process_id, service_last_heartbeat, service_log_path, schedule_policy, prefer_gpu, target_node_id, node_id, device_deployments, total_streams, last_process_time, last_success_time, description, created_at, updated_at, executor, runtime_bin_path) FROM stdin;
 \.
 
 
@@ -6020,7 +6365,7 @@ COPY public.tracking_target (id, task_id, device_id, device_name, track_id, clas
 -- Name: alert_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.alert_id_seq', 1, false);
+SELECT pg_catalog.setval('public.alert_id_seq', 8421, true);
 
 
 --
@@ -6041,7 +6386,7 @@ SELECT pg_catalog.setval('public.algorithm_post_process_result_id_seq', 1, false
 -- Name: algorithm_task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.algorithm_task_id_seq', 1, false);
+SELECT pg_catalog.setval('public.algorithm_task_id_seq', 3, true);
 
 
 --
@@ -6062,7 +6407,7 @@ SELECT pg_catalog.setval('public.device_detection_region_id_seq', 1, false);
 -- Name: device_directory_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.device_directory_id_seq', 1, true);
+SELECT pg_catalog.setval('public.device_directory_id_seq', 2, true);
 
 
 --
@@ -6076,14 +6421,14 @@ SELECT pg_catalog.setval('public.device_storage_config_id_seq', 1, false);
 -- Name: device_track_point_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.device_track_point_id_seq', 1, false);
+SELECT pg_catalog.setval('public.device_track_point_id_seq', 60, true);
 
 
 --
 -- Name: device_track_session_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.device_track_session_id_seq', 1, false);
+SELECT pg_catalog.setval('public.device_track_session_id_seq', 1, true);
 
 
 --
@@ -6097,28 +6442,28 @@ SELECT pg_catalog.setval('public.face_auto_enroll_task_id_seq', 1, false);
 -- Name: face_entry_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.face_entry_id_seq', 1, false);
+SELECT pg_catalog.setval('public.face_entry_id_seq', 5, true);
 
 
 --
 -- Name: face_library_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.face_library_id_seq', 1, false);
+SELECT pg_catalog.setval('public.face_library_id_seq', 1, true);
 
 
 --
 -- Name: face_match_record_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.face_match_record_id_seq', 1, false);
+SELECT pg_catalog.setval('public.face_match_record_id_seq', 3014, true);
 
 
 --
 -- Name: face_person_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.face_person_id_seq', 1, false);
+SELECT pg_catalog.setval('public.face_person_id_seq', 1, true);
 
 
 --
@@ -6133,6 +6478,13 @@ SELECT pg_catalog.setval('public.frame_extractor_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.image_id_seq', 1, false);
+
+
+--
+-- Name: model_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.model_id_seq', 1, false);
 
 
 --
@@ -6160,28 +6512,28 @@ SELECT pg_catalog.setval('public.plate_auto_enroll_task_id_seq', 1, false);
 -- Name: plate_entry_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.plate_entry_id_seq', 1, false);
+SELECT pg_catalog.setval('public.plate_entry_id_seq', 5, true);
 
 
 --
 -- Name: plate_library_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.plate_library_id_seq', 1, false);
+SELECT pg_catalog.setval('public.plate_library_id_seq', 1, true);
 
 
 --
 -- Name: plate_match_record_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.plate_match_record_id_seq', 1, false);
+SELECT pg_catalog.setval('public.plate_match_record_id_seq', 2405, true);
 
 
 --
 -- Name: playback_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.playback_id_seq', 1, false);
+SELECT pg_catalog.setval('public.playback_id_seq', 574, true);
 
 
 --
@@ -6202,14 +6554,14 @@ SELECT pg_catalog.setval('public.pusher_id_seq', 1, false);
 -- Name: record_file_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.record_file_id_seq', 1, false);
+SELECT pg_catalog.setval('public.record_file_id_seq', 575, true);
 
 
 --
 -- Name: record_space_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.record_space_id_seq', 1, false);
+SELECT pg_catalog.setval('public.record_space_id_seq', 31, true);
 
 
 --
@@ -6237,14 +6589,14 @@ SELECT pg_catalog.setval('public.scenario_pose_library_id_seq', 1, false);
 -- Name: snap_image_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.snap_image_id_seq', 1, false);
+SELECT pg_catalog.setval('public.snap_image_id_seq', 6878, true);
 
 
 --
 -- Name: snap_space_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.snap_space_id_seq', 1, false);
+SELECT pg_catalog.setval('public.snap_space_id_seq', 31, true);
 
 
 --
@@ -6272,7 +6624,7 @@ SELECT pg_catalog.setval('public.space_group_save_policy_id_seq', 1, false);
 -- Name: stream_forward_task_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.stream_forward_task_id_seq', 1, false);
+SELECT pg_catalog.setval('public.stream_forward_task_id_seq', 5, true);
 
 
 --
@@ -6315,11 +6667,27 @@ ALTER TABLE ONLY public.algorithm_task_device
 
 
 --
+-- Name: algorithm_task_notification_state algorithm_task_notification_state_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.algorithm_task_notification_state
+    ADD CONSTRAINT algorithm_task_notification_state_pkey PRIMARY KEY (task_id, device_id, channel_key);
+
+
+--
 -- Name: algorithm_task algorithm_task_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.algorithm_task
     ADD CONSTRAINT algorithm_task_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: algorithm_task_stream_runtime algorithm_task_stream_runtime_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.algorithm_task_stream_runtime
+    ADD CONSTRAINT algorithm_task_stream_runtime_pkey PRIMARY KEY (task_id, device_id);
 
 
 --
@@ -6491,6 +6859,22 @@ ALTER TABLE ONLY public.image
 
 
 --
+-- Name: model model_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.model
+    ADD CONSTRAINT model_name_key UNIQUE (name);
+
+
+--
+-- Name: model model_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.model
+    ADD CONSTRAINT model_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: nvr nvr_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6568,6 +6952,22 @@ ALTER TABLE ONLY public.playback
 
 ALTER TABLE ONLY public.pose_intent_match_record
     ADD CONSTRAINT pose_intent_match_record_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_plugin post_plugin_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_plugin
+    ADD CONSTRAINT post_plugin_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: post_plugin_service post_plugin_service_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.post_plugin_service
+    ADD CONSTRAINT post_plugin_service_pkey PRIMARY KEY (plugin_id, version);
 
 
 --
@@ -6779,17 +7179,17 @@ ALTER TABLE ONLY public.space_group_save_policy
 
 
 --
--- Name: idx_alert_correlation_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_alert_correlation_id ON public.alert USING btree (correlation_id);
-
-
---
 -- Name: idx_alert_time; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_alert_time ON public.alert USING btree ("time" DESC);
+
+
+--
+-- Name: idx_device_detection_region_task_device; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_device_detection_region_task_device ON public.device_detection_region USING btree (task_id, device_id);
 
 
 --
@@ -6804,6 +7204,20 @@ CREATE INDEX idx_face_match_record_correlation_id ON public.face_match_record US
 --
 
 CREATE INDEX idx_plate_match_record_correlation_id ON public.plate_match_record USING btree (correlation_id);
+
+
+--
+-- Name: idx_playback_task_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_playback_task_id ON public.playback USING btree (task_id);
+
+
+--
+-- Name: idx_record_file_task_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_record_file_task_id ON public.record_file USING btree (task_id);
 
 
 --
@@ -6982,6 +7396,13 @@ CREATE INDEX ix_snap_image_space_id ON public.snap_image USING btree (space_id);
 
 
 --
+-- Name: uq_alert_correlation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_alert_correlation_id ON public.alert USING btree (correlation_id) WHERE (correlation_id IS NOT NULL);
+
+
+--
 -- Name: algorithm_model_service algorithm_model_service_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7051,6 +7472,14 @@ ALTER TABLE ONLY public.device_detection_region
 
 ALTER TABLE ONLY public.device_detection_region
     ADD CONSTRAINT device_detection_region_image_id_fkey FOREIGN KEY (image_id) REFERENCES public.image(id) ON DELETE SET NULL;
+
+
+--
+-- Name: device_detection_region device_detection_region_task_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_detection_region
+    ADD CONSTRAINT device_detection_region_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.algorithm_task(id) ON DELETE CASCADE;
 
 
 --
@@ -7262,8 +7691,80 @@ ALTER TABLE ONLY public.tracking_target
 
 
 --
+-- 边缘/中心分层录像的设备策略与统一媒体资产索引
+--
+
+CREATE TABLE public.device_recording_policy (
+    id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    device_id character varying(100) NOT NULL,
+    recording_mode character varying(20) DEFAULT 'continuous'::character varying NOT NULL,
+    retention_hours integer DEFAULT 168 NOT NULL,
+    event_pre_seconds integer DEFAULT 10 NOT NULL,
+    event_post_seconds integer DEFAULT 20 NOT NULL,
+    event_image_sync boolean DEFAULT true NOT NULL,
+    event_clip_sync boolean DEFAULT true NOT NULL,
+    live_transport_mode character varying(20) DEFAULT 'always_push'::character varying NOT NULL,
+    playback_route_mode character varying(20) DEFAULT 'auto'::character varying NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    CONSTRAINT uq_device_recording_policy_device_id UNIQUE (device_id)
+);
+
+CREATE INDEX ix_device_recording_policy_device_id
+    ON public.device_recording_policy USING btree (device_id);
+
+CREATE TABLE public.media_asset (
+    id character varying(36) NOT NULL PRIMARY KEY,
+    asset_type character varying(32) NOT NULL,
+    device_id character varying(100) NOT NULL,
+    alert_id bigint,
+    task_id bigint,
+    source_node_id bigint,
+    storage_node_id bigint,
+    storage_generation bigint DEFAULT 1 NOT NULL,
+    storage_scope character varying(16) NOT NULL,
+    storage_backend character varying(16) NOT NULL,
+    bucket_name character varying(255),
+    object_key character varying(500) NOT NULL,
+    status character varying(16) DEFAULT 'pending'::character varying NOT NULL,
+    start_time timestamp with time zone,
+    end_time timestamp with time zone,
+    duration_ms bigint,
+    file_size bigint,
+    content_type character varying(100) DEFAULT 'application/octet-stream'::character varying NOT NULL,
+    etag character varying(128),
+    checksum character varying(128),
+    retry_count integer DEFAULT 0 NOT NULL,
+    last_error text,
+    expires_at timestamp with time zone,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    CONSTRAINT uq_media_asset_bucket_object UNIQUE (bucket_name, object_key)
+);
+
+CREATE INDEX ix_media_asset_device_id ON public.media_asset USING btree (device_id);
+CREATE INDEX ix_media_asset_asset_type ON public.media_asset USING btree (asset_type);
+CREATE INDEX ix_media_asset_alert_id ON public.media_asset USING btree (alert_id);
+CREATE INDEX ix_media_asset_task_id ON public.media_asset USING btree (task_id);
+CREATE INDEX ix_media_asset_source_node_id ON public.media_asset USING btree (source_node_id);
+CREATE INDEX ix_media_asset_storage_node_id ON public.media_asset USING btree (storage_node_id);
+CREATE INDEX ix_media_asset_status ON public.media_asset USING btree (status);
+CREATE INDEX ix_media_asset_start_time ON public.media_asset USING btree (start_time);
+CREATE INDEX ix_media_asset_expires_at ON public.media_asset USING btree (expires_at);
+CREATE INDEX ix_media_asset_device_time ON public.media_asset USING btree (device_id, start_time, end_time);
+CREATE INDEX ix_media_asset_alert_type ON public.media_asset USING btree (alert_id, asset_type);
+CREATE INDEX ix_media_asset_source_status ON public.media_asset USING btree (source_node_id, status);
+CREATE INDEX ix_media_asset_storage_time ON public.media_asset USING btree (storage_node_id, start_time);
+CREATE INDEX ix_media_asset_expiry_status ON public.media_asset USING btree (expires_at, status);
+
+CREATE INDEX ix_alert_image_asset_id ON public.alert USING btree (image_asset_id);
+CREATE INDEX ix_alert_record_asset_id ON public.alert USING btree (record_asset_id);
+CREATE UNIQUE INDEX ux_record_file_asset_id ON public.record_file USING btree (asset_id)
+    WHERE (asset_id IS NOT NULL);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict BUJ0b6OsGwccB9i0XKq3q6YZ9R9y7YTnYp39VDN8piFdiSwLhDVCoH5W560gKc7
-
+\unrestrict E3WsAYvddKwRlIv0hj4lfff9sF4j3KqAd4QGlnoy84lOPhGD9xt7B5sbjSb2frl

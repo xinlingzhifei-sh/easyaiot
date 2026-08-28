@@ -195,13 +195,13 @@ export const SAM_MODEL_SETUP_ROUTE: AppRouteRecordRaw = {
   ],
 }
 
-/** 算法任务 AI 后处理 IDE（内嵌 OpenVSCode） */
+/** 算法任务业务脚本 IDE（内嵌 OpenVSCode） */
 export const ALGORITHM_POST_PROCESS_IDE_ROUTE: AppRouteRecordRaw = {
   path: '/algorithm-post-process',
   component: LAYOUT,
   name: 'AlgorithmPostProcessLayout',
   meta: {
-    title: 'AI后处理',
+    title: '业务脚本',
     hideMenu: true,
     hideBreadcrumb: true,
   },
@@ -211,10 +211,40 @@ export const ALGORITHM_POST_PROCESS_IDE_ROUTE: AppRouteRecordRaw = {
       name: 'AlgorithmPostProcessIde',
       component: () => import('@/views/system/iframe/FrameDynamic.vue'),
       meta: {
-        title: 'AI后处理',
+        title: '业务脚本',
         hideMenu: true,
         canTo: true,
         activeMenu: 'camera/index',
+      },
+    },
+  ],
+}
+
+/**
+ * 规则引擎 Node-RED 编辑器（iframe）
+ * 与 nginx 同源代理一致：iframe 打开 /dev-api/nodeRed/#flow/:id
+ * 使用独立路径，避开菜单 /rulechains/index/:id + FrameBlank 撞名导致的 404。
+ */
+export const RULE_CHAINS_NODERED_ROUTE: AppRouteRecordRaw = {
+  path: '/rulechain-editor',
+  component: LAYOUT,
+  name: 'RuleChainsNodeRedLayout',
+  meta: {
+    title: '规则引擎',
+    hideMenu: true,
+    hideBreadcrumb: true,
+  },
+  children: [
+    {
+      path: ':id',
+      name: 'RuleChainsNodeRed',
+      component: () => import('@/views/system/iframe/FrameDynamic.vue'),
+      meta: {
+        title: 'EasyAIoT',
+        hideMenu: true,
+        hideBreadcrumb: true,
+        canTo: true,
+        activeMenu: '/rulechains/index',
       },
     },
   ],

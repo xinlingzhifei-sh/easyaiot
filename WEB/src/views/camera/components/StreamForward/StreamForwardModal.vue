@@ -42,6 +42,7 @@ import {
 import { getRuntimeInfo } from '@/api/device/algorithm_task';
 import { getDeviceList } from '@/api/device/camera';
 import { getNodePage } from '@/api/device/node';
+import { nodeHasFunction } from '@/views/node/utils/constants';
 import { Button } from '@/components/Button'
 defineOptions({ name: 'StreamForwardModal' });
 
@@ -70,9 +71,9 @@ const showRuntimeBanner = computed(() => {
 const runtimeBannerText = computed(() => {
   const info = runtimeInfo.value;
   if (info?.ready) {
-    return `本机 RUNTIME 已就绪${info.version ? `（${info.version}）` : ''}，高性能推流将使用 RTSP→RTMP 直通（低 CPU）`;
+    return `本机推流运行时已就绪${info.version ? `（${info.version}）` : ''}，性能优先推流将以低负载方式转发`;
   }
-  return '本机 RUNTIME 未就绪：启动高性能任务时将尝试自动编译，或请先执行 RUNTIME/install_linux.sh；远程节点需先在「节点管理 → 业务运行时分发」安装 RUNTIME';
+  return '本机推流运行时未就绪：启动「性能优先」任务时将尝试自动编译；远程节点需先在「节点管理 → 业务运行时分发」完成安装';
 });
 
 async function loadRuntimeInfo() {
@@ -202,11 +203,11 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
       componentProps: {
         placeholder: '请选择推流引擎',
         options: [
-          { label: '高性能（RUNTIME 直通）', value: 'cpp' },
-          { label: '兼容模式（FFmpeg）', value: 'python' },
+          { label: '性能优先', value: 'cpp' },
+          { label: '兼容优先', value: 'python' },
         ],
       },
-      helpMessage: '高性能：C++ RUNTIME RTSP→RTMP 零转码，CPU 占用低，适合 NVR 多路；兼容模式：FFmpeg copy/转码，支持 HEVC 等非 H.264 源',
+      helpMessage: '性能优先：原样转发，CPU 占用低，适合多路摄像头同时推流；兼容优先：可处理更多视频编码（如 HEVC），个别摄像头推流异常时可选用',
     },
     {
       field: 'schedule_policy',
@@ -217,7 +218,7 @@ const [registerForm, { setFieldsValue, resetFields, validate, updateSchema }] = 
         placeholder: '请选择调度策略',
         options: schedulePolicyOptions,
       },
-      helpMessage: '本机：在当前 VIDEO 服务部署；自动/指定节点：多路摄像头默认按设备分片分散到集群节点。高性能(cpp)调度到节点前，请先在「节点管理 → 业务运行时分发」安装 RUNTIME',
+      helpMessage: '本机：在当前视频服务所在机器部署；自动/指定节点：多路摄像头默认按设备分片分散到集群节点。「性能优先」调度到节点前，请先在「节点管理 → 业务运行时分发」完成运行时安装',
     },
     {
       field: 'prefer_gpu',
@@ -319,7 +320,7 @@ const loadNodes = async () => {
     );
     const page = res?.data || res;
     const list = (page?.list || []).filter(
-      (node: any) => node.nodeRole === 'compute' || node.nodeRole === 'gpu' || node.nodeRole === 'hybrid',
+      (node: any) => nodeHasFunction(node, 'forward'),
     );
     nodeOptions.value = list.map((node: any) => ({
       label: `${node.name} (${node.host})`,

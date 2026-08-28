@@ -2,18 +2,26 @@
 // Created by basiclab on 25-10-15.
 //
 #include "AlgoMqttBus.h"
+#include "AlarmCallback.h"
 #include "Detech.h"
+#include "AlertClassFilter.h"
 #include "YoloThreadPool.h"
 #include "Datatype.h"
 #include "ffmpeg_hw.h"
 #include <atomic>
 #include <chrono>
+#include <cstring>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <map>
+#include <set>
 #include <sstream>
 #include <sys/stat.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <ifaddrs.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/geometry.hpp>
 #include <unistd.h>
@@ -32,6 +40,24 @@ std::string formatUtcNow() {
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%SZ");
     return oss.str();
+}
+
+std::string resolveAlertHookUrl(const Config& config) {
+    if (!config.alertHookUrl.empty()) {
+        return config.alertHookUrl;
+    }
+    return config.hookHttpUrl;
+}
+
+bool httpAlertFallbackEnabled(const Config& config) {
+    if (AlgoMqttBus::busEnabled(config)) {
+        return false;
+    }
+    return !resolveAlertHookUrl(config).empty();
+}
+
+bool alarmDeliveryEnabled(const Config& config) {
+    return AlgoMqttBus::busEnabled(config) || httpAlertFallbackEnabled(config);
 }
 
 bool parseHttpUrl(const std::string& url, std::string& host, int& port, std::string& path) {
@@ -56,6 +82,55 @@ bool parseHttpUrl(const std::string& url, std::string& host, int& port, std::str
         port = 80;
     }
     return !host.empty();
+}
+
+std::string envValue(const char* name) {
+    const char* v = std::getenv(name);
+    return (v && *v) ? std::string(v) : std::string();
+}
+
+// 边缘计算节点上的 RUNTIME 必须向控制面上报节点真实地址。
+// 优先采用 launcher 注入的 HOST_IP/POD_IP（VIDEO 部署时写入目标节点 host），
+// 无环境变量时探测本机第一个非回环 IPv4；否则回退 127.0.0.1。
+std::string resolveWorkerIp() {
+    for (const char* key : {"HOST_IP", "POD_IP"}) {
+        std::string ip = envValue(key);
+        if (!ip.empty() && ip != "127.0.0.1" && ip != "::1" && ip != "localhost") {
+            return ip;
+        }
+    }
+    struct ifaddrs* ifa = nullptr;
+    if (getifaddrs(&ifa) == 0) {
+        for (struct ifaddrs* it = ifa; it; it = it->ifa_next) {
+            if (!it->ifa_addr || it->ifa_addr->sa_family != AF_INET) {
+                continue;
+            }
+            if (it->ifa_flags & IFF_LOOPBACK) {
+                continue;
+            }
+            char buf[INET_ADDRSTRLEN] = {0};
+            const sockaddr_in* sin = reinterpret_cast<const sockaddr_in*>(it->ifa_addr);
+            if (inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf))) {
+                freeifaddrs(ifa);
+                return buf;
+            }
+        }
+        freeifaddrs(ifa);
+    }
+    return "127.0.0.1";
+}
+
+// 与 AlgoMqttBus 的 node_id 解析保持一致：ini compute_node_id → 环境变量回退。
+// 远程部署时 VIDEO 会将目标边缘节点 id 写入 ini / env，心跳据此归属节点。
+std::string resolveNodeId(const Config& config) {
+    if (!config.computeNodeId.empty()) {
+        return config.computeNodeId;
+    }
+    std::string nodeId = envValue("COMPUTE_NODE_ID");
+    if (nodeId.empty()) {
+        nodeId = envValue("NODE_ID");
+    }
+    return nodeId;
 }
 }  // namespace
 
@@ -106,6 +181,14 @@ Detech::~Detech() {
     if (_httpClient) {
         delete _httpClient;
         _httpClient = nullptr;
+    }
+    // 线程池为 static 指针，若不显式销毁，worker 线程永远不会被 join：
+    // 进程退出时 ORT 的 MLDataType 静态单例先于进程结束被析构，仍在 Run 的 worker
+    // 会访问悬垂类型对象（表现为 "GetElementType is not implemented"），
+    // 该帧检测被吞掉返回空检测。必须在所有推理使用者 join 后、静态析构开始前释放。
+    if (yolo_thread_pool) {
+        delete yolo_thread_pool;
+        yolo_thread_pool = nullptr;
     }
     runtime::releaseHwDecodeState(&_hwDecodeState);
     LOG(INFO) << "[CLEANUP] Detech cleanup completed successfully";
@@ -208,6 +291,8 @@ RtmpEncoderOptions makeRtmpOpts(const Config& cfg) {
     opts.forceSoft = cfg.forceSoftAv;
     opts.gpuDeviceId = cfg.hwaccelDeviceId >= 0 ? cfg.hwaccelDeviceId : cfg.gpuDeviceId;
     opts.nvencPreset = cfg.nvencPreset.empty() ? "p3" : cfg.nvencPreset;
+    opts.bitRate = cfg.videoBitRate;
+    opts.gopSize = cfg.videoGopSize;
     return opts;
 }
 }  // namespace
@@ -460,9 +545,11 @@ void Detech::_controlServerThreadFunc() {
             if (yolo_thread_pool) {
                 response["infer_ep"] = yolo_thread_pool->inferEp();
                 response["model_layout"] = yolo_thread_pool->modelLayout();
+                response["model_count"] = (Json::UInt64)yolo_thread_pool->modelCount();
             } else {
                 response["infer_ep"] = "none";
                 response["model_layout"] = "none";
+                response["model_count"] = 0;
             }
             if (this->_pipeline) {
                 response["decode_ep"] = this->_pipeline->decodeEp();
@@ -600,51 +687,59 @@ bool Detech::_init_yolo_detector() {
     
     if (!yolo_thread_pool) {
         yolo_thread_pool = new YoloThreadPool();
-        
-        // Extract first model path and classes from map
-        // TODO: Support multiple models in future version
+
         if (_config.modelPaths.empty()) {
             LOG(ERROR) << "[ERROR] No model path configured in config file!";
             return false;
         }
-        
-        std::string modelPath = _config.modelPaths.begin()->second;
-        
-        // Check if model path is empty string
-        if (modelPath.empty()) {
-            LOG(WARNING) << "[INIT] Model path is empty, skipping YOLO initialization";
-            return true;
-        }
-        
-        LOG(INFO) << "[INIT] Model path: " << modelPath;
-        
-        std::vector<std::string> classes;
 
-        if (!_config.modelClasses.empty()) {
-            std::string classFile = _config.modelClasses.begin()->second;
-            LOG(INFO) << "[INIT] Classes file: " << classFile;
-            std::ifstream ifs(classFile);
-            if (ifs.is_open()) {
-                std::string line;
-                while (std::getline(ifs, line)) {
-                    // trim
-                    size_t a = line.find_first_not_of(" \t\r\n");
-                    if (a == std::string::npos) continue;
-                    size_t b = line.find_last_not_of(" \t\r\n");
-                    classes.push_back(line.substr(a, b - a + 1));
-                }
-                LOG(INFO) << "[INIT] Loaded " << classes.size() << " classes from file";
-            } else {
-                LOG(WARNING) << "[INIT] Cannot open classes file, using default COCO names";
+        // 多模型：按 ini 出现顺序加载全部模型（model_path / model_path_<key>）
+        std::vector<YoloThreadPool::ModelSpec> modelSpecs;
+        for (const auto& modelKey : _config.modelKeys) {
+            auto pathIt = _config.modelPaths.find(modelKey);
+            if (pathIt == _config.modelPaths.end() || pathIt->second.empty()) {
+                continue;
             }
+
+            YoloThreadPool::ModelSpec spec;
+            spec.key = modelKey;
+            spec.modelPath = pathIt->second;
+            LOG(INFO) << "[INIT] Model path [" << modelKey << "]: " << spec.modelPath;
+
+            auto classIt = _config.modelClasses.find(modelKey);
+            if (classIt != _config.modelClasses.end()) {
+                LOG(INFO) << "[INIT] Classes file [" << modelKey << "]: " << classIt->second;
+                std::ifstream ifs(classIt->second);
+                if (ifs.is_open()) {
+                    std::string line;
+                    while (std::getline(ifs, line)) {
+                        // trim
+                        size_t a = line.find_first_not_of(" \t\r\n");
+                        if (a == std::string::npos) continue;
+                        size_t b = line.find_last_not_of(" \t\r\n");
+                        spec.classes.push_back(line.substr(a, b - a + 1));
+                    }
+                    LOG(INFO) << "[INIT] Loaded " << spec.classes.size()
+                              << " classes from file [" << modelKey << "]";
+                } else {
+                    LOG(WARNING) << "[INIT] Cannot open classes file, using default COCO names";
+                }
+            }
+            modelSpecs.push_back(std::move(spec));
         }
-        
-        LOG(INFO) << "[INIT] Loading YOLO model with " << _config.threadNums << " threads"
+
+        if (modelSpecs.empty()) {
+            LOG(ERROR) << "[ERROR] No usable model path configured in config file!";
+            return false;
+        }
+
+        LOG(INFO) << "[INIT] Loading " << modelSpecs.size() << " model(s), "
+                  << _config.threadNums << " threads each"
                   << " prefer_gpu=" << (_config.preferGpu ? "true" : "false")
                   << " force_cpu=" << (_config.forceCpu ? "true" : "false")
                   << " gpu_device_id=" << _config.gpuDeviceId;
         int ret = yolo_thread_pool->setUp(
-            modelPath, classes, _config.threadNums,
+            modelSpecs, _config.threadNums,
             _config.preferGpu, _config.forceCpu, _config.gpuDeviceId,
             _config.alarmConfidenceThreshold);
         if (ret) {
@@ -652,7 +747,8 @@ bool Detech::_init_yolo_detector() {
             return false;
         }
         LOG(INFO) << "[OK] YOLO thread pool initialized infer_ep=" << yolo_thread_pool->inferEp()
-                  << " layout=" << yolo_thread_pool->modelLayout();
+                  << " layout=" << yolo_thread_pool->modelLayout()
+                  << " models=" << yolo_thread_pool->modelCount();
     }
     return true;
 }
@@ -774,21 +870,25 @@ bool Detech::_init_media_alarmer() {
         LOG(INFO) << "[INIT] Alarm detection disabled";
         return true;
     }
-    
-    if (!AlgoMqttBus::busEnabled(_config)) {
-        LOG(WARNING) << "[INIT] Alarm enabled but ALGO_BUS_TRANSPORT disabled";
+
+    if (AlgoMqttBus::busEnabled(_config)) {
+        if (_config.mqttBrokerUrls.empty()) {
+            LOG(WARNING) << "[INIT] Alarm enabled but MQTT broker URLs empty "
+                         << "(set mqtt_broker_urls / MQTT_BROKER_URLS)";
+        }
+        LOG(INFO) << "[INIT] Alarm callback initialized (MQTT → iot-sink)";
+        LOG(INFO) << "  → MQTT brokers: " << _config.mqttBrokerUrls;
+    } else if (httpAlertFallbackEnabled(_config)) {
+        LOG(INFO) << "[INIT] Alarm callback initialized (HTTP → VIDEO hook)";
+        LOG(INFO) << "  → hook: " << resolveAlertHookUrl(_config);
+    } else {
+        LOG(WARNING) << "[INIT] Alarm enabled but no MQTT bus and no alert_hook_url";
         return true;
     }
-    if (_config.mqttBrokerUrls.empty()) {
-        LOG(WARNING) << "[INIT] Alarm enabled but MQTT broker URLs empty "
-                     << "(set mqtt_broker_urls / MQTT_BROKER_URLS)";
-    }
-    
-    LOG(INFO) << "[INIT] Alarm callback initialized (MQTT → iot-sink)";
-    LOG(INFO) << "  → MQTT brokers: " << _config.mqttBrokerUrls;
+
     LOG(INFO) << "  → Confidence threshold: " << _config.alarmConfidenceThreshold;
     LOG(INFO) << "  → Cooldown time: " << _config.alarmCooldownTime << "s";
-    
+
     return true;
 }
 
@@ -912,8 +1012,8 @@ bool Detech::_checkAlarmCooldown() {
 
 // 启动告警发送线程
 void Detech::_startAlarmSenderThread() {
-    if (!_config.enableAlarm || !AlgoMqttBus::busEnabled(_config)) {
-        LOG(INFO) << "[ALARM] Alarm disabled or no hook URL, skipping alarm thread";
+    if (!_config.enableAlarm || !alarmDeliveryEnabled(_config)) {
+        LOG(INFO) << "[ALARM] Alarm disabled or no delivery path (MQTT/HTTP hook), skipping alarm thread";
         return;
     }
     
@@ -1015,11 +1115,13 @@ void Detech::_alarmSenderThreadFunc() {
             info["detection_count"] = static_cast<int>(alarmData.detections.size());
             info["runtime_ts_ms"] = (Json::Value::UInt64)alarmData.timestamp;
             Json::Value detectionsArray(Json::arrayValue);
+            std::set<int> modelIds;
             for (const auto& det : alarmData.detections) {
                 Json::Value detObj;
                 detObj["class_name"] = det.class_name;
                 detObj["confidence"] = det.class_score;
                 detObj["class_id"] = det.class_id;
+                detObj["model_id"] = det.model_id;
                 Json::Value bbox(Json::arrayValue);
                 bbox.append(static_cast<int>(det.x1));
                 bbox.append(static_cast<int>(det.y1));
@@ -1027,6 +1129,9 @@ void Detech::_alarmSenderThreadFunc() {
                 bbox.append(static_cast<int>(det.y2));
                 detObj["bbox"] = bbox;
                 detectionsArray.append(detObj);
+                if (det.model_id >= 0) {
+                    modelIds.insert(det.model_id);
+                }
             }
             info["detections"] = detectionsArray;
             Json::StreamWriterBuilder compact;
@@ -1038,12 +1143,123 @@ void Detech::_alarmSenderThreadFunc() {
             std::string jsonStr = Json::writeString(writer, root);
 
             const bool snapshot = (_config.taskType == "snap" || _config.taskType == "snapshot");
-            if (!AlgoMqttBus::busEnabled(_config)) {
-                LOG(ERROR) << "[ALARM-THREAD] ALGO_BUS_TRANSPORT disabled; alert dropped (HTTP hook removed)";
-            } else if (AlgoMqttBus::publishAlert(_config, jsonStr, snapshot)) {
-                LOG(INFO) << "[ALARM-THREAD] MQTT alert published device=" << did;
+            bool usedHttpAlert = false;
+            AlgoMqttBus::ensureHealthProbe();
+            if (AlgoMqttBus::shouldPublishInferEvent()) {
+                Json::Value ev;
+                ev["schema"] = "infer_event.v1";
+                ev["event_kind"] = "infer";
+                ev["correlation_id"] = root.get("correlation_id", "").asString();
+                if (ev["correlation_id"].asString().empty()) {
+                    ev["correlation_id"] = (_config.taskId.empty() ? "runtime" : _config.taskId) + "_" + ts;
+                }
+                try {
+                    ev["task_id"] = static_cast<Json::Int64>(
+                        std::stoll(_config.taskId.empty() ? "0" : _config.taskId));
+                } catch (...) {
+                    ev["task_id"] = 0;
+                }
+                ev["task_name"] = _config.algorithmName;
+                ev["task_type"] = _config.taskType.empty() ? "realtime" : _config.taskType;
+                ev["device_id"] = did;
+                ev["device_name"] = dname;
+                ev["timestamp"] = ts;
+                ev["frame_width"] = _videoWidth;
+                ev["frame_height"] = _videoHeight;
+                ev["image_path"] = alarmData.imagePath;
+                Json::Value dets(Json::arrayValue);
+                for (const auto& det : alarmData.detections) {
+                    Json::Value d;
+                    d["class_name"] = det.class_name;
+                    d["confidence"] = det.class_score;
+                    d["class_id"] = det.class_id;
+                    d["track_id"] = 0;
+                    Json::Value bbox(Json::arrayValue);
+                    bbox.append(det.x1);
+                    bbox.append(det.y1);
+                    bbox.append(det.x2);
+                    bbox.append(det.y2);
+                    d["bbox"] = bbox;
+                    dets.append(d);
+                }
+                ev["detections"] = dets;
+                ev["model_ids"] = Json::arrayValue;
+                for (int mid : modelIds) {
+                    ev["model_ids"].append(mid);
+                }
+                std::string inferJson = Json::writeString(writer, ev);
+                if (AlgoMqttBus::publishInferEvent(_config, inferJson)) {
+                    LOG(INFO) << "[ALARM-THREAD] InferEvent published device=" << did;
+                } else {
+                    LOG(ERROR) << "[ALARM-THREAD] InferEvent publish failed device=" << did;
+                }
+            } else if (AlgoMqttBus::busEnabled(_config)) {
+                if (AlgoMqttBus::postInBypass()) {
+                    Json::Value infoObj;
+                    Json::CharReaderBuilder rb;
+                    std::string errs;
+                    std::string infoStr = root.get("information", "{}").asString();
+                    std::unique_ptr<Json::CharReader> reader(rb.newCharReader());
+                    if (!reader->parse(infoStr.data(), infoStr.data() + infoStr.size(), &infoObj, &errs)) {
+                        infoObj = Json::objectValue;
+                    }
+                    infoObj["post_bypass"] = true;
+                    infoObj["post_bypass_reason"] = "post_unready";
+                    root["information"] = Json::writeString(compact, infoObj);
+                    jsonStr = Json::writeString(writer, root);
+                    LOG(WARNING) << "[ALARM-THREAD] POST bypass direct alert device=" << did;
+                }
+                if (AlgoMqttBus::publishAlert(_config, jsonStr, snapshot)) {
+                    LOG(INFO) << "[ALARM-THREAD] MQTT alert published device=" << did;
+                } else {
+                    LOG(ERROR) << "[ALARM-THREAD] MQTT alert publish failed device=" << did;
+                }
+            } else if (httpAlertFallbackEnabled(_config)) {
+                usedHttpAlert = true;
+                const std::string hookUrl = resolveAlertHookUrl(_config);
+                AlarmCallback callback(hookUrl);
+                VideoAlertContext ctx;
+                ctx.taskId = _config.taskId;
+                ctx.deviceId = did;
+                ctx.deviceName = dname;
+                ctx.taskType = _config.taskType.empty() ? "realtime" : _config.taskType;
+                ctx.algorithmName = _config.algorithmName.empty() ? "detection" : _config.algorithmName;
+                if (callback.sendVideoAlert(
+                        ctx,
+                        alarmData.detections,
+                        alarmData.regionName,
+                        ts,
+                        alarmData.imagePath)) {
+                    LOG(INFO) << "[ALARM-THREAD] HTTP alert accepted device=" << did;
+                } else {
+                    LOG(ERROR) << "[ALARM-THREAD] HTTP alert failed device=" << did
+                               << " hook=" << hookUrl;
+                }
             } else {
-                LOG(ERROR) << "[ALARM-THREAD] MQTT alert publish failed device=" << did;
+                LOG(ERROR) << "[ALARM-THREAD] No MQTT/HTTP alert delivery path; alert dropped";
+            }
+
+            // RUNTIME 人脸/车牌链路桥：任务启用人脸或车牌匹配且告警未走 HTTP hook 时
+            // （MQTT/InferEvent 路径），将同一告警（含整帧截图 image_path 与 correlation_id）
+            // 以 feed_only 投递 VIDEO hook；VIDEO process_alert_hook 仅据此把帧送入
+            // 人脸/车牌抓取队列（检测→裁剪→匹配），匹配记录经 correlation_id 与告警自动关联，
+            // 不重复落库/通知。
+            const bool anyMatching = _config.faceMatchingEnabled || _config.plateMatchingEnabled;
+            if (anyMatching && !usedHttpAlert
+                    && !resolveAlertHookUrl(_config).empty()) {
+                Json::Value feedRoot = root;
+                feedRoot["face_feed_only"] = _config.faceMatchingEnabled;
+                feedRoot["plate_feed_only"] = _config.plateMatchingEnabled;
+                std::string feedJson = Json::writeString(writer, feedRoot);
+                AlarmCallback feedCallback(resolveAlertHookUrl(_config));
+                if (feedCallback.sendVideoAlertJson(feedJson)) {
+                    LOG(INFO) << "[ALARM-THREAD] feed_only delivered device=" << did
+                              << " face=" << (_config.faceMatchingEnabled ? "on" : "off")
+                              << " plate=" << (_config.plateMatchingEnabled ? "on" : "off")
+                              << " corr=" << root.get("correlation_id", "").asString();
+                } else {
+                    LOG(WARNING) << "[ALARM-THREAD] feed_only delivery failed device=" << did;
+                }
             }
         } catch (const std::exception& e) {
             LOG(ERROR) << "[ALARM-THREAD] Exception while sending alarm: " << e.what();
@@ -1054,16 +1270,14 @@ void Detech::_alarmSenderThreadFunc() {
 }
 
 void Detech::_startHeartbeatThread() {
-    if (_config.heartbeatUrl.empty()) {
-        LOG(INFO) << "[HEARTBEAT] heartbeat_url not set, heartbeat disabled";
-        return;
-    }
+    // Always start: VIDEO HTTP heartbeat (if URL) + InferEvent heartbeat (POST)
     if (_heartbeatRunning.load()) {
         return;
     }
     _heartbeatRunning.store(true);
     _heartbeatThread = std::thread(&Detech::_heartbeatThreadFunc, this);
-    LOG(INFO) << "[HEARTBEAT] thread started -> " << _config.heartbeatUrl;
+    LOG(INFO) << "[HEARTBEAT] thread started"
+              << (_config.heartbeatUrl.empty() ? " (InferEvent only)" : (" -> " + _config.heartbeatUrl));
 }
 
 void Detech::_stopHeartbeatThread() {
@@ -1081,9 +1295,11 @@ void Detech::_heartbeatThreadFunc() {
     std::string host;
     int port = 80;
     std::string path = "/video/algorithm/heartbeat/realtime";
-    if (!parseHttpUrl(_config.heartbeatUrl, host, port, path)) {
+    bool httpOk = false;
+    if (!_config.heartbeatUrl.empty() && parseHttpUrl(_config.heartbeatUrl, host, port, path)) {
+        httpOk = true;
+    } else if (!_config.heartbeatUrl.empty()) {
         LOG(ERROR) << "[HEARTBEAT] invalid URL: " << _config.heartbeatUrl;
-        return;
     }
     httplib::Client client(host, port);
     client.set_connection_timeout(3, 0);
@@ -1091,35 +1307,99 @@ void Detech::_heartbeatThreadFunc() {
     client.set_write_timeout(3, 0);
 
     int interval = _config.heartbeatIntervalSec > 0 ? _config.heartbeatIntervalSec : 10;
+    int inferHbSec = 60;
+    if (const char* env = std::getenv("INFER_HEARTBEAT_SEC")) {
+        int n = std::atoi(env);
+        if (n >= 15) inferHbSec = n;
+    }
+    auto lastInferHb = std::chrono::steady_clock::now() - std::chrono::seconds(inferHbSec);
+
+    AlgoMqttBus::ensureHealthProbe();
+
     while (_heartbeatRunning.load() && _isRun) {
         try {
-            Json::Value root;
-            int taskIdNum = 0;
-            try {
-                taskIdNum = std::stoi(_config.taskId);
-            } catch (...) {
-                taskIdNum = 0;
-            }
-            root["task_id"] = taskIdNum;
-            root["server_ip"] = "127.0.0.1";
-            root["port"] = _config.controlPort;
-            root["process_id"] = static_cast<int>(::getpid());
-            root["log_path"] = _config.logPath;
-            if (_patrolScheduler) {
-                root["total_patrols"] = (Json::UInt64)_patrolScheduler->totalPatrols.load();
-                root["total_detections"] = (Json::UInt64)_patrolScheduler->totalDetections.load();
-            }
-            Json::StreamWriterBuilder writer;
-            writer["indentation"] = "";
-            std::string body = Json::writeString(writer, root);
-            auto res = client.Post(path.c_str(), body, "application/json");
-            if (!(res && res->status == 200)) {
-                LOG(WARNING) << "[HEARTBEAT] post failed status="
-                             << (res ? res->status : -1);
+            if (httpOk) {
+                Json::Value root;
+                int taskIdNum = 0;
+                try {
+                    taskIdNum = std::stoi(_config.taskId);
+                } catch (...) {
+                    taskIdNum = 0;
+                }
+                root["task_id"] = taskIdNum;
+                root["server_ip"] = resolveWorkerIp();
+                {
+                    std::string nodeId = resolveNodeId(_config);
+                    if (!nodeId.empty()) {
+                        root["node_id"] = nodeId;
+                    }
+                }
+                root["port"] = _config.controlPort;
+                root["process_id"] = static_cast<int>(::getpid());
+                root["log_path"] = _config.logPath;
+                if (_patrolScheduler) {
+                    root["total_patrols"] = (Json::UInt64)_patrolScheduler->totalPatrols.load();
+                    root["total_detections"] = (Json::UInt64)_patrolScheduler->totalDetections.load();
+                }
+                Json::StreamWriterBuilder writer;
+                writer["indentation"] = "";
+                std::string body = Json::writeString(writer, root);
+                auto res = client.Post(path.c_str(), body, "application/json");
+                if (!(res && res->status == 200)) {
+                    LOG(WARNING) << "[HEARTBEAT] post failed status="
+                                 << (res ? res->status : -1);
+                }
             }
         } catch (const std::exception& e) {
             LOG(WARNING) << "[HEARTBEAT] exception: " << e.what();
         }
+
+        // InferEvent heartbeat for POST TTL (skip while bypass)
+        auto now = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - lastInferHb).count() >= inferHbSec) {
+            lastInferHb = now;
+            if (AlgoMqttBus::shouldPublishInferEvent()) {
+                Json::Value ev;
+                ev["schema"] = "infer_event.v1";
+                ev["event_kind"] = "heartbeat";
+                ev["correlation_id"] = AlgoMqttBus::postEnabled()
+                    ? ((_config.taskId.empty() ? "runtime" : _config.taskId) + "_hb")
+                    : "hb";
+                try {
+                    ev["task_id"] = static_cast<Json::Int64>(
+                        std::stoll(_config.taskId.empty() ? "0" : _config.taskId));
+                } catch (...) {
+                    ev["task_id"] = 0;
+                }
+                ev["task_name"] = _config.algorithmName;
+                ev["task_type"] = _config.taskType.empty() ? "realtime" : _config.taskType;
+                ev["device_id"] = _config.deviceId.empty() ? "unknown" : _config.deviceId;
+                ev["device_name"] = _config.deviceName;
+                ev["timestamp"] = formatUtcNow();
+                ev["frame_width"] = _videoWidth;
+                ev["frame_height"] = _videoHeight;
+                ev["detections"] = Json::arrayValue;
+                ev["model_ids"] = Json::arrayValue;
+                // multi-device: also emit for each configured device
+                auto publishOne = [&](const std::string& did, const std::string& dname) {
+                    ev["device_id"] = did;
+                    ev["device_name"] = dname;
+                    ev["correlation_id"] = (_config.taskId.empty() ? "runtime" : _config.taskId)
+                        + "_hb_" + did;
+                    Json::StreamWriterBuilder wb;
+                    wb["indentation"] = "";
+                    AlgoMqttBus::publishInferEvent(_config, Json::writeString(wb, ev));
+                };
+                if (!_config.devices.empty()) {
+                    for (const auto& d : _config.devices) {
+                        publishOne(d.deviceId, d.deviceName);
+                    }
+                } else {
+                    publishOne(ev["device_id"].asString(), _config.deviceName);
+                }
+            }
+        }
+
         for (int i = 0; i < interval * 10 && _heartbeatRunning.load() && _isRun; ++i) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -1160,11 +1440,17 @@ void Detech::_sendAlarmCallback(const std::vector<DetectObject>& detections,
     if (!_config.enableAlarm) {
         return;
     }
-    if (!AlgoMqttBus::busEnabled(_config)) {
+    if (!alarmDeliveryEnabled(_config)) {
         return;
     }
     if (!_alarmThreadRunning.load()) {
         LOG(WARNING) << "[ALARM] Alarm sender thread not running, alarm dropped";
+        return;
+    }
+
+    const std::vector<DetectObject> filtered = AlertClassFilter::filterDetectionsForAlert(
+        detections, _config.alertClassNames);
+    if (filtered.empty()) {
         return;
     }
 
@@ -1175,7 +1461,7 @@ void Detech::_sendAlarmCallback(const std::vector<DetectObject>& detections,
         if (_alarmQueue.size() >= MAX_ALARM_QUEUE_SIZE) {
             _alarmQueue.pop();
         }
-        AlarmData alarmData(detections, regionName, _get_curtime_stamp_ms(), imagePath, deviceId, deviceName);
+        AlarmData alarmData(filtered, regionName, _get_curtime_stamp_ms(), imagePath, deviceId, deviceName);
         _alarmQueue.push(std::move(alarmData));
         LOG(INFO) << "[ALARM] Alarm enqueued, queue size: " << _alarmQueue.size();
     }
@@ -1290,7 +1576,7 @@ void Detech::_display_video_loop() {
         if (_config.enableAI && yolo_thread_pool) {
             // Submit task every N frames to avoid queue buildup
             if (aiFrameInterval % SUBMIT_INTERVAL == 0) {
-                yolo_thread_pool->submitTask(img, 0, frameCount);
+                yolo_thread_pool->submitTask(img, 0, 0, frameCount);
                 lastSubmittedFrameId = frameCount;
             }
             aiFrameInterval++;
@@ -1298,7 +1584,7 @@ void Detech::_display_video_loop() {
             // Try to get any available result (non-blocking)
             bool foundNewResult = false;
             for (int checkFrame = lastSubmittedFrameId; checkFrame >= 0 && checkFrame >= lastSubmittedFrameId - 30; checkFrame--) {
-                int ret = yolo_thread_pool->getTargetResultNonBlock(detections, 0, checkFrame);
+                int ret = yolo_thread_pool->getTargetResultNonBlock(detections, 0, 0, checkFrame);
                 if (ret == 0) {
                     // Successfully got results, cache them
                     lastDetections = detections;
@@ -1326,8 +1612,10 @@ void Detech::_display_video_loop() {
                     int centerX = (x1 + x2) / 2;
                     int centerY = (y1 + y2) / 2;
                     
-                    // 检查是否在报警区域内
-                    bool inAlarmRegion = _isInAlarmRegion(centerX, centerY, img.cols, img.rows);
+                    // POST 启用时告警不做本地区域过滤（几何仅在 POST region_gate）
+                    bool inAlarmRegion = AlgoMqttBus::postEnabled()
+                        ? true
+                        : _isInAlarmRegion(centerX, centerY, img.cols, img.rows);
                     if (inAlarmRegion) {
                         inRegionCount++;
                         

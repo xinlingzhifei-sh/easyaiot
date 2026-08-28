@@ -27,12 +27,12 @@
 #   --tag <tag>      指定镜像标签（默认 latest）
 #   --registry <url> 指定推送/拉取仓库地址（默认见 runtime_registry.conf）
 #   --force-rebuild  强制重新构建，忽略已存在的镜像（默认跳过已有镜像）
-#   --profile <name> 指定部署形态：mini | standard | full
-#                    - build: 不指定则构建全部 3 种形态；指定则只构建该形态
+#   --profile <name> 指定部署形态：edge | mini | standard | full
+#                    - build: 不指定则构建全部 4 种形态；指定则只构建该形态（edge 的 WEB 与 mini 共用镜像名）
 #                    - pull:  不指定则交互选择（默认 full）；指定则直接拉取该形态
 #   --arch <arch>    指定构建架构：all | amd64 | arm64（默认 all=全部架构）
 #                    单架构模式仅构建/推送该架构镜像，跳过多架构 manifest 更新
-#   --module <mod>   指定构建模块：all | DEVICE | AI | RTC | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL（默认 all=全部）
+#   --module <mod>   指定构建模块：all | HARNESS | IDEA | DEVICE | AI | RTC | POST | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL（默认 all=全部）
 #                    单模块模式仅构建/推送该模块镜像，跳过全量 install_linux.sh build
 #   --native-source  使用原始源（非国内镜像源），默认使用腾讯云镜像源加速
 #
@@ -56,9 +56,12 @@
 #
 # 镜像映射（远程 → 本地）:
 #   共享镜像（全形态通用，pull 时按形态跳过不会启动的 DEVICE 服务）:
+#     docker.cnb.cool/holmesian/easyaiot/aiot-idea-portal:amd64    → easyaiot/idea-portal:latest
+#     docker.cnb.cool/holmesian/easyaiot/aiot-idea-workspace:amd64 → easyaiot/idea-workspace:latest
 #     docker.cnb.cool/holmesian/easyaiot/aiot-ai:amd64       → ai-service:latest
 #     docker.cnb.cool/holmesian/easyaiot/aiot-video:amd64    → video-service:latest
 #     docker.cnb.cool/holmesian/easyaiot/aiot-rtc:amd64      → rtc-service:latest
+#     docker.cnb.cool/holmesian/easyaiot/aiot-post:amd64     → post-service:latest（仅 standard/full 部署时拉取）
 #     docker.cnb.cool/holmesian/easyaiot/aiot-panel:amd64    → easyaiot/panel:latest
 #     mini 仅拉 aiot-system；standard 跳过 aiot-device/aiot-tdengine/aiot-visualize；full 拉全部 DEVICE
 #   形态相关镜像（WEB，全量形态均构建/推送）:
@@ -75,7 +78,9 @@
 #   bash .scripts/docker/runtime_image.sh build --profile standard
 #   bash .scripts/docker/runtime_image.sh build --push --profile mini --registry my-registry.com/easyaiot/
 #   bash .scripts/docker/runtime_image.sh build --push --arch arm64
+#   bash .scripts/docker/runtime_image.sh build --push --module IDEA
 #   bash .scripts/docker/runtime_image.sh build --push --module AI
+#   bash .scripts/docker/runtime_image.sh build --push --module POST
 #   bash .scripts/docker/runtime_image.sh pull
 #   bash .scripts/docker/runtime_image.sh pull --profile mini --registry my-registry.com/easyaiot/
 #   bash .scripts/docker/runtime_image.sh pull --tag v1.2.0 --profile full
@@ -104,6 +109,8 @@ LOG_DIR="${SCRIPT_DIR}/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="${LOG_DIR}/runtime_image_$(date +%Y%m%d_%H%M%S).log"
 : > "$LOG_FILE"
+# 供父脚本（install/desktop acquire）在失败时定位本轮详细日志
+echo "$LOG_FILE" > "${LOG_DIR}/.last_runtime_image_log"
 
 _log() {
     local label="$1" msg="$2"
@@ -222,7 +229,7 @@ fi
 if [ -n "${EASYAIOT_RUNTIME_BUILD_MODULE:-}" ]; then
     _bm_norm=$(runtime_normalize_build_module "$EASYAIOT_RUNTIME_BUILD_MODULE")
     if [ "$_bm_norm" = "INVALID" ]; then
-        print_error "无效的目标模块: ${EASYAIOT_RUNTIME_BUILD_MODULE}，可选: all | DEVICE | AI | RTC | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
+        print_error "无效的目标模块: ${EASYAIOT_RUNTIME_BUILD_MODULE}，可选: $(runtime_build_module_help)"
         exit 1
     fi
     if [ -n "$_bm_norm" ]; then
@@ -246,9 +253,9 @@ fi
 
 if [ -n "${_EXPLICIT_PROFILE:-}" ]; then
     case "$(_resolve_deploy_profile_raw)" in
-        mini|standard|full) ;;
+        edge|mini|standard|full) ;;
         *)
-            print_error "无效的部署形态: ${_EXPLICIT_PROFILE}，可选: mini | standard | full"
+            print_error "无效的部署形态: ${_EXPLICIT_PROFILE}，可选: edge | mini | standard | full"
             exit 1 ;;
     esac
     _EXPLICIT_PROFILE="$(_resolve_deploy_profile_raw)"
@@ -604,8 +611,10 @@ tag_and_push() {
                 docker rmi "$remote_ref" 2>/dev/null || true
                 return 1
             fi
-            print_info "推送架构镜像: ${remote_ref}"
-            if ! runtime_docker_push_with_retry "$remote_ref"; then
+            # ★ Docker 29/containerd：单架构标签必须带 --platform，否则 OCI index 可能推送失败
+            local push_platform; push_platform="$(arch_to_platform "$arch_suffix")"
+            print_info "推送架构镜像: ${remote_ref} (${push_platform})"
+            if ! runtime_docker_push_with_retry "$remote_ref" "$push_platform"; then
                 print_error "推送失败: ${remote_ref}"
                 return 1
             fi
@@ -710,16 +719,14 @@ build_module_with_install_script() {
     # subshell 内导出子进程环境，避免 FORCE_REBUILD=0|1 污染本脚本的布尔变量
     (
         if is_force_rebuild; then export FORCE_REBUILD=1; else export FORCE_REBUILD=0; fi
-        # ★ 跨架构平台导出策略：
-        #   - 架构专属脚本（install_linux_arm.sh）自带 DOCKER_PLATFORM 和基础镜像，不导出避免覆盖；
-        #     但需设置 EASYAIOT_CROSS_BUILD=1 告诉脚本允许在 x86 宿主机上交叉构建 arm64 镜像。
-        #   - 通用脚本（install_linux.sh）跨架构时需导出 DOCKER_PLATFORM 供 --platform 使用
-        if ! is_native_arch "$target_arch"; then
-            if [ "$install_script" = "install_linux.sh" ]; then
-                export DOCKER_PLATFORM="$(arch_to_platform "$target_arch")"
-            else
-                export EASYAIOT_CROSS_BUILD=1
-            fi
+        # ★ 平台导出策略（本机也导出，保证 Docker 29/containerd 写入正确 platform）：
+        #   - 架构专属脚本（install_linux_arm.sh）自带 DOCKER_PLATFORM/基础镜像，不覆盖；
+        #     跨架构时设 EASYAIOT_CROSS_BUILD=1 允许在 x86 上交叉构建。
+        #   - 通用脚本（install_linux.sh）导出 DOCKER_PLATFORM 供 docker build --platform
+        if [ "$install_script" = "install_linux.sh" ]; then
+            export DOCKER_PLATFORM="$(arch_to_platform "$target_arch")"
+        elif ! is_native_arch "$target_arch"; then
+            export EASYAIOT_CROSS_BUILD=1
         fi
         cd "$module_path"
         bash "$install_script" build 2>&1 | tee "$build_log"
@@ -789,18 +796,13 @@ local_image_ready() {
 all_build_plan_images_ready_for_arch() {
     local target_arch="$1" profile mapping tmp rname lname
 
-    if runtime_build_includes_module AI || runtime_build_includes_module RTC || runtime_build_includes_module VIDEO || runtime_build_includes_module PANEL; then
-        for mapping in "${INDEPENDENT_MODULES[@]}"; do
-            rname="${mapping%%|*}"; tmp="${mapping#*|}"; lname="${tmp%%|*}"
-            is_profile_dependent "$rname" && continue
-            local _imod="${mapping##*|}"
-            case "$_imod" in
-                AI|RTC|VIDEO|PANEL) runtime_build_includes_module "$_imod" || continue ;;
-                *) continue ;;
-            esac
-            local_image_ready "$lname" "" "$target_arch" || return 1
-        done
-    fi
+    for mapping in "${INDEPENDENT_MODULES[@]}"; do
+        rname="${mapping%%|*}"; tmp="${mapping#*|}"; lname="${tmp%%|*}"
+        is_profile_dependent "$rname" && continue
+        local _imod="${mapping##*|}"
+        runtime_build_includes_module "$_imod" || continue
+        local_image_ready "$lname" "" "$target_arch" || return 1
+    done
 
     # 仅 full 形态模块（APP / VISUALIZE / TRANSFORM）
     for mapping in "${FULL_ONLY_MODULES[@]}"; do
@@ -932,17 +934,11 @@ build_device_all() {
     fi
 
     if [ $rc -ne 0 ]; then
-        # 检查是否至少部分镜像成功
-        local any_exist=false
-        for lname in "${DEVICE_LOCAL_NAMES[@]}"; do
-            docker image inspect "$(local_ref "$lname")" >/dev/null 2>&1 && { any_exist=true; break; }
-        done
-        if ! $any_exist; then
-            print_error "DEVICE 构建失败，日志: ${build_log}"
-            tail -40 "$build_log" | while IFS= read -r line; do echo "  $line"; done
-            return 1
-        fi
-        print_warning "DEVICE 部分镜像构建失败，继续处理已成功的镜像"
+        # install 脚本非 0 表示本轮构建未成功完成。本地可能仍有「上次成功」的旧镜像，
+        # 若当作「部分成功」继续推送，会把陈旧层重新打到仓库（强制重建时尤其误导）。
+        print_error "DEVICE 构建失败（退出码 ${rc}），中止推送，避免上传旧镜像。日志: ${build_log}"
+        tail -40 "$build_log" | while IFS= read -r line; do echo "  $line"; done
+        return 1
     fi
     rm -f "$build_log"
     return 0
@@ -953,8 +949,12 @@ build_single_module() {
     local remote_name="$1" local_ref="$2" target_arch="${3:-$CURRENT_ARCH}"
 
     case "$remote_name" in
+        aiot-idea-portal) build_module_with_install_script "IDEA" "easyaiot/idea-portal" "$local_ref" "$target_arch" ;;
+        aiot-idea-workspace) build_module_with_install_script "IDEA" "easyaiot/idea-workspace" "$local_ref" "$target_arch" ;;
+        aiot-harness) build_module_with_install_script "HARNESS" "easyaiot/harness" "$local_ref" "$target_arch" ;;
         aiot-ai)    build_module_with_install_script "AI" "ai-service" "$local_ref" "$target_arch" ;;
         aiot-rtc)   build_module_with_install_script "RTC" "rtc-service" "$local_ref" "$target_arch" ;;
+        aiot-post)  build_module_with_install_script "POST" "post-service" "$local_ref" "$target_arch" ;;
         aiot-video) build_module_with_install_script "VIDEO" "video-service" "$local_ref" "$target_arch" ;;
         aiot-web)   build_module_with_install_script "WEB" "web-service" "$local_ref" "$target_arch" ;;
         aiot-app)   build_module_with_install_script "APP" "app-service" "$local_ref" "$target_arch" ;;
@@ -1020,18 +1020,13 @@ count_planned_images_for_arch() {
     local -a profiles=("$@")
     local count=0 mapping rname _bp
 
-    if runtime_build_includes_module AI || runtime_build_includes_module RTC || runtime_build_includes_module VIDEO || runtime_build_includes_module PANEL; then
-        for mapping in "${INDEPENDENT_MODULES[@]}"; do
-            rname="${mapping%%|*}"
-            is_profile_dependent "$rname" && continue
-            local _imod="${mapping##*|}"
-            case "$_imod" in
-                AI|RTC|VIDEO|PANEL) runtime_build_includes_module "$_imod" || continue ;;
-                *) continue ;;
-            esac
-            count=$((count + 1))
-        done
-    fi
+    for mapping in "${INDEPENDENT_MODULES[@]}"; do
+        rname="${mapping%%|*}"
+        is_profile_dependent "$rname" && continue
+        local _imod="${mapping##*|}"
+        runtime_build_includes_module "$_imod" || continue
+        count=$((count + 1))
+    done
 
     # full 专属：APP / VISUALIZE / TRANSFORM
     for mapping in "${FULL_ONLY_MODULES[@]}"; do
@@ -1126,7 +1121,7 @@ build_all_modules() {
     if runtime_is_single_module_build; then
         echo "  构建模块: ${EASYAIOT_RUNTIME_BUILD_MODULE}（单模块）"
     else
-        echo "  构建模块: 全部 (DEVICE + AI + RTC + VIDEO + WEB + APP + VISUALIZE + TRANSFORM + PANEL)"
+        echo "  构建模块: 全部 ($(runtime_build_module_plus_list))"
     fi
     if runtime_is_single_arch_build; then
         echo "  架构模式: 单架构（跳过多架构 manifest 更新）"
@@ -1195,18 +1190,17 @@ build_all_modules() {
         print_header "${target_arch} (${arch_label})"
         echo ""
 
-        # ★ 每次循环重置 DOCKER_PLATFORM，避免上一轮跨架构值泄漏到本机架构构建
-        unset DOCKER_PLATFORM
-        # 跨架构：检查磁盘空间、配置 QEMU/binfmt、导出目标平台
+        # ★ 本机/跨架构一律导出 DOCKER_PLATFORM（Docker 29+ 需显式 platform 元数据，避免 push 报 does not provide any platform）
+        local target_platform; target_platform="$(arch_to_platform "$target_arch")"
+        export DOCKER_PLATFORM="$target_platform"
+        # 跨架构：检查磁盘空间、配置 QEMU/binfmt
         if ! is_native_arch "$target_arch"; then
-            local cross_platform; cross_platform="$(arch_to_platform "$target_arch")"
-            if ! runtime_ensure_qemu_binfmt "$cross_platform"; then
+            if ! runtime_ensure_qemu_binfmt "$target_platform"; then
                 print_error "跨架构构建前置检查失败 (${target_arch})，跳过本架构"
                 failed_all=$((failed_all + $(count_planned_images_for_arch "${build_profiles[@]}")))
                 continue
             fi
             ensure_docker_disk_space "$target_arch"
-            export DOCKER_PLATFORM="$cross_platform"
 
             # ★ 仅当本次构建包含 AI 时预拉取 pytorch 基础镜像（约 10GB+）
             # 单模块 WEB/DEVICE/APP 等不应误触发 AI 依赖拉取
@@ -1248,19 +1242,14 @@ build_all_modules() {
                 ;;
         esac
 
-        # ── 共享模块（AI + RTC + VIDEO + PANEL，全形态）──
-        if runtime_build_includes_module AI || runtime_build_includes_module RTC || runtime_build_includes_module VIDEO || runtime_build_includes_module PANEL; then
-            for mapping in "${INDEPENDENT_MODULES[@]}"; do
-                local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"
-                local _imod="${mapping##*|}"
-                is_profile_dependent "$rname" && continue
-                case "$_imod" in
-                    AI|RTC|VIDEO|PANEL) runtime_build_includes_module "$_imod" || continue ;;
-                    *) continue ;;
-                esac
-                _build_push_track "$rname" "$lname" "" "$target_arch"
-            done
-        fi
+        # ── 共享模块（IDEA / HARNESS / AI / RTC / POST / VIDEO / PANEL 等，非形态标签）──
+        for mapping in "${INDEPENDENT_MODULES[@]}"; do
+            local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"
+            local _imod="${mapping##*|}"
+            is_profile_dependent "$rname" && continue
+            runtime_build_includes_module "$_imod" || continue
+            _build_push_track "$rname" "$lname" "" "$target_arch"
+        done
 
         # ── full 专属模块（APP / VISUALIZE / TRANSFORM）──
         for mapping in "${FULL_ONLY_MODULES[@]}"; do
@@ -1280,25 +1269,29 @@ build_all_modules() {
 
         # ── DEVICE ──
         if runtime_build_includes_module DEVICE; then
-            build_device_all "$target_arch"
-            for i in "${!DEVICE_REMOTE_NAMES[@]}"; do
-                local drname="${DEVICE_REMOTE_NAMES[$i]}"; local dlname="${DEVICE_LOCAL_NAMES[$i]}"
-                local dlref; dlref=$(local_ref "$dlname" "" "$target_arch")
-                local drref; drref=$(remote_ref "$drname" "" "$target_arch")
-                local dmref; dmref=$(manifest_ref "$drname" "")
-                if docker image inspect "$dlref" >/dev/null 2>&1; then
-                    print_step "推送: ${drname} [${target_arch}]"
-                    if tag_and_push "$dlref" "$drref"; then
-                        _MANIFEST_ARCH_REFS["$dmref"]="${_MANIFEST_ARCH_REFS["$dmref"]:+${_MANIFEST_ARCH_REFS["$dmref"]} }${drref}"
-                        success_all=$((success_all + 1))
+            if ! build_device_all "$target_arch"; then
+                print_error "DEVICE 构建失败，跳过本架构全部 DEVICE 镜像推送（避免上传旧镜像）"
+                failed_all=$((failed_all + ${#DEVICE_REMOTE_NAMES[@]}))
+            else
+                for i in "${!DEVICE_REMOTE_NAMES[@]}"; do
+                    local drname="${DEVICE_REMOTE_NAMES[$i]}"; local dlname="${DEVICE_LOCAL_NAMES[$i]}"
+                    local dlref; dlref=$(local_ref "$dlname" "" "$target_arch")
+                    local drref; drref=$(remote_ref "$drname" "" "$target_arch")
+                    local dmref; dmref=$(manifest_ref "$drname" "")
+                    if docker image inspect "$dlref" >/dev/null 2>&1; then
+                        print_step "推送: ${drname} [${target_arch}]"
+                        if tag_and_push "$dlref" "$drref"; then
+                            _MANIFEST_ARCH_REFS["$dmref"]="${_MANIFEST_ARCH_REFS["$dmref"]:+${_MANIFEST_ARCH_REFS["$dmref"]} }${drref}"
+                            success_all=$((success_all + 1))
+                        else
+                            failed_all=$((failed_all + 1))
+                        fi
                     else
+                        print_warning "DEVICE 镜像未找到: ${dlref}"
                         failed_all=$((failed_all + 1))
                     fi
-                else
-                    print_warning "DEVICE 镜像未找到: ${dlref}"
-                    failed_all=$((failed_all + 1))
-                fi
-            done
+                done
+            fi
         fi
 
         # ── WEB 各形态 ──
@@ -1489,19 +1482,59 @@ pull_and_tag_image() {
     pull_out=$(docker pull "$remote_ref" 2>&1)
     pull_rc=$?
     set -e
+    # docker 原文写入主日志（printf 仅到终端，默认不进 LOG_FILE）
+    {
+        echo "---- docker pull ${remote_ref} (exit=${pull_rc}) ----"
+        printf '%s\n' "$pull_out"
+        echo "---- end docker pull ----"
+    } >> "$LOG_FILE" 2>/dev/null || true
     printf '%s\n' "$pull_out"
     if [ "$pull_rc" -ne 0 ]; then
-        print_warning "拉取失败: ${remote_ref}"
-        if docker_error_is_dns_failure "$pull_out"; then
+        local err_kind
+        err_kind="$(runtime_docker_classify_pull_error "$pull_out")"
+        _RUNTIME_LAST_PULL_ERROR_KIND="$err_kind"
+        print_warning "拉取失败: ${remote_ref} [${err_kind}]"
+        print_error "docker pull 输出（末尾）:"
+        while IFS= read -r line; do
+            [ -n "$line" ] && print_error "  ${line}"
+        done < <(printf '%s\n' "$pull_out" | tail -n 40)
+        runtime_docker_print_pull_error_hint "$err_kind" "$remote_ref"
+        if [ "$err_kind" = "dns" ] || docker_error_is_dns_failure "$pull_out"; then
             _print_host_dns_fix_guide
             return 53
         fi
         return 1
     fi
     print_info "打本地标签: ${remote_ref} → ${local_ref}"
-    docker tag "$remote_ref" "$local_ref" || { print_error "打标签失败"; return 1; }
+    if ! docker tag "$remote_ref" "$local_ref"; then
+        print_error "打标签失败: ${remote_ref} → ${local_ref}"
+        return 1
+    fi
     print_success "${local_ref} 已就绪"
     return 0
+}
+
+# 记录本次 pull 失败的远程引用（供汇总打印）
+_RUNTIME_PULL_FAILED_REFS=()
+_RUNTIME_LAST_PULL_ERROR_KIND=""
+
+_runtime_record_pull_failure() {
+    local ref="$1"
+    _RUNTIME_PULL_FAILED_REFS+=("$ref")
+}
+
+_runtime_print_pull_failure_summary() {
+    if [ "${#_RUNTIME_PULL_FAILED_REFS[@]}" -eq 0 ]; then
+        return 0
+    fi
+    echo ""
+    print_error "失败镜像清单 (${#_RUNTIME_PULL_FAILED_REFS[@]}):"
+    local ref
+    for ref in "${_RUNTIME_PULL_FAILED_REFS[@]}"; do
+        print_error "  - ${ref}"
+    done
+    print_error "完整 docker pull 输出已写入日志: ${LOG_FILE}"
+    print_info "查看: tail -n 120 '${LOG_FILE}'"
 }
 
 select_pull_profile() {
@@ -1528,13 +1561,15 @@ select_pull_profile() {
     fi
     echo ""
     echo "请选择要拉取的部署形态镜像："
-    echo "  1) mini     — 边缘精简版"
-    echo "  2) standard — 标准版"
-    echo "  3) full     — 完整版（默认）"
+    echo "  0) edge      — edge profile"
+    echo "  1) mini      — mini profile"
+    echo "  2) standard  — standard profile"
+    echo "  3) full      — full profile (default)"
     echo ""
     local choice=""
-    read -r -p "请输入选项 [1-3，默认 3]: " choice
+    read -r -p "Enter choice [0-3, default 3]: " choice
     case "${choice:-3}" in
+        0) export EASYAIOT_DEPLOY_PROFILE=edge ;;
         1) export EASYAIOT_DEPLOY_PROFILE=mini ;;
         2) export EASYAIOT_DEPLOY_PROFILE=standard ;;
         *) export EASYAIOT_DEPLOY_PROFILE=full ;;
@@ -1569,9 +1604,8 @@ pull_all_images() {
     select_pull_profile
     local pull_profile="${EASYAIOT_DEPLOY_PROFILE}"
 
-    runtime_images_refresh_local
-
     # ★ 拉取前校验本地镜像架构，删除与当前系统不一致的残留镜像（避免仅按「存在」跳过拉取）
+    # 注意：不再在 pull 前清空全部本地业务镜像；已存在且架构匹配的会跳过下载
     runtime_images_ensure_arch_consistency "$CURRENT_ARCH" "$pull_profile" "$TAG"
 
     local shared_ok=0 shared_fail=0 shared_skipped=0
@@ -1579,6 +1613,8 @@ pull_all_images() {
     device_pull_total=$(runtime_device_pull_count_for_profile "$pull_profile")
     # 非 local：供循环内检测到 DNS 故障后置位
     _EASYAIOT_DNS_ABORT=0
+    _RUNTIME_PULL_FAILED_REFS=()
+    _RUNTIME_LAST_PULL_ERROR_KIND=""
 
     # ---- 共享模块 ----
     print_header "阶段 1/2：拉取共享镜像（架构: ${CURRENT_ARCH}）"
@@ -1587,8 +1623,15 @@ pull_all_images() {
     echo ""
     for mapping in "${INDEPENDENT_MODULES[@]}"; do
         [ "${_EASYAIOT_DNS_ABORT}" -eq 1 ] && break
-        local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"
+        local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"; local mod="${tmp##*|}"
         is_profile_dependent "$rname" && continue
+        if declare -F module_enabled_for_deploy_profile >/dev/null 2>&1; then
+            if ! module_enabled_for_deploy_profile "$mod"; then
+                print_info "跳过 ${rname} → ${lname}（${pull_profile} 不部署 ${mod}）"
+                shared_skipped=$((shared_skipped + 1))
+                continue
+            fi
+        fi
 
         local rref; rref=$(remote_ref "$rname" "" "$CURRENT_ARCH")
         local lref; lref=$(local_ref "$lname")
@@ -1677,14 +1720,20 @@ pull_all_images() {
     local shared_total=0
     for mapping in "${INDEPENDENT_MODULES[@]}"; do
         local rname="${mapping%%|*}"
-        is_profile_dependent "$rname" || shared_total=$((shared_total + 1))
+        local tmp="${mapping#*|}"
+        local mod="${mapping##*|}"
+        is_profile_dependent "$rname" && continue
+        if declare -F module_enabled_for_deploy_profile >/dev/null 2>&1; then
+            module_enabled_for_deploy_profile "$mod" || continue
+        fi
+        shared_total=$((shared_total + 1))
     done
     shared_total=$((shared_total + device_pull_total))
     if [ "$pull_profile" = "full" ]; then
         shared_total=$((shared_total + ${#FULL_ONLY_MODULES[@]}))
     fi
     echo ""
-    print_info "共享镜像: 成功 ${shared_ok}/${shared_total}, 失败 ${shared_fail}/${shared_total}, 跳过 ${shared_skipped} 个 DEVICE"
+    print_info "共享镜像: 成功 ${shared_ok}/${shared_total}, 失败 ${shared_fail}/${shared_total}, 跳过 ${shared_skipped} 个（当前形态不部署）"
 
     # ---- WEB 形态镜像 ----
     print_header "阶段 2/2：拉取 WEB 镜像（形态: $(_profile_label "$pull_profile"), 架构: ${CURRENT_ARCH}）"

@@ -9,29 +9,44 @@
       >
         <TabPane key="1" tab="模型管理">
 <!--          <GpuStackMonitorTip class="page-monitor-tip" />-->
-          <ModelList />
+          <div class="tab-pane-scroll">
+            <ModelList />
+          </div>
         </TabPane>
         <TabPane v-if="showAdvancedTabs" key="6" tab="模型训练">
-          <TrainTaskList
-            :tab-active="state.activeKey === '6'"
-            :auto-open="route.query.launch === '1'"
-            :initial-dataset-id="initialDatasetId"
-          />
+          <div class="tab-pane-scroll">
+            <TrainTaskList
+              :tab-active="state.activeKey === '6'"
+              :auto-open="route.query.launch === '1'"
+              :initial-dataset-id="initialDatasetId"
+            />
+          </div>
         </TabPane>
-        <TabPane key="2" tab="模型推理">
-          <AiModelTool :initialLLMId="initialLLMId" :tab-active="state.activeKey === '2'" />
+        <!-- edge：仅 VIDEO 本地模型 CRUD，无 AI 推理服务 -->
+        <TabPane v-if="showInferenceTab" key="2" tab="模型推理">
+          <div class="tab-pane-scroll">
+            <AiModelTool :initialLLMId="initialLLMId" :tab-active="state.activeKey === '2'" />
+          </div>
         </TabPane>
         <TabPane v-if="showAdvancedTabs" key="7" tab="SAM 万物识别">
-          <SamInferencePage />
+          <div class="tab-pane-scroll">
+            <SamInferencePage />
+          </div>
         </TabPane>
         <TabPane v-if="showAdvancedTabs" key="3" tab="模型导出">
-          <ModelExport></ModelExport>
+          <div class="tab-pane-scroll">
+            <ModelExport></ModelExport>
+          </div>
         </TabPane>
         <TabPane v-if="showAdvancedTabs" key="4" tab="模型部署">
-          <DeployService></DeployService>
+          <div class="tab-pane-scroll">
+            <DeployService></DeployService>
+          </div>
         </TabPane>
         <TabPane v-if="showAdvancedTabs" key="5" tab="大模型管理">
-          <LLMManage ref="llmManageRef"></LLMManage>
+          <div class="tab-pane-scroll">
+            <LLMManage ref="llmManageRef"></LLMManage>
+          </div>
         </TabPane>
       </Tabs>
     </div>
@@ -50,12 +65,15 @@ import DeployService from "@/views/train/components/DeployService/index.vue";
 import LLMManage from "@/views/train/components/LLMManage/index.vue";
 import SamInferencePage from "@/views/model/SamInference/index.vue";
 import GpuStackMonitorTip from '@/components/GpuStackMonitorTip/index.vue';
-import { isTrainAdvancedEnabled } from '@/utils/deployProfile';
+import { isEdgeStandaloneDeployProfile, isTrainAdvancedEnabled } from '@/utils/deployProfile';
 
 defineOptions({name: 'TRAIN'})
 
 const route = useRoute();
 const showAdvancedTabs = isTrainAdvancedEnabled();
+/** edge 单机：仅模型管理（VIDEO 本地 CRUD）；推理依赖 AI 模块，不展示 */
+const showInferenceTab = !isEdgeStandaloneDeployProfile();
+const edgeStandalone = isEdgeStandaloneDeployProfile();
 
 const TRAIN_TAB_KEYS = {
   MODEL_LIST: '1',
@@ -72,7 +90,14 @@ const MINI_TRAIN_TAB_KEYS = new Set<string>([
   TRAIN_TAB_KEYS.INFERENCE,
 ]);
 
+const EDGE_TRAIN_TAB_KEYS = new Set<string>([
+  TRAIN_TAB_KEYS.MODEL_LIST,
+]);
+
 function normalizeTrainRouteTab(tab: string): string {
+  if (edgeStandalone) {
+    return EDGE_TRAIN_TAB_KEYS.has(tab) ? tab : TRAIN_TAB_KEYS.MODEL_LIST;
+  }
   if (!showAdvancedTabs && !MINI_TRAIN_TAB_KEYS.has(tab)) {
     return TRAIN_TAB_KEYS.MODEL_LIST;
   }
@@ -168,6 +193,12 @@ onMounted(() => {
         }
       }
     }
+  }
+
+  .tab-pane-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 16px; // 底部预留空隙，防止分页贴边
   }
 }
 </style>

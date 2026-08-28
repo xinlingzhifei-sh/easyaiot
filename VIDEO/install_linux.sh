@@ -37,6 +37,8 @@ source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 source "${EASYAIOT_ROOT}/.scripts/docker/gpu_compose_helpers.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
 source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
+# shellcheck source=../.scripts/docker/module_update_helpers.sh
+source "${EASYAIOT_ROOT}/.scripts/docker/module_update_helpers.sh"
 
 # 带 GPU/CPU / RUNTIME / source-free override 的 compose 调用
 video_compose() {
@@ -49,6 +51,28 @@ video_compose() {
     fi
     append_source_free_compose_file files
     $COMPOSE_CMD "${files[@]}" "$@"
+}
+
+# compose up；若媒体 bind 源 mkdir file exists 则修复后重试一次
+video_compose_up_or_fail() {
+    local compose_log _rc
+    compose_log=$(mktemp)
+    set +e
+    video_compose up "$@" >"$compose_log" 2>&1
+    _rc=$?
+    set -e
+    cat "$compose_log"
+    if [ "$_rc" -ne 0 ] && repair_media_bind_after_compose_error "$(cat "$compose_log")"; then
+        print_warning "媒体挂载源已修复（EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}），重试 VIDEO 启动..."
+        : >"$compose_log"
+        set +e
+        video_compose up "$@" >"$compose_log" 2>&1
+        _rc=$?
+        set -e
+        cat "$compose_log"
+    fi
+    rm -f "$compose_log"
+    return "$_rc"
 }
 
 # 打印带颜色的消息
@@ -434,11 +458,20 @@ create_env_file() {
 
     ensure_deploy_profile
     apply_python_service_deploy_env "${EASYAIOT_ROOT}"
-    if is_mini_deploy_profile; then
+    if is_edge_deploy_profile; then
+        print_info "edge 形态：零 DEVICE + 本地存储；告警/DVR 由 VIDEO 本地消化"
+    elif is_mini_deploy_profile; then
         print_info "mini 形态：已配置 Gateway 部署（48080）+ MQTT→iot-sink 统一事件面"
     else
         print_info "${EASYAIOT_DEPLOY_PROFILE:-full} 形态：已配置网关部署（JAVA_BACKEND_URL=48080, MinIO 启用）"
     fi
+
+    # RTC / go2rtc（存量 .env.docker 可能缺项）
+    _set_env_docker_kv .env.docker RTC_SERVICE_URL "http://127.0.0.1:6100"
+    _set_env_docker_kv .env.docker RTC_GO2RTC_WEB_URL "/dev-api/go2rtc/"
+    _set_env_docker_kv .env.docker RTC_RTSP_HOST "127.0.0.1"
+    _set_env_docker_kv .env.docker RTC_RTSP_PORT "8554"
+
 }
 
 # 安装服务
@@ -498,7 +531,10 @@ install_service() {
     
     print_info "启动服务..."
     cleanup_renamed_containers
-    video_compose up -d --remove-orphans
+    if ! video_compose_up_or_fail -d --remove-orphans; then
+        print_error "VIDEO 服务启动失败"
+        exit 1
+    fi
 
     print_success "服务安装完成！"
     print_info "等待服务启动..."
@@ -532,7 +568,7 @@ start_service() {
     wire_cpp_runtime_override
 
     cleanup_renamed_containers
-    video_compose up -d --force-recreate --remove-orphans
+    video_compose_up_or_fail -d --force-recreate --remove-orphans
     print_success "服务已启动"
     check_status
 }
@@ -564,7 +600,7 @@ restart_service() {
     wire_cpp_runtime_override
 
     cleanup_renamed_containers
-    video_compose up -d --force-recreate --remove-orphans
+    video_compose_up_or_fail -d --force-recreate --remove-orphans
     print_success "服务已重启"
     check_status
 }
@@ -671,16 +707,42 @@ update_service() {
     check_network
     ensure_cpp_runtime || true
 
+    # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
+    if easyaiot_update_should_recreate_only video-service:latest; then
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        cleanup_renamed_containers
+        if ! video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service; then
+            print_error "VIDEO 服务更新失败"
+            return 1
+        fi
+        print_success "服务更新完成"
+        return 0
+    fi
+
+    if ! easyaiot_have_git; then
+        print_warning "未安装 git 且本地无 video-service 镜像，将基于当前目录源码构建"
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        if ! build_with_cache ""; then
+            exit 1
+        fi
+        cleanup_renamed_containers
+        video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service || return 1
+        print_success "服务更新完成"
+        return 0
+    fi
+
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
-    rev_before="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_before="$(easyaiot_git_rev_parse_head)"
 
     print_info "拉取最新代码..."
     # --ff-only：快进失败立即返回，不产生意外合并提交，比默认 pull 更快更安全
-    git pull --ff-only || print_warning "Git pull 失败，继续使用当前代码"
+    easyaiot_git_pull_ff_only
 
     local rev_after=""
-    rev_after="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_after="$(easyaiot_git_rev_parse_head)"
 
     # ---- 判断是否需要重建镜像 ----
     local needs_build=0
@@ -720,12 +782,12 @@ update_service() {
         # 构建完成后才重建容器：compose 检测到镜像变化「先停旧、再起新」，停机仅数秒
         print_info "应用新镜像（仅重建变更服务，最小化停机）..."
         cleanup_renamed_containers
-        video_compose up -d --remove-orphans --no-deps video-service
+        video_compose_up_or_fail -d --remove-orphans --no-deps video-service
     else
         print_success "依赖未变，跳过镜像构建（业务代码经卷挂载，重启进程即可生效）"
         # 确保容器存在并应用任何 compose 配置变更（首次启用源码挂载时会在此处重建一次）
         cleanup_renamed_containers
-        video_compose up -d --remove-orphans --no-deps video-service
+        video_compose_up_or_fail -d --remove-orphans --no-deps video-service
 
         # 是否需要重启进程以加载新源码：有新提交，或本地有未提交改动（git diff 脏）。
         # git diff --quiet HEAD 仅在出错或有已跟踪改动时返回非 0，用于捕获“改了代码没 commit”的场景；
@@ -733,7 +795,7 @@ update_service() {
         local code_changed=0
         if [ -n "$rev_before" ] && [ "$rev_before" != "$rev_after" ]; then
             code_changed=1
-        elif ! git diff --quiet HEAD -- . 2>/dev/null; then
+        elif ! easyaiot_git_worktree_clean; then
             code_changed=1
         fi
 

@@ -6,10 +6,26 @@
 """
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, request, jsonify
 
-from models import db, AlgorithmTask, FrameExtractor, Sorter, Pusher, Device, utc_isoformat_z
+from models import (
+    db,
+    AlgorithmTask,
+    AlgorithmTaskStreamRuntime,
+    FrameExtractor,
+    Sorter,
+    Pusher,
+    Device,
+    utc_isoformat_z,
+)
+from app.utils.algorithm_task_identity import build_task_stream_key, rewrite_task_stream_url
+from app.utils.algorithm_task_runtime import (
+    resolve_heartbeat_server_ip,
+    resolve_heartbeat_stream_state,
+    resolve_task_run_status_from_heartbeat,
+)
+from app.utils.camera_source_client import camera_source_mode, get_camera_source_status
 from app.services.algorithm_task_service import (
     create_algorithm_task, update_algorithm_task, delete_algorithm_task,
     get_algorithm_task, list_algorithm_tasks, start_algorithm_task,
@@ -148,6 +164,7 @@ def create_task():
             pose_intent_config=data.get('pose_intent_config'),
             post_process_enabled=data.get('post_process_enabled', False),
             post_process_replicas=data.get('post_process_replicas', 1),
+            post_pipeline=data.get('post_pipeline'),
             executor=data.get('executor', 'cpp'),
             runtime_bin_path=data.get('runtime_bin_path'),
             runtime_control_port=data.get('runtime_control_port'),
@@ -178,10 +195,14 @@ def update_task(task_id):
         if not data:
             return jsonify({'code': 400, 'msg': '请求数据不能为空'}), 400
         
-        # 校验：只有在停用状态下才能编辑（排除is_enabled字段本身的更新）
+        # 校验：只有在停用状态下才能编辑（排除 is_enabled；运行中允许仅改 post_pipeline）
         task = AlgorithmTask.query.get_or_404(task_id)
         if task.is_enabled and 'is_enabled' not in data:
-            return jsonify({'code': 400, 'msg': '任务运行中，无法编辑，请先停止任务'}), 400
+            keys = set(data.keys())
+            if keys - {'post_pipeline'}:
+                return jsonify({'code': 400, 'msg': '任务运行中，无法编辑，请先停止任务'}), 400
+            if 'post_pipeline' in data and not task.alert_event_enabled:
+                return jsonify({'code': 400, 'msg': '未启用告警事件，无法配置后处理规则链'}), 400
         
         task = update_algorithm_task(task_id, **data)
         
@@ -301,6 +322,8 @@ def receive_realtime_heartbeat():
         port = data.get('port')
         process_id = data.get('process_id')
         log_path = data.get('log_path')
+        has_stream_runtime = isinstance(data.get('stream_runtime'), list)
+        stream_runtime = data.get('stream_runtime') or []
         
         if not task_id:
             return jsonify({
@@ -317,23 +340,99 @@ def receive_realtime_heartbeat():
         
         # 更新心跳信息
         task.service_last_heartbeat = datetime.utcnow()
-        if server_ip:
-            task.service_server_ip = server_ip
+        task.service_server_ip = resolve_heartbeat_server_ip(
+            server_ip,
+            task.service_server_ip,
+            task.node_id,
+        )
         if port:
             task.service_port = port
         if process_id:
             task.service_process_id = process_id
         if log_path:
-            task.service_log_path = log_path
+            # cpp 多路：RUNTIME 上报 runtime_{deviceId} 子目录；
+            # 裁剪到 task_{id}[/shard_N]，保留分片目录，避免 UI 只读任务根导致「日志不存在」。
+            norm = str(log_path).replace('\\', '/').rstrip('/')
+            marker = f'task_{task_id}'
+            if marker in norm:
+                parts = norm.split('/')
+                for i, part in enumerate(parts):
+                    if part == marker:
+                        end = i + 1
+                        if i + 1 < len(parts) and str(parts[i + 1]).startswith('shard_'):
+                            end = i + 2
+                        norm = '/'.join(parts[:end])
+                        break
+            task.service_log_path = norm
         elif not task.service_log_path:
             # 如果没有log_path，根据task_id生成
             video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
             log_base_dir = os.path.join(video_root, 'logs')
             task.service_log_path = os.path.join(log_base_dir, f'task_{task_id}')
         
-        # 更新运行状态为running
-        if task.run_status != 'stopped':
-            task.run_status = 'running'
+        # 启用任务收到 Worker 心跳后必须进入运行态；停用任务的迟到心跳不得重新激活任务。
+        task.run_status = resolve_task_run_status_from_heartbeat(task.is_enabled)
+
+        # Worker 上报的是任务与设备维度的实际状态，避免播放接口根据
+        # CameraSourceManager 的订阅关系猜测是否已经进入推理、推流。
+        reported_device_ids = set()
+        now = datetime.utcnow()
+
+        def _epoch_to_datetime(value):
+            if value in (None, ''):
+                return None
+            try:
+                return datetime.fromtimestamp(float(value), tz=timezone.utc)
+            except (TypeError, ValueError, OverflowError):
+                return None
+
+        if isinstance(stream_runtime, list):
+            for item in stream_runtime:
+                if not isinstance(item, dict):
+                    continue
+                device_id = str(item.get('device_id') or '').strip()
+                if not device_id:
+                    continue
+                reported_device_ids.add(device_id)
+                runtime = AlgorithmTaskStreamRuntime.query.filter_by(
+                    task_id=task.id,
+                    device_id=device_id,
+                ).first()
+                if runtime is None:
+                    runtime = AlgorithmTaskStreamRuntime(
+                        task_id=task.id,
+                        device_id=device_id,
+                        stream_key=str(
+                            item.get('stream_key')
+                            or build_task_stream_key(task.id, device_id)
+                        ),
+                    )
+                    db.session.add(runtime)
+                runtime.node_id = task.node_id
+                runtime.stream_key = str(
+                    item.get('stream_key')
+                    or build_task_stream_key(task.id, device_id)
+                )
+                runtime.source_mode, runtime.status = resolve_heartbeat_stream_state(
+                    task.is_enabled,
+                    item.get('source_mode'),
+                    item.get('status'),
+                )
+                if task.is_enabled:
+                    runtime.last_frame_time = _epoch_to_datetime(item.get('last_frame_time'))
+                    runtime.last_detection_time = _epoch_to_datetime(item.get('last_detection_time'))
+                    runtime.last_alert_time = _epoch_to_datetime(item.get('last_alert_time'))
+                    runtime.error_message = str(item.get('error_message') or '')[:500] or None
+                else:
+                    runtime.error_message = None
+                runtime.updated_at = now
+
+        if has_stream_runtime:
+            stale_rows = AlgorithmTaskStreamRuntime.query.filter_by(task_id=task.id).all()
+            for runtime in stale_rows:
+                if runtime.device_id not in reported_device_ids:
+                    runtime.status = 'stopped'
+                    runtime.updated_at = now
         
         db.session.commit()
         
@@ -368,8 +467,11 @@ def receive_patrol_task_heartbeat():
             return jsonify({'code': 400, 'msg': f'巡检任务不存在：task_id={task_id}'}), 400
 
         task.service_last_heartbeat = datetime.utcnow()
-        if data.get('server_ip'):
-            task.service_server_ip = data['server_ip']
+        task.service_server_ip = resolve_heartbeat_server_ip(
+            data.get('server_ip'),
+            task.service_server_ip,
+            task.node_id,
+        )
         if data.get('process_id'):
             task.service_process_id = data['process_id']
         if data.get('log_path'):
@@ -488,6 +590,122 @@ def get_task_services_status(task_id):
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
 
 
+def _algorithm_task_log_dirs(task: AlgorithmTask) -> list:
+    """解析算法任务日志目录。
+
+    - 有分片时：只读 shard_* / deployments.log_dir
+    - 无分片时：读现行非分片路径 service_log_path 或 logs/task_{id}
+      （launcher 非集群部署仍写任务根，不是历史兼容）
+    """
+    video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    task_root = os.path.join(video_root, 'logs', f'task_{task.id}')
+    dirs = []
+    seen = set()
+
+    def _add(path: str):
+        if not path:
+            return
+        norm = os.path.abspath(str(path).rstrip('/\\'))
+        if norm in seen or not os.path.isdir(norm):
+            return
+        seen.add(norm)
+        dirs.append(norm)
+
+    try:
+        deployments = []
+        if hasattr(task, '_parse_device_deployments'):
+            deployments = task._parse_device_deployments() or []
+        elif getattr(task, 'device_deployments', None):
+            import json
+            raw = task.device_deployments
+            deployments = json.loads(raw) if isinstance(raw, str) else (raw or [])
+        for dep in deployments or []:
+            log_dir = dep.get('log_dir') or ''
+            if log_dir and os.path.basename(os.path.abspath(str(log_dir).rstrip('/\\'))).startswith('shard_'):
+                _add(log_dir)
+    except Exception as e:
+        logger.debug('解析算法任务分片日志目录失败 task_id=%s: %s', task.id, e)
+
+    if os.path.isdir(task_root):
+        try:
+            for name in sorted(os.listdir(task_root)):
+                if name.startswith('shard_'):
+                    _add(os.path.join(task_root, name))
+        except OSError:
+            pass
+
+    # 无分片时才用现行非分片目录
+    if not dirs:
+        _add(task.service_log_path or '')
+        _add(task_root)
+    return dirs
+
+
+def _read_log_file_lines(log_file_path: str):
+    try:
+        with open(log_file_path, 'r', encoding='utf-8') as f:
+            return f.readlines()
+    except UnicodeDecodeError:
+        with open(log_file_path, 'r', encoding='gbk') as f:
+            return f.readlines()
+
+
+def get_service_logs_from_dirs(log_dirs, lines: int = 100, date: str = None, task_id: int = None):
+    """从多个日志目录聚合读取（算法任务分片场景）。"""
+    try:
+        log_filename = f"{date}.log" if date else datetime.now().strftime('%Y-%m-%d.log')
+        found_files = []
+        for log_dir in [d for d in (log_dirs or []) if d]:
+            path = os.path.join(log_dir, log_filename)
+            if os.path.isfile(path):
+                found_files.append((os.path.basename(log_dir.rstrip('/\\')) or log_dir, path))
+
+        if not found_files:
+            hint = '（已检查分片或现行非分片日志目录）' if task_id is not None else ''
+            return jsonify({
+                'code': 0,
+                'msg': 'success',
+                'data': {
+                    'logs': f'日志文件不存在: {log_filename}{hint}\n请等待服务运行后生成日志。',
+                    'total_lines': 0,
+                    'log_file': log_filename,
+                    'is_all_file': not bool(date),
+                }
+            })
+
+        merged = []
+        total_lines = 0
+        for label, path in found_files:
+            try:
+                file_lines = _read_log_file_lines(path)
+            except Exception as e:
+                logger.error('读取日志文件失败 %s: %s', path, e)
+                continue
+            total_lines += len(file_lines)
+            if len(found_files) > 1:
+                merged.append(f'===== {label}/{log_filename} =====\n')
+            merged.extend(file_lines)
+
+        if not merged:
+            return jsonify({'code': 500, 'msg': f'读取日志文件失败: {log_filename}'}), 500
+
+        log_lines = merged[-lines:] if len(merged) > lines else merged
+        return jsonify({
+            'code': 0,
+            'msg': 'success',
+            'data': {
+                'logs': ''.join(log_lines),
+                'total_lines': total_lines,
+                'log_file': log_filename,
+                'is_all_file': not bool(date),
+                'log_dirs': [label for label, _ in found_files],
+            }
+        })
+    except Exception as e:
+        logger.error(f"获取服务日志失败: {str(e)}", exc_info=True)
+        return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
+
+
 # ====================== 日志查看接口 ======================
 @algorithm_task_bp.route('/task/<int:task_id>/extractor/logs', methods=['GET'])
 def get_task_extractor_logs(task_id):
@@ -499,26 +717,14 @@ def get_task_extractor_logs(task_id):
         
         # 新架构统一使用算法服务，对于实时算法任务和抓拍算法任务，都使用统一的日志路径
         if task.task_type in ['realtime', 'snap']:
-            # 对于实时算法任务和抓拍算法任务，使用统一的日志路径
             lines = int(request.args.get('lines', 100))
             date = request.args.get('date', '').strip()
-            
-            # 创建一个模拟的服务对象，用于调用get_service_logs
-            class AlgorithmServiceObj:
-                def __init__(self, log_path):
-                    self.log_path = log_path
-                    self.id = task_id
-            
-            # 确定日志路径
-            if task.service_log_path:
-                log_path = task.service_log_path
-            else:
-                video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-                log_base_dir = os.path.join(video_root, 'logs')
-                log_path = os.path.join(log_base_dir, f'task_{task_id}')
-            
-            service_obj = AlgorithmServiceObj(log_path)
-            return get_service_logs(service_obj, lines, date if date else None)
+            return get_service_logs_from_dirs(
+                _algorithm_task_log_dirs(task),
+                lines,
+                date if date else None,
+                task_id=task_id,
+            )
         else:
             # 未知的任务类型
             return jsonify({
@@ -540,32 +746,17 @@ def get_task_sorter_logs(task_id):
         if not task:
             return jsonify({'code': 400, 'msg': '算法任务不存在'}), 400
         
-        # 新架构统一使用realtime_algorithm_service，对于实时算法任务，使用统一的日志路径
+        # 新架构统一使用 realtime 算法服务日志（含分片聚合）
         if task.task_type == 'realtime':
-            # 对于实时算法任务，使用统一的日志路径
             lines = int(request.args.get('lines', 100))
             date = request.args.get('date', '').strip()
-            
-            # 创建一个模拟的服务对象，用于调用get_service_logs
-            class RealtimeServiceObj:
-                def __init__(self, log_path):
-                    self.log_path = log_path
-                    self.id = task_id
-            
-            # 确定日志路径
-            if task.service_log_path:
-                log_path = task.service_log_path
-            else:
-                video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-                log_base_dir = os.path.join(video_root, 'logs')
-                log_path = os.path.join(log_base_dir, f'task_{task_id}')
-            
-            service_obj = RealtimeServiceObj(log_path)
-            return get_service_logs(service_obj, lines, date if date else None)
+            return get_service_logs_from_dirs(
+                _algorithm_task_log_dirs(task),
+                lines,
+                date if date else None,
+                task_id=task_id,
+            )
         else:
-            # 对于抓拍算法任务，检查是否有sorter_id（旧架构）
-            # 注意：新架构的AlgorithmTask模型中没有sorter_id字段
-            # 这里为了兼容性，直接返回提示信息
             return jsonify({
                 'code': 400,
                 'msg': '新架构已统一使用实时算法服务，请使用realtime日志接口'
@@ -585,32 +776,16 @@ def get_task_pusher_logs(task_id):
         if not task:
             return jsonify({'code': 400, 'msg': '算法任务不存在'}), 400
         
-        # 新架构统一使用realtime_algorithm_service，对于实时算法任务，使用统一的日志路径
         if task.task_type == 'realtime':
-            # 对于实时算法任务，使用统一的日志路径
             lines = int(request.args.get('lines', 100))
             date = request.args.get('date', '').strip()
-            
-            # 创建一个模拟的服务对象，用于调用get_service_logs
-            class RealtimeServiceObj:
-                def __init__(self, log_path):
-                    self.log_path = log_path
-                    self.id = task_id
-            
-            # 确定日志路径
-            if task.service_log_path:
-                log_path = task.service_log_path
-            else:
-                video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-                log_base_dir = os.path.join(video_root, 'logs')
-                log_path = os.path.join(log_base_dir, f'task_{task_id}')
-            
-            service_obj = RealtimeServiceObj(log_path)
-            return get_service_logs(service_obj, lines, date if date else None)
+            return get_service_logs_from_dirs(
+                _algorithm_task_log_dirs(task),
+                lines,
+                date if date else None,
+                task_id=task_id,
+            )
         else:
-            # 对于抓拍算法任务，检查是否有pusher_id（旧架构）
-            # 注意：新架构的AlgorithmTask模型中没有pusher_id字段
-            # 这里为了兼容性，直接返回提示信息
             return jsonify({
                 'code': 400,
                 'msg': '新架构已统一使用实时算法服务，请使用realtime日志接口'
@@ -635,26 +810,13 @@ def get_task_realtime_logs(task_id):
         
         lines = int(request.args.get('lines', 100))
         date = request.args.get('date', '').strip()
-        
-        # 创建一个模拟的服务对象，用于调用get_service_logs
-        class AlgorithmServiceObj:
-            def __init__(self, log_path):
-                self.log_path = log_path
-                self.id = task_id
-        
-        # 确定日志路径
-        if task.service_log_path:
-            log_path = task.service_log_path
-        else:
-            video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-            log_base_dir = os.path.join(video_root, 'logs')
-            log_path = os.path.join(log_base_dir, f'task_{task_id}')
-        
-        service_obj = AlgorithmServiceObj(log_path)
-        resp = get_service_logs(service_obj, lines, date if date else None)
-        # 在日志响应的 data 中附带任务运行状态(task_enabled/task_run_status)，
-        # 便于前端在算法任务关闭后自动停止日志轮询，避免任务停掉后仍每隔数秒
-        # 请求日志接口并反复提示"取日志失败"。
+        resp = get_service_logs_from_dirs(
+            _algorithm_task_log_dirs(task),
+            lines,
+            date if date else None,
+            task_id=task_id,
+        )
+        # 附带任务运行状态，便于前端在任务关闭后停止日志轮询
         resp_obj, status_code = resp if isinstance(resp, tuple) else (resp, 200)
         payload = resp_obj.get_json(silent=True)
         if isinstance(payload, dict) and isinstance(payload.get('data'), dict):
@@ -668,13 +830,88 @@ def get_task_realtime_logs(task_id):
         logger.error(f"获取实时算法服务日志失败: {str(e)}", exc_info=True)
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
 
-
 # ====================== 推流地址查询接口 ======================
+def _camera_source_status_map():
+    """源流状态查询失败时返回空映射，不影响播放地址生成。"""
+    if camera_source_mode() != 'shared':
+        return {}
+    try:
+        return {
+            str(item.get('device_id')): item
+            for item in (get_camera_source_status() or [])
+            if item.get('device_id')
+        }
+    except Exception as exc:
+        logger.debug('查询 CameraSourceManager 状态失败: %s', exc)
+        return {}
+
+
+def _build_task_stream_info(task, device, source_status_by_device):
+    """构建任务与设备唯一的播放流信息。"""
+    task_id = int(task.id)
+    stream_key = build_task_stream_key(task_id, device.id)
+    ai_http_stream = device.ai_http_stream or device.http_stream
+    ai_rtmp_stream = device.ai_rtmp_stream or device.rtmp_stream
+    source_status = source_status_by_device.get(str(device.id), {})
+    configured_source_mode = camera_source_mode()
+    runtime = AlgorithmTaskStreamRuntime.query.filter_by(
+        task_id=task_id,
+        device_id=str(device.id),
+    ).first()
+    runtime_fresh = bool(
+        runtime
+        and runtime.updated_at
+        and (datetime.utcnow() - runtime.updated_at).total_seconds() <= 30
+    )
+    if not task.is_enabled:
+        effective_source_mode = runtime.source_mode if runtime_fresh else (
+            'direct' if configured_source_mode == 'direct' else 'pending'
+        )
+        effective_status = 'stopped'
+    elif runtime_fresh:
+        effective_source_mode = runtime.source_mode
+        effective_status = runtime.status
+    else:
+        effective_source_mode = 'direct' if configured_source_mode == 'direct' else 'pending'
+        effective_status = 'stopped' if not task.is_enabled else 'starting'
+    return {
+        'task_id': task_id,
+        'task_name': task.task_name,
+        'model_names': task.model_names,
+        'stream_key': stream_key,
+        'device_id': device.id,
+        'device_name': device.name or device.id,
+        'http_stream': device.http_stream,
+        'rtmp_stream': device.rtmp_stream,
+        'ai_http_stream': rewrite_task_stream_url(ai_http_stream, task_id, device.id),
+        'ai_rtmp_stream': rewrite_task_stream_url(ai_rtmp_stream, task_id, device.id),
+        'source': device.source,
+        'cover_image_path': device.cover_image_path,
+        'source_mode': effective_source_mode,
+        'configured_source_mode': configured_source_mode,
+        'source_status': effective_status,
+        'source_subscriber_count': source_status.get('subscriber_count', 0),
+        'source_decode_fps': source_status.get('decode_fps', 0),
+        'last_frame_time': (
+            utc_isoformat_z(runtime.last_frame_time)
+            if runtime_fresh else None
+        ),
+        'last_detection_time': (
+            utc_isoformat_z(runtime.last_detection_time)
+            if runtime_fresh else None
+        ),
+        'last_alert_time': (
+            utc_isoformat_z(runtime.last_alert_time)
+            if runtime_fresh else None
+        ),
+        'runtime_error': runtime.error_message if runtime_fresh else None,
+    }
+
+
 @algorithm_task_bp.route('/task/<int:task_id>/streams', methods=['GET'])
 def get_task_streams(task_id):
     """获取算法任务关联的摄像头推流地址列表"""
     try:
-        import json
         task = AlgorithmTask.query.get(task_id)
         if not task:
             return jsonify({'code': 400, 'msg': '算法任务不存在'}), 400
@@ -688,23 +925,13 @@ def get_task_streams(task_id):
                 'data': []
             })
         
+        # 源流状态查询失败不影响任务独立播放地址返回。
+        source_status_by_device = _camera_source_status_map()
+
         # 构建摄像头推流地址列表
         streams = []
         for device in device_list:
-            stream_info = {
-                'device_id': device.id,
-                'device_name': device.name or device.id,
-                'http_stream': device.http_stream,
-                'rtmp_stream': device.rtmp_stream,
-                'ai_http_stream': device.ai_http_stream,  # AI HTTP流地址（用于算法任务）
-                'ai_rtmp_stream': device.ai_rtmp_stream,  # AI RTMP流地址（用于算法任务）
-                'source': device.source,
-                'cover_image_path': device.cover_image_path,  # 添加设备封面图字段
-            }
-            
-            # 对于实时算法任务和抓拍算法任务，都直接使用摄像头的推流地址
-            
-            streams.append(stream_info)
+            streams.append(_build_task_stream_info(task, device, source_status_by_device))
         
         return jsonify({
             'code': 0,
@@ -716,86 +943,66 @@ def get_task_streams(task_id):
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
 
 
-def get_service_logs(service_obj, lines: int = 100, date: str = None):
-    """获取服务日志的通用函数"""
+@algorithm_task_bp.route('/device/<string:device_id>/task-streams', methods=['GET'])
+def get_device_task_streams(device_id):
+    """获取摄像头所有运行中实时算法任务的独立画框流。"""
     try:
-        # 确定日志文件路径
-        video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-        log_base_dir = os.path.join(video_root, 'logs')
-        
-        if not service_obj.log_path:
-            # 根据服务类型生成日志目录（仅支持实时算法服务）
-            service_log_dir = os.path.join(log_base_dir, str(service_obj.id))
+        device = Device.query.get(device_id)
+        if not device:
+            return jsonify({'code': 404, 'msg': '摄像头不存在', 'data': []}), 404
+        tasks = AlgorithmTask.query.filter(
+            AlgorithmTask.devices.any(Device.id == device_id),
+            AlgorithmTask.task_type == 'realtime',
+            AlgorithmTask.is_enabled == True,
+        ).order_by(AlgorithmTask.id.asc()).all()
+        source_status_by_device = _camera_source_status_map()
+        streams = [
+            _build_task_stream_info(task, device, source_status_by_device)
+            for task in tasks
+        ]
+        return jsonify({'code': 0, 'msg': 'success', 'data': streams})
+    except Exception as exc:
+        logger.error('获取摄像头任务流失败: device_id=%s error=%s', device_id, exc, exc_info=True)
+        return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(exc)}', 'data': []}), 500
+
+
+@algorithm_task_bp.route('/source/status', methods=['GET'])
+def get_camera_source_runtime_status():
+    """查询本节点共享摄像头源流状态。"""
+    try:
+        device_id = request.args.get('device_id', '').strip() or None
+        if camera_source_mode() != 'shared':
+            data = []
         else:
-            service_log_dir = service_obj.log_path
-        
-        # 根据参数选择日志文件（按日期）
-        if date:
-            log_filename = f"{date}.log"
-        else:
-            # 如果没有指定日期，返回今天的日志文件
-            log_filename = datetime.now().strftime('%Y-%m-%d.log')
-        
-        log_file_path = os.path.join(service_log_dir, log_filename)
-        
-        # 检查日志文件是否存在
-        if not os.path.exists(log_file_path):
-            return jsonify({
-                'code': 0,
-                'msg': 'success',
-                'data': {
-                    'logs': f'日志文件不存在: {log_filename}\n请等待服务运行后生成日志。',
-                    'total_lines': 0,
-                    'log_file': log_filename,
-                    'is_all_file': not bool(date)
-                }
-            })
-        
-        # 读取日志文件最后N行
-        try:
-            with open(log_file_path, 'r', encoding='utf-8') as f:
-                all_lines = f.readlines()
-                log_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-            
-            return jsonify({
-                'code': 0,
-                'msg': 'success',
-                'data': {
-                    'logs': ''.join(log_lines),
-                    'total_lines': len(all_lines),
-                    'log_file': log_filename,
-                    'is_all_file': not bool(date)
-                }
-            })
-        except UnicodeDecodeError:
-            # 如果UTF-8解码失败，尝试使用其他编码
-            try:
-                with open(log_file_path, 'r', encoding='gbk') as f:
-                    all_lines = f.readlines()
-                    log_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-                
-                return jsonify({
-                    'code': 0,
-                    'msg': 'success',
-                    'data': {
-                        'logs': ''.join(log_lines),
-                        'total_lines': len(all_lines),
-                        'log_file': log_filename,
-                        'is_all_file': not bool(date)
-                    }
-                })
-            except Exception as e:
-                logger.error(f"读取日志文件失败: {str(e)}")
-                return jsonify({
-                    'code': 500,
-                    'msg': f'读取日志文件失败: {str(e)}'
-                }), 500
-    except Exception as e:
-        logger.error(f"获取服务日志失败: {str(e)}", exc_info=True)
+            source_status = get_camera_source_status(device_id)
+            if device_id:
+                data = [source_status] if source_status else []
+            else:
+                data = source_status or []
+        return jsonify({'code': 0, 'msg': 'success', 'data': data})
+    except Exception as exc:
+        logger.warning('查询共享摄像头源流状态失败: %s', exc)
         return jsonify({
-            'code': 500,
-            'msg': f'服务器内部错误: {str(e)}'
-        }), 500
+            'code': 503,
+            'msg': f'共享源流服务不可用: {str(exc)}',
+            'data': [],
+        }), 503
+
+
+def get_service_logs(service_obj, lines: int = 100, date: str = None):
+    """获取服务日志（单目录入口；内部复用分片聚合逻辑）。"""
+    video_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    log_base_dir = os.path.join(video_root, 'logs')
+    if not getattr(service_obj, 'log_path', None):
+        service_log_dir = os.path.join(log_base_dir, f'task_{service_obj.id}')
+    else:
+        service_log_dir = service_obj.log_path
+    return get_service_logs_from_dirs(
+        [service_log_dir],
+        lines,
+        date,
+        task_id=getattr(service_obj, 'id', None),
+    )
 
 
 # ====================== AI 后处理 ======================
@@ -905,3 +1112,101 @@ def list_post_process_results(task_id):
         logger.error('查询后处理结果失败: %s', e, exc_info=True)
         return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
 
+# ====================== POST 后处理规则链 ======================
+@algorithm_task_bp.route('/task/post-pipeline/catalog', methods=['GET'])
+def get_post_pipeline_catalog():
+    """插件库：内置 + 已登记外置插件"""
+    try:
+        from app.services.post_plugin_service import list_plugin_catalog
+        return jsonify({'code': 0, 'msg': 'success', 'data': list_plugin_catalog()})
+    except Exception as e:
+        logger.error('获取规则链插件库失败: %s', e, exc_info=True)
+        return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
+
+
+def _debug_post_pipeline_body(task, data: dict):
+    from app.services.post_template_client import (
+        debug_pipeline,
+        build_sample_event,
+        build_template_from_task,
+        _task_regions,
+    )
+
+    if task and not getattr(task, 'alert_event_enabled', False):
+        return 400, {'error': '未启用告警事件，后处理规则链不可用'}
+
+    event = data.get('event')
+    if not event:
+        event = build_sample_event(task) if task else {
+            'schema': 'infer_event.v1',
+            'event_kind': 'infer',
+            'correlation_id': 'debug-preview',
+            'task_id': int(data.get('task_id') or 0),
+            'task_name': data.get('task_name') or 'preview',
+            'task_type': data.get('task_type') or 'realtime',
+            'device_id': (data.get('device_ids') or ['demo-device'])[0],
+            'timestamp': utc_isoformat_z(datetime.utcnow()),
+            'frame_width': 1920,
+            'frame_height': 1080,
+            'detections': [{
+                'bbox': [0.42, 0.38, 0.58, 0.72],
+                'class_id': 0,
+                'class_name': 'person',
+                'confidence': 0.86,
+                'track_id': 1,
+            }],
+        }
+
+    body = {
+        'event': event,
+        'pipeline_override': data.get('pipeline_override'),
+        'until_plugin': data.get('until_plugin') or '',
+    }
+    if task and not data.get('pipeline_override'):
+        tpl = build_template_from_task(task)
+        body['task'] = tpl['task']
+        body['regions'] = tpl['regions']
+    else:
+        if data.get('task'):
+            body['task'] = data['task']
+        elif task:
+            tpl = build_template_from_task(task)
+            body['task'] = tpl['task']
+        if data.get('regions') is not None:
+            body['regions'] = data['regions']
+        elif task:
+            body['regions'] = _task_regions(task)
+        else:
+            body['regions'] = []
+
+    status, payload = debug_pipeline(body)
+    return status, payload
+
+
+@algorithm_task_bp.route('/task/post-pipeline/debug', methods=['POST'])
+def debug_post_pipeline_preview():
+    """规则链调试（新建任务预览，无需 task_id）"""
+    try:
+        data = request.get_json() or {}
+        status, payload = _debug_post_pipeline_body(None, data)
+        if status >= 400:
+            return jsonify({'code': status, 'msg': payload.get('error') if isinstance(payload, dict) else str(payload), 'data': payload}), status
+        return jsonify({'code': 0, 'msg': 'success', 'data': payload})
+    except Exception as e:
+        logger.error('规则链调试失败: %s', e, exc_info=True)
+        return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500
+
+
+@algorithm_task_bp.route('/task/<int:task_id>/post-pipeline/debug', methods=['POST'])
+def debug_post_pipeline(task_id):
+    """规则链调试（带任务上下文与区域）"""
+    try:
+        task = AlgorithmTask.query.get_or_404(task_id)
+        data = request.get_json() or {}
+        status, payload = _debug_post_pipeline_body(task, data)
+        if status >= 400:
+            return jsonify({'code': status, 'msg': payload.get('error') if isinstance(payload, dict) else str(payload), 'data': payload}), status
+        return jsonify({'code': 0, 'msg': 'success', 'data': payload})
+    except Exception as e:
+        logger.error('规则链调试失败 task=%s: %s', task_id, e, exc_info=True)
+        return jsonify({'code': 500, 'msg': f'服务器内部错误: {str(e)}'}), 500

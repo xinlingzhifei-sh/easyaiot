@@ -213,6 +213,11 @@ def load_patrol_config() -> bool:
         session_config = _config_from_task(task)
         db_session.refresh(task)
         device_ids = [d.id for d in (task.devices or [])]
+        allowed_raw = (os.getenv('DEVICE_IDS') or os.getenv('ALGORITHM_SHARD_DEVICE_IDS') or '').strip()
+        if allowed_raw:
+            allowed = {x.strip() for x in allowed_raw.split(',') if x.strip()}
+            device_ids = [d for d in device_ids if str(d) in allowed]
+            logger.info('巡检分片设备过滤 DEVICE_IDS=%s -> %s', allowed_raw, device_ids)
         model_ids = session_config.model_ids
     else:
         logger.error('PATROL_SESSION_ID 或 TASK_ID 未设置')
@@ -463,6 +468,63 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         counts[cn] = counts.get(cn, 0) + 1
     primary = max(counts.items(), key=lambda x: x[1])[0] if counts else 'unknown'
     image_path = _save_alert_image(frame, device_id, detections[0])
+
+    try:
+        from app.utils.algo_mqtt_bus import (
+            should_publish_infer_event,
+            post_in_bypass,
+            build_infer_event,
+            publish_infer_event,
+            inject_post_bypass_info,
+            ensure_post_health_probe,
+            publish_alert,
+        )
+    except ImportError:
+        try:
+            from algo_mqtt_bus import (  # type: ignore
+                should_publish_infer_event,
+                post_in_bypass,
+                build_infer_event,
+                publish_infer_event,
+                inject_post_bypass_info,
+                ensure_post_health_probe,
+                publish_alert,
+            )
+        except ImportError:
+            should_publish_infer_event = lambda: False  # type: ignore
+            post_in_bypass = lambda: False  # type: ignore
+            publish_alert = None  # type: ignore
+
+    ensure_post_health_probe()
+    if should_publish_infer_event():
+        fh, fw = 0, 0
+        if frame is not None and hasattr(frame, 'shape'):
+            fh, fw = int(frame.shape[0]), int(frame.shape[1])
+        model_ids = []
+        if session_config and getattr(session_config, 'model_ids', None):
+            try:
+                raw = session_config.model_ids
+                model_ids = json.loads(raw) if isinstance(raw, str) else list(raw or [])
+            except Exception:
+                model_ids = []
+        task_id = int(getattr(session_config, 'task_id', 0) or getattr(session_config, 'algorithm_task_id', 0) or 0)
+        ev = build_infer_event(
+            task_id=task_id,
+            task_type='patrol',
+            device_id=device_id,
+            detections=detections,
+            event_kind='infer',
+            task_name=getattr(session_config, 'name', '') or '',
+            device_name=device_name,
+            frame_width=fw,
+            frame_height=fh,
+            image_path=image_path or '',
+            model_ids=model_ids,
+        )
+        publish_infer_event(ev)
+        logger.info('设备 %s 巡检 InferEvent(POST): %s', device_id, counts)
+        return
+
     alert_data = {
         'object': primary,
         'event': session_config.name,
@@ -481,12 +543,12 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         }, ensure_ascii=False),
         'image_path': image_path,
     }
+    if post_in_bypass():
+        alert_data = inject_post_bypass_info(alert_data)
+        logger.warning('POST bypass 直发 sink device=%s', device_id)
     try:
-        try:
+        if publish_alert is None:
             from app.utils.algo_mqtt_bus import publish_alert
-        except ImportError:
-            from algo_mqtt_bus import publish_alert  # type: ignore
-
         ok = publish_alert(alert_data, snapshot=False)
         if ok:
             logger.info('设备 %s 巡检告警(MQTT): %s', device_id, counts)
@@ -693,6 +755,32 @@ def main():
         return
 
     threading.Thread(target=heartbeat_worker, daemon=True).start()
+
+    try:
+        from app.utils.algo_mqtt_bus import post_enabled, start_infer_heartbeat
+    except ImportError:
+        try:
+            from algo_mqtt_bus import post_enabled, start_infer_heartbeat  # type: ignore
+        except ImportError:
+            post_enabled = lambda: False  # type: ignore
+            start_infer_heartbeat = None  # type: ignore
+    if post_enabled() and start_infer_heartbeat:
+        def _hb_ctx():
+            if not session_config:
+                return None
+            items = []
+            for did in (device_streams or {}).keys():
+                items.append({
+                    'task_id': int(getattr(session_config, 'task_id', 0) or TASK_ID or 0),
+                    'task_type': 'patrol',
+                    'task_name': getattr(session_config, 'name', '') or '',
+                    'device_id': did,
+                    'model_ids': list(getattr(session_config, 'model_ids', None) or []),
+                })
+            return items or None
+        start_infer_heartbeat(stop_event=stop_event, get_context=_hb_ctx)
+        logger.info('POST Infer 心跳已启动')
+
     patrol_scheduler_worker()
 
 

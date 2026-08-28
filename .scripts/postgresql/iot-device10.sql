@@ -2411,6 +2411,18 @@ CREATE TABLE public.device_ota_pkg (
     file_md5 character varying(255),
     remark character varying(255),
     updated_time timestamp without time zone,
+    file_size bigint,
+    file_name character varying(255),
+    changelog character varying(2000),
+    publish_strategy smallint DEFAULT 0,
+    gray_ladder smallint DEFAULT 1,
+    product_identification character varying(64),
+    test_passed smallint DEFAULT 0,
+    test_remark character varying(500),
+    test_by character varying(64),
+    test_time timestamp without time zone,
+    withdraw_reason character varying(500),
+    withdraw_time timestamp without time zone,
     tenant_id bigint DEFAULT 0 NOT NULL,
     deleted smallint DEFAULT 0 NOT NULL
 );
@@ -2427,7 +2439,7 @@ COMMENT ON COLUMN public.device_ota_pkg.id IS '主键ID';
 -- Name: COLUMN device_ota_pkg.type; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.device_ota_pkg.type IS '包类型[0:软件包,1:固件包,2:电控包]';
+COMMENT ON COLUMN public.device_ota_pkg.type IS '包类型[0:软件包,1:固件包,2:APP包,3:PC包]';
 
 
 --
@@ -2469,7 +2481,7 @@ COMMENT ON COLUMN public.device_ota_pkg.key_version_flag IS '关键版本标识[
 -- Name: COLUMN device_ota_pkg.status; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.device_ota_pkg.status IS '状态[0:未验证,1:已验证,2:已发布]';
+COMMENT ON COLUMN public.device_ota_pkg.status IS '状态[0:未验证,1:测试中,2:已发布,3:待发布,4:已撤回]';
 
 
 --
@@ -2519,6 +2531,18 @@ COMMENT ON COLUMN public.device_ota_pkg.file_md5 IS '文件MD5值';
 --
 
 COMMENT ON COLUMN public.device_ota_pkg.remark IS '备注';
+COMMENT ON COLUMN public.device_ota_pkg.file_size IS '文件大小（字节）';
+COMMENT ON COLUMN public.device_ota_pkg.file_name IS '原始文件名';
+COMMENT ON COLUMN public.device_ota_pkg.changelog IS '更新说明';
+COMMENT ON COLUMN public.device_ota_pkg.publish_strategy IS '发布策略[0:全量,1:灰度]';
+COMMENT ON COLUMN public.device_ota_pkg.gray_ladder IS '灰度阶梯[1:设备级,2:产品级,3:全量]';
+COMMENT ON COLUMN public.device_ota_pkg.product_identification IS '适用产品标识（空=所有产品）';
+COMMENT ON COLUMN public.device_ota_pkg.test_passed IS '测试是否通过[0:否,1:是]';
+COMMENT ON COLUMN public.device_ota_pkg.test_remark IS '测试备注';
+COMMENT ON COLUMN public.device_ota_pkg.test_by IS '测试人';
+COMMENT ON COLUMN public.device_ota_pkg.test_time IS '测试时间';
+COMMENT ON COLUMN public.device_ota_pkg.withdraw_reason IS '撤回原因';
+COMMENT ON COLUMN public.device_ota_pkg.withdraw_time IS '撤回时间';
 
 
 --
@@ -5554,6 +5578,17 @@ ALTER TABLE ONLY public.device_ota_pkg ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- Name: device_ota_version / verify / publish / gray_scope / upgrade_record id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.device_ota_version ALTER COLUMN id SET DEFAULT nextval('public.device_ota_version_id_seq'::regclass);
+ALTER TABLE ONLY public.device_ota_version_verify ALTER COLUMN id SET DEFAULT nextval('public.device_ota_version_verify_id_seq'::regclass);
+ALTER TABLE ONLY public.device_ota_version_publish ALTER COLUMN id SET DEFAULT nextval('public.device_ota_version_publish_id_seq'::regclass);
+ALTER TABLE ONLY public.device_ota_version_gray_scope ALTER COLUMN id SET DEFAULT nextval('public.device_ota_version_gray_scope_id_seq'::regclass);
+ALTER TABLE ONLY public.device_ota_upgrade_record ALTER COLUMN id SET DEFAULT nextval('public.device_ota_upgrade_record_id_seq'::regclass);
+
+
+--
 -- Name: device_property_threshold id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7219,3 +7254,308 @@ CREATE TRIGGER update_iot_app_updated_time BEFORE UPDATE ON public.app FOR EACH 
 
 \unrestrict eVkDLU4byUDs23k117BLqeKfezjF6qopUnOwMELF388guHgojes8k1TinZ9hQwB
 
+
+--
+-- EasyAIoT: App 控制面板模板表（云端定制产品级 App 控制页，下发到 APP 动态渲染）
+-- 同步自 DEVICE/iot-device/iot-device-biz/src/main/resources/sql/app_panel_template.sql
+--
+
+CREATE TABLE IF NOT EXISTS public.app_panel_template (
+    id BIGSERIAL NOT NULL,
+    template_code VARCHAR(64) NOT NULL,
+    template_name VARCHAR(128) NOT NULL,
+    product_identification VARCHAR(100),
+    status VARCHAR(16) DEFAULT 'DRAFT' NOT NULL,
+    version INT DEFAULT 1,
+    panel_schema TEXT,
+    remark VARCHAR(255) NULL,
+    created_by VARCHAR(64) NULL,
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
+    updated_by VARCHAR(64) NULL,
+    updated_time TIMESTAMP NULL,
+    tenant_id BIGINT DEFAULT 0 NOT NULL,
+    deleted INT DEFAULT 0 NOT NULL,
+    CONSTRAINT app_panel_template_pkey PRIMARY KEY (id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_panel_template_code ON public.app_panel_template(template_code);
+CREATE INDEX IF NOT EXISTS idx_app_panel_template_product_identification ON public.app_panel_template(product_identification);
+CREATE INDEX IF NOT EXISTS idx_app_panel_template_tenant_id ON public.app_panel_template(tenant_id);
+
+COMMENT ON TABLE public.app_panel_template IS 'App控制面板模板表';
+COMMENT ON COLUMN public.app_panel_template.template_code IS '模板编码：全局唯一';
+COMMENT ON COLUMN public.app_panel_template.template_name IS '模板名称';
+COMMENT ON COLUMN public.app_panel_template.product_identification IS '绑定产品标识';
+COMMENT ON COLUMN public.app_panel_template.status IS '状态：DRAFT-草稿，PUBLISHED-已发布，DISABLED-停用';
+COMMENT ON COLUMN public.app_panel_template.version IS '版本号，每次发布自增';
+COMMENT ON COLUMN public.app_panel_template.panel_schema IS '面板模板JSON：pages[{name,widgets[...]}]';
+
+
+-- ============================================================
+-- 演示面板模板数据（5 个，幂等 UPSERT）
+-- 说明：iot-device10.sql 中同步自本文件，修改后需同步更新
+-- ============================================================
+INSERT INTO public.app_panel_template (
+  id, template_code, template_name, product_identification, status, version,
+  panel_schema, remark, created_by, created_time, updated_by, updated_time,
+  tenant_id, deleted
+) VALUES
+  (1, 'PLUG_PANEL_DEMO', '智能插座控制面板（演示）', 'IND_MODBUS_TCP_DEMO', 'PUBLISHED', 2,
+   '{"version": 1, "pages": [{"name": "控制台", "layout": "grid", "widgets": [{"id": "power_switch", "type": "switch", "title": "电源开关", "span": "half", "propertyCode": "power", "config": {"options": [{"label": "开启", "value": "1", "color": "#2f6bff"}, {"label": "关闭", "value": "0", "color": "#8c8c8c"}]}}, {"id": "work_status", "type": "status", "title": "工作状态", "span": "half", "propertyCode": "work_status", "config": {"options": [{"label": "运行", "value": "RUNNING", "color": "#16c2a2"}, {"label": "待机", "value": "STANDBY", "color": "#8c8c8c"}, {"label": "故障", "value": "FAULT", "color": "#f5222d"}]}}, {"id": "power_consumption", "type": "text", "title": "实时功率", "span": "half", "propertyCode": "power_consumption", "config": {"unit": "W"}}, {"id": "threshold", "type": "slider", "title": "定时电量阈值", "span": "half", "propertyCode": "threshold", "config": {"min": 0, "max": 100, "step": 5, "unit": "%"}}, {"id": "reboot", "type": "button", "title": "重启设备", "span": "full", "serviceId": "reboot", "config": {"confirm": true}}]}]}',
+   '演示模板：电源开关/工作状态/实时功率/电量阈值/重启', NULL, CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP, 1, 0),
+  (2, 'RTU_TEMP_PANEL', 'Modbus RTU 温控面板（演示）', 'IND_MODBUS_RTU_DEMO', 'PUBLISHED', 2,
+   '{"version": 1, "pages": [{"name": "控制台", "layout": "grid", "widgets": [{"id": "running", "type": "switch", "title": "运行开关", "span": "half", "propertyCode": "running", "config": {"options": [{"label": "开启", "value": "true", "color": "#2f6bff"}, {"label": "关闭", "value": "false", "color": "#8c8c8c"}]}}, {"id": "temperature", "type": "text", "title": "温度", "span": "half", "propertyCode": "temperature", "config": {"unit": "℃"}}, {"id": "setpoint", "type": "slider", "title": "设定值", "span": "half", "propertyCode": "setpoint", "config": {"min": 0, "max": 100, "step": 1, "unit": ""}}, {"id": "refresh", "type": "button", "title": "重启设备", "span": "full", "serviceId": "restart", "config": {"confirm": true}}]}]}',
+   '绑定设备 DEV_MRTU_001（920002，ONLINE），属性与 shadow 对应', NULL, CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP, 1, 0),
+  (3, 'ESS_PANEL', '储能设备控制面板（演示）', '9820630576939008', 'PUBLISHED', 2,
+   '{"version": 1, "pages": [{"name": "控制台", "layout": "grid", "widgets": [{"id": "vbat", "type": "text", "title": "电池电量", "span": "half", "propertyCode": "Vbatt", "config": {"unit": "V"}}, {"id": "angx", "type": "status", "title": "X轴倾角", "span": "half", "propertyCode": "PVAngle_X", "config": {"options": [{"label": "正常", "value": "4.96", "color": "#16c2a2"}, {"label": "倾斜", "value": "45", "color": "#f5222d"}]}}, {"id": "angy", "type": "text", "title": "Y轴倾角", "span": "half", "propertyCode": "PVAngle_Y", "config": {"unit": "°"}}, {"id": "svc", "type": "button", "title": "触发服务", "span": "full", "serviceId": "demo-svc", "config": {"confirm": false}}]}]}',
+   '绑定设备 9720084293632004（57038，ONLINE）', NULL, CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP, 1, 0),
+  (4, 'ENV_PANEL_DEMO', '环境监测面板（演示）', 'ENV_MONITOR_DEMO', 'PUBLISHED', 2,
+   '{"version": 1, "pages": [{"name": "环境监测", "layout": "grid", "widgets": [{"id": "temp", "type": "chart", "title": "温度趋势", "span": "full", "propertyCode": "temperature", "config": {"min": 0, "max": 60, "unit": "℃", "color": "#2f6bff", "maxPoints": 20}}, {"id": "humi", "type": "gauge", "title": "空气湿度", "span": "half", "propertyCode": "humidity", "config": {"min": 0, "max": 100, "unit": "%", "color": "#16c2a2"}}, {"id": "pm25", "type": "gauge", "title": "PM2.5", "span": "half", "propertyCode": "pm25", "config": {"min": 0, "max": 500, "unit": "μg/m³", "color": "#f5a623"}}, {"id": "airq", "type": "status", "title": "空气品质", "span": "half", "propertyCode": "air_quality", "config": {"options": [{"label": "优", "value": "优", "color": "#16c2a2"}, {"label": "良", "value": "良", "color": "#2f6bff"}, {"label": "轻度污染", "value": "轻度污染", "color": "#f5a623"}, {"label": "中度污染", "value": "中度污染", "color": "#f5222d"}]}}, {"id": "co2", "type": "text", "title": "CO₂ 浓度", "span": "half", "propertyCode": "co2", "config": {"unit": "ppm"}}, {"id": "inspect", "type": "button", "title": "触发设备巡检", "span": "full", "serviceId": "inspect", "config": {"confirm": true}}]}]}',
+   NULL, NULL, CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP, 1, 0),
+  (5, 'SEC_PANEL_DEMO', '智能安防面板（演示）', 'SECURITY_DEMO', 'PUBLISHED', 2,
+   '{"version": 1, "pages": [{"name": "安防控制台", "layout": "grid", "widgets": [{"id": "cam", "type": "video", "title": "实时画面", "span": "full"}, {"id": "arm", "type": "status", "title": "布防状态", "span": "half", "propertyCode": "arm_status", "config": {"options": [{"label": "已布防", "value": "armed", "color": "#16c2a2"}, {"label": "已撤防", "value": "disarmed", "color": "#f5a623"}]}}, {"id": "siren", "type": "switch", "title": "警笛开关", "span": "half", "propertyCode": "siren"}, {"id": "armbtn", "type": "button", "title": "一键布防", "span": "half", "serviceId": "arm", "config": {"confirm": true}}, {"id": "snap", "type": "button", "title": "一键抓拍", "span": "half", "serviceId": "snapshot"}, {"id": "stor", "type": "progress", "title": "录像存储占用", "span": "full", "propertyCode": "storage", "config": {"min": 0, "max": 100, "unit": "%"}}, {"id": "flow", "type": "chart", "title": "出入口客流", "span": "full", "propertyCode": "traffic", "config": {"min": 0, "max": 50, "unit": "人", "color": "#7b61ff", "maxPoints": 20}}]}]}',
+   NULL, NULL, CURRENT_TIMESTAMP, NULL, CURRENT_TIMESTAMP, 1, 0)
+ON CONFLICT (id) DO UPDATE SET
+  template_code = EXCLUDED.template_code,
+  template_name = EXCLUDED.template_name,
+  product_identification = EXCLUDED.product_identification,
+  status = EXCLUDED.status,
+  version = EXCLUDED.version,
+  panel_schema = EXCLUDED.panel_schema,
+  remark = EXCLUDED.remark,
+  updated_time = CURRENT_TIMESTAMP,
+  deleted = 0;
+
+-- 模板 id 固定，插入后同步序列，避免后续自增冲突
+SELECT setval('app_panel_template_id_seq', (SELECT MAX(id) FROM public.app_panel_template));
+
+
+--
+-- Name: device_ota_version; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_ota_version (
+    id bigint NOT NULL,
+    device_version character varying(64) NOT NULL,
+    product_identification character varying(64) NOT NULL,
+    app_pkg_id bigint,
+    os_pkg_id bigint,
+    upgrade_mode smallint DEFAULT 0,
+    remark character varying(500),
+    created_by character varying(64),
+    created_time timestamp without time zone,
+    updated_by character varying(64),
+    updated_time timestamp without time zone,
+    tenant_id bigint DEFAULT 0 NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: COLUMN device_ota_version.id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.device_ota_version.id IS '主键';
+COMMENT ON COLUMN public.device_ota_version.device_version IS '设备版本号';
+COMMENT ON COLUMN public.device_ota_version.product_identification IS '所属产品标识';
+COMMENT ON COLUMN public.device_ota_version.app_pkg_id IS '软件包ID（device_ota_pkg.id）';
+COMMENT ON COLUMN public.device_ota_version.os_pkg_id IS '固件包ID（device_ota_pkg.id）';
+COMMENT ON COLUMN public.device_ota_version.upgrade_mode IS '升级方式[0:非强制升级,1:强制升级]';
+COMMENT ON COLUMN public.device_ota_version.remark IS '升级描述';
+COMMENT ON TABLE public.device_ota_version IS '设备版本档案（产品+设备版本号 → 升级包绑定）';
+
+CREATE UNIQUE INDEX uk_device_ota_version ON public.device_ota_version(tenant_id, product_identification, device_version) WHERE deleted = 0;
+CREATE INDEX idx_device_ota_version_product ON public.device_ota_version(product_identification);
+CREATE INDEX idx_device_ota_version_tenant ON public.device_ota_version(tenant_id);
+
+
+--
+-- Name: device_ota_version_verify; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_ota_version_verify (
+    id bigint NOT NULL,
+    pkg_id bigint NOT NULL,
+    device_identification character varying(64) NOT NULL,
+    device_name character varying(255),
+    status smallint DEFAULT 1,
+    remark character varying(255),
+    created_by character varying(64),
+    created_time timestamp without time zone,
+    updated_by character varying(64),
+    updated_time timestamp without time zone,
+    tenant_id bigint DEFAULT 0 NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+COMMENT ON COLUMN public.device_ota_version_verify.id IS '主键';
+COMMENT ON COLUMN public.device_ota_version_verify.pkg_id IS '版本包ID（device_ota_pkg.id）';
+COMMENT ON COLUMN public.device_ota_version_verify.device_identification IS '设备唯一标识';
+COMMENT ON COLUMN public.device_ota_version_verify.device_name IS '设备名称（冗余展示）';
+COMMENT ON COLUMN public.device_ota_version_verify.status IS '状态[1:有效,0:已移除]';
+COMMENT ON TABLE public.device_ota_version_verify IS 'OTA 测试白名单（设备验证名单）';
+
+CREATE UNIQUE INDEX uk_device_ota_version_verify ON public.device_ota_version_verify(pkg_id, device_identification) WHERE deleted = 0;
+CREATE INDEX idx_device_ota_verify_device ON public.device_ota_version_verify(device_identification);
+CREATE INDEX idx_device_ota_verify_tenant ON public.device_ota_version_verify(tenant_id);
+
+
+--
+-- Name: device_ota_version_publish; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_ota_version_publish (
+    id bigint NOT NULL,
+    pkg_id bigint NOT NULL,
+    publish_strategy smallint DEFAULT 0,
+    gray_ladder smallint DEFAULT 3,
+    status smallint DEFAULT 1,
+    publish_time timestamp without time zone,
+    withdraw_reason character varying(500),
+    withdraw_time timestamp without time zone,
+    created_by character varying(64),
+    created_time timestamp without time zone,
+    updated_by character varying(64),
+    updated_time timestamp without time zone,
+    tenant_id bigint DEFAULT 0 NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+COMMENT ON COLUMN public.device_ota_version_publish.id IS '主键';
+COMMENT ON COLUMN public.device_ota_version_publish.pkg_id IS '版本包ID（device_ota_pkg.id）';
+COMMENT ON COLUMN public.device_ota_version_publish.publish_strategy IS '发布策略[0:全量,1:灰度]';
+COMMENT ON COLUMN public.device_ota_version_publish.gray_ladder IS '灰度阶梯[1:设备级,2:产品级,3:全量]';
+COMMENT ON COLUMN public.device_ota_version_publish.status IS '状态[1:已发布,0:已撤销]';
+COMMENT ON COLUMN public.device_ota_version_publish.publish_time IS '发布时间';
+COMMENT ON COLUMN public.device_ota_version_publish.withdraw_reason IS '撤回原因';
+COMMENT ON COLUMN public.device_ota_version_publish.withdraw_time IS '撤回时间';
+COMMENT ON TABLE public.device_ota_version_publish IS 'OTA 发布记录（全量/灰度）';
+
+CREATE UNIQUE INDEX uk_device_ota_version_publish ON public.device_ota_version_publish(pkg_id, status) WHERE deleted = 0;
+CREATE INDEX idx_device_ota_publish_tenant ON public.device_ota_version_publish(tenant_id);
+
+
+--
+-- Name: device_ota_version_gray_scope; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_ota_version_gray_scope (
+    id bigint NOT NULL,
+    publish_id bigint NOT NULL,
+    pkg_id bigint NOT NULL,
+    scope_type smallint NOT NULL,
+    scope_value character varying(128) NOT NULL,
+    created_by character varying(64),
+    created_time timestamp without time zone,
+    updated_by character varying(64),
+    updated_time timestamp without time zone,
+    tenant_id bigint DEFAULT 0 NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+COMMENT ON COLUMN public.device_ota_version_gray_scope.id IS '主键';
+COMMENT ON COLUMN public.device_ota_version_gray_scope.publish_id IS '发布记录ID（device_ota_version_publish.id）';
+COMMENT ON COLUMN public.device_ota_version_gray_scope.pkg_id IS '版本包ID（device_ota_pkg.id）';
+COMMENT ON COLUMN public.device_ota_version_gray_scope.scope_type IS '范围类型[1:设备,2:产品]';
+COMMENT ON COLUMN public.device_ota_version_gray_scope.scope_value IS '范围值（设备唯一标识/产品标识）';
+COMMENT ON TABLE public.device_ota_version_gray_scope IS 'OTA 灰度范围';
+
+CREATE UNIQUE INDEX uk_device_ota_gray_scope ON public.device_ota_version_gray_scope(publish_id, scope_type, scope_value) WHERE deleted = 0;
+CREATE INDEX idx_device_ota_gray_pkg ON public.device_ota_version_gray_scope(pkg_id);
+CREATE INDEX idx_device_ota_gray_tenant ON public.device_ota_version_gray_scope(tenant_id);
+
+
+--
+-- Name: device_ota_version_gray_scope_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.device_ota_version_gray_scope_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.device_ota_version_gray_scope_id_seq OWNED BY public.device_ota_version_gray_scope.id;
+
+
+--
+-- Name: device_ota_upgrade_record; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.device_ota_upgrade_record (
+    id bigint NOT NULL,
+    pkg_id bigint,
+    type smallint,
+    device_identification character varying(64) NOT NULL,
+    device_name character varying(255),
+    product_identification character varying(64),
+    from_version character varying(64),
+    to_version character varying(64),
+    channel smallint DEFAULT 2,
+    phase smallint,
+    progress smallint,
+    success smallint,
+    error_code character varying(64),
+    error_msg character varying(500),
+    cost_ms bigint,
+    upgrade_time timestamp without time zone,
+    created_by character varying(64),
+    created_time timestamp without time zone,
+    updated_by character varying(64),
+    updated_time timestamp without time zone,
+    tenant_id bigint DEFAULT 0 NOT NULL,
+    deleted smallint DEFAULT 0 NOT NULL
+);
+
+COMMENT ON COLUMN public.device_ota_upgrade_record.id IS '主键';
+COMMENT ON COLUMN public.device_ota_upgrade_record.pkg_id IS '版本包ID（device_ota_pkg.id，可空）';
+COMMENT ON COLUMN public.device_ota_upgrade_record.type IS '包类型[0:软件包,1:固件包,2:APP包,3:PC包]';
+COMMENT ON COLUMN public.device_ota_upgrade_record.device_identification IS '设备唯一标识';
+COMMENT ON COLUMN public.device_ota_upgrade_record.device_name IS '设备名称';
+COMMENT ON COLUMN public.device_ota_upgrade_record.product_identification IS '产品标识';
+COMMENT ON COLUMN public.device_ota_upgrade_record.from_version IS '升级前版本';
+COMMENT ON COLUMN public.device_ota_upgrade_record.to_version IS '升级目标版本';
+COMMENT ON COLUMN public.device_ota_upgrade_record.channel IS '通道[1:测试,2:正式]';
+COMMENT ON COLUMN public.device_ota_upgrade_record.phase IS '升级阶段[0:检测,1:命中,2:下载完成,3:下载失败,4:MD5校验失败,5:安装结果,6:启动成功]';
+COMMENT ON COLUMN public.device_ota_upgrade_record.progress IS '升级进度（0-100）';
+COMMENT ON COLUMN public.device_ota_upgrade_record.success IS '是否成功[0:否,1:是]';
+COMMENT ON COLUMN public.device_ota_upgrade_record.error_code IS '错误码';
+COMMENT ON COLUMN public.device_ota_upgrade_record.error_msg IS '错误信息';
+COMMENT ON COLUMN public.device_ota_upgrade_record.cost_ms IS '升级耗时（毫秒）';
+COMMENT ON COLUMN public.device_ota_upgrade_record.upgrade_time IS '升级发生时间';
+COMMENT ON TABLE public.device_ota_upgrade_record IS 'OTA 升级记录（检测/命中/下载/校验/安装/启动 全链路）';
+
+CREATE UNIQUE INDEX uk_device_ota_upgrade_record ON public.device_ota_upgrade_record(tenant_id, type, device_identification, to_version, phase) WHERE deleted = 0;
+CREATE INDEX idx_device_ota_record_pkg ON public.device_ota_upgrade_record(pkg_id);
+CREATE INDEX idx_device_ota_record_device ON public.device_ota_upgrade_record(device_identification, type);
+CREATE INDEX idx_device_ota_record_time ON public.device_ota_upgrade_record(created_time);
+CREATE INDEX idx_device_ota_record_tenant ON public.device_ota_upgrade_record(tenant_id);
+
+
+--
+-- Name: device_ota_upgrade_record_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.device_ota_upgrade_record_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.device_ota_upgrade_record_id_seq OWNED BY public.device_ota_upgrade_record.id;
+
+
+--
+-- Name: device_ota_version_gray_scope_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.device_ota_version_gray_scope_id_seq', 1, false);
+
+
+--
+-- Name: device_ota_upgrade_record_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.device_ota_upgrade_record_id_seq', 1, false);

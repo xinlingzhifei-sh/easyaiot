@@ -26,10 +26,9 @@
 #   analyze-logs   - 多模块日志合并分析（各模块约 500 行，带分割线）
 #   analyze-disk   - 项目关键目录磁盘占用分析
 #
-# 部署形态（EASYAIOT_DEPLOY_PROFILE）：
-#   mini(1)     - 4G：iot-system + VIDEO/AI/RTC/WEB + 最小中间件（无 Kafka/iot-sink/Nacos/Gateway/Infra/可视化）
-#   standard(2) - 16G：不含 TDengine/iot-device/iot-tdengine/NodeRED/iot-visualize（含 EMQX）
-#   full(3)     - 全量（默认，约 20G；含 iot-visualize/VISUALIZE、TRANSFORM）；PANEL 全形态启用
+# 部署形态（install 交互选型）：
+#   0) edge / 1) mini / 2) standard / 3) full（默认）
+#   选定 edge 后再选: 1) standalone | 2) integrated
 # ============================================
 
 set -e
@@ -86,12 +85,15 @@ echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
-# 模块列表（按依赖顺序）
+# 模块列表（按依赖顺序：HARNESS 先于 IDEA；任一模块失败则跳过并继续后续模块）
 MODULES=(
+    "HARNESS"          # DeepSeek Harness AI Agent（IDEA 分屏依赖，须优先就绪）
+    "IDEA"             # 社区贡献在线 IDE
     ".scripts/docker"  # 基础服务（Nacos、PostgreSQL、Redis等）
     "DEVICE"           # Device服务（网关和微服务）
     "AI"               # AI服务
     "RTC"              # RTC / go2rtc 消费级摄像头桥接（全形态）
+    "POST"             # POST 服务（Infer 流水线；仅 standard/full）
     "VIDEO"            # Video服务
     "WEB"              # Web前端服务
     "APP"              # App移动端H5（仅 full 全量形态）
@@ -100,25 +102,39 @@ MODULES=(
     "PANEL"            # 运维控制台：源码/Docker 可装；安装包本身即为 PANEL，部署默认跳过
 )
 
+# 编排前置模块（仅控制启动顺序；失败不再中止后续模块）
+is_bootstrap_module() {
+    case "$1" in
+        HARNESS|IDEA) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # 模块名称映射
 declare -A MODULE_NAMES
+MODULE_NAMES["HARNESS"]="HARNESS AI助手"
+MODULE_NAMES["IDEA"]="IDEA在线IDE"
 MODULE_NAMES[".scripts/docker"]="基础服务"
 MODULE_NAMES["DEVICE"]="Device服务"
 MODULE_NAMES["AI"]="AI服务"
 MODULE_NAMES["RTC"]="RTC服务"
+MODULE_NAMES["POST"]="POST服务"
 MODULE_NAMES["VIDEO"]="Video服务"
 MODULE_NAMES["WEB"]="Web前端服务"
 MODULE_NAMES["APP"]="App移动端H5"
 MODULE_NAMES["VISUALIZE"]="可视化编辑器"
-MODULE_NAMES["TRANSFORM"]="系统对接"
+MODULE_NAMES["TRANSFORM"]="数据转发"
 MODULE_NAMES["PANEL"]="运维控制台"
 
 # 模块端口映射
 declare -A MODULE_PORTS
+MODULE_PORTS["HARNESS"]="3080"
+MODULE_PORTS["IDEA"]="9300"
 MODULE_PORTS[".scripts/docker"]="8848"  # Nacos端口
 MODULE_PORTS["DEVICE"]="48080"           # Gateway端口
 MODULE_PORTS["AI"]="5000"
 MODULE_PORTS["RTC"]="6100"
+MODULE_PORTS["POST"]="8089"
 MODULE_PORTS["VIDEO"]="6000"
 MODULE_PORTS["WEB"]="8888"
 MODULE_PORTS["APP"]="9010"
@@ -128,10 +144,13 @@ MODULE_PORTS["PANEL"]="9200"
 
 # 模块健康检查端点
 declare -A MODULE_HEALTH_ENDPOINTS
+MODULE_HEALTH_ENDPOINTS["HARNESS"]="/"
+MODULE_HEALTH_ENDPOINTS["IDEA"]="/health"
 MODULE_HEALTH_ENDPOINTS[".scripts/docker"]="/nacos/actuator/health"
 MODULE_HEALTH_ENDPOINTS["DEVICE"]="/actuator/health"  # Gateway健康检查
 MODULE_HEALTH_ENDPOINTS["AI"]="/actuator/health"
 MODULE_HEALTH_ENDPOINTS["RTC"]="/actuator/health"
+MODULE_HEALTH_ENDPOINTS["POST"]="/readyz"
 MODULE_HEALTH_ENDPOINTS["VIDEO"]="/actuator/health"
 MODULE_HEALTH_ENDPOINTS["WEB"]="/health"
 MODULE_HEALTH_ENDPOINTS["APP"]="/health"
@@ -750,9 +769,17 @@ execute_module_command() {
             print_info "未检测到 TRANSFORM 目录，跳过系统对接部署"
             return 0
         fi
+        if [ "$module" = "HARNESS" ]; then
+            print_error "未检测到 HARNESS 目录，无法部署 AI 助手"
+            return 1
+        fi
         if [ "$module" = "PANEL" ]; then
             print_info "跳过运维控制台（PANEL）：$(panel_skip_deploy_reason)（runtime 无 PANEL 目录）"
             return 0
+        fi
+        if [ "$module" = "IDEA" ]; then
+            print_error "未检测到 IDEA 目录，无法部署在线 IDE"
+            return 1
         fi
         print_warning "模块 $module 不存在，跳过"
         return 1
@@ -764,9 +791,17 @@ execute_module_command() {
             print_info "未检测到 TRANSFORM/install_linux.sh，跳过系统对接部署"
             return 0
         fi
+        if [ "$module" = "HARNESS" ]; then
+            print_error "未检测到 HARNESS/install_linux.sh，无法部署 AI 助手"
+            return 1
+        fi
         if [ "$module" = "PANEL" ]; then
             print_info "跳过运维控制台（PANEL）：$(panel_skip_deploy_reason)（无 install_linux.sh）"
             return 0
+        fi
+        if [ "$module" = "IDEA" ]; then
+            print_error "未检测到 IDEA/install_linux.sh，无法部署在线 IDE"
+            return 1
         fi
         print_warning "模块 $module 没有 $install_file 文件，跳过"
         return 1
@@ -780,7 +815,7 @@ execute_module_command() {
 
     local defer_agent_sync=0
     case "$module" in
-        DEVICE|AI|RTC|VIDEO|WEB|APP|VISUALIZE|TRANSFORM) defer_agent_sync=1 ;;
+        DEVICE|AI|RTC|POST|VIDEO|WEB|APP|VISUALIZE|TRANSFORM) defer_agent_sync=1 ;;
     esac
     if [ "$defer_agent_sync" -eq 1 ]; then
         export EASYAIOT_DEFER_PLATFORM_AGENT_SYNC=1
@@ -880,7 +915,11 @@ verify_service_health() {
 install_linux() {
     print_section "开始安装所有服务 (ARM架构)"
     
-    select_deploy_profile_for_install
+    select_deploy_profile_for_install || return 1
+    if [ "${EASYAIOT_EDGE_MORPHOLOGY:-}" = "integrated" ]; then
+        run_edge_integrated_install
+        return $?
+    fi
     export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_arm.sh"
     if ! runtime_images_acquire; then
         print_error "预构建镜像获取失败，已中止安装"
@@ -910,13 +949,6 @@ install_linux() {
     local total_count=${#MODULES[@]}
     local -a failed_modules=()
     local -a succeeded_modules=()
-    local _n=0 _m=0
-    for module in "${MODULES[@]}"; do
-        module_enabled_for_deploy_profile "$module" || continue
-        _m=$((_m + 1))
-    done
-    _m=$(( (_m + 1) / 2 ))
-    [ "$_m" -lt 1 ] && _m=1
     
     for module in "${MODULES[@]}"; do
         if ! module_enabled_for_deploy_profile "$module"; then
@@ -939,12 +971,12 @@ install_linux() {
                 wait_for_base_services
             fi
         else
-            print_error "${MODULE_NAMES[$module]} 安装失败"
+            print_error "${MODULE_NAMES[$module]} 安装失败，已跳过并继续后续模块"
+            if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+                print_error "日志末尾 (${LOG_FILE}):"
+                tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+            fi
             failed_modules+=("${MODULE_NAMES[$module]}")
-        fi
-        _n=$((_n + 1))
-        if [ "$_n" -eq "$_m" ]; then
-            _fs_align || exit 1
         fi
         echo ""
     done
@@ -990,6 +1022,16 @@ install_linux() {
                     print_info "  - Web前端服务：检查 pnpm install/build 和 nginx 镜像构建"
                     print_info "    docker images | grep web-service"
                     print_info "    cat WEB/docker-build-logs/pnpm-build.log | tail -50"
+                    ;;
+                "HARNESS AI助手")
+                    print_info "  - HARNESS：检查 easyaiot/harness 镜像与 :3080 端口"
+                    print_info "    docker images | grep harness"
+                    print_info "    bash HARNESS/install.sh status"
+                    ;;
+                "IDEA在线IDE")
+                    print_info "  - IDEA：检查 idea-workspace / idea-portal 镜像构建"
+                    print_info "    docker images | grep idea"
+                    print_info "    bash IDEA/install.sh status"
                     ;;
             esac
         done
@@ -1101,12 +1143,31 @@ start_all() {
     configure_docker_mirror
     prepare_runtime_environment
     create_network
+
+    # HARNESS 先于 IDEA（失败跳过并继续后续模块）
+    local module
+    for module in HARNESS IDEA; do
+        if module_enabled_for_deploy_profile "$module"; then
+            print_section "启动 ${MODULE_NAMES[$module]}"
+            if ! execute_module_command "$module" "start"; then
+                print_error "${MODULE_NAMES[$module]} 启动失败，已跳过并继续后续模块"
+                if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+                    print_error "日志末尾 (${LOG_FILE}):"
+                    tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+                fi
+            fi
+            echo ""
+        fi
+    done
     
     # 先启动基础服务（.scripts/docker）
     print_section "启动基础服务"
     if ! execute_module_command ".scripts/docker" "start"; then
-        print_error "基础服务启动失败，中止后续模块启动"
-        return 1
+        print_error "基础服务启动失败，已跳过并继续后续模块"
+        if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+            print_error "日志末尾 (${LOG_FILE}):"
+            tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+        fi
     fi
     echo ""
 
@@ -1117,16 +1178,24 @@ start_all() {
     # 再启动其他服务。DEVICE/AI/VIDEO/WEB 启动期互不依赖（各自只连基础服务），
     # 默认并行启动（仅 compose up，无构建负载）；PARALLEL_MODULES=false 可回退串行。
     collect_biz_modules
+    local -a start_modules=()
+    local module
+    for module in "${BIZ_MODULES[@]}"; do
+        is_bootstrap_module "$module" && continue
+        start_modules+=("$module")
+    done
     if [ "${PARALLEL_MODULES:-true}" = "true" ]; then
-        print_info "并行启动业务模块: ${BIZ_MODULES[*]}（PARALLEL_MODULES=false 可回退串行）"
-        run_modules_parallel "start" "${BIZ_MODULES[@]}" || print_warning "部分模块启动失败，详见上方日志"
+        if [ ${#start_modules[@]} -gt 0 ]; then
+            print_info "并行启动业务模块: ${start_modules[*]}（PARALLEL_MODULES=false 可回退串行）"
+            run_modules_parallel "start" "${start_modules[@]}" || print_warning "部分模块启动失败，详见上方日志"
+        fi
     else
-        for module in "${BIZ_MODULES[@]}"; do
+        for module in "${start_modules[@]}"; do
             execute_module_command "$module" "start" || print_warning "${MODULE_NAMES[$module]} 启动失败，继续其余模块"
             echo ""
         done
     fi
-    
+
     print_success "所有服务启动完成"
     ensure_platform_agent_after_stack
 }
@@ -1159,8 +1228,7 @@ stop_runtime_modules() {
     local idx module
     for ((idx=${#stop_modules[@]}-1 ; idx>=0 ; idx--)); do
         module="${stop_modules[$idx]}"
-        # build-runtime 清理业务镜像时保留运维控制台
-        [ "$module" = "PANEL" ] && continue
+        # 含 IDEA / PANEL，便于 clean-build-runtime 释放对应运行时镜像
         execute_module_command "$module" "stop" || print_warning "${MODULE_NAMES[$module]} 停止失败，继续其余模块"
         echo ""
     done
@@ -1191,7 +1259,11 @@ restart_all() {
                 wait_for_base_services
             fi
         else
-            print_warning "${MODULE_NAMES[$module]} 重启失败，继续其余模块"
+            print_warning "${MODULE_NAMES[$module]} 重启失败，已跳过并继续其余模块"
+            if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+                print_error "日志末尾 (${LOG_FILE}):"
+                tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+            fi
         fi
         echo ""
     done
@@ -1264,7 +1336,13 @@ build_all() {
         local module
         for module in "${MODULES[@]}"; do
             module_enabled_for_deploy_profile "$module" || continue
-            execute_module_command "$module" "build" || print_warning "${MODULE_NAMES[$module]} 构建失败，继续其余模块"
+            if ! execute_module_command "$module" "build"; then
+                print_warning "${MODULE_NAMES[$module]} 构建失败，已跳过并继续其余模块"
+                if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+                    print_error "日志末尾 (${LOG_FILE}):"
+                    tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+                fi
+            fi
             echo ""
         done
     fi
@@ -1344,7 +1422,8 @@ clean_build_runtime() {
 # 更新所有服务
 update_all() {
     print_section "更新所有服务 (ARM架构)"
-    
+    print_info "准备更新环境（部署形态 / Docker / 镜像来源）..."
+
     ensure_deploy_profile
     print_info "部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
     detect_architecture
@@ -1352,7 +1431,11 @@ update_all() {
     check_docker_compose
     configure_docker_mirror
     export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_arm.sh"
+    export EASYAIOT_SKIP_PROFILE_PROMPT=1
+    export EASYAIOT_RUNTIME_TAG="${EASYAIOT_RUNTIME_TAG:-latest}"
+    print_info "选择镜像更新方式..."
     runtime_images_acquire_for_update
+    print_info "准备运行时环境..."
     prepare_runtime_environment
     create_network
 
@@ -1362,6 +1445,23 @@ update_all() {
         print_info "将进行本地重建更新（各模块 docker build，耗时较长）"
     fi
     
+    # HARNESS 先于 IDEA（失败跳过并继续后续模块）
+    collect_biz_modules
+    local module
+    for module in HARNESS IDEA; do
+        if module_enabled_for_deploy_profile "$module"; then
+            print_section "更新 ${MODULE_NAMES[$module]}"
+            if ! execute_module_command "$module" "update"; then
+                print_error "${MODULE_NAMES[$module]} 更新失败，已跳过并继续后续模块"
+                if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+                    print_error "日志末尾 (${LOG_FILE}):"
+                    tail -n 40 "$LOG_FILE" 2>/dev/null | while IFS= read -r _line; do print_error "  ${_line}"; done || true
+                fi
+            fi
+            echo ""
+        fi
+    done
+
     # 基础服务先更新并等就绪，业务模块随后
     if execute_module_command ".scripts/docker" "update"; then
         wait_for_base_services
@@ -1372,12 +1472,19 @@ update_all() {
 
     # 业务模块更新：update 可能包含重建镜像（构建内存峰值高），默认串行；
     # 机器内存充裕时可 PARALLEL_MODULES=true 并行提速
-    collect_biz_modules
+    local -a update_modules=()
+    local module
+    for module in "${BIZ_MODULES[@]}"; do
+        is_bootstrap_module "$module" && continue
+        update_modules+=("$module")
+    done
     if [ "${PARALLEL_MODULES:-false}" = "true" ]; then
-        print_info "并行更新业务模块: ${BIZ_MODULES[*]}"
-        run_modules_parallel "update" "${BIZ_MODULES[@]}" || print_warning "部分模块更新失败，详见上方日志"
+        if [ ${#update_modules[@]} -gt 0 ]; then
+            print_info "并行更新业务模块: ${update_modules[*]}"
+            run_modules_parallel "update" "${update_modules[@]}" || print_warning "部分模块更新失败，详见上方日志"
+        fi
     else
-        for module in "${BIZ_MODULES[@]}"; do
+        for module in "${update_modules[@]}"; do
             execute_module_command "$module" "update" || print_warning "${MODULE_NAMES[$module]} 更新失败，继续其余模块"
             echo ""
         done
@@ -1414,14 +1521,19 @@ verify_all() {
         print_success "所有服务运行正常！"
         echo ""
         echo -e "${GREEN}服务访问地址:${NC}"
+        echo -e "  IDEA 在线 IDE:         http://localhost:9300"
+        if module_enabled_for_deploy_profile HARNESS; then
+            echo -e "  AI 助手 (HARNESS):      http://localhost:3080"
+        fi
         echo -e "  基础服务 (Nacos):     http://localhost:8848/nacos"
         echo -e "  基础服务 (MinIO):     http://localhost:9000 (API), http://localhost:9001 (Console)"
         echo -e "  基础服务 (Milvus):    http://localhost:9091 (Health), localhost:19530 (gRPC)"
         echo -e "  Device服务 (Gateway):  http://localhost:48080"
         echo -e "  AI服务:                http://localhost:5000"
         echo -e "  RTC服务:               http://localhost:6100"
+        echo -e "  POST服务:              http://localhost:8089/readyz"
         echo -e "  Video服务:             http://localhost:6000"
-        echo -e "  Web前端:               http://localhost:8888"
+        echo -e "  Web前端:               https://localhost:8888"
         if module_enabled_for_deploy_profile APP; then
             echo -e "  App移动端H5:           http://localhost:9010"
         fi
@@ -1534,7 +1646,7 @@ show_help() {
     echo "  logs            - 查看所有服务日志"
     echo "  logs [模块]     - 查看指定模块日志"
     echo "  build           - 重新构建所有镜像（各模块本地构建）"
-    echo "  build-runtime [模块] - 构建/推送运行时镜像到远程仓库（可选 DEVICE|AI|RTC|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL）"
+    echo "  build-runtime [模块] - 构建/推送运行时镜像到远程仓库（可选 $(runtime_build_module_pipe_list)）"
     echo "  pull            - 从远程仓库拉取预构建运行时镜像（交互式，默认 full）"
     echo "  clean           - 清理所有容器和镜像"
     echo "  clean-build-runtime - 清理 build-runtime 构建产物（先停业务服务，默认删运行时镜像+构建缓存；保留跨架构基础镜像）"
@@ -1561,20 +1673,50 @@ show_help() {
     echo "注意："
     echo "  - 本脚本专用于 ARM 架构（aarch64/arm64）"
     echo "  - AI 和 VIDEO 模块使用 install_linux_arm.sh（ARM 基础镜像），DEVICE/WEB 使用 install_linux.sh"
-    echo "  - 支持与 x86 版本完全相同的部署形态: mini(1) / standard(2) / full(3)"
+    echo "  - 支持与 x86 版本完全相同的部署形态: edge(0) / mini(1) / standard(2) / full(3)"
     echo "  - 如需在 x86_64 架构上部署，请使用 install_linux.sh"
     echo ""
     echo "可选环境变量:"
-    echo "  EASYAIOT_DEPLOY_PROFILE      - 部署形态: mini(1) | standard(2) | full(3，默认 full)"
+    echo "  EASYAIOT_DEPLOY_PROFILE      - 部署形态: edge(0) | mini(1) | standard(2) | full(3，默认 full)"
     echo "  PARALLEL_MODULES=true|false  - 业务模块并行开关：start 默认并行；update 默认串行(可能含重建镜像)"
     echo "  PARALLEL_BUILD=true          - build 时并行构建各模块（默认串行，防小内存并行 OOM）"
     echo "  FORCE_NETWORK_RECREATE=true  - 启动时强制重建 easyaiot-network（宿主机 IP 变更后使用）"
     echo "  HOST_IP=<ip>                 - 跳过自动探测，强制指定宿主机 IP"
     echo "  EASYAIOT_RUNTIME_BUILD_ARCH  - build-runtime 目标架构: all(默认) | amd64 | arm64"
-    echo "  EASYAIOT_RUNTIME_BUILD_MODULE - build-runtime 目标模块: all(默认) | DEVICE | AI | RTC | VIDEO | WEB | APP | VISUALIZE | TRANSFORM | PANEL"
+    echo "  EASYAIOT_RUNTIME_BUILD_MODULE - build-runtime 目标模块: $(runtime_build_module_help)（默认 all=全部）"
     echo "  SITE_PORT                    - 官网宿主机端口（默认 8090）"
     echo ""
 }
+
+# ---------- 云边一体形态（由 install 规格选型触发）----------
+run_edge_integrated_install() {
+    local runtime_script="${PROJECT_ROOT}/RUNTIME/install_linux.sh"
+    if [ ! -f "$runtime_script" ]; then
+        print_error "未找到边缘算力安装脚本: ${runtime_script}"
+        return 1
+    fi
+    print_section "云边一体形态部署"
+    print_info "本机仅部署边缘算力；汇聚面接入中心平台（任务编排、预览与告警汇聚）"
+    export EASYAIOT_EDGE_MORPHOLOGY=integrated
+    if ! prompt_cloud_edge_center_config "${1:-}"; then
+        return 1
+    fi
+    bash "$runtime_script" integrated "${VIDEO_BASE_URL}"
+}
+
+# 「edge」快捷入口：等价于 EASYAIOT_DEPLOY_PROFILE=edge 的纯边缘一键安装（不再二次选型）
+# 云边一体请用交互 install 选 edge→integrated，或 edge-integrated / runtime
+run_edge_entry() {
+    print_info "快速安装：edge / standalone（纯边缘形态，本地闭环）"
+    export EASYAIOT_DEPLOY_PROFILE=edge
+    export EASYAIOT_EDGE_MORPHOLOGY=standalone
+    unset EASYAIOT_SKIP_PROFILE_PROMPT 2>/dev/null || true
+    install_linux
+}
+
+run_edge_profile_install() { run_edge_entry "$@"; }
+run_runtime_integrated() { run_edge_integrated_install "$@"; }
+
 
 # 官方网站 SITE：委托 SITE/install_linux.sh
 run_site_module() {
@@ -1667,6 +1809,12 @@ main() {
         profile)
             ensure_deploy_profile
             print_deploy_profile_summary
+            ;;
+        runtime|runtime-integrated|edge-integrated|cloud-edge)
+            run_edge_integrated_install "${2:-}"
+            ;;
+        edge|pure-edge|edge-standalone|runtime-standalone)
+            run_edge_entry
             ;;
         site|website|官网)
             run_site_module "${2:-install}"

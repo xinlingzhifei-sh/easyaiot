@@ -219,6 +219,7 @@ def create_app(start_background_tasks=None):
                 AlgorithmModelService, RegionModelService, DeviceStorageConfig, Playback,
                 RecordSpace,                 AlgorithmTask, FrameExtractor, Sorter, Pusher, DeviceDetectionRegion,
                 DeviceTrackSession, DeviceTrackPoint, PatrolSession, AlgorithmPostProcessResult,
+                AiModel, PostPlugin, PostPluginService,
             )
             db.create_all()
             from models import (
@@ -230,6 +231,9 @@ def create_app(start_background_tasks=None):
                 ensure_algorithm_task_detect_conf_column,
                 ensure_algorithm_task_executor_columns,
                 ensure_stream_forward_task_executor_columns,
+                ensure_camera_ingress_columns,
+                ensure_media_asset_compat_columns,
+                ensure_post_plugin_tables,
             )
             ensure_algorithm_task_sam_columns(db.engine)
             ensure_algorithm_task_pose_columns(db.engine)
@@ -239,6 +243,9 @@ def create_app(start_background_tasks=None):
             ensure_algorithm_task_detect_conf_column(db.engine)
             ensure_algorithm_task_executor_columns(db.engine)
             ensure_stream_forward_task_executor_columns(db.engine)
+            ensure_camera_ingress_columns(db.engine)
+            ensure_media_asset_compat_columns(db.engine)
+            ensure_post_plugin_tables(db.engine)
             
             # 迁移：检查并添加缺失的列和表
             try:
@@ -417,6 +424,29 @@ def create_app(start_background_tasks=None):
                         db.session.commit()
                         print("✅ device_detection_region.model_ids 列添加成功")
 
+                    result = db.session.execute(text("""
+                        SELECT EXISTS (
+                            SELECT FROM information_schema.columns 
+                            WHERE table_schema = 'public' 
+                            AND table_name = 'device_detection_region' 
+                            AND column_name = 'task_id'
+                        );
+                    """))
+                    task_id_exists = result.scalar()
+
+                    if not task_id_exists:
+                        print("⚠️  device_detection_region.task_id 列不存在，正在添加...")
+                        db.session.execute(text("""
+                            ALTER TABLE device_detection_region 
+                            ADD COLUMN task_id INTEGER REFERENCES algorithm_task(id) ON DELETE CASCADE;
+                        """))
+                        db.session.execute(text("""
+                            CREATE INDEX IF NOT EXISTS idx_device_detection_region_task_device
+                            ON device_detection_region (task_id, device_id);
+                        """))
+                        db.session.commit()
+                        print("✅ device_detection_region.task_id 列添加成功")
+
                 # 轨迹回放表：device_track_session / device_track_point
                 for track_table in ('device_track_session', 'device_track_point'):
                     r = db.session.execute(text("""
@@ -524,6 +554,7 @@ def create_app(start_background_tasks=None):
                         ('prefer_gpu', 'BOOLEAN NOT NULL DEFAULT TRUE'),
                         ('target_node_id', 'BIGINT'),
                         ('node_id', 'BIGINT'),
+                        ('device_deployments', 'TEXT'),
                     ]:
                         result = db.session.execute(text(f"""
                             SELECT EXISTS (
@@ -713,16 +744,74 @@ def create_app(start_background_tasks=None):
                             """))
                             db.session.commit()
                             print(f"✅ {tbl}.correlation_id 列添加成功")
-                        db.session.execute(text(f"""
-                            CREATE INDEX IF NOT EXISTS idx_{tbl}_correlation_id
-                            ON {tbl} (correlation_id);
-                        """))
+                        if tbl == 'alert':
+                            # 历史重复事件保留最早记录的关联ID，其余业务记录仅清空重复键。
+                            db.session.execute(text("""
+                                UPDATE alert
+                                SET correlation_id = NULL
+                                WHERE correlation_id IS NOT NULL
+                                  AND BTRIM(correlation_id) = '';
+                            """))
+                            db.session.execute(text("""
+                                WITH ranked AS (
+                                    SELECT id,
+                                           ROW_NUMBER() OVER (
+                                               PARTITION BY correlation_id ORDER BY id ASC
+                                           ) AS duplicate_rank
+                                    FROM alert
+                                    WHERE correlation_id IS NOT NULL
+                                )
+                                UPDATE alert
+                                SET correlation_id = NULL
+                                FROM ranked
+                                WHERE alert.id = ranked.id
+                                  AND ranked.duplicate_rank > 1;
+                            """))
+                            db.session.execute(text("""
+                                DROP INDEX IF EXISTS idx_alert_correlation_id;
+                            """))
+                            db.session.execute(text("""
+                                CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_correlation_id
+                                ON alert (correlation_id)
+                                WHERE correlation_id IS NOT NULL;
+                            """))
+                        else:
+                            db.session.execute(text(f"""
+                                CREATE INDEX IF NOT EXISTS idx_{tbl}_correlation_id
+                                ON {tbl} (correlation_id);
+                            """))
                         db.session.commit()
                     print("✅ correlation_id 关联字段迁移检查完成")
                 except Exception as e:
                     print(f"⚠️  correlation_id 迁移检查失败: {str(e)}")
                     import traceback
                     traceback.print_exc()
+                    db.session.rollback()
+
+                # 任务级 AI 流录像需要保留 task_id，避免同摄像头多任务录像串联。
+                try:
+                    for tbl in ('playback', 'record_file'):
+                        result = db.session.execute(text(f"""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = '{tbl}'
+                                  AND column_name = 'task_id'
+                            );
+                        """))
+                        if not result.scalar():
+                            db.session.execute(text(f"""
+                                ALTER TABLE {tbl}
+                                ADD COLUMN task_id INTEGER NULL;
+                            """))
+                        db.session.execute(text(f"""
+                            CREATE INDEX IF NOT EXISTS idx_{tbl}_task_id
+                            ON {tbl} (task_id);
+                        """))
+                    db.session.commit()
+                    print("✅ 任务级录像 task_id 迁移检查完成")
+                except Exception as e:
+                    print(f"⚠️  任务级录像迁移检查失败: {str(e)}")
                     db.session.rollback()
 
                 # alert.time：列表排序、今日统计、时间范围筛选
@@ -876,6 +965,15 @@ def create_app(start_background_tasks=None):
         traceback.print_exc()
 
     try:
+        from app.auth.auth_api import register_auth_blueprints
+        register_auth_blueprints(app)
+        print(f"✅ VIDEO Auth Blueprint 注册成功")
+    except Exception as e:
+        print(f"❌ VIDEO Auth Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+    try:
         from app.blueprints import audio_talk
         app.register_blueprint(audio_talk.audio_talk_bp, url_prefix='/video/camera/audio/talk')
         print(f"✅ Audio Talk Blueprint 注册成功")
@@ -888,6 +986,15 @@ def create_app(start_background_tasks=None):
         print(f"✅ Media Hook Blueprint 注册成功")
     except Exception as e:
         print(f"❌ Media Hook Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+    try:
+        from app.blueprints import media_asset
+        app.register_blueprint(media_asset.media_asset_bp, url_prefix='/video')
+        print('✅ Media Asset Blueprint 注册成功')
+    except Exception as e:
+        print(f'❌ Media Asset Blueprint 注册失败: {str(e)}')
         import traceback
         traceback.print_exc()
     
@@ -973,6 +1080,49 @@ def create_app(start_background_tasks=None):
         print(f"❌ Device Detection Region Blueprint 注册失败: {str(e)}")
         import traceback
         traceback.print_exc()
+
+    try:
+        from app.blueprints import post_plugin
+        app.register_blueprint(post_plugin.post_plugin_bp, url_prefix='/video/post')
+        print("✅ POST Plugin Blueprint 注册成功")
+    except Exception as e:
+        print(f"❌ POST Plugin Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+    try:
+        # 模型管理蓝图全形态注册：edge 形态替代 AI 服务；standard/full 形态供算法管线
+        # （AI_SERVICE_URL=…/video 时）读取模型信息与 MinIO 代理，缺注册会导致
+        # python 执行器「获取模型 XX 信息失败: HTTP 404」无法加载模型。
+        from app.blueprints import model as model_admin
+        from app.blueprints import minio_proxy
+        app.register_blueprint(minio_proxy.minio_proxy_bp)
+        app.register_blueprint(model_admin.model_bp, url_prefix='/video/model')
+        print("✅ VIDEO 模型管理 Blueprint 注册成功（edge/full 形态）")
+        try:
+            from app.services.edge_model_seed_service import ensure_edge_model_seed
+            with app.app_context():
+                seed_result = ensure_edge_model_seed()
+            if seed_result.get('skipped'):
+                print(f"ℹ️  edge 模型种子跳过: {seed_result.get('reason')}")
+            else:
+                print(
+                    "✅ edge 模型种子完成: "
+                    f"files_copied={seed_result.get('files_copied', 0)} "
+                    f"files_skipped={seed_result.get('files_skipped', 0)} "
+                    f"models_inserted={seed_result.get('models_inserted', 0)} "
+                    f"models_updated={seed_result.get('models_updated', 0)}"
+                )
+                if not seed_result.get('seed_root'):
+                    print("⚠️  未挂载模型种子目录 /model-seed-data，封面/权重可能需手动上传")
+        except Exception as seed_exc:
+                print(f"⚠️  edge 模型种子初始化失败: {seed_exc}")
+                import traceback
+                traceback.print_exc()
+    except Exception as e:
+        print(f"❌ VIDEO 模型管理 Blueprint 注册失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
 
     # 健康检查路由初始化
@@ -1022,6 +1172,32 @@ def create_app(start_background_tasks=None):
 
     if not start_background_tasks:
         return app
+
+    # 人脸抓取队列 Worker（video 服务进程内常驻）：
+    # Python 实时管线自行启动独立 worker；此处为 RUNTIME（C++）告警接入人脸链路提供队列消费，
+    # 两进程队列相互独立互不干扰。
+    try:
+        from app.utils.face_capture_queue_service import start_face_capture_workers
+        app.face_capture_stop_event = threading.Event()
+        start_face_capture_workers(app.face_capture_stop_event)
+    except Exception as e:
+        logger.warning('人脸抓取 Worker 启动失败（RUNTIME 人脸匹配将不可用）: %s', e)
+
+    # 车牌抓取队列 Worker（video 服务进程内常驻）：为 RUNTIME（C++）告警接入车牌链路提供队列消费，
+    # 与 Python 实时管线自身启动的 worker 相互独立互不干扰。
+    try:
+        from app.utils.plate_capture_queue_service import start_plate_capture_workers
+        app.plate_capture_stop_event = threading.Event()
+        start_plate_capture_workers(app.plate_capture_stop_event)
+    except Exception as e:
+        logger.warning('车牌抓取 Worker 启动失败（RUNTIME 车牌匹配将不可用）: %s', e)
+
+    try:
+        from app.services.edge_storage_maintenance_service import start_edge_storage_maintenance
+        app.edge_storage_stop_event = threading.Event()
+        app.edge_storage_thread = start_edge_storage_maintenance(app, app.edge_storage_stop_event)
+    except Exception as e:
+        logger.warning('边缘存储维护 Worker 启动失败: %s', e)
 
     # Nacos注册与心跳线程管理
     try:

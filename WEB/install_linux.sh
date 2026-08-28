@@ -36,6 +36,8 @@ EASYAIOT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${EASYAIOT_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
 source "${EASYAIOT_ROOT}/.scripts/docker/deploy_profile.sh"
+# shellcheck source=../.scripts/docker/module_update_helpers.sh
+source "${EASYAIOT_ROOT}/.scripts/docker/module_update_helpers.sh"
 
 # 打印带颜色的消息
 print_info() {
@@ -128,7 +130,7 @@ web_image_profile_matches() {
 web_profile_image_ref() {
     ensure_deploy_profile
     case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini)     echo "web-service:latest-mini" ;;
+        mini|edge) echo "web-service:latest-mini" ;;
         standard) echo "web-service:latest-standard" ;;
         *)        echo "web-service:latest" ;;
     esac
@@ -177,6 +179,44 @@ web_skip_build_from_pull() {
     return 0
 }
 
+# docker-compose.yaml 将宿主机 dist 挂载到 nginx 静态目录。该挂载会覆盖镜像内
+# Docker 构建产生的 dist，因此每次使用新镜像启动前都要把镜像产物同步到宿主机。
+sync_web_dist_from_image() {
+    local image_ref="${1:-web-service:latest}"
+    local configured_dist="${WEB_DIST_DIR:-./dist}"
+    local target_dist
+
+    if ! docker image inspect "$image_ref" >/dev/null 2>&1; then
+        print_error "WEB 镜像不存在，无法同步前端产物: ${image_ref}"
+        return 1
+    fi
+    if [[ "$configured_dist" = /* ]]; then
+        target_dist="$configured_dist"
+    else
+        target_dist="${SCRIPT_DIR}/${configured_dist#./}"
+    fi
+    case "$target_dist" in
+        /|"$SCRIPT_DIR"|"$EASYAIOT_ROOT")
+            print_error "拒绝将 WEB 静态产物同步到不安全目录: ${target_dist}"
+            return 1
+            ;;
+    esac
+
+    mkdir -p "$target_dist"
+    # dist 通常由 root 身份的 nginx 容器写入；通过临时容器同步可避免宿主机
+    # 普通部署用户在覆盖旧文件时遇到 permission denied。
+    if ! docker run --rm --entrypoint sh -v "${target_dist}:/out" "$image_ref" \
+        -lc 'cp -a /usr/share/nginx/html/. /out/'; then
+        print_error "从 ${image_ref} 同步 WEB 静态产物失败"
+        return 1
+    fi
+    if [ ! -s "${target_dist}/index.html" ]; then
+        print_error "WEB 静态产物同步后缺少 index.html: ${target_dist}"
+        return 1
+    fi
+    print_info "已同步镜像静态产物: ${image_ref} → ${target_dist}"
+}
+
 # 组合 git 提交与 clean 写入的戳，用于 Dockerfile ARG CACHE_BUST（使 COPY 之后层在代码/clean 后重建）
 get_web_build_cache_bust() {
     local git_rev stamp
@@ -199,14 +239,27 @@ docker_build_image() {
     pnpm_log="${SCRIPT_DIR}/docker-build-logs/pnpm-build.log"
     cache_bust=$(get_web_build_cache_bust)
     ensure_deploy_profile
-    local deploy_profile="${EASYAIOT_DEPLOY_PROFILE:-full}"
+    local deploy_profile tenant_enable captcha_enable edge_standalone
+    deploy_profile="$(frontend_deploy_profile)"
+    if is_edge_deploy_profile; then
+        tenant_enable=false
+        captcha_enable=false
+        edge_standalone=true
+    else
+        tenant_enable=true
+        captcha_enable=true
+        edge_standalone=false
+    fi
     {
         echo ""
-        echo "======== docker build 开始 ${ts} CACHE_BUST=${cache_bust} DEPLOY_PROFILE=${deploy_profile} ========"
+        echo "======== docker build 开始 ${ts} CACHE_BUST=${cache_bust} DEPLOY_PROFILE=${deploy_profile} TENANT=${tenant_enable} CAPTCHA=${captcha_enable} ========"
     } >> "$pnpm_log"
     print_info "本次构建独立日志: docker-build-logs/docker-build-${ts}.log；历史追加: docker-build-logs/pnpm-build.log"
     print_info "构建缓存标识 CACHE_BUST=${cache_bust}（clean 或代码变更后将重新 pnpm install/build）"
     print_info "部署形态 VITE_GLOB_DEPLOY_PROFILE=${deploy_profile}"
+    if is_edge_deploy_profile; then
+        print_info "edge 登录：关闭租户与滑块验证码（VITE_GLOB_APP_TENANT/CAPTCHA_ENABLE=false）"
+    fi
     set -o pipefail
     local pnpm_store
     pnpm_store="$(pnpm_store_dir "$EASYAIOT_ROOT")"
@@ -235,6 +288,9 @@ docker_build_image() {
         "${cache_from_to[@]}" \
         --build-arg "CACHE_BUST=${cache_bust}" \
         --build-arg "VITE_GLOB_DEPLOY_PROFILE=${deploy_profile}" \
+        --build-arg "VITE_GLOB_APP_TENANT_ENABLE=${tenant_enable}" \
+        --build-arg "VITE_GLOB_APP_CAPTCHA_ENABLE=${captcha_enable}" \
+        --build-arg "VITE_GLOB_EDGE_STANDALONE=${edge_standalone}" \
         --build-arg "SKIP_VITE_BUILD=${SKIP_VITE_BUILD:-0}" \
         --build-arg NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmmirror.com/}" \
         --build-arg APK_MIRROR="${APK_MIRROR:-mirrors.tuna.tsinghua.edu.cn}" \
@@ -430,29 +486,24 @@ check_port() {
         fi
         port=${port:-8888}
     fi
-    
-    # 检查端口是否被占用
-    local port_in_use=false
-    
-    if command -v lsof &> /dev/null; then
-        if lsof -i :"$port" &> /dev/null; then
-            port_in_use=true
+
+    _web_port_in_use() {
+        local p="$1"
+        if command -v lsof &> /dev/null; then
+            lsof -i :"$p" &> /dev/null && return 0
+        elif command -v netstat &> /dev/null; then
+            netstat -tuln 2>/dev/null | grep -q ":$p " && return 0
+        elif command -v ss &> /dev/null; then
+            ss -tuln 2>/dev/null | grep -q ":$p " && return 0
         fi
-    elif command -v netstat &> /dev/null; then
-        if netstat -tuln 2>/dev/null | grep -q ":$port "; then
-            port_in_use=true
-        fi
-    elif command -v ss &> /dev/null; then
-        if ss -tuln 2>/dev/null | grep -q ":$port "; then
-            port_in_use=true
-        fi
-    fi
-    
-    if [ "$port_in_use" = true ]; then
+        return 1
+    }
+
+    if _web_port_in_use "$port"; then
         handle_port_conflict "$port"
         return $?
     fi
-    
+
     return 0
 }
 
@@ -466,6 +517,66 @@ create_directories() {
     print_success "目录创建完成"
 }
 
+# HTTPS + HTTP/2 自签证书（所有部署形态共用；对齐 IDEA pnpm dev:http2）
+ensure_ssl_certs() {
+    local crt="conf/ssl/server.crt"
+    local key="conf/ssl/server.key"
+    mkdir -p conf/ssl
+    if [ -f "$crt" ] && [ -f "$key" ]; then
+        print_info "SSL 证书已存在: $crt"
+        return 0
+    fi
+    print_info "生成 nginx HTTPS 自签证书（大屏/分屏多路拉流需要 HTTP/2）..."
+    if command -v node >/dev/null 2>&1 && [ -f scripts/gen-dev-certs.mjs ]; then
+        if node scripts/gen-dev-certs.mjs; then
+            print_success "已通过 scripts/gen-dev-certs.mjs 生成证书"
+            return 0
+        fi
+    fi
+    if ! command -v openssl >/dev/null 2>&1; then
+        print_error "未找到 openssl，无法生成 SSL 证书"
+        print_info "请安装 openssl 后重试，或手动放入 conf/ssl/server.crt 与 conf/ssl/server.key"
+        return 1
+    fi
+    local tmpcnf
+    tmpcnf="$(mktemp)"
+    cat >"$tmpcnf" <<'EOF'
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions = v3_req
+
+[dn]
+CN = localhost
+
+[v3_req]
+subjectAltName = @alt_names
+basicConstraints = CA:FALSE
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
+[alt_names]
+DNS.1 = localhost
+DNS.2 = *.localhost
+IP.1 = 127.0.0.1
+IP.2 = ::1
+EOF
+    if openssl req -x509 -nodes -newkey rsa:2048 \
+        -keyout "$key" -out "$crt" -days 825 \
+        -config "$tmpcnf" -extensions v3_req >/dev/null 2>&1; then
+        rm -f "$tmpcnf"
+        chmod 644 "$crt"
+        chmod 600 "$key"
+        print_success "已生成自签证书: $crt / $key"
+        return 0
+    fi
+    rm -f "$tmpcnf"
+    print_error "openssl 生成证书失败"
+    return 1
+}
+
 # 检查前端构建产物（已废弃，构建现在在容器内完成）
 check_dist() {
     # 构建现在在Docker容器内完成，不再需要检查宿主机的dist目录
@@ -476,7 +587,9 @@ check_dist() {
 ensure_nginx_conf_for_profile() {
     ensure_deploy_profile
     local conf="./conf/nginx.conf"
-    if is_mini_deploy_profile; then
+    if is_edge_deploy_profile; then
+        conf="./conf/nginx.edge.conf"
+    elif is_mini_deploy_profile; then
         conf="./conf/nginx.mini.conf"
     fi
     export NGINX_CONF="$conf"
@@ -650,9 +763,13 @@ verify_upstream_connectivity() {
         sleep 1
     done
 
-    # 检查 gateway/system-host 可达性
+    # 检查上游可达性（edge→VIDEO；mini→iot-system；其余→gateway）
     local upstream_host upstream_port upstream_label
-    if is_mini_deploy_profile; then
+    if is_edge_deploy_profile; then
+        upstream_host="video-host"
+        upstream_port="6000"
+        upstream_label="VIDEO(6000)"
+    elif is_mini_deploy_profile; then
         upstream_host="system-host"
         upstream_port="48099"
         upstream_label="iot-system(48099)"
@@ -669,13 +786,17 @@ verify_upstream_connectivity() {
         print_success "后端服务 ${upstream_label} 连通正常"
     else
         print_warning "后端服务 ${upstream_label} 不可达，API 请求将返回 502"
-        print_warning "请确保 DEVICE 模块已成功安装并启动"
-        if ! is_mini_deploy_profile; then
-            print_info "检查 iot-gateway 是否在运行: docker ps | grep iot-gateway"
-            print_info "检查端口 48080 是否监听: ss -tlnp | grep 48080"
-        else
+        if is_edge_deploy_profile; then
+            print_warning "请确保 VIDEO 模块已成功安装并启动"
+            print_info "检查 video-service: docker ps | grep video-service"
+        elif is_mini_deploy_profile; then
+            print_warning "请确保 DEVICE 模块已成功安装并启动"
             print_info "检查 iot-system 是否在运行: docker ps | grep iot-system"
             print_info "检查端口 48099 是否监听: ss -tlnp | grep 48099"
+        else
+            print_warning "请确保 DEVICE 模块已成功安装并启动"
+            print_info "检查 iot-gateway 是否在运行: docker ps | grep iot-gateway"
+            print_info "检查端口 48080 是否监听: ss -tlnp | grep 48080"
         fi
         print_info "待后端就绪后重启 web 服务: ./install_linux.sh restart"
     fi
@@ -721,6 +842,7 @@ install_service() {
     create_directories
     create_env_file
     ensure_nginx_conf_for_profile
+    ensure_ssl_certs || exit 1
     
     # 先清理本服务的残留容器
     print_info "检查并清理残留容器..."
@@ -744,6 +866,7 @@ install_service() {
         record_web_deploy_profile_built "${EASYAIOT_ROOT}"
     fi
     
+    sync_web_dist_from_image
     print_info "启动服务..."
     $COMPOSE_CMD up -d
     
@@ -762,8 +885,8 @@ install_service() {
         WEB_PORT=$(grep "^WEB_PORT=" .env 2>/dev/null | cut -d '=' -f2 | tr -d ' ' | tr -d '"' | tr -d "'")
     fi
     WEB_PORT=${WEB_PORT:-8888}
-    print_info "服务访问地址: http://localhost:${WEB_PORT}"
-    print_info "健康检查地址: http://localhost:${WEB_PORT}/health"
+    print_info "服务访问地址: https://localhost:${WEB_PORT}  （仅 HTTPS+HTTP/2，首次需信任自签证书）"
+    print_info "健康检查: https://localhost:${WEB_PORT}/health"
     print_info "查看日志: ./install_linux.sh logs"
 }
 
@@ -778,6 +901,7 @@ start_service() {
         create_env_file
     fi
     ensure_nginx_conf_for_profile
+    ensure_ssl_certs || exit 1
     
     # 先清改名孤儿
     cleanup_renamed_containers
@@ -788,7 +912,7 @@ start_service() {
         exit 1
     fi
 
-    # 注意：前端构建现在在Docker容器内完成，不再需要检查宿主机的dist目录
+    sync_web_dist_from_image
     $COMPOSE_CMD up -d --remove-orphans
     print_success "服务已启动"
     check_status
@@ -810,8 +934,10 @@ restart_service() {
     check_docker
     check_docker_compose
     ensure_nginx_conf_for_profile
+    ensure_ssl_certs || exit 1
     
-    $COMPOSE_CMD restart
+    sync_web_dist_from_image
+    $COMPOSE_CMD up -d --force-recreate --remove-orphans
     print_success "服务已重启"
     check_status
 }
@@ -951,16 +1077,39 @@ update_service() {
     check_docker
     check_docker_compose
 
+    # 拉取预构建：跳过 git / 构建，仅 recreate（需部署形态匹配）
+    if [ "${EASYAIOT_SKIP_BUILD:-0}" = "1" ] \
+        && docker image inspect web-service:latest >/dev/null 2>&1 \
+        && web_image_profile_matches; then
+        print_success "预构建镜像已就绪（EASYAIOT_SKIP_BUILD=1），跳过 git pull 与前端重建，仅 recreate"
+        cleanup_renamed_containers
+        sync_web_dist_from_image
+        $COMPOSE_CMD up -d --remove-orphans
+        check_status
+        return 0
+    fi
+    # 安装包常见：无 git，有本地镜像 → 仅 recreate（不调用 git；不校验形态以免误阻塞）
+    if ! easyaiot_have_git && docker image inspect web-service:latest >/dev/null 2>&1; then
+        print_warning "未检测到 git 命令，跳过代码拉取，使用本地镜像 recreate"
+        print_info "如需最新版本：一键 update 选「拉取预构建镜像」，或安装 git 后本地重建"
+        cleanup_renamed_containers
+        sync_web_dist_from_image
+        $COMPOSE_CMD up -d --remove-orphans
+        check_status
+        return 0
+    fi
+
     # 记录更新前代码版本，用于判断是否需要重建
     local rev_before=""
-    rev_before="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_before="$(easyaiot_git_rev_parse_head)"
 
     print_info "拉取最新代码..."
     # --ff-only：快进失败立即返回，不产生意外合并提交，比默认 pull 更快更安全
-    git pull --ff-only || print_warning "Git pull 失败，继续使用当前代码"
+    # 无 git 时 helper 会跳过 pull（随后基于当前目录构建）
+    easyaiot_git_pull_ff_only
 
     local rev_after=""
-    rev_after="$(git rev-parse HEAD 2>/dev/null || echo "")"
+    rev_after="$(easyaiot_git_rev_parse_head)"
 
     # 无变更快速路径：提交号未变 + 本地无未提交改动 + 镜像已存在 + 部署形态未变 → 跳过前端重建
     # 说明1：clean 会删除镜像并刷新构建戳，故 clean 后镜像不存在 → 此处不会误跳过
@@ -968,14 +1117,16 @@ update_service() {
     #        却被误判为无变更而跳过重建（git diff 不受未跟踪的构建日志干扰）。
     #        注意：全新的未跟踪文件 git diff 检测不到，这种情况请先 git add，或用 FORCE_REBUILD=1。
     # 说明3：部署形态（mini/standard/full）变更时，即使代码无变更也必须重建以写入正确的 VITE_GLOB_DEPLOY_PROFILE
+    # 说明4：无 git 且无镜像时无法 recreate，会落到下方构建路径
     if [ "${FORCE_REBUILD:-0}" != "1" ] \
         && docker image inspect web-service:latest >/dev/null 2>&1 \
         && web_image_profile_matches \
         && [ -n "$rev_before" ] && [ "$rev_before" = "$rev_after" ] \
-        && git diff --quiet HEAD -- . 2>/dev/null; then
+        && easyaiot_git_worktree_clean; then
         print_success "代码无变更且镜像已存在，跳过前端重建"
         print_info "（如需强制重建：FORCE_REBUILD=1 ./install_linux.sh update）"
         cleanup_renamed_containers
+        sync_web_dist_from_image
         $COMPOSE_CMD up -d --remove-orphans
         check_status
         return 0
@@ -989,6 +1140,7 @@ update_service() {
     # 构建完成后才 up -d（旧容器在 build 全程持续运行），停机仅数秒
     print_info "应用新镜像..."
     cleanup_renamed_containers
+    sync_web_dist_from_image
     $COMPOSE_CMD up -d --remove-orphans
 
     print_success "服务更新完成"
@@ -1067,4 +1219,3 @@ main() {
 
 # 运行主函数
 main "$@"
-
