@@ -18,7 +18,7 @@ DELETE FROM public.visualize_asset WHERE id BETWEEN 9001 AND 9099;
 INSERT INTO public.visualize_asset
   (id, asset_name, asset_type, file_url, file_size, remarks, tenant_id, creator, updater, deleted)
 VALUES
-  (9001, 'yFeiEye Logo', 'image', '/resource/visualize-demo/asset-logo.svg', 18200, '演示：品牌 Logo', 1, 'admin', 'admin', 0),
+  (9001, 'yFeiEye Logo', 'image', '/resource/visualize-demo/asset-logo.png', 262925, '演示：品牌 Logo', 1, 'admin', 'admin', 0),
   (9002, '深色大屏背景', 'image', '/resource/visualize-demo/asset-bg.svg', 96000, '演示：1920x1080 深色背景', 1, 'admin', 'admin', 0),
   (9003, '在线状态图标', 'image', '/resource/visualize-demo/asset-icon.svg', 8200, '演示：状态图标素材', 1, 'admin', 'admin', 0),
   (9004, '产线巡检视频封面', 'video', '/resource/visualize-demo/asset-video.svg', 128000, '演示：视频类素材登记', 1, 'admin', 'admin', 0),
