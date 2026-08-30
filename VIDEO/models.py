@@ -2951,6 +2951,48 @@ def ensure_algorithm_task_post_process_columns(engine):
         log.warning('ensure_algorithm_task_post_process_columns: %s', e)
 
 
+def ensure_post_plugin_tables(engine):
+    """创建 post_plugin / post_plugin_service（若不存在）。"""
+    import logging
+    from sqlalchemy import text
+
+    log = logging.getLogger(__name__)
+    ddl = [
+        """
+        CREATE TABLE IF NOT EXISTS post_plugin (
+          id VARCHAR(128) PRIMARY KEY,
+          name VARCHAR(256) NOT NULL,
+          latest_version VARCHAR(32),
+          runtime VARCHAR(16) NOT NULL DEFAULT 'http',
+          enabled BOOLEAN DEFAULT TRUE,
+          manifest_json TEXT NOT NULL,
+          created_at TIMESTAMP,
+          updated_at TIMESTAMP
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS post_plugin_service (
+          plugin_id VARCHAR(128) NOT NULL,
+          version VARCHAR(32) NOT NULL DEFAULT '',
+          replicas INTEGER DEFAULT 1,
+          status VARCHAR(32) DEFAULT 'stopped',
+          endpoint TEXT,
+          deploy_mode VARCHAR(16) DEFAULT 'endpoint',
+          binding_json TEXT,
+          updated_at TIMESTAMP,
+          PRIMARY KEY (plugin_id, version)
+        )
+        """,
+    ]
+    try:
+        with engine.begin() as conn:
+            for stmt in ddl:
+                conn.execute(text(stmt))
+        log.info('ensure_post_plugin_tables ok')
+    except Exception as e:
+        log.warning('ensure_post_plugin_tables: %s', e)
+
+
 def ensure_stream_forward_task_executor_columns(engine):
     """老库 stream_forward_task 表补 RUNTIME/cpp 执行后端列。"""
     import logging
