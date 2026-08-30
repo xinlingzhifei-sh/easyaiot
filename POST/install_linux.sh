@@ -80,6 +80,8 @@ ensure_env() {
     cp "${SCRIPT_DIR}/env.example" "${SCRIPT_DIR}/.env.docker"
     print_info "已生成 .env.docker"
   fi
+  # POST 使用 host 网络，容器化 PostgreSQL 需通过宿主机映射端口访问。
+  sed -i 's|@localhost:5432/|@localhost:15432/|g' "${SCRIPT_DIR}/.env.docker"
   if [ ! -f "${SCRIPT_DIR}/.env" ]; then
     cp "${SCRIPT_DIR}/env.example" "${SCRIPT_DIR}/.env"
     print_info "已生成 .env"
