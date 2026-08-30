@@ -84,6 +84,28 @@ video_compose_up_or_fail() {
     return "$_rc"
 }
 
+# compose up；若媒体 bind 源 mkdir file exists 则修复后重试一次
+video_compose_up_or_fail() {
+    local compose_log _rc
+    compose_log=$(mktemp)
+    set +e
+    video_compose up "$@" >"$compose_log" 2>&1
+    _rc=$?
+    set -e
+    cat "$compose_log"
+    if [ "$_rc" -ne 0 ] && repair_media_bind_after_compose_error "$(cat "$compose_log")"; then
+        print_warning "媒体挂载源已修复（EASYAIOT_MEDIA_ROOT=${EASYAIOT_MEDIA_ROOT}），重试 VIDEO 启动..."
+        : >"$compose_log"
+        set +e
+        video_compose up "$@" >"$compose_log" 2>&1
+        _rc=$?
+        set -e
+        cat "$compose_log"
+    fi
+    rm -f "$compose_log"
+    return "$_rc"
+}
+
 # 打印带颜色的消息
 print_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -718,6 +740,32 @@ update_service() {
     check_docker_compose
     check_network
     ensure_cpp_runtime
+
+    # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
+    if easyaiot_update_should_recreate_only video-service:latest; then
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        cleanup_renamed_containers
+        if ! video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service; then
+            print_error "VIDEO 服务更新失败"
+            return 1
+        fi
+        print_success "服务更新完成"
+        return 0
+    fi
+
+    if ! easyaiot_have_git; then
+        print_warning "未安装 git 且本地无 video-service 镜像，将基于当前目录源码构建"
+        check_gpu
+        configure_compose_gpu "docker-compose.yaml" ".env.docker"
+        if ! build_with_cache ""; then
+            exit 1
+        fi
+        cleanup_renamed_containers
+        video_compose_up_or_fail -d --force-recreate --remove-orphans --no-deps video-service || return 1
+        print_success "服务更新完成"
+        return 0
+    fi
 
     # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
     if easyaiot_update_should_recreate_only video-service:latest; then

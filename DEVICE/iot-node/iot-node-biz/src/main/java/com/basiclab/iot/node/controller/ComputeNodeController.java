@@ -61,6 +61,21 @@ public class ComputeNodeController {
         return success(computeNodeService.preflightRecordingStorage(nodeId, mode, mediaPublicUrl));
     }
 
+    @PostMapping("/preflight")
+    @Operation(summary = "添加节点前预检：SSH、Python、磁盘、端口、控制面连通（公网仅提示）")
+    public CommonResult<NodeOnboardPreflightRespVO> preflightNode(@Valid @RequestBody ComputeNodeSaveReqVO reqVO) {
+        return success(computeNodeService.preflightNode(reqVO));
+    }
+
+    @GetMapping("/recording-storage/preflight")
+    @Operation(summary = "切换节点录像存储模式前预检")
+    public CommonResult<NodeOnboardPreflightRespVO> preflightRecordingStorage(
+            @RequestParam("nodeId") Long nodeId,
+            @RequestParam("mode") String mode,
+            @RequestParam(value = "mediaPublicUrl", required = false) String mediaPublicUrl) {
+        return success(computeNodeService.preflightRecordingStorage(nodeId, mode, mediaPublicUrl));
+    }
+
     @PostMapping("/create")
     @Operation(summary = "创建服务器节点")
     public CommonResult<ComputeNodeRespVO> createNode(@Valid @RequestBody ComputeNodeSaveReqVO createReqVO) {

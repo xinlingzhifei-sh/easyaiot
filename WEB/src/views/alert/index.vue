@@ -189,6 +189,8 @@ async function activateMapTab() {
 
 function handleTabClick(activeKey: string) {
   state.activeKey = activeKey;
+  // 同步到 URL（query.tab）：从流程设计等子页面返回时可恢复所在的 Tab，而不是落回默认地图分布
+  void router.replace({ query: { ...router.currentRoute.value.query, tab: activeKey } });
   if (activeKey === ALERT_TAB_KEYS.MAP) {
     void activateMapTab();
   } else if (activeKey === ALERT_TAB_KEYS.REVIEW) {

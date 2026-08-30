@@ -483,6 +483,22 @@ main() {
         print_info "edge 推荐内存上限: $(deploy_profile_budget_label edge)（含边缘推理与峰值缓冲）"
     fi
 
+    if [ "$target_profile" = "edge" ] || [ "$inferred_profile" = "edge" ]; then
+        local edge_core_mib edge_extra=0 name mib
+        edge_core_mib=$(sum_edge_expected_mib "${containers[@]}")
+        for name in "${containers[@]}"; do
+            is_edge_expected_container "$name" && continue
+            mib="${MEM_MIB[$name]:-0}"
+            edge_extra=$(awk -v a="$edge_extra" -v b="$mib" 'BEGIN { printf "%.2f", a+b }')
+        done
+        echo ""
+        print_info "edge 典型 5 容器合计: $(format_mib "$edge_core_mib")（PG/Redis/SRS/VIDEO/WEB）"
+        if awk -v e="$edge_extra" 'BEGIN { exit (e > 0.01) ? 0 : 1 }'; then
+            print_warn "另有非 edge 典型容器占用 $(format_mib "$edge_extra")（如历史 full/standard 残留，可 stop 后重跑本脚本）"
+        fi
+        print_info "edge 推荐内存上限: $(deploy_profile_budget_label edge)（含边缘推理与峰值缓冲）"
+    fi
+
     print_section "部署规格符合性"
     load_saved_deploy_profile
     apply_deploy_profile

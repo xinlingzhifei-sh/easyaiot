@@ -196,6 +196,8 @@ import {
   pickDirectPlayUrls,
   resolveGbChannelPlayUrls,
   schedulePendingAiStreamUpgrade,
+  isAiStreamPlayUrl,
+  toMultiViewPlayUrl,
 } from '@/views/camera/utils/devicePlay'
 import { parseGbChannelKey } from '@/views/camera/utils/gb28181Tree'
 import type { WvpPlaySourceOption } from '@/views/camera/utils/livePlayer'

@@ -164,7 +164,6 @@ def resolve_device_stream_urls(device: Device) -> Tuple[str, str, str, str]:
     except Exception as e:
         logger.debug('媒体绑定查询失败 device_id=%s: %s', device_id, e)
 
-    deployment = _find_stream_forward_deployment(device_id)
     if deployment:
         # 边缘接入任务在边缘节点拉流，但发布目标可能是控制面 SRS。
         # 播放地址必须跟随 publish_host，不能回退为仅边缘网可达的执行节点地址。

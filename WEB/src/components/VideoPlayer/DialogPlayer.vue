@@ -18,7 +18,7 @@
             :data-playback-offset-seconds="state.seekOffsetSeconds"
           >
             <Jessibuca
-              v-if="state.currentUrl"
+              v-else-if="state.currentUrl"
               :key="`${playerKey}-${state.currentUrl}`"
               ref="jessibucaRef"
               :playUrl="state.currentUrl"

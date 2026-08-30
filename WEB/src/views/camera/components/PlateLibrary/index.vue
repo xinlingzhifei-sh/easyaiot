@@ -145,6 +145,7 @@
 
       <PlateLibraryModal @register="registerLibraryModal" @success="handleSuccess" />
       <PlateAutoEnrollDrawer @register="registerAutoEnrollDrawer" @success="handleSuccess" />
+      <PlatePendingWorkbench @register="registerWorkbench" @stats-change="onWorkbenchStatsChange" />
     </template>
   </div>
 </template>
@@ -174,6 +175,8 @@ import { getBasicColumns, getFormConfig } from './Data';
 import PlateLibraryModal from './PlateLibraryModal.vue';
 import PlateAutoEnrollDrawer from './PlateAutoEnrollDrawer.vue';
 import PlateModelSetupPanel from './PlateModelSetupPanel.vue';
+import PlatePendingWorkbench from '../PendingEnroll/PlatePendingWorkbench.vue';
+import { getPendingStats, type PendingEnrollStats } from '@/api/device/pending_enroll';
 import PLATE_LIBRARY_IMAGE from '@/assets/images/video/snap-task.png';
 import { Button } from '@/components/Button'
 const ListItem = List.Item;
@@ -184,6 +187,27 @@ const { createMessage } = useMessage();
 const router = useRouter();
 const [registerLibraryModal, { openDrawer: openLibraryDrawer }] = useDrawer();
 const [registerAutoEnrollDrawer, { openDrawer: openAutoEnrollDrawer }] = useDrawer();
+const [registerWorkbench, { openDrawer: openWorkbench }] = useDrawer();
+
+const pendingCount = ref(0);
+
+async function refreshPendingStats() {
+  try {
+    const res = await getPendingStats('plate');
+    pendingCount.value = res?.data?.pending ?? 0;
+  } catch (e) {
+    console.warn('查询待入库统计失败', e);
+  }
+}
+
+function handleOpenWorkbench() {
+  // 本项目 useDrawerInner 回调由 data 触发（见 useDrawer.ts watchEffect），必须携带 payload 才会执行加载
+  openWorkbench(true, { openedAt: Date.now() });
+}
+
+function onWorkbenchStatsChange(stats: PendingEnrollStats) {
+  pendingCount.value = stats?.pending ?? 0;
+}
 
 const viewMode = ref<'table' | 'card'>('card');
 const libraryList = ref<PlateLibrary[]>([]);
@@ -471,6 +495,9 @@ onMounted(async () => {
   await refreshModelStatus();
   if (modelReady.value && viewMode.value === 'card') {
     loadLibraryList();
+  }
+  if (modelReady.value) {
+    void refreshPendingStats();
   }
 });
 </script>

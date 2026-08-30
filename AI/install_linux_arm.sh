@@ -695,6 +695,15 @@ update_service() {
         return 0
     fi
 
+    # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
+    if easyaiot_update_should_recreate_only ai-service:latest; then
+        cleanup_renamed_containers
+        $COMPOSE_CMD up -d --remove-orphans --no-deps --quiet-pull ai-service 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+        print_success "服务更新完成"
+        check_status
+        return 0
+    fi
+
     # 记录更新前代码版本，用于判断依赖/构建文件是否变化
     local rev_before=""
     rev_before="$(easyaiot_git_rev_parse_head)"

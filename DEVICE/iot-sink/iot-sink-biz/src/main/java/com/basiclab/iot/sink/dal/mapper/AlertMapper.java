@@ -44,6 +44,14 @@ public interface AlertMapper {
             @Param("taskId") Integer taskId,
             @Param("deviceId") String deviceId);
 
+    /** 按事件关联ID查询，用于 Kafka/HTTP 重试幂等。 */
+    AlertDO selectByCorrelationId(@Param("correlationId") String correlationId);
+
+    /** 按任务和设备查询布防配置。 */
+    Map<String, Object> selectDefenseConfig(
+            @Param("taskId") Integer taskId,
+            @Param("deviceId") String deviceId);
+
     /**
      * 更新告警记录的图片路径
      *

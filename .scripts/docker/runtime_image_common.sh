@@ -23,19 +23,19 @@ RUNTIME_IMAGE_REGISTRY=""
 # ============================================================================
 DEVICE_REMOTE_NAMES=(
     aiot-gateway aiot-system aiot-infra aiot-device aiot-dataset
-    aiot-node aiot-visualize aiot-tdengine aiot-file aiot-message aiot-sink aiot-gb28181
+    aiot-node aiot-visualize aiot-flow aiot-tdengine aiot-file aiot-message aiot-sink aiot-gb28181
 )
 
 DEVICE_LOCAL_NAMES=(
     iot-gateway iot-module-system-biz iot-module-infra-biz iot-module-device-biz
-    iot-module-dataset-biz iot-module-node-biz iot-module-visualize-biz iot-module-tdengine-biz
+    iot-module-dataset-biz iot-module-node-biz iot-module-visualize-biz iot-flow-biz iot-module-tdengine-biz
     iot-module-file-biz iot-module-message-biz iot-sink-biz iot-gb28181-biz
 )
 
 # 与 DEVICE_REMOTE_NAMES / DEVICE_LOCAL_NAMES 下标一一对应（docker-compose 服务名）
 DEVICE_COMPOSE_SERVICES=(
     iot-gateway iot-system iot-infra iot-device iot-dataset
-    iot-node iot-visualize iot-tdengine iot-file iot-message iot-sink iot-gb28181
+    iot-node iot-visualize iot-flow iot-tdengine iot-file iot-message iot-sink iot-gb28181
 )
 
 INDEPENDENT_MODULES=(
