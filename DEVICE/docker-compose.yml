@@ -386,7 +386,7 @@ services:
       start_period: 120s
     restart: always
     networks:
-      - easyaiot-network
+      - yfeieye-network
     depends_on:
       iot-infra:
         condition: service_healthy
