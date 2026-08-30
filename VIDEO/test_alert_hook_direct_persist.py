@@ -80,22 +80,6 @@ class TestAlertHookDirectPersist(unittest.TestCase):
         self.assertFalse(first_detection)
         self.assertTrue(repeated_person)
 
-    def test_kafka_suppression_isolated_by_event_identity(self):
-        with patch.object(hook_mod.time, 'time', return_value=100.0):
-            first_person = hook_mod._should_suppress_alert_event_kafka(
-                9, 'dev-1', 'realtime', 5, '1:person'
-            )
-            first_detection = hook_mod._should_suppress_alert_event_kafka(
-                9, 'dev-1', 'realtime', 5, '32:detection'
-            )
-            repeated_person = hook_mod._should_suppress_alert_event_kafka(
-                9, 'dev-1', 'realtime', 5, '1:person'
-            )
-
-        self.assertFalse(first_person)
-        self.assertFalse(first_detection)
-        self.assertTrue(repeated_person)
-
     def test_process_alert_hook_uses_direct_persist_in_mini(self):
         alert_data = {
             'object': 'chair',

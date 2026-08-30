@@ -889,30 +889,38 @@ apply_python_service_deploy_env() {
         _set_env_docker_kv "$env_file" AUTH_CHECK_URL "http://localhost:48080/admin-api/system/auth/get-permission-info"
         if is_mini_deploy_profile || is_local_storage_deploy_profile; then
             _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY false
-            if [ "$module" = "VIDEO" ]; then
+        else
+            _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY true
+        fi
+        if [ "$module" = "VIDEO" ]; then
+            # RTC / go2rtc：存量 .env.docker 可能缺项，安装/切形态时补齐
+            _set_env_docker_kv "$env_file" RTC_SERVICE_URL "http://127.0.0.1:6100"
+            _set_env_docker_kv "$env_file" RTC_GO2RTC_WEB_URL "/dev-api/go2rtc/"
+            _set_env_docker_kv "$env_file" RTC_RTSP_HOST "127.0.0.1"
+            _set_env_docker_kv "$env_file" RTC_RTSP_PORT "8554"
+            if is_mini_deploy_profile || is_local_storage_deploy_profile; then
                 _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48099/admin-api/system/auth/media-permission-check"
                 _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST true
                 _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST true
-                if [ -n "$rpc_token" ]; then
-                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
-                fi
+            else
+                _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48080/admin-api/system/auth/media-permission-check"
+                _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST false
+                _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST false
             fi
-            if [ "$module" = "AI" ]; then
+            if is_mini_deploy_profile; then
+                _set_env_docker_kv "$env_file" POST_ENABLED false
+            else
+                _set_env_docker_kv "$env_file" POST_ENABLED true
+            fi
+            if [ -n "$rpc_token" ]; then
+                _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
+            fi
+            _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 1
+        else
+            if is_mini_deploy_profile || is_local_storage_deploy_profile; then
                 # compose 只读挂载 ../.scripts/minio -> /minio-seed-data（flat 种子数据）
                 _set_env_docker_kv "$env_file" MINIO_SEED_DATA_ROOT "/minio-seed-data"
             fi
-        else
-            _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY true
-            if [ "$module" = "VIDEO" ]; then
-                _set_env_docker_kv "$env_file" YFEIEYE_MEDIA_AUTHORIZATION_URL "http://localhost:48080/admin-api/system/auth/media-permission-check"
-                _set_env_docker_kv "$env_file" ALERT_KEEP_LATEST false
-                if [ -n "$rpc_token" ]; then
-                    _set_env_docker_kv "$env_file" IOT_RPC_INTERNAL_TOKEN "$rpc_token"
-                fi
-            fi
-            _set_env_docker_kv "$env_file" ALERT_USE_DIRECT_PERSIST false
-            _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 1
-        else
             # AI：仅同步媒体根，供 compose ${EASYAIOT_MEDIA_ROOT} 替换
             _apply_python_sink_media_env "$env_file" "${root}/${module}/.env" 0
         fi

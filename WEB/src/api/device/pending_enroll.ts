@@ -153,7 +153,7 @@ export const getPendingStats = async (
     },
     { isTransformResponse: false, errorMessageMode: 'none' },
   );
-  return (((res as { data?: { code: number; msg: string; data: PendingEnrollStats } })?.data ??
+  return (((res as unknown as { data?: { code: number; msg: string; data: PendingEnrollStats } })?.data ??
     res) as { code: number; msg: string; data: PendingEnrollStats });
 };
 
@@ -172,7 +172,7 @@ export const getPendingRecordDetail = async (
     },
     { isTransformResponse: false, errorMessageMode: 'none' },
   );
-  return (((res as { data?: { code: number; msg: string; data: PendingEnrollRecord } })?.data ??
+  return (((res as unknown as { data?: { code: number; msg: string; data: PendingEnrollRecord } })?.data ??
     res) as { code: number; msg: string; data: PendingEnrollRecord });
 };
 

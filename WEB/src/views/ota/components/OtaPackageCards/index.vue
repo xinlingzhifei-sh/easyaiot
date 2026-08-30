@@ -121,8 +121,6 @@ import { Icon } from '@/components/Icon';
 
 import { TYPE_MAP, STATUS_MAP, GRAY_LADDER_MAP } from '../../Data';
 
-import { TYPE_MAP, STATUS_MAP, GRAY_LADDER_MAP } from '../../Data';
-
 import OTA from "@/assets/images/ota/ota.png";
 
 const ListItem = List.Item;

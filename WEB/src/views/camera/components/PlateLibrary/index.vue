@@ -12,6 +12,11 @@
       <BasicTable v-if="viewMode === 'table'" @register="registerTable">
         <template #toolbar>
           <Button type="primary" @click="handleCreate">新建车牌库</Button>
+          <a-badge :count="pendingCount" :offset="[4, -2]">
+            <Button type="default" preIcon="ant-design:appstore-outlined" @click="handleOpenWorkbench">
+              待入库工作台
+            </Button>
+          </a-badge>
           <Button type="default" @click="handleToggleViewMode" preIcon="ant-design:swap-outlined">
             切换视图
           </Button>
@@ -56,6 +61,15 @@
                   <span style="padding-left: 7px; font-size: 16px; font-weight: 500; line-height: 24px">车牌库列表</span>
                   <div style="display: flex; gap: 8px">
                     <Button type="primary" @click="handleCreate">新建车牌库</Button>
+                    <a-badge :count="pendingCount" :offset="[4, -2]">
+                      <Button
+                        type="default"
+                        preIcon="ant-design:appstore-outlined"
+                        @click="handleOpenWorkbench"
+                      >
+                        待入库工作台
+                      </Button>
+                    </a-badge>
                     <Button
                       type="default"
                       @click="handleToggleViewMode"
