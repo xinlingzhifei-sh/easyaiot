@@ -56,7 +56,7 @@ export interface StartAutoLabelParams {
 export interface StartSamBootstrapParams {
   text_prompts: string[];
   bootstrap_limit?: number;
-  bootstrap_selection?: 'unlabeled_first' | 'random' | 'all';
+  bootstrap_selection?: 'unlabeled_first' | 'unlabeled_only' | 'random' | 'all';
   confidence_threshold?: number;
   annotation_type?: 'rectangle' | 'polygon';
   return_masks?: boolean;
@@ -136,6 +136,19 @@ export const startSamBootstrap = (datasetId: number, data: StartSamBootstrapPara
   return commonApi('post', `${Api.AutoLabel}/dataset/${datasetId}/auto-label/bootstrap/start`, { data });
 };
 
+export interface StartLlmBootstrapParams {
+  scene_description: string;
+  output_labels?: string[];
+  bootstrap_limit?: number;
+  bootstrap_selection?: 'unlabeled_first' | 'unlabeled_only' | 'random' | 'all';
+  confidence_threshold?: number;
+}
+
+/** HARNESS 当前启用视觉大模型：自然语言场景冷启动。 */
+export const startLlmBootstrap = (datasetId: number, data: StartLlmBootstrapParams) => {
+  return commonApi('post', `${Api.AutoLabel}/dataset/${datasetId}/auto-label/llm-bootstrap/start`, { data });
+};
+
 export const getSamBootstrapStatus = (datasetId: number) => {
   return commonApi('get', `${Api.AutoLabel}/dataset/${datasetId}/auto-label/bootstrap/status`);
 };
@@ -146,6 +159,20 @@ export const completeSamBootstrapReview = (
 ) => {
   return commonApi('post', `${Api.AutoLabel}/dataset/${datasetId}/auto-label/bootstrap/complete-review`, { data });
 };
+
+export const trainBootstrapSmallModel = (
+  datasetId: number,
+  data: {
+    train_epochs?: number;
+    train_batch_size?: number;
+    train_imgsz?: number;
+    use_gpu?: boolean;
+    /** 训练完成后自动用小模型接力标注剩余未标注图片 */
+    auto_relay?: boolean;
+    /** 接力标注置信度（服务端强制下限 AUTO_LABEL_MIN_YOLO_CONF） */
+    relay_confidence?: number;
+  } = {},
+) => commonApi('post', `${Api.AutoLabel}/dataset/${datasetId}/auto-label/bootstrap/train`, { data });
 
 export interface SamBootstrapStatus {
   has_task?: boolean;
@@ -160,6 +187,7 @@ export interface SamBootstrapStatus {
   review_passed?: boolean;
   ready_for_train?: boolean;
   awaiting_sam_review?: boolean;
+  bootstrap_engine?: 'sam3' | 'llm' | string;
   sam_hit_count?: number;
   sam_empty_count?: number;
   recognition_rate?: number;
@@ -168,6 +196,18 @@ export interface SamBootstrapStatus {
   min_hit_rate_pct?: number;
   sam_quality_passed?: boolean;
   review_recommended?: boolean;
+  /** 小模型训练进度状态（冷启动抽检通过后触发） */
+  train_state?: {
+    pipeline_phase?: string;
+    pending_train?: boolean;
+    train_task_id?: number;
+    train_round?: number;
+  };
+  /** 数据集已绑定的 YOLO 小模型（可用于接力标注） */
+  bound_model?: { id: number; name: string; version?: number | string } | null;
+  /** 训练完成后是否自动接力标注 */
+  relay_enabled?: boolean;
+  relay_confidence?: number;
 }
 
 export const resetSamBootstrapAnnotations = (datasetId: number) => {

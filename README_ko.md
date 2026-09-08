@@ -110,6 +110,17 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>Docker 올인원</strong>: <code>bash RTC/install_linux.sh start</code>로 go2rtc + Python 관리 서비스 실행; P2P LAN용 host network</li>
 </ul>
 
+### 🏷️ LLM 스마트 라벨링: 업무 장면을 설명하고 현장 전용 소형 모델로 학습
+
+기존 자동 라벨링은 ‘사람’, ‘차량’, ‘안전모’ 같은 클래스만 받아 실제 현장 규칙을 정확히 표현하기 어렵습니다. yFeiEye는 <strong>HARNESS 대형 모델 기반</strong>의 독립 흐름을 추가했습니다. 사용자가 자연어로 장면을 설명하면 LLM이 객체, 행동, 관계, 조건, 제외 항목을 이해해 구조화된 라벨을 만들고, 사람의 검토 후 플랫폼이 YOLO 소형 모델 학습·배포·연결·대량 재라벨링을 자동으로 이어갑니다.
+
+- <strong>단순 라벨보다 정확한 요구 표현</strong>: 위치, 행동, 관계, 성립 조건과 예외까지 기술합니다.
+- <strong>맞춤형 콜드 스타트</strong>: 성숙한 검출기나 대량 수작업 데이터 없이 첫 학습을 시작합니다.
+- <strong>이해력과 효율 결합</strong>: LLM은 복잡한 의미를 처리하고 소형 모델은 빠르고 저렴한 엣지 추론을 담당합니다.
+- <strong>추적 가능한 폐쇄 루프</strong>: 장면 설명 → LLM 후보 → 사람 검토 → 학습 → 자동 배포·연결 → 대량 재라벨링.
+
+<strong>SAM3와의 차이:</strong> SAM3는 짧은 시각 프롬프트와 닮은 객체를 찾아 위치 지정·분할하는 데 강합니다. LLM은 완전한 업무 설명에서 어떤 조건의 어떤 목표가 실제 라벨링 대상인지 판단합니다. 일반 객체에는 SAM3를, 행동·관계·조건·예외·산업 의미가 있는 장면에는 LLM을 우선 사용합니다.
+
 ### 🔌 EDGE: C# 엣지 수집 런타임 — 산업 현장에서 「정확히 수집, 안정적으로 업링크」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -359,22 +370,56 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
   <li><strong>기여 루프</strong>: 개인 fork 연결 → 브랜치 → 코드 수정 → fork로 푸시 → 공식 저장소에 PR</li>
 </ul>
 
-#### 🤖 HARNESS AI 어시스턴트
+### 🔌 LLM 통합 게이트웨이 — 하나의 프로토콜, 모든 주요 LLM 벤더
 
-<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
-모듈이 많고 체인이 길어 — 상태 확인, 아키텍처 질의, 설정 찾기는 문서와 SSH가 흔합니다. HARNESS는 플랫폼 지식과 실시간 탐지를 <strong>대화형 어시스턴트</strong>로 묶습니다 — 업무 페이지 우하단에서 즉시 질문·확인, 장애 대응과 PoC 주기 단축, 벤더·구전 지식 의존 감소.
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+플랫폼은 모든 주요 LLM 벤더를 단일 OpenAI 호환 프로토콜(<code>/v1/chat/completions</code>)로 통합합니다. 동시에 활성화되는 모델은 1개뿐이며, 페이지 내 모든 AI 기능(이미지/영상 이해, 자동 라벨링, 채팅)이 즉시 전환됩니다. 벤더 추가는 코드 변경 없이 템플릿 레지스트리에 한 줄만 추가하면 됩니다. 최초 배포 시 프리셋 템플릿 데이터가 자동 초기화되며(플레이스홀더 키 <code>sk-placeholder-*</code>, 비활성), 편집 화면에서 실제 API 키를 입력하면 활성화할 수 있습니다 — UI가 전체 과정을 안내합니다.
+</p>
+
+| 벤더 | 템플릿 키 | 모델 ID (추천 목록) | 비고 |
+| :-- | :-- | :-- | :-- |
+| DeepSeek | `deepseek` | deepseek-v4-flash, deepseek-v4-pro, deepseek-v4-flash-vision-exp | 1M 컨텍스트, 공식 API |
+| 알리바바 클라우드 백련 | `dashscope` | qwen3.8-max, qwen3.7-max/plus/flash, qwen3.6-plus/flash, qwen3.5-plus/flash, qwen3.5-omni-plus/flash, qwen3-vl-plus/flash, qwen-vl-max | OpenAI 호환 모드 엔드포인트 |
+| Zhipu GLM | `zhipu` | glm-5.3, glm-5.2, glm-5.1, glm-5-turbo, glm-5, glm-4.7, glm-4.7-flash, glm-4.5-flash, glm-4-plus/flash/air, glm-4v-plus/flash, glm-ocr | v4 엔드포인트 |
+| OpenAI | `openai` | gpt-5.6-sol, gpt-5.6, gpt-5.6-sol-pro, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4-mini, gpt-4.1-mini | max_completion_tokens 자동 호환 |
+| Kimi (Moonshot) | `kimi` | kimi-k2.6, kimi-k2.7-code | K2는 temperature=1 강제 |
+| Claude (Anthropic) | `claude` | claude-opus-4-7/4-6/4-5, claude-sonnet-4-6/4-5, claude-haiku-4-5 | 네이티브 Messages API — OpenAI 호환 릴레이/게이트웨이로 연결 |
+| Anthropic 호환 | `anthropic` | — | OpenAI 호환 릴레이 엔드포인트 입력 |
+| 커스텀 | `custom` | — | 모든 OpenAI 호환 엔드포인트 |
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>프리셋 템플릿 데이터</strong>: 신규 배포 시 6개 템플릿(DeepSeek / 백련 / GLM / OpenAI / Kimi / Claude) 자동 초기화; 플레이스홀더를 실제 키로 교체하기 전까지 활성화·연결 테스트 차단 안내</li>
+  <li><strong>다른 서비스 직접 사용</strong>: 활성 모델을 OpenAI 호환 엔드포인트(<code>POST /v1/chat/completions</code>, <code>GET /v1/models</code>)로 노출 — 모든 OpenAI SDK가 Bearer 토큰으로 호출 가능</li>
+  <li><strong>호출 복원력</strong>: 순차 파라미터 폴백(temperature → max_completion_tokens), SSE 스트리밍, 벤더별 타임아웃</li>
+</ul>
+
+### 🤖 RAG 지식 베이스 및 AI 에이전트
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+통합 LLM 게이트웨이 위에서 플랫폼은 업무 문서를 <strong>답변 가능한 지식 자산</strong>으로 바꾸고 대화형 <strong>AI 에이전트</strong>로 패키징합니다 — 지식 축적부터 검색 기반 답변, 페이지·IDE 내 어시스턴트까지 하나의 파이프라인으로 연결됩니다.
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>물으면 바로 확인</strong>: Agent가 플랫폼 Tool로 Gateway / 영상 / AI 서비스 상태를 탐지하고 관련 설정·소스를 안내 — SSH + compose 확인을 한 번의 대화로</li>
-  <li><strong>온톨로지 내장</strong>: <code>HARNESS/ontology/AGENTS.md</code>와 전체 저장소 워크스페이스 — 아키텍처, 포트, API, 설치 규약을 한곳에서</li>
-  <li><strong>페이지 내 대화</strong>: 플로팅 서랍 iframe — 알람/장치 화면에서 페이지 전환·컨텍스트 손실 없음; 전체 화면 「AI 어시스턴트」 또는 새 창도 가능</li>
-  <li><strong>IDEA 분할 화면 공동 창작</strong>: 툴바로 오른쪽 AI 어시스턴트 원클릭 — 에디터와 Agent 동시 화면; <code>?file=경로&harness=1</code> 딥링크도 지원</li>
-  <li><strong>드래그 자동 @</strong>: 탐색기 파일을 어시스턴트 패널에 놓으면 대화 컨텍스트로 자동 연결</li>
-  <li><strong>양방향 점프</strong>: Agent가 <code>easyaiot_open_in_idea</code>로 포털 링크를 생성 — Q&amp;A에서 수정·배포 가능한 전체 IDE로; IDEA는 코드·PR, HARNESS는 아키텍처·상태 확인</li>
-  <li><strong>MCP + Cursor Skill</strong>: 동일 <code>easyaiot_*</code> 능력을 MCP로 Cursor 등 IDE에 노출 — 콘솔에서 묻고 확인하는 것을 개발 환경에서도 호출; Skill은 프로젝트 간 재사용</li>
-  <li><strong>전 프로필 기본 포함</strong>: <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar(<code>:3080</code>), <code>mini / standard / full</code> 기본 배포 포함(<code>EASYAIOT_ENABLE_HARNESS=0</code>로 비활성화); DeepSeek / OpenAI 호환 엔드포인트; Key는 <code>harness.env</code> 또는 UI에서 자체 제공</li>
-  <li><strong>보안 안내</strong>: 실험 모듈, upstream <code>dsh</code> Developer Preview; 운영 환경은 접근 제한 및 쓰기/Shell 승인 설정; API Key는 Git에 커밋 금지</li>
+  <li><strong>문서 → 세그먼트 → 지식 세트</strong>: TXT / Markdown / CSV / JSON / LOG 파일(UTF-8, 최대 10MB)을 업로드하면 자동 분할되어 Milvus에 벡터 인덱싱됩니다. 세그먼트는 편집·개별 검색 참여 토글이 가능하며, 여러 문서의 세그먼트를 조합해 재사용 가능한 지식 세트로 만듭니다</li>
+  <li><strong>RAG 전문가(에이전트)</strong>: 여러 지식 세트를 결합하고 역할 프롬프트와 환영 메시지를 설정하면 바로 대화합니다 — 답변은 <code>【자료 N】</code>을 인용하고, 자료가 부족하면 지어내지 않으며, 모델에 연결할 수 없으면 검색 전용 모드로 자동 전환됩니다</li>
+  <li><strong>하이브리드 검색</strong>: Milvus 벡터 검색과 키워드(BM25 스타일) 점수를 융합합니다. 오프라인 <code>local-hash</code> 임베딩 폴백 덕분에 외부 키 없이도 전체 체인을 시연할 수 있습니다</li>
+  <li><strong>AI 어시스턴트</strong>: 업무 페이지의 플로팅 어시스턴트가 즉시 질문·확인을 처리합니다. HARNESS 대화형 어시스턴트는 IDEA 클라우드 IDE에 내장되어 파일 드래그 자동 <code>@</code>·분할 화면 공동 창작을 지원하며, 동일한 <code>easyaiot_*</code> 능력은 MCP + Cursor Skill로 Cursor 등 IDE에 노출됩니다</li>
+</ul>
+
+### 🧠 LLM 알림 후처리 (LLM 판단) — "감지"에서 "신뢰"로
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+전통적인 영상 알고리즘은 "본다"는 문제를 해결했지만 "믿을지 말지"는 사람에게 맡겼습니다 — 안전모, 선 넘기, 화염, 수면 감지의 검출 박스가 매일 넘쳐나고, 당직자는 매건 사진을 열어 수동으로 확인해야 하며, 오탐이 진짜 경보를 묻고 진짜 경보는 놓칠까 두렵습니다. yFeiEye는 <strong>대규모 언어 모델의 의미 이해를 알림 파이프라인에 연결</strong>합니다: 알고리즘 작업에 <strong>LLM 후처리 규칙</strong>을 구성하면, 규칙에 걸린 알림은 자동으로 전용 판단 큐에 들어가고, 멀티모달 대규모 언어 모델이 현장 이미지(또는 짧은 영상)를 하나씩 살펴 <strong>"확인 성립 / 오탐 판정" 결론, 신뢰도, 근거</strong>를 알림에 다시 기록합니다 — 당직은 "이미지를 한 장씩 들여다보는 것"에서 "결론만 보는 것"으로 바뀌고, 잦은 오탐은 알림 밖으로 차단됩니다.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>독립 비동기 판단 큐</strong>: 규칙 매칭 후 Kafka로 전달되어 비동기로 실행되므로 판단이 느리거나 모델이 불안정해도 알림 저장과 알림 전송 체인은 절대 막히지 않습니다. 판단 실패는 로그만 남기고 메인 흐름을 절대 지연시키지 않습니다</li>
+  <li><strong>샘플링·속도 제한으로 비용 통제</strong>: 규칙에 걸린 알림은 <strong>샘플링 비율</strong>(예: 10% = 10건 중 1건)에 따라 LLM 큐에 들어가며, <strong>작업별 최소 판단 간격</strong>을 더해 고빈도 이벤트의 중복 호출을 방지합니다. 샘플링에 걸리지 않거나 제한된 알림은 "미샘플링 / 속도 제한 스킵"으로 자동 표시됩니다 — LLM 비용이 알림량에서 분리되어 규모가 커져도 비용을 통제할 수 있습니다</li>
+  <li><strong>이미지 / 영상 이중 판단</strong>: 기본은 이미지 판단이며, 짧은 영상 판단으로 전환하고 이벤트 전후 창과 슬라이스 최대 길이를 구성할 수 있습니다. 녹화가 없으면 자동으로 이미지 판단으로 폴백하여 체인이 끊기지 않습니다</li>
+  <li><strong>게이트 알림 (2차 판단)</strong>: 오탐에 민감한 작업에서는 <strong>LLM이 이벤트 성립을 확인했을 때만 알림을 보내고, 오탐 판정이면 알림을 바로 억제</strong>합니다 — "알림 폭풍"이 "정밀 알림"으로 줄어들어 당직 휴대폰이 오탐으로 도배되지 않습니다</li>
+  <li><strong>실패 전략은 현장에 맞게</strong>: 모델 호출 실패 시 <code>skip</code>(원본 결과 유지) / <code>confirm</code>(알림 통과) / <code>reject</code>(알림 억제) 중 선택 — 누락과 오탐 사이에서 현장 위험 선호도에 따라 정합니다</li>
+  <li><strong>에이전트·모델 바인딩 가능</strong>: 판단에 RAG 전문가(지식 베이스 컨텍스트를 담아 답변)를 붙이거나, 전용 대규모 언어 모델을 지정하고 판단 프롬프트를 덮어쓰고 JSON 구조화 출력을 강제할 수 있으며, 통합 LLM 게이트웨이로 원클릭 제공사 전환도 됩니다</li>
+  <li><strong>결론 완전한 재기록·표시</strong>: 판단 상태(확인 성립 / 오탐 / 판단 중 / 판단 실패 / 미샘플링 등), 신뢰도, 근거, 구조화 속성이 모두 알림에 다시 기록됩니다. WEB·APP 알림 목록에 상태 태그가 표시되고 "샘플링됨 / 미샘플링 / 각 결론"으로 필터링할 수 있으며, 판단 상세는 이미지·결론·근거·실행 정보를 한 화면에서 볼 수 있습니다</li>
 </ul>
 
 ### 📦 내장 AI 모델
@@ -832,6 +877,8 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 
 | | | |
 |:---:|:---:|:---:|
+| ![영상 모니터링](.image/banner/banner1255.png) | ![영상 모니터링](.image/banner/banner1256.png) | ![영상 모니터링](.image/banner/banner1257.png) |
+| ![영상 모니터링](.image/banner/banner1237.png) | ![영상 모니터링](.image/banner/banner1238.png) | ![영상 모니터링](.image/banner/banner1239.png) |
 | ![영상 모니터링](.image/banner/banner1225.png) | ![영상 모니터링](.image/banner/banner1226.png) | ![영상 모니터링](.image/banner/banner1227.png) |
 | ![영상 모니터링](.image/banner/banner1228.png) | ![영상 모니터링](.image/banner/banner1229.png) | ![영상 모니터링](.image/banner/banner1230.png) |
 | ![영상 모니터링](.image/banner/banner1219.png) | ![영상 모니터링](.image/banner/banner1220.png) | ![영상 모니터링](.image/banner/banner1221.png) |
@@ -850,10 +897,15 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![미리보기](.image/banner/banner1104.png) | ![접속](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![실황](.image/banner/banner1183.jpg) | ![지도](.image/banner/banner1184.jpg) |  |
 
-#### 🤖 AI 어시스턴트
+#### 🤖 RAG 지식 베이스 및 AI 에이전트
 
 | | | |
 |:---:|:---:|:---:|
+| ![LLM 모델 관리](.image/banner/banner1243.png) | ![LLM 구성](.image/banner/banner1244.png) | ![RAG 지식 베이스](.image/banner/banner1246.png) |
+| ![모델 템플릿](.image/banner/banner1243.png) | ![벤더 연동](.image/banner/banner1244.png) | ![모델 호출](.image/banner/banner1245.png) |
+| ![지식 베이스](.image/banner/banner1246.png) | ![지식 문서](.image/banner/banner1247.png) | ![지식 세그먼트](.image/banner/banner1248.png) |
+| ![지식 세트](.image/banner/banner1249.png) | ![RAG 전문가](.image/banner/banner1250.png) | ![RAG Q&A](.image/banner/banner1251.png) |
+| ![AI 어시스턴트](.image/banner/banner1252.png) | ![에이전트 대화](.image/banner/banner1253.png) | ![에이전트 효과 테스트](.image/banner/banner1254.png) |
 | ![IDEA 로그인](.image/banner/banner1203.png) | ![IDEA 워크스페이스](.image/banner/banner1204.png) | ![IDEA 개발](.image/banner/banner1205.png) |
 | ![AI 어시스턴트 대화](.image/banner/banner1210.png) | ![AI 어시스턴트 분석](.image/banner/banner1211.png) | ![AI 어시스턴트 협업](.image/banner/banner1212.png) |
 
@@ -879,13 +931,6 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![미리보기](.image/banner/banner1082.jpg) | ![알고리즘](.image/banner/banner1062.jpg) | ![생성](.image/banner/banner1063.png) |
 | ![화면](.image/banner/banner1064.jpg) | ![분석](.image/banner/banner1065.jpg) | ![결과](.image/banner/banner1066.jpg) |
 | ![다시보기](.image/banner/banner1067.jpg) | ![실황](.image/banner/banner1052.jpg) | ![스마트](.image/banner/banner1054.jpg) |
-
-#### 📋 알람 워크오더
-
-| | | |
-|:---:|:---:|:---:|
-| ![플로우 디자인](.image/banner/banner1231.png) | ![노드 구성](.image/banner/banner1232.png) | ![승인자 선택](.image/banner/banner1233.png) |
-| ![조건 분기](.image/banner/banner1234.png) | ![조건 규칙](.image/banner/banner1235.png) | ![병렬 분기](.image/banner/banner1236.png) |
 
 #### 📦 데이터셋
 
@@ -924,13 +969,20 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![목록](.image/banner/banner1133.jpg) | ![상태](.image/banner/banner1134.jpg) | ![구성](.image/banner/banner1135.jpg) |
 | ![할당](.image/banner/banner1136.jpg) |  |  |
 
-#### 🔔 경보
+#### 🔔 경보 이벤트
 
 | | | |
 |:---:|:---:|:---:|
 | ![이벤트](.image/banner/banner1089.jpg) | ![처리](.image/banner/banner1090.jpg) | ![알림](.image/banner/banner1029.jpg) |
 | ![구성](.image/banner/banner1030.jpg) | ![목록](.image/banner/banner1072.jpg) | ![상세](.image/banner/banner1031.jpg) |
 | ![조치](.image/banner/banner1070.jpg) | ![통계](.image/banner/banner1071.jpg) |  |
+
+#### 📋 알람 워크오더
+
+| | | |
+|:---:|:---:|:---:|
+| ![플로우 디자인](.image/banner/banner1231.png) | ![노드 구성](.image/banner/banner1232.png) | ![승인자 선택](.image/banner/banner1233.png) |
+| ![조건 분기](.image/banner/banner1234.png) | ![조건 규칙](.image/banner/banner1235.png) | ![병렬 분기](.image/banner/banner1236.png) |
 
 #### ⚙️ 시스템
 

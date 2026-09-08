@@ -770,7 +770,7 @@ verify_upstream_connectivity() {
     # 等待容器完全启动
     local attempt=0
     while [ $attempt -lt 10 ]; do
-        if docker exec "$container_name" wget -q --spider http://127.0.0.1/health 2>/dev/null; then
+        if docker exec "$container_name" wget -q --spider --no-check-certificate https://127.0.0.1/health 2>/dev/null; then
             break
         fi
         attempt=$((attempt + 1))

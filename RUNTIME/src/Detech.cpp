@@ -630,7 +630,7 @@ void Detech::_controlServerThreadFunc() {
         
         // 启动服务器（阻塞）
         if (!svr.listen("0.0.0.0", _controlPort)) {
-            LOG(ERROR) << "[CONTROL-THREAD] Failed to start control server on port " << _controlPort;
+            LOG(ERROR) << "[CONTROL] Failed to start control server on port " << _controlPort;
         }
         _controlHttpServer = nullptr;
         
@@ -702,6 +702,10 @@ bool Detech::_init_yolo_detector() {
 
             YoloThreadPool::ModelSpec spec;
             spec.key = modelKey;
+            auto businessIdIt = _config.modelBusinessIds.find(modelKey);
+            if (businessIdIt != _config.modelBusinessIds.end()) {
+                spec.businessModelId = businessIdIt->second;
+            }
             spec.modelPath = pathIt->second;
             LOG(INFO) << "[INIT] Model path [" << modelKey << "]: " << spec.modelPath;
 
@@ -798,7 +802,8 @@ bool Detech::_init_media_player() {
         }
         _ffmpegStream = _ffmpegFormatCtx->streams[_videoIndex];
         if (0 == _ffmpegStream->avg_frame_rate.den) {
-            LOG(ERROR) << "videoIndex=" << _videoIndex << ",videoStream->avg_frame_rate.den = 0";
+            LOG(ERROR) << "[ERROR] Video frame-rate denominator is zero videoIndex=" << _videoIndex
+                       << ", falling back to 25fps";
             _videoFps = 25;
         }
         else {
@@ -1128,7 +1133,7 @@ void Detech::_alarmSenderThreadFunc() {
                 bbox.append(static_cast<int>(det.y2));
                 detObj["bbox"] = bbox;
                 detectionsArray.append(detObj);
-                if (det.model_id >= 0) {
+                if (det.model_id != 0) {
                     modelIds.insert(det.model_id);
                 }
             }
@@ -1144,7 +1149,10 @@ void Detech::_alarmSenderThreadFunc() {
             const bool snapshot = (_config.taskType == "snap" || _config.taskType == "snapshot");
             bool usedHttpAlert = false;
             AlgoMqttBus::ensureHealthProbe();
-            if (AlgoMqttBus::shouldPublishInferEvent()) {
+            // InferEvent is an MQTT-only ingress. In edge/HTTP mode POST may still
+            // be globally enabled for other services, but it must not shadow the
+            // configured VIDEO alert hook.
+            if (AlgoMqttBus::busEnabled(_config) && AlgoMqttBus::shouldPublishInferEvent()) {
                 Json::Value ev;
                 ev["schema"] = "infer_event.v1";
                 ev["event_kind"] = "infer";
@@ -1169,6 +1177,9 @@ void Detech::_alarmSenderThreadFunc() {
                 Json::Value dets(Json::arrayValue);
                 for (const auto& det : alarmData.detections) {
                     Json::Value d;
+                    if (det.model_id != 0) {
+                        d["model_id"] = det.model_id;
+                    }
                     d["class_name"] = det.class_name;
                     d["confidence"] = det.class_score;
                     d["class_id"] = det.class_id;
@@ -1192,6 +1203,8 @@ void Detech::_alarmSenderThreadFunc() {
                 } else {
                     LOG(ERROR) << "[ALARM-THREAD] InferEvent publish failed device=" << did;
                 }
+            } else if (AlgoMqttBus::postFailClosed()) {
+                    LOG(WARNING) << "[ALARM] POST unavailable with closed failure policy; direct alert suppressed for device=" << did;
             } else if (AlgoMqttBus::busEnabled(_config)) {
                 if (AlgoMqttBus::postInBypass()) {
                     Json::Value infoObj;
@@ -1357,7 +1370,7 @@ void Detech::_heartbeatThreadFunc() {
         auto now = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(now - lastInferHb).count() >= inferHbSec) {
             lastInferHb = now;
-            if (AlgoMqttBus::shouldPublishInferEvent()) {
+            if (AlgoMqttBus::busEnabled(_config) && AlgoMqttBus::shouldPublishInferEvent()) {
                 Json::Value ev;
                 ev["schema"] = "infer_event.v1";
                 ev["event_kind"] = "heartbeat";
@@ -1614,8 +1627,8 @@ void Detech::_display_video_loop() {
                     int centerX = (x1 + x2) / 2;
                     int centerY = (y1 + y2) / 2;
                     
-                    // POST 启用时告警不做本地区域过滤（几何仅在 POST region_gate）
-                    bool inAlarmRegion = AlgoMqttBus::postEnabled()
+            // Skip duplicate region filtering when POST owns InferEvent; fail-open bypass still filters locally.
+                    bool inAlarmRegion = AlgoMqttBus::shouldPublishInferEvent()
                         ? true
                         : _isInAlarmRegion(centerX, centerY, img.cols, img.rows);
                     if (inAlarmRegion) {
@@ -1731,7 +1744,7 @@ void Detech::_display_video_loop() {
                 static int pushErrorCount = 0;
                 pushErrorCount++;
                 if (pushErrorCount % 100 == 1) {  // 每100次失败输出一次日志
-                    LOG(WARNING) << "[RTMP] Push frame failed (error count: " << pushErrorCount << ")";
+                    LOG(WARNING) << "[RTMP] Push frame failed (error count: " << pushErrorCount << "）";
                 }
             }
         }

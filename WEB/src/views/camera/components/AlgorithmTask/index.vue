@@ -33,7 +33,7 @@
       <div class="p-2 bg-white">
         <Spin :spinning="loading">
           <List
-            :grid="{ gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 4, xxl: 4 }"
+            :grid="{ gutter: 12, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 4 }"
             :data-source="taskList"
             :pagination="paginationProp"
           >
@@ -107,10 +107,26 @@
                     </div>
                     <div
                       class="btn"
+                      :class="{ disabled: !hasCameras(item) }"
+                      @click="hasCameras(item) && handleOpenRegions(item)"
+                      title="区域配置（支持运行时热更新）"
+                    >
+                      <Icon icon="ant-design:border-outer-outlined" :size="15" color="#3B82F6" />
+                    </div>
+                    <div
+                      class="btn"
                       @click="handleOpenPostProcess(item)"
                       :title="item.post_process_enabled ? '编辑业务脚本' : '编辑业务脚本（需先在任务配置中开启）'"
                     >
                       <Icon icon="ant-design:code-outlined" :size="15" color="#3B82F6" />
+                    </div>
+                    <div
+                      class="btn llm-queue-btn"
+                      :class="{ disabled: !hasLlmPostProcess(item) }"
+                      @click="hasLlmPostProcess(item) && handleOpenLlmQueue(item)"
+                      :title="hasLlmPostProcess(item) ? '查看大模型研判队列' : '未启用大模型后处理，暂无研判队列'"
+                    >
+                      <Icon icon="ant-design:robot-outlined" :size="16" :color="hasLlmPostProcess(item) ? '#3B82F6' : '#b7bdc8'" />
                     </div>
                     <div class="btn" @click="handleManageServices(item)" title="心跳信息">
                       <Icon icon="ant-design:heart-outlined" :size="15" color="#3B82F6" />
@@ -185,9 +201,15 @@
 
     <!-- 创建/编辑模态框 -->
     <AlgorithmTaskModal @register="registerModal" @success="handleSuccess" />
-    
+
+    <!-- 独立区域配置入口：运行中的任务也允许热更新区域 -->
+    <DeviceRegionDetectionDrawer @register="registerRegionDrawer" />
+
     <!-- 服务管理抽屉 -->
     <ServiceManageDrawer @register="registerServiceDrawer" @success="handleSuccess" />
+
+    <!-- 大模型后处理运行结果：与任务配置分离的独立入口 -->
+    <LlmJudgeQueueDrawer @register="registerLlmQueueDrawer" />
     
     <!-- 抓拍空间抽屉 -->
     <SnapSpaceDrawer @register="registerSnapSpaceDrawer" />
@@ -232,7 +254,9 @@ import {
   type CameraStreamInfo,
 } from '@/api/device/algorithm_task';
 import AlgorithmTaskModal from './AlgorithmTaskModal.vue';
+import DeviceRegionDetectionDrawer from './DeviceRegionDetectionDrawer.vue';
 import ServiceManageDrawer from './ServiceManageDrawer.vue';
+import LlmJudgeQueueDrawer from './LlmJudgeQueueDrawer.vue';
 import SnapSpaceDrawer from './SnapSpaceDrawer.vue';
 import DialogPlayer from '@/components/VideoPlayer/DialogPlayer.vue';
 import CameraStreamSelectModal from '../CameraStreamSelectModal/index.vue';
@@ -272,7 +296,9 @@ const setTaskPending = (id: number, pending: boolean) => {
   }
 };
 const [registerModal, { openDrawer }] = useDrawer();
+const [registerRegionDrawer, { openDrawer: openRegionDrawer }] = useDrawer();
 const [registerServiceDrawer, { openDrawer: openServiceDrawer }] = useDrawer();
+const [registerLlmQueueDrawer, { openDrawer: openLlmQueueDrawer }] = useDrawer();
 const [registerSnapSpaceDrawer, { openDrawer: openSnapSpaceDrawer }] = useDrawer();
 const [registerPlayerModal, { openModal: openPlayerModal }] = useModal();
 
@@ -345,6 +371,16 @@ const hasCameras = (record: AlgorithmTask) => {
          (record.device_names && record.device_names.length > 0);
 };
 
+const hasLlmPostProcess = (record: AlgorithmTask) => record.llm_post_process_enabled === true || Number(record.llm_post_process_enabled) === 1;
+
+const handleOpenLlmQueue = (record: AlgorithmTask) => {
+  if (!hasLlmPostProcess(record)) {
+    createMessage.info('该任务未启用大模型后处理');
+    return;
+  }
+  openLlmQueueDrawer(true, { taskId: record.id, taskName: record.task_name });
+};
+
 // 复制摄像头名称
 const handleCopyDeviceNames = (item: AlgorithmTask) => {
   if (!item.device_names || item.device_names.length === 0) {
@@ -376,9 +412,21 @@ const getTableActions = (record: AlgorithmTask) => {
       },
     },
     {
+      icon: 'ant-design:border-outer-outlined',
+      tooltip: '区域配置（支持运行时热更新）',
+      disabled: !hasCameras(record),
+      onClick: () => handleOpenRegions(record),
+    },
+    {
       icon: 'ant-design:code-outlined',
       tooltip: record.post_process_enabled ? '编辑业务脚本' : '编辑业务脚本（需先在任务配置中开启）',
       onClick: () => handleOpenPostProcess(record),
+    },
+    {
+      icon: 'ant-design:robot-outlined',
+      tooltip: hasLlmPostProcess(record) ? '大模型研判队列' : '未启用大模型后处理，暂无研判队列',
+      disabled: !hasLlmPostProcess(record),
+      onClick: () => handleOpenLlmQueue(record),
     },
     {
       icon: 'ant-design:folder-outlined',
@@ -575,6 +623,38 @@ const handleEdit = (record: AlgorithmTask) => {
     return;
   }
   openDrawer(true, { type: 'edit', record });
+};
+
+const handleOpenRegions = (record: AlgorithmTask) => {
+  const deviceIds = Array.isArray(record.device_ids)
+    ? record.device_ids.map(String).filter(Boolean)
+    : [];
+  if (!deviceIds.length) {
+    createMessage.warning('任务未关联摄像头');
+    return;
+  }
+
+  const deviceLabels: Record<string, string> = {};
+  deviceIds.forEach((deviceId, index) => {
+    deviceLabels[deviceId] = record.device_names?.[index] || deviceId;
+  });
+  const modelNames = String(record.model_names || '')
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const taskModels = (Array.isArray(record.model_ids) ? record.model_ids : [])
+    .map((id, index) => ({
+      id: Number(id),
+      name: modelNames[index] || String(id),
+    }))
+    .filter((model) => Number.isFinite(model.id) && model.id !== 0);
+
+  openRegionDrawer(true, {
+    taskId: record.id,
+    deviceIds,
+    deviceLabels,
+    taskModels,
+  });
 };
 
 const handleManageServices = (record: AlgorithmTask) => {
@@ -968,7 +1048,9 @@ onMounted(() => {
 
     .task-info {
       flex-direction: column;
-      max-width: calc(100% - 128px);
+      box-sizing: border-box;
+      width: calc(100% - 156px);
+      min-width: 0;
       padding-left: 16px;
 
       .status {
@@ -993,13 +1075,24 @@ onMounted(() => {
         line-height: 20px;
         height: 40px;
         padding-right: 90px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        word-break: break-word;
       }
 
       .props {
         margin-top: 10px;
 
+        > .flex {
+          gap: 8px;
+          min-width: 0;
+        }
+
         .prop {
           flex: 1;
+          min-width: 0;
           margin-bottom: 10px;
 
           .label {
@@ -1018,6 +1111,12 @@ onMounted(() => {
             overflow: hidden;
             text-overflow: ellipsis;
             margin-top: 6px;
+
+            span {
+              min-width: 0;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
           }
         }
       }
@@ -1028,7 +1127,9 @@ onMounted(() => {
         left: 16px;
         bottom: 16px;
         margin-top: 20px;
-        width: 220px;
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        max-width: 280px;
         height: 28px;
         border-radius: 45px;
         justify-content: space-around;
@@ -1037,7 +1138,10 @@ onMounted(() => {
         border: 2px solid #266cfbff;
 
         .btn {
-          width: 28px;
+          flex: 1 1 0;
+          width: auto;
+          min-width: 20px;
+          max-width: 28px;
           text-align: center;
           position: relative;
           cursor: pointer;

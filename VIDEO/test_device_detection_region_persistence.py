@@ -16,29 +16,7 @@ if VIDEO_DIR not in sys.path:
     sys.path.insert(0, VIDEO_DIR)
 
 import models
-from models import Device, DeviceDetectionRegion, Image, db
-
-
-class _ExpressionField:
-    def contains(self, _value):
-        return True
-
-    def __eq__(self, _value):
-        return True
-
-
-class _EmptyQuery:
-    def filter(self, *_expressions):
-        return self
-
-    def all(self):
-        return []
-
-
-class _AlgorithmTaskWithoutAssignments:
-    devices = _ExpressionField()
-    task_type = _ExpressionField()
-    query = _EmptyQuery()
+from models import AlgorithmTask, Device, DeviceDetectionRegion, Image, algorithm_task_device, db
 
 
 class TestDeviceDetectionRegionPersistence(unittest.TestCase):
@@ -64,7 +42,7 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
             else:
                 sys.modules['app.blueprints.camera'] = previous_camera_module
 
-        cls.region_blueprint_module.AlgorithmTask = _AlgorithmTaskWithoutAssignments
+        cls.region_blueprint_module.AlgorithmTask = AlgorithmTask
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -84,6 +62,8 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
         with self.app.app_context():
             Device.__table__.create(db.engine)
             Image.__table__.create(db.engine)
+            AlgorithmTask.__table__.create(db.engine)
+            algorithm_task_device.create(db.engine)
             DeviceDetectionRegion.__table__.create(db.engine)
             db.session.add(Device(
                 id='camera-01',
@@ -93,6 +73,10 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
                 http_stream='http://camera-01/live.flv',
                 manufacturer='test',
                 model='test-camera',
+            ))
+            db.session.add(AlgorithmTask(
+                id=7, task_name='Region rules', task_code='region-rules', model_ids='[11]',
+                devices=[db.session.get(Device, 'camera-01')],
             ))
             db.session.commit()
 
@@ -116,7 +100,7 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
             **thresholds,
         }
         return self.client.post(
-            '/video/device-detection/device/camera-01/regions',
+            '/video/device-detection/device/camera-01/regions?task_id=7',
             json=payload,
         )
 
@@ -131,7 +115,7 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
         self.assertEqual(20, created['loiteringSeconds'])
 
         listed_response = self.client.get(
-            '/video/device-detection/device/camera-01/regions'
+            '/video/device-detection/device/camera-01/regions?task_id=7'
         )
         self.assertEqual(200, listed_response.status_code, listed_response.get_json())
         listed = listed_response.get_json()['data'][0]
@@ -166,7 +150,7 @@ class TestDeviceDetectionRegionPersistence(unittest.TestCase):
         self.assertEqual(45, updated['loiteringSeconds'])
 
         listed = self.client.get(
-            '/video/device-detection/device/camera-01/regions'
+            '/video/device-detection/device/camera-01/regions?task_id=7'
         ).get_json()['data'][0]
         self.assertEqual(7, listed['inertia_frames'])
         self.assertEqual(45, listed['loitering_seconds'])

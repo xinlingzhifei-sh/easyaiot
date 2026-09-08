@@ -107,4 +107,18 @@ assert.equal(
   'The PANEL package metadata must use the yFeiEye brand.',
 )
 
+assert.match(
+  readFileSync(resolve(repoRoot, 'HARNESS/plugins/easyaiot-llm-gateway.ts'), 'utf8'),
+  /owned_by:\s*'yFeiEye'/,
+  'The model listing must display the yFeiEye owner without renaming gateway identifiers.',
+)
+
+for (const name of ['README.md', 'README_zh.md', 'README_zh_tw.md', 'README_fr.md', 'README_ko.md', 'README_ru.md']) {
+  assert.doesNotMatch(
+    readFileSync(resolve(repoRoot, name), 'utf8'),
+    /banner124[012]\.png/,
+    `${name} must not display assistant screenshots bearing the old brand.`,
+  )
+}
+
 assert.deepEqual(violations, [], `Old visible brand remains:\n${violations.join('\n')}`)

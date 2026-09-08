@@ -34,8 +34,8 @@ struct DetectObject
     float class_score;
     int class_id;
     std::string class_name;
-    /** 产生该检测的模型索引（多模型聚合时 ≥0；单模型未标记为 -1） */
-    int model_id = -1;
+    /** Business model ID for this detection; 0 is unset, negative built-in IDs are valid. */
+    int model_id = 0;
     bool happen = false;
 };
 

@@ -604,6 +604,9 @@ services:
       - MINIO_DOWNLOAD_URL=http://MinIO:9001 # Minio下载地址（使用Docker服务名）
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY is required} # Minio访问密钥
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required} # Minio秘密密钥
+      # AI 服务使用 host 网络；Sink 容器需通过宿主机网关调用，不能使用默认 localhost:8000。
+      - BASICLAB_LLM_JUDGE_AI_INTERNAL_BASE_URL=${BASICLAB_LLM_JUDGE_AI_INTERNAL_BASE_URL:-http://host.docker.internal:5000}
+      - BASICLAB_LLM_JUDGE_AI_INTERNAL_TOKEN=${AI_INTERNAL_TOKEN:-}
       # SkyWalking配置（如需要，请取消注释并配置）
       # - JAVA_TOOL_OPTIONS=-javaagent:/data/skywalking/skywalking-agent/skywalking-agent.jar
       # - SW_AGENT_NAME=iot-sink

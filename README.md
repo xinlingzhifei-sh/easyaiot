@@ -119,6 +119,24 @@ In homes, retail stores, and light-security deployments, many devices already in
   <li><strong>Docker all-in-one</strong>: <code>bash RTC/install_linux.sh start</code> runs go2rtc + management API; host network for P2P LAN</li>
 </ul>
 
+### 🏷️ LLM Smart Labeling: Describe the Business Scene, Train a Field-Specific Small Model
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+Conventional auto-labeling usually accepts only class words such as “person,” “vehicle,” or “helmet.” It can locate generic objects, but cannot precisely express what a customer actually cares about on site. yFeiEye adds an independent <strong>LLM Smart Labeling</strong> workflow built on the existing <strong>HARNESS model foundation</strong>. Users describe a real business scene in natural language—for example, “label people who enter the construction area without correctly wearing a helmet, and exclude compliant workers.” The LLM understands objects, actions, relationships, conditions, and exclusions before producing structured annotations. After users review the bootstrap results, the platform automatically trains, publishes, binds, and applies a YOLO small model, turning one scene description into a dedicated capability that can run continuously and efficiently in production.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Natural language matches real requirements better than class labels</strong>: It can describe where an object is, what it is doing, its relationships, required conditions, and explicit exclusions—not merely what category it belongs to</li>
+  <li><strong>Better cold starts for customized datasets</strong>: No mature detector or large manually labeled dataset is required up front; users describe the scene, review the first candidate annotations, and immediately feed field knowledge into training</li>
+  <li><strong>LLM understanding with small-model runtime efficiency</strong>: The LLM handles complex semantics on a small bootstrap set, while the reviewed results teach a small model that supports fast, economical, and edge-friendly production inference</li>
+  <li><strong>Models fit the customer's actual site</strong>: Training targets come from the user's language, images, and review decisions instead of broad classes from generic datasets, aligning the resulting detector with the project's real acceptance criteria</li>
+  <li><strong>A full learning loop, not a one-off AI call</strong>: Scene description → LLM candidate annotations → human review → small-model training → automatic publishing and dataset binding → batch relabeling, with traceable model versions and origins</li>
+</ul>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0;">
+<strong>How it differs from SAM3 Smart Labeling:</strong> SAM3 uses concise visual prompts and excels at locating or segmenting “things that look like this target.” LLM Smart Labeling accepts a complete business description and determines “which target, under which conditions, is the one the user actually wants labeled.” The two workflows have separate entries and tasks but share the review, training, and small-model relabeling pipeline. Use SAM3 for fast generic-object extraction; use LLM Smart Labeling when the scene depends on actions, relationships, conditions, exceptions, or domain semantics.
+</p>
+
 ### 🔌 EDGE: C# Edge Collection Runtime
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -368,22 +386,56 @@ Many projects reduce IoT to a "device ledger + message relay"—devices connect 
   <li><strong>Contribution loop</strong>: Bind your fork → branch → edit → push to the fork → open a PR to upstream</li>
 </ul>
 
-#### 🤖 HARNESS AI Assistant
+### 🔌 LLM Unified Gateway — One Protocol, Every Major LLM Vendor
 
-<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
-Many modules and long chains—checking health, asking about architecture, and finding configs often means digging through docs and SSH. HARNESS bundles platform knowledge and live probes into a <strong>conversational assistant</strong>: ask and check from the bottom-right corner of any business page, shortening troubleshooting and PoC cycles with less reliance on the vendor and tribal knowledge.
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+The platform converges every major LLM vendor onto a single OpenAI-compatible protocol (<code>/v1/chat/completions</code>). Only one model is active at a time — all in-page AI capabilities (image/video understanding, auto labeling, chat) switch to it instantly. Adding a vendor is zero-code: just one entry in the template registry. Preset template data is seeded automatically on first deployment (placeholder keys <code>sk-placeholder-*</code>, inactive); fill in a real API key in the editor and enable it — the UI guides you through the whole flow.
+</p>
+
+| Vendor | Template Key | Model IDs (suggestions) | Notes |
+| :-- | :-- | :-- | :-- |
+| DeepSeek | `deepseek` | deepseek-v4-flash, deepseek-v4-pro, deepseek-v4-flash-vision-exp | 1M context; official API |
+| Alibaba Cloud Bailian | `dashscope` | qwen3.8-max, qwen3.7-max/plus/flash, qwen3.6-plus/flash, qwen3.5-plus/flash, qwen3.5-omni-plus/flash, qwen3-vl-plus/flash, qwen-vl-max | OpenAI-compatible mode endpoint |
+| Zhipu GLM | `zhipu` | glm-5.3, glm-5.2, glm-5.1, glm-5-turbo, glm-5, glm-4.7, glm-4.7-flash, glm-4.5-flash, glm-4-plus/flash/air, glm-4v-plus/flash, glm-ocr | v4 endpoint |
+| OpenAI | `openai` | gpt-5.6-sol, gpt-5.6, gpt-5.6-sol-pro, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4-mini, gpt-4.1-mini | max_completion_tokens auto-compat |
+| Kimi (Moonshot) | `kimi` | kimi-k2.6, kimi-k2.7-code | K2 forces temperature=1 |
+| Claude (Anthropic) | `claude` | claude-opus-4-7/4-6/4-5, claude-sonnet-4-6/4-5, claude-haiku-4-5 | Native Messages API — connect via an OpenAI-compatible relay/gateway |
+| Anthropic Compatible | `anthropic` | — | Fill an OpenAI-compatible relay endpoint |
+| Custom | `custom` | — | Any OpenAI-compatible endpoint |
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Preset template data</strong>: 6 templates (DeepSeek / Bailian / GLM / OpenAI / Kimi / Claude) are seeded on fresh deployment; activation and connectivity tests are blocked until a real API key replaces the placeholder — no dead-end 401s</li>
+  <li><strong>For other services</strong>: the platform exposes the active model as an OpenAI-compatible endpoint (<code>POST /v1/chat/completions</code>, <code>GET /v1/models</code>) — any OpenAI SDK can call it with a Bearer token</li>
+  <li><strong>Resilience</strong>: ordered parameter fallback (temperature → max_completion_tokens), streaming SSE, per-vendor timeouts</li>
+</ul>
+
+### 🤖 RAG Knowledge Base & AI Agents
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+Built on the unified LLM gateway, the platform turns business documents into <strong>answerable knowledge assets</strong> packaged as conversational <strong>AI agents</strong> — one pipeline from knowledge curation to retrieval-backed answers to in-page and in-IDE assistants.
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>Ask and check</strong>: The Agent calls platform Tools to probe Gateway / video / AI service health and points to related config and source—compressing SSH + compose digging into one conversation</li>
-  <li><strong>Knows the ontology</strong>: Built-in <code>HARNESS/ontology/AGENTS.md</code> and full-repo workspace—architecture, ports, APIs, and install conventions in one place</li>
-  <li><strong>Chat in-page</strong>: Floating drawer iframe—no page switch or lost context while viewing alarms/devices; full-screen “AI Assistant” or new window also available</li>
-  <li><strong>IDEA split-pane co-creation</strong>: Toolbar opens the AI assistant on the right—editor and Agent side by side; or deep-link with <code>?file=path&harness=1</code> to open a file and split</li>
-  <li><strong>Drag to auto @</strong>: Drop explorer files onto the assistant pane to attach them as chat context</li>
-  <li><strong>Two-way jump</strong>: Agent can generate portal links via <code>easyaiot_open_in_idea</code>—from Q&amp;A back to a full IDE where you can edit and publish; IDEA for code and PRs, HARNESS for architecture and health</li>
-  <li><strong>MCP + Cursor Skill</strong>: Same <code>easyaiot_*</code> capabilities exposed via MCP to Cursor and other IDEs—what you can ask and check in the console, you can invoke in dev; Skills reusable across projects</li>
-  <li><strong>Ready in all profiles</strong>: Based on <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar (<code>:3080</code>); included by default in <code>mini / standard / full</code> (<code>EASYAIOT_ENABLE_HARNESS=0</code> to disable); DeepSeek / OpenAI-compatible endpoints; bring your own Key in <code>harness.env</code> or the UI</li>
-  <li><strong>Security note</strong>: Experimental module; upstream <code>dsh</code> is Developer Preview; restrict access in production and configure write/Shell approval; do not commit API Keys to Git</li>
+  <li><strong>Documents → segments → knowledge sets</strong>: Upload TXT / Markdown / CSV / JSON / LOG files (UTF-8, up to 10 MB); each document is auto-split into Milvus vector-indexed segments — editable, individually toggleable in retrieval, and composable across documents into reusable knowledge sets</li>
+  <li><strong>RAG experts (agents)</strong>: Combine multiple knowledge sets, set a role prompt and welcome message, and start chatting — answers cite <code>【Source N】</code>, refuse to fabricate when the material is insufficient, and degrade gracefully to retrieval-only mode when the model is unreachable</li>
+  <li><strong>Hybrid retrieval</strong>: Milvus vector search fused with keyword/BM25-style scoring; an offline <code>local-hash</code> embedding fallback keeps the whole chain demo-able without external keys</li>
+  <li><strong>AI assistant</strong>: A floating assistant answers right on business pages; the HARNESS conversational assistant lives inside the IDEA cloud IDE — drag files to auto <code>@</code>, co-create in split pane — and the same <code>easyaiot_*</code> capabilities are exposed via MCP + Cursor Skill to Cursor and other IDEs</li>
+</ul>
+
+### 🧠 LLM Post-Processing for Alerts (LLM Judgment) — From “Detected” to “Trusted”
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+Traditional vision algorithms solve “seeing” but leave “believing” to people — bounding boxes for helmets, line-crossing, flames and sleep-on-duty flood the screen every day, forcing watch officers to open each alert image and re-check it manually; false alarms drown out real incidents, and real incidents are feared to be missed. yFeiEye connects <strong>LLM semantic understanding to the alert pipeline</strong>: algorithm tasks can attach <strong>LLM post-processing rules</strong>, alerts that match a rule automatically enter a dedicated judgment queue, where a multimodal LLM inspects each scene image (or short clip) one by one and writes back a <strong>“Confirmed / False Positive” verdict with confidence and reasoning</strong> — watch officers go from “staring at every frame” to “reading conclusions”, and high-frequency false alarms are kept out of notifications.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Dedicated async judgment queue</strong>: rule-matched alerts are delivered via Kafka and judged asynchronously — slow or flaky models never block alert persistence or the notification pipeline; a failed judgment only logs, never disrupts the main flow</li>
+  <li><strong>Sampling & throttling control cost</strong>: matched alerts enter the LLM queue by a <strong>sampling rate</strong> (e.g. 10% = 1 in 10), combined with a <strong>per-task minimum judgment interval</strong> to avoid repeated calls on high-frequency events; alerts not sampled or throttled are automatically marked “Not Sampled / Rate-Limited Skipped”, decoupling LLM spend from alert volume</li>
+  <li><strong>Image / video dual judgment</strong>: image judgment by default, switchable to short-clip judgment with configurable pre/post event windows and max slice duration; automatically falls back to image judgment when footage is missing</li>
+  <li><strong>Gated notifications (secondary judgment)</strong>: for false-alarm-sensitive tasks, <strong>notifications are sent only after the LLM confirms the event; false positives are suppressed</strong> — turning an alert storm into precise reminders, so duty phones are not bombarded</li>
+  <li><strong>Failure policy chosen per site</strong>: on model-call failure choose <code>skip</code> (leave original result) / <code>confirm</code> (let notification pass) / <code>reject</code> (suppress notification) — trade false-negative vs false-positive risk the way the site prefers</li>
+  <li><strong>Bindable agents & models</strong>: judgment can mount a RAG expert (answering with knowledge-base context), or pin a specific LLM, override the judgment prompt, and force JSON structured output — vendor switching is one click away via the unified LLM gateway</li>
+  <li><strong>Full verdict write-back & display</strong>: judgment status (Confirmed / False Positive / Judging / Failed / Not Sampled…), confidence, reasoning and structured attributes are all written back to the alert; WEB and APP alert lists carry status tags, filter by “Sampled / Not Sampled / per verdict”, and the judgment detail modal shows the image, verdict, reasoning and execution info in one screen</li>
 </ul>
 
 ### 📦 Built-in AI Models
@@ -856,6 +908,8 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 
 | | | |
 |:---:|:---:|:---:|
+| ![Video Surveillance](.image/banner/banner1255.png) | ![Video Surveillance](.image/banner/banner1256.png) | ![Video Surveillance](.image/banner/banner1257.png) |
+| ![Video Surveillance](.image/banner/banner1237.png) | ![Video Surveillance](.image/banner/banner1238.png) | ![Video Surveillance](.image/banner/banner1239.png) |
 | ![Video Surveillance](.image/banner/banner1225.png) | ![Video Surveillance](.image/banner/banner1226.png) | ![Video Surveillance](.image/banner/banner1227.png) |
 | ![Video Surveillance](.image/banner/banner1228.png) | ![Video Surveillance](.image/banner/banner1229.png) | ![Video Surveillance](.image/banner/banner1230.png) |
 | ![Video Surveillance](.image/banner/banner1219.png) | ![Video Surveillance](.image/banner/banner1220.png) | ![Video Surveillance](.image/banner/banner1221.png) |
@@ -874,10 +928,15 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![Preview](.image/banner/banner1104.png) | ![Access](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![Live View](.image/banner/banner1183.jpg) | ![Map](.image/banner/banner1184.jpg) |  |
 
-#### 🤖 AI Assistant
+#### 🤖 RAG Knowledge Base & AI Agents
 
 | | | |
 |:---:|:---:|:---:|
+| ![LLM Model Management](.image/banner/banner1243.png) | ![LLM Configuration](.image/banner/banner1244.png) | ![RAG Knowledge Base](.image/banner/banner1246.png) |
+| ![LLM Templates](.image/banner/banner1243.png) | ![LLM Vendor](.image/banner/banner1244.png) | ![LLM Invocation](.image/banner/banner1245.png) |
+| ![Knowledge Base](.image/banner/banner1246.png) | ![Knowledge Documents](.image/banner/banner1247.png) | ![Knowledge Segments](.image/banner/banner1248.png) |
+| ![Knowledge Sets](.image/banner/banner1249.png) | ![RAG Expert](.image/banner/banner1250.png) | ![RAG Q&A](.image/banner/banner1251.png) |
+| ![AI Assistant](.image/banner/banner1252.png) | ![AI Agent Chat](.image/banner/banner1253.png) | ![Agent Effect Test](.image/banner/banner1254.png) |
 | ![IDEA Login](.image/banner/banner1203.png) | ![IDEA Workspace](.image/banner/banner1204.png) | ![IDEA Development](.image/banner/banner1205.png) |
 | ![AI Assistant Chat](.image/banner/banner1210.png) | ![AI Assistant Analysis](.image/banner/banner1211.png) | ![AI Assistant Collaboration](.image/banner/banner1212.png) |
 
@@ -903,13 +962,6 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![Preview](.image/banner/banner1082.jpg) | ![Algorithm](.image/banner/banner1062.jpg) | ![Create](.image/banner/banner1063.png) |
 | ![Frame](.image/banner/banner1064.jpg) | ![Analysis](.image/banner/banner1065.jpg) | ![Results](.image/banner/banner1066.jpg) |
 | ![Playback](.image/banner/banner1067.jpg) | ![Live View](.image/banner/banner1052.jpg) | ![Intelligent](.image/banner/banner1054.jpg) |
-
-#### 📋 Alert Work Orders
-
-| | | |
-|:---:|:---:|:---:|
-| ![Flow Design](.image/banner/banner1231.png) | ![Node Configuration](.image/banner/banner1232.png) | ![Select Approver](.image/banner/banner1233.png) |
-| ![Condition Branches](.image/banner/banner1234.png) | ![Condition Rules](.image/banner/banner1235.png) | ![Parallel Branches](.image/banner/banner1236.png) |
 
 #### 📦 Datasets
 
@@ -948,13 +1000,20 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![List](.image/banner/banner1133.jpg) | ![Status](.image/banner/banner1134.jpg) | ![Configuration](.image/banner/banner1135.jpg) |
 | ![Allocation](.image/banner/banner1136.jpg) |  |  |
 
-#### 🔔 Alerts
+#### 🔔 Alert Events
 
 | | | |
 |:---:|:---:|:---:|
 | ![Events](.image/banner/banner1089.jpg) | ![Processing](.image/banner/banner1090.jpg) | ![Notification](.image/banner/banner1029.jpg) |
 | ![Configuration](.image/banner/banner1030.jpg) | ![List](.image/banner/banner1072.jpg) | ![Details](.image/banner/banner1031.jpg) |
 | ![Handling](.image/banner/banner1070.jpg) | ![Statistics](.image/banner/banner1071.jpg) |  |
+
+#### 📋 Alert Work Orders
+
+| | | |
+|:---:|:---:|:---:|
+| ![Flow Design](.image/banner/banner1231.png) | ![Node Configuration](.image/banner/banner1232.png) | ![Select Approver](.image/banner/banner1233.png) |
+| ![Condition Branches](.image/banner/banner1234.png) | ![Condition Rules](.image/banner/banner1235.png) | ![Parallel Branches](.image/banner/banner1236.png) |
 
 #### ⚙️ System
 

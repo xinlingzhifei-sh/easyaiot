@@ -4,7 +4,6 @@ import type { CSSProperties } from 'vue'
 import { computed, onMounted, ref, unref, watch } from 'vue'
 import type { RouteLocationNormalized } from 'vue-router'
 import { onClickOutside } from '@vueuse/core'
-import LayoutTrigger from '../trigger/index.vue'
 import { useDragLine } from './useLayoutSider'
 import type { Menu } from '@/router/types'
 import { ScrollContainer } from '@/components/Container'
@@ -17,7 +16,7 @@ import { useGlobSetting } from '@/hooks/setting'
 import { useDesign } from '@/hooks/web/useDesign'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useGo } from '@/hooks/web/usePage'
-import { SIDE_BAR_MINI_WIDTH, SIDE_BAR_SHOW_TIT_MINI_WIDTH } from '@/enums/appEnum'
+import { SIDE_BAR_MINI_WIDTH } from '@/enums/appEnum'
 import { getChildrenMenus, getCurrentParentPath, getShallowMenus } from '@/router/menus'
 import { listenerRouteChange } from '@/logics/mitt/routeChange'
 import { createAsyncComponent } from '@/utils/factory/createAsyncComponent'
@@ -37,6 +36,7 @@ const { prefixCls } = useDesign('layout-mix-sider')
 const go = useGo()
 const { t } = useI18n()
 const {
+  getCollapsed,
   getMenuWidth,
   getCanDrag,
   getCloseMixSidebarOnChange,
@@ -47,7 +47,6 @@ const {
   mixSideHasChildren,
   setMenuSetting,
   getIsMixSidebar,
-  getCollapsed,
   getMixSidebarDensity,
 } = useMenuSetting()
 
@@ -57,7 +56,7 @@ const permissionStore = usePermissionStore()
 useDragLine(sideRef, dragBarRef, true)
 
 const getMixSideWidth = computed(() => {
-  return unref(getCollapsed) ? SIDE_BAR_MINI_WIDTH : SIDE_BAR_SHOW_TIT_MINI_WIDTH
+  return SIDE_BAR_MINI_WIDTH
 })
 
 const getMenuStyle = computed((): CSSProperties => {
@@ -107,10 +106,10 @@ const getDensityClass = computed(() => {
 const getModuleIconSize = computed(() => {
   const density = unref(getMixSidebarDensity)
   if (density === 'compact')
-    return unref(getCollapsed) ? 14 : 16
+    return 17
   if (density === 'comfortable')
-    return unref(getCollapsed) ? 16 : 18
-  return unref(getCollapsed) ? 15 : 17
+    return 20
+  return 19
 })
 
 onMounted(async () => {
@@ -255,13 +254,11 @@ onClickOutside(wrap, () => {
       getMenuTheme,
       {
         open: openMenu,
-        mini: getCollapsed,
+        mini: true,
       },
     ]" v-bind="getMenuEvents"
   >
     <AppLogo :show-title="false" :class="`${prefixCls}-logo`" />
-
-    <LayoutTrigger :class="`${prefixCls}-trigger`" />
 
     <ScrollContainer>
       <ul :class="`${prefixCls}-module`">
@@ -316,18 +313,18 @@ onClickOutside(wrap, () => {
 
 <style lang="less">
 @prefix-cls: ~'@{namespace}-layout-mix-sider';
-@width: 80px;
+@width: 56px;
 
 .@{prefix-cls} {
   --mix-module-item-padding-min: 6px;
-  --mix-module-item-padding-vh: 0.8vh;
-  --mix-module-item-padding-max: 9px;
+  --mix-module-item-padding-vh: 0.9vh;
+  --mix-module-item-padding-max: 10px;
   --mix-module-icon-gap-min: 3px;
-  --mix-module-icon-gap-vh: 0.45vh;
+  --mix-module-icon-gap-vh: 0.5vh;
   --mix-module-icon-gap-max: 5px;
-  --mix-module-icon-font-min: 17px;
-  --mix-module-icon-font-vh: 1.6vh;
-  --mix-module-icon-font-max: 19px;
+  --mix-module-icon-font-min: 18px;
+  --mix-module-icon-font-vh: 1.7vh;
+  --mix-module-icon-font-max: 21px;
   --mix-module-name-font-size: 12px;
   position: fixed;
   &--density-compact {
@@ -335,7 +332,7 @@ onClickOutside(wrap, () => {
     --mix-module-item-padding-vh: 0.7vh;
     --mix-module-item-padding-max: 8px;
     --mix-module-icon-gap-min: 2px;
-    --mix-module-icon-gap-vh: 0.35vh;
+    --mix-module-icon-gap-vh: 0.4vh;
     --mix-module-icon-gap-max: 4px;
     --mix-module-icon-font-min: 16px;
     --mix-module-icon-font-vh: 1.5vh;
@@ -345,14 +342,14 @@ onClickOutside(wrap, () => {
 
   &--density-comfortable {
     --mix-module-item-padding-min: 7px;
-    --mix-module-item-padding-vh: 0.9vh;
-    --mix-module-item-padding-max: 10px;
-    --mix-module-icon-gap-min: 4px;
+    --mix-module-item-padding-vh: 1vh;
+    --mix-module-item-padding-max: 11px;
+    --mix-module-icon-gap-min: 3px;
     --mix-module-icon-gap-vh: 0.55vh;
     --mix-module-icon-gap-max: 6px;
-    --mix-module-icon-font-min: 18px;
-    --mix-module-icon-font-vh: 1.75vh;
-    --mix-module-icon-font-max: 20px;
+    --mix-module-icon-font-min: 19px;
+    --mix-module-icon-font-vh: 1.8vh;
+    --mix-module-icon-font-max: 22px;
     --mix-module-name-font-size: 12px;
   }
 
@@ -446,7 +443,7 @@ onClickOutside(wrap, () => {
   }
 
   >.scrollbar {
-    height: calc(100% - @header-height - 38px);
+    height: calc(100% - @header-height);
   }
 
   &.mini &-module {
@@ -529,7 +526,7 @@ onClickOutside(wrap, () => {
   &-menu-list {
     position: fixed;
     top: 0;
-    width: 200px;
+    width: 240px;
     height: calc(100%);
     background-color: #fff;
     transition: all 0.2s;

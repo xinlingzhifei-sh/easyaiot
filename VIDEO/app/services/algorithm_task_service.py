@@ -20,6 +20,7 @@ from models import (
 )
 from app.utils.algorithm_task_runtime import mark_stream_runtime_stopped
 from app.utils.cron_utils import validate_snap_cron_min_interval
+from app.utils.region_hit_mode import validate_post_pipeline
 # 注意：已移除冲突检查，推流转发任务和算法任务可以共存
 # 推流转发任务使用 rtmp_stream/http_stream，算法任务使用 ai_rtmp_stream/ai_http_stream
 import json
@@ -44,6 +45,24 @@ def _normalize_task_model_ids(raw_model_ids) -> List[int]:
         return []
 
 
+def _validate_model_removal_region_usage(task, next_model_ids) -> None:
+    """拒绝移除仍被当前任务启用或停用区域引用的业务模型。"""
+    current = set(_normalize_task_model_ids(getattr(task, 'model_ids', None)))
+    requested = set(_normalize_task_model_ids(next_model_ids))
+    removed = current - requested
+    if not removed:
+        return
+
+    from models import DeviceDetectionRegion
+
+    affected = []
+    for region in DeviceDetectionRegion.query.filter_by(task_id=task.id).all():
+        if set(_normalize_task_model_ids(region.model_ids)) & removed:
+            affected.append(region.id)
+    if affected:
+        raise ValueError(f'待移除模型仍被区域 {affected} 使用，请先修改或禁用这些区域')
+
+
 def _full_defense_schedule_json() -> str:
     return json.dumps([[1] * 24 for _ in range(7)])
 
@@ -56,10 +75,14 @@ def _serialize_post_pipeline(raw) -> Optional[str]:
             parsed = json.loads(raw)
             if parsed is not None and not isinstance(parsed, list):
                 raise ValueError('post_pipeline 必须是 JSON 数组')
-            return raw
+            if parsed is None:
+                return None
+            validate_post_pipeline(parsed)
+            return json.dumps(parsed, ensure_ascii=False)
         except json.JSONDecodeError as e:
             raise ValueError(f'post_pipeline JSON 无效: {e}') from e
     if isinstance(raw, list):
+        validate_post_pipeline(raw)
         return json.dumps(raw, ensure_ascii=False)
     raise ValueError('post_pipeline 类型不支持')
 
@@ -887,6 +910,7 @@ def create_algorithm_task(task_name: str,
                          post_process_enabled: bool = False,
                          post_process_replicas: int = 1,
                          post_pipeline=None,
+                         llm_post_process_enabled: bool = False,
                          executor: str = 'cpp',
                          runtime_bin_path: Optional[str] = None,
                          runtime_control_port: Optional[int] = None) -> AlgorithmTask:
@@ -895,6 +919,10 @@ def create_algorithm_task(task_name: str,
         # 验证任务类型
         if task_type not in ['realtime', 'snap', 'patrol']:
             raise ValueError(f"无效的任务类型: {task_type}，必须是 'realtime'、'snap' 或 'patrol'")
+
+        model_ids = _normalize_task_model_ids(model_ids)
+        if 0 in model_ids:
+            raise ValueError('模型ID 0不是有效的业务模型ID')
 
         device_id_list = device_ids or []
         devices = [Device.query.get_or_404(dev_id) for dev_id in device_id_list]
@@ -1175,6 +1203,7 @@ def create_algorithm_task(task_name: str,
             post_process_enabled=bool(post_process_enabled),
             post_process_replicas=max(1, int(post_process_replicas or 1)),
             post_pipeline=_resolve_post_pipeline_for_alert(post_pipeline, alert_event_enabled),
+            llm_post_process_enabled=bool(llm_post_process_enabled),
             executor=executor or 'cpp',
             runtime_bin_path=(runtime_bin_path or None),
             runtime_control_port=runtime_control_port,
@@ -1203,9 +1232,13 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
     try:
         task = AlgorithmTask.query.get_or_404(task_id)
         
-        # 校验：只有在停用状态下才能编辑（排除is_enabled字段本身的更新）
+        # 运行中只允许热更新后处理规则链，其他配置仍需先停止任务。
         if task.is_enabled and 'is_enabled' not in kwargs:
-            raise ValueError('任务运行中，无法编辑，请先停止任务')
+            keys = set(kwargs)
+            if keys - {'post_pipeline'}:
+                raise ValueError('任务运行中，无法编辑，请先停止任务')
+            if 'post_pipeline' in kwargs and not task.alert_event_enabled:
+                raise ValueError('未启用告警事件，无法配置后处理规则链')
         
         task_type = kwargs.get('task_type', task.task_type)
 
@@ -1248,7 +1281,10 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
             kwargs['runtime_control_port'] = port
         
         # 处理模型ID列表
-        model_ids = kwargs.pop('model_ids', None)
+        raw_model_ids = kwargs.pop('model_ids', None)
+        model_ids = _normalize_task_model_ids(raw_model_ids) if raw_model_ids is not None else None
+        if model_ids is not None and 0 in model_ids:
+            raise ValueError('模型ID 0不是有效的业务模型ID')
         
         # 处理模型ID列表（实时和抓拍算法任务都支持）
         if model_ids is not None:
@@ -1382,6 +1418,7 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
             'pose_intent_enabled', 'pose_library_ids', 'pose_intent_threshold', 'pose_intent_config',
             'post_process_enabled', 'post_process_script', 'post_process_replicas',
             'post_pipeline',
+            'llm_post_process_enabled',
             'executor', 'runtime_bin_path', 'runtime_control_port',
         ]
         
@@ -1546,6 +1583,14 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
             kwargs['post_pipeline'] = None
         elif 'post_pipeline' in kwargs:
             kwargs['post_pipeline'] = _serialize_post_pipeline(kwargs['post_pipeline'])
+
+        if 'model_ids' in kwargs:
+            _validate_model_removal_region_usage(task, kwargs.get('model_ids'))
+
+        template_fields = {
+            'model_ids', 'post_pipeline', 'post_process_script', 'alert_event_enabled'
+        }
+        template_changed = device_id_list is not None or bool(template_fields & set(kwargs))
         
         for field in updatable_fields:
             if field in kwargs:
@@ -1556,6 +1601,8 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
             task.devices = selected_devices
         
         task.updated_at = datetime.utcnow()
+        if template_changed:
+            task.template_revision = int(getattr(task, 'template_revision', 1) or 1) + 1
         db.session.flush()  # 先flush以获取最新的task状态
         
         # 如果算法任务的模型列表被清空（实时算法任务），自动禁用相关设备的区域检测配置
@@ -1596,9 +1643,7 @@ def update_algorithm_task(task_id: int, **kwargs) -> AlgorithmTask:
         
         db.session.commit()
 
-        if getattr(task, 'is_enabled', False) and (
-            'post_pipeline' in kwargs or 'alert_event_enabled' in kwargs
-        ):
+        if getattr(task, 'is_enabled', False) and template_changed:
             try:
                 if task.alert_event_enabled:
                     from app.services.post_template_client import put_template
@@ -1718,6 +1763,7 @@ def start_algorithm_task(task_id: int):
         task.status = 0
         task.exception_reason = None
         task.updated_at = datetime.utcnow()
+        task.template_revision = int(getattr(task, 'template_revision', 1) or 1) + 1
         db.session.commit()
 
         try:
@@ -1778,6 +1824,7 @@ def _rollback_failed_algorithm_start(task: AlgorithmTask, message: str) -> None:
     task.run_status = 'stopped'
     task.exception_reason = message
     task.updated_at = datetime.utcnow()
+    task.template_revision = int(getattr(task, 'template_revision', 1) or 1) + 1
     try:
         _stop_remote_workload_before_background_teardown(task)
     except Exception as e:
@@ -1816,6 +1863,7 @@ def stop_algorithm_task(task_id: int):
         task.is_enabled = False
         task.run_status = 'stopped'
         task.updated_at = stopped_at
+        task.template_revision = int(getattr(task, 'template_revision', 1) or 1) + 1
         for runtime in AlgorithmTaskStreamRuntime.query.filter_by(task_id=task_id).all():
             mark_stream_runtime_stopped(runtime, stopped_at)
         db.session.commit()

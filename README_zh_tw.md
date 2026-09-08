@@ -119,6 +119,17 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>Docker 一體化</strong>：<code>bash RTC/install_linux.sh start</code> 同時運行 go2rtc 核心與 Python 管理服務，host 網路適配 P2P 局域網直連</li>
 </ul>
 
+### 🏷️ 大模型智能標註：用業務語言定義場景，把現場知識訓練成專屬小模型
+
+傳統自動標註通常只能輸入「人、車、安全帽」等類別詞，卻難以準確表達客戶真正關心的現場規則。yFeiEye 新增基於 <strong>HARNESS 大模型底座</strong>的獨立大模型智能標註流程：使用者以完整自然語言描述場景，大模型理解物件、動作、關係、條件與排除項並產生結構化標註；人工審核後，平臺自動完成 YOLO 小模型訓練、發佈、綁定與批量回標。
+
+- <strong>更貼近真實需求</strong>：不只表達「是什麼」，還能描述位置、動作、關係、成立條件及例外。
+- <strong>定製化冷啟動</strong>：無需成熟模型或大量人工樣本，描述場景並審核首批結果即可開始訓練。
+- <strong>理解力與效率兼得</strong>：大模型理解少量樣本的複雜語義，小模型承擔低成本、高速、邊緣化推理。
+- <strong>完整可追溯閉環</strong>：場景描述 → 候選標註 → 人工審核 → 小模型訓練 → 自動發佈綁定 → 批量回標。
+
+<strong>與 SAM3 的區別：</strong>SAM3 使用簡短視覺提示詞，擅長定位或分割「像這個目標的物體」；大模型接收完整業務描述，判斷「什麼條件下的哪個目標才是真正需要標註的」。通用目標快速提取優先使用 SAM3；涉及動作、關係、條件、例外或行業語義時優先使用大模型智能標註。
+
 ### 🔌 EDGE：C# 邊緣採集運行時，讓工業現場「採得準、上得去」
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -368,22 +379,56 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
   <li><strong>貢獻閉環</strong>：綁定個人 fork → 開分支改代碼 → 推送到 fork → 向官方倉提交 PR</li>
 </ul>
 
-#### 🤖 HARNESS AI 助手
+### 🔌 LLM 統一閘道 — 一套協定，接入全部主流大模型廠商
 
-<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
-模組多、鏈路長，查健康、問架構、找配置常要翻文檔、登伺服器。HARNESS 把平臺知識與即時探測收成<strong>對話式助手</strong>——業務頁右下角即問即查，縮短排障與 PoC 週期，少依賴原廠與口口相傳的經驗。
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+平台將各大廠商大模型統一收斂到一套 OpenAI 相容協定（<code>/v1/chat/completions</code>）。同一時刻僅啟用 1 個大模型，頁面內全部 AI 能力（圖像/影片理解、自動標註、對話）一鍵切換；新增廠商零程式碼——模板註冊表加一條即可。首次部署自動播種預置模板資料（佔位金鑰 <code>sk-placeholder-*</code>、未啟用），編輯中填入真實 API 金鑰即可啟用，全流程有介面引導。
+</p>
+
+| 廠商 | 模板識別 | 模型識別（建議清單） | 說明 |
+| :-- | :-- | :-- | :-- |
+| DeepSeek | `deepseek` | deepseek-v4-flash、deepseek-v4-pro、deepseek-v4-flash-vision-exp | 100 萬上下文，官方 API |
+| 阿里雲百煉 | `dashscope` | qwen3.8-max、qwen3.7-max/plus/flash、qwen3.6-plus/flash、qwen3.5-plus/flash、qwen3.5-omni-plus/flash、qwen3-vl-plus/flash、qwen-vl-max | OpenAI 相容模式端點 |
+| 智譜 GLM | `zhipu` | glm-5.3、glm-5.2、glm-5.1、glm-5-turbo、glm-5、glm-4.7、glm-4.7-flash、glm-4.5-flash、glm-4-plus/flash/air、glm-4v-plus/flash、glm-ocr | v4 端點 |
+| OpenAI | `openai` | gpt-5.6-sol、gpt-5.6、gpt-5.6-sol-pro、gpt-5.6-terra、gpt-5.6-luna、gpt-5.5、gpt-5.4-mini、gpt-4.1-mini | 自動相容 max_completion_tokens |
+| Kimi（月之暗面） | `kimi` | kimi-k2.6、kimi-k2.7-code | K2 系列強制 temperature=1 |
+| Claude（Anthropic） | `claude` | claude-opus-4-7/4-6/4-5、claude-sonnet-4-6/4-5、claude-haiku-4-5 | 官方為 Messages 協定，經 OpenAI 相容轉發/閘道接入 |
+| Anthropic 相容 | `anthropic` | — | 自填 OpenAI 相容轉發端點 |
+| 自訂 | `custom` | — | 任意 OpenAI 相容端點 |
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>預置模板資料</strong>：全新部署自動播種 6 條模板（DeepSeek / 百煉 / GLM / OpenAI / Kimi / Claude）；佔位金鑰未替換前，啟用與連線測試均被攔截引導，不會出現無效 401</li>
+  <li><strong>其他服務直接使用</strong>：平台將當前啟用模型暴露為 OpenAI 相容端點（<code>POST /v1/chat/completions</code>、<code>GET /v1/models</code>），任何 OpenAI SDK 憑 Bearer Token 即可呼叫</li>
+  <li><strong>呼叫韌性</strong>：順序參數降級（temperature → max_completion_tokens）、SSE 串流、依廠商獨立逾時</li>
+</ul>
+
+### 🤖 RAG 知識庫與智能體
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+在 LLM 統一閘道之上，平台將業務文件轉化為<strong>可問答的知識資產</strong>，並封裝為可對話的<strong>智能體</strong>——從知識沉澱、檢索回答到頁面內與 IDE 內的智能助手，一條鏈路打通。
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>問即查</strong>：Agent 調平臺 Tool 探測 Gateway / 視頻 / 算法等服務健康，並指向相關配置與源碼——把 SSH + 翻 compose 壓縮成一次對話</li>
-  <li><strong>懂本體</strong>：內置 <code>HARNESS/ontology/AGENTS.md</code> 與全倉工作區，架構、端口、API、安裝約定有統一答案</li>
-  <li><strong>頁內即聊</strong>：懸浮抽屜 iframe 嵌入，看告警/設備時不跳轉、不丟上下文；亦可全屏「AI 助手」或新視窗</li>
-  <li><strong>IDEA 分屏共創</strong>：工具欄一鍵打開右側 AI 助手，編輯器與 Agent 同屏；亦可 <code>?file=路徑&harness=1</code> 深鏈打開指定文件並分屏</li>
-  <li><strong>拖入自動 @</strong>：從資源管理器拖文件到助手面板，自動關聯為對話上下文</li>
-  <li><strong>雙向跳轉</strong>：Agent 可通過 <code>easyaiot_open_in_idea</code> 生成門戶鏈接，從問答回到可改可發的完整 IDE；IDEA 改代碼提 PR，HARNESS 問架構查健康</li>
-  <li><strong>MCP + Cursor Skill</strong>：同一套 <code>easyaiot_*</code> 能力經 MCP 暴露給 Cursor 等 IDE——管控臺能問能查的，開發環境裡同樣能調，Skill 可跨項目復用</li>
-  <li><strong>全形態開箱</strong>：基於 <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar（<code>:3080</code>），<code>mini / standard / full</code> 默認部署即帶（<code>EASYAIOT_ENABLE_HARNESS=0</code> 可關）；DeepSeek / OpenAI 兼容端點，Key 在 <code>harness.env</code> 或 UI 自備</li>
-  <li><strong>安全提示</strong>：實驗模組，上游 <code>dsh</code> 處於 Developer Preview；生產請限制訪問並配置寫操作 / Shell 審批；API Key 勿提交 Git</li>
+  <li><strong>知識文件 → 片段 → 知識集</strong>：上傳 TXT / Markdown / CSV / JSON / LOG 檔案（UTF-8、≤10MB），自動切片寫入 Milvus 向量索引；片段可編輯、可獨立啟停檢索，跨文件組合成為可複用的知識集</li>
+  <li><strong>RAG 專家（智能體）</strong>：組合多個知識集、設定角色指令與歡迎語即可開聊——回答引用<code>【資料 N】</code>，資料不足不編造，模型不可達時自動降級為純檢索</li>
+  <li><strong>混合檢索</strong>：Milvus 向量檢索與關鍵字（類 BM25）打分融合；內建 <code>local-hash</code> 離線 Embedding，無外部 Key 也能跑通全鏈路</li>
+  <li><strong>AI 助手</strong>：業務頁懸浮助手即問即查；HARNESS 對話式助手嵌入 IDEA 在線 IDE，拖檔自動 <code>@</code>、分屏共創，並經 MCP + Cursor Skill 複用到 Cursor 等開發環境</li>
+</ul>
+
+### 🧠 大模型告警後處理（LLM 研判）— 讓「檢出」變成「可信」
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+傳統視覺演算法解決了「看見」，卻把「信不信」留給了人——安全帽、越線、明火、睡崗的偵測框每天刷屏，值守要逐條點開圖片人工複核，誤報淹沒真警情，真警情又怕漏掉。yFeiEye 把<strong>大模型語意理解接入告警鏈路</strong>：演算法任務可配置<strong>大模型後處理規則</strong>，命中規則的告警自動進入獨立研判佇列，由多模態大模型逐條查看現場圖片（或短影片），給出<strong>「確認成立 / 判定誤報」的結論、信心度與理由</strong>並回寫告警——值守從「逐圖盯幀」變成「只看結論」，把高頻誤報擋在通知之外。
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>獨立非同步研判佇列</strong>：規則匹配後經 Kafka 投遞、非同步執行，研判慢、模型抖動都不阻塞告警落庫與通知鏈路；研判失敗只記日誌，絕不拖垮主流程</li>
+  <li><strong>抽檢與限流控成本</strong>：命中規則的告警按<strong>抽檢比例</strong>（如 10% = 每 10 條抽 1 條）進入大模型佇列，疊加<strong>同任務最小研判間隔</strong>防止高頻事件重複呼叫；未命中抽檢或被限流的告警自動標記「未抽檢 / 限流跳過」，大模型費用與告警量脫鉤，量再大成本也可控</li>
+  <li><strong>圖片 / 影片雙研判</strong>：預設看圖研判，可切換短影片研判並設定事件前後視窗與切片最大時長；錄影缺失時自動回退圖片研判，鏈路不斷</li>
+  <li><strong>門控通知（二次判斷）</strong>：對誤報敏感的任務開啟後，<strong>大模型確認事件成立才發送通知，判定誤報則直接抑制</strong>——把「告警風暴」收斂成「精準提醒」，值班手機不再被誤報轟炸</li>
+  <li><strong>失敗策略按現場取值</strong>：模型呼叫失敗時可選 <code>skip</code>（不改動原結果）/ <code>confirm</code>（放行通知）/ <code>reject</code>（抑制通知），在漏報與誤報之間按現場風險偏好取值，寧缺毋濫還是寧濫毋缺由你定</li>
+  <li><strong>可綁定智能體與模型</strong>：研判可掛載 RAG 專家（攜帶知識庫上下文作答），也可單獨指定大模型、覆蓋研判提示詞、強制 JSON 結構化輸出，與 LLM 統一閘道一鍵切換廠商</li>
+  <li><strong>結論完整回寫與展示</strong>：研判狀態（確認成立 / 誤報 / 研判中 / 研判失敗 / 未抽檢等）、信心度、理由與結構化屬性全部回寫告警；WEB 與 APP 告警列表帶狀態標籤、可按「已抽檢 / 未抽檢 / 各結論」篩選，研判詳情彈窗一屏查看圖片、結論、理由與執行資訊</li>
 </ul>
 
 ### 📦 內置 AI 模型
@@ -865,6 +910,8 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 
 | | | |
 |:---:|:---:|:---:|
+| ![視頻監控](.image/banner/banner1255.png) | ![視頻監控](.image/banner/banner1256.png) | ![視頻監控](.image/banner/banner1257.png) |
+| ![視頻監控](.image/banner/banner1237.png) | ![視頻監控](.image/banner/banner1238.png) | ![視頻監控](.image/banner/banner1239.png) |
 | ![視頻監控](.image/banner/banner1225.png) | ![視頻監控](.image/banner/banner1226.png) | ![視頻監控](.image/banner/banner1227.png) |
 | ![視頻監控](.image/banner/banner1228.png) | ![視頻監控](.image/banner/banner1229.png) | ![視頻監控](.image/banner/banner1230.png) |
 | ![視頻監控](.image/banner/banner1219.png) | ![視頻監控](.image/banner/banner1220.png) | ![視頻監控](.image/banner/banner1221.png) |
@@ -883,10 +930,15 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![預覽](.image/banner/banner1104.png) | ![接入](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![實況](.image/banner/banner1183.jpg) | ![地圖](.image/banner/banner1184.jpg) |  |
 
-#### 🤖 AI助手
+#### 🤖 RAG 知識庫與智能體
 
 | | | |
 |:---:|:---:|:---:|
+| ![大模型管理](.image/banner/banner1243.png) | ![大模型配置](.image/banner/banner1244.png) | ![RAG 知識庫](.image/banner/banner1246.png) |
+| ![模型模板](.image/banner/banner1243.png) | ![廠商接入](.image/banner/banner1244.png) | ![模型呼叫](.image/banner/banner1245.png) |
+| ![知識庫](.image/banner/banner1246.png) | ![知識文件](.image/banner/banner1247.png) | ![知識片段](.image/banner/banner1248.png) |
+| ![知識集](.image/banner/banner1249.png) | ![RAG專家](.image/banner/banner1250.png) | ![RAG問答](.image/banner/banner1251.png) |
+| ![智能助手](.image/banner/banner1252.png) | ![智能體對話](.image/banner/banner1253.png) | ![智能體效果測試](.image/banner/banner1254.png) |
 | ![IDEA登入](.image/banner/banner1203.png) | ![IDEA工作區](.image/banner/banner1204.png) | ![IDEA開發](.image/banner/banner1205.png) |
 | ![AI助手對話](.image/banner/banner1210.png) | ![AI助手分析](.image/banner/banner1211.png) | ![AI助手協作](.image/banner/banner1212.png) |
 
@@ -912,13 +964,6 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![預覽](.image/banner/banner1082.jpg) | ![算法](.image/banner/banner1062.jpg) | ![創建](.image/banner/banner1063.png) |
 | ![畫面](.image/banner/banner1064.jpg) | ![分析](.image/banner/banner1065.jpg) | ![結果](.image/banner/banner1066.jpg) |
 | ![回看](.image/banner/banner1067.jpg) | ![實況](.image/banner/banner1052.jpg) | ![智能](.image/banner/banner1054.jpg) |
-
-#### 📋 告警工單
-
-| | | |
-|:---:|:---:|:---:|
-| ![流程設計](.image/banner/banner1231.png) | ![節點配置](.image/banner/banner1232.png) | ![選擇審批人](.image/banner/banner1233.png) |
-| ![條件分支](.image/banner/banner1234.png) | ![條件規則](.image/banner/banner1235.png) | ![並行分支](.image/banner/banner1236.png) |
 
 #### 📦 數據集
 
@@ -957,13 +1002,20 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![列表](.image/banner/banner1133.jpg) | ![狀態](.image/banner/banner1134.jpg) | ![配置](.image/banner/banner1135.jpg) |
 | ![分配](.image/banner/banner1136.jpg) |  |  |
 
-#### 🔔 告警
+#### 🔔 告警事件
 
 | | | |
 |:---:|:---:|:---:|
 | ![事件](.image/banner/banner1089.jpg) | ![處理](.image/banner/banner1090.jpg) | ![通知](.image/banner/banner1029.jpg) |
 | ![配置](.image/banner/banner1030.jpg) | ![列表](.image/banner/banner1072.jpg) | ![詳情](.image/banner/banner1031.jpg) |
 | ![處置](.image/banner/banner1070.jpg) | ![統計](.image/banner/banner1071.jpg) |  |
+
+#### 📋 告警工單
+
+| | | |
+|:---:|:---:|:---:|
+| ![流程設計](.image/banner/banner1231.png) | ![節點配置](.image/banner/banner1232.png) | ![選擇審批人](.image/banner/banner1233.png) |
+| ![條件分支](.image/banner/banner1234.png) | ![條件規則](.image/banner/banner1235.png) | ![並行分支](.image/banner/banner1236.png) |
 
 #### ⚙️ 系統
 

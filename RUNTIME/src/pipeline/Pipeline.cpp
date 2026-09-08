@@ -364,7 +364,7 @@ void Pipeline::pullDecodeLoop() {
             // Finite file/VOD: stop cleanly — reopen would just EOF again and burn CPU
             if (isEof && finiteSource) {
                 LOG(INFO) << "[PIPELINE-PULL] EOF on finite source, ending pull loop "
-                             "(packets_this_session=" << packetsThisSession << ")";
+                             "(packets_this_session=" << packetsThisSession << "）";
                 endedByEof_.store(true);
                 break;
             }
@@ -601,7 +601,7 @@ void Pipeline::inferLoop() {
 
             if (!lastDetections.empty()) {
                 std::vector<DetectObject> alarmDetections;
-                const bool skipRegionGate = AlgoMqttBus::postEnabled();
+                const bool skipRegionGate = AlgoMqttBus::shouldPublishInferEvent();
                 for (const auto& det : lastDetections) {
                     int x1 = static_cast<int>(det.x1);
                     int y1 = static_cast<int>(det.y1);

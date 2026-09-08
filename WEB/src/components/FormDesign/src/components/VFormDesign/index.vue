@@ -39,7 +39,7 @@ const codeModal = ref<null | IToolbarMethods>(null)
 
 const formModel = ref({})
 // endregion
-const formConfig = ref<IFormConfig>({
+const formConfig = ref({
   // 表单配置
   schemas: [],
   layout: 'horizontal',
@@ -52,7 +52,7 @@ const formConfig = ref<IFormConfig>({
     componentProps: {},
   },
   activeKey: 1,
-})
+}) as Ref<IFormConfig>
 
 function setFormConfig(config: IFormConfig) {
   // 外部导入时，可能会缺少必要的信息。

@@ -474,6 +474,7 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         from app.utils.algo_mqtt_bus import (
             should_publish_infer_event,
             post_in_bypass,
+            post_fail_closed,
             build_infer_event,
             publish_infer_event,
             inject_post_bypass_info,
@@ -485,6 +486,7 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
             from algo_mqtt_bus import (  # type: ignore
                 should_publish_infer_event,
                 post_in_bypass,
+                post_fail_closed,
                 build_infer_event,
                 publish_infer_event,
                 inject_post_bypass_info,
@@ -494,6 +496,7 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         except ImportError:
             should_publish_infer_event = lambda: False  # type: ignore
             post_in_bypass = lambda: False  # type: ignore
+            post_fail_closed = lambda: False  # type: ignore
             publish_alert = None  # type: ignore
 
     ensure_post_health_probe()
@@ -524,6 +527,10 @@ def _send_alert(device_id: str, device_name: str, frame: np.ndarray, detections:
         )
         publish_infer_event(ev)
         logger.info('设备 %s 巡检 InferEvent(POST): %s', device_id, counts)
+        return
+
+    if post_fail_closed():
+        logger.warning('POST 不可用且策略为 closed，抑制直发巡检告警 device=%s', device_id)
         return
 
     alert_data = {
@@ -568,6 +575,8 @@ def _run_detection(frame: np.ndarray) -> List[dict]:
                 imgsz=YOLO_IMG_SIZE,
                 infer_device=infer_device if infer_device != 'onnx' else 'cpu',
             )
+            for detection in dets:
+                detection['model_id'] = int(model_id)
             all_dets.extend(dets)
         except Exception as exc:
             logger.error('模型 %s 检测失败: %s', model_id, exc)

@@ -42,7 +42,7 @@ yFeiEye 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-平台由 <strong>WEB、APP、DEVICE、EDGE、SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TRANSFORM、PANEL、IDEA、HARNESS、SITE</strong> 等核心模块组成，并以 <strong>COMPILE</strong> 承接多平台打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 欧拉(openEuler)</strong> / Windows / macOS / ARM）。在能力侧，平台覆盖 GB28181 / ONVIF 多协议摄像头接入、<strong>RTC 消费级摄像头 P2P 桥接</strong>（基于 go2rtc，覆盖 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——门店 Tapo 补盲、涂鸦白牌纳管、海外 Ring/Nest 门铃、米家存量利旧、Wyze 低成本扩点、DoorBird 门口对讲、GoPro 机动机位、石头扫地机移动视角等场景，Web 一键接入并纳入统一视频与 AI 研判闭环）、<strong>大疆机场与无人机空中视角接入</strong>、实时 / 抓拍 / 巡检算法任务、<strong>RUNTIME 原生高速执行层</strong>（编译型二进制承接拉流解码、YOLO 推理、带框推流与多路原画转发——相对解释型链路更低 CPU/内存、更稳时延；同一二进制覆盖实时 / 抓拍 / 巡检 / 转发）、YOLO 目标检测与 SAM 零样本自动标注、人脸/车牌识别、<strong>POST 定制研判</strong>（检出之后按现场规则过滤、复合判断再告警，改规则不必重训模型）、联邦算力集群调度、<strong>SENTINEL 集群节点哨兵</strong>（按业务摸清节点就绪与可调度能力，缺件可自助补齐，任务按真能力下发），以及 <strong>无限联邦边缘集群模式</strong>（普通开发板可即开即用、现场智能就地决策、告警与证据自动汇聚上云，算力随业务任意铺开），还有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物联网设备全生命周期管理，并由 <strong>EDGE C# 边缘采集运行时</strong>在现场以插件化采集器承接 Modbus RTU/TCP、OPC UA 等工业协议采集、本地调度与 MQTT 云边对接，以及<strong>可视化大屏与 Web 工艺组态</strong>，让设备数据既能展成指挥态势、也能落回工艺画面；并新增 <strong>POST 定制研判服务</strong>，把检测结果锻造成可贴现场的业务事件，误报少、规则可配、上线可先试跑；配套 <strong>TRANSFORM 多向数据流转引擎</strong>，把平台侧业务事件按约定投递到 MES / ERP / CRM / WMS 等外部系统，多方对接可配、可追、可复用；配套 <strong>PANEL 交付与值守入口</strong>，让一体机到场当天可装可验，值守与排障不必事事等开发远程敲命令；另以 <strong>SITE 官方网站</strong>对外呈现产品价值、四档硬件选型与安装包入口，让访客先看懂再下载、先选型再落地；并以 <strong>IDEA 社区贡献在线 IDE</strong> 让贡献者浏览器即可打开全仓、用 GitHub Copilot 共创、按改动发布到本机并提交 PR，把开源共建从「先配环境」变成「打开即改」。在体验侧，Web 管控台与移动 App / 小程序能力对齐，让指挥中心与现场巡检同一套业务逻辑、随时随地处置；并新增 <strong>ANDROID / IOS / HARMONYOS 三端壳打包工程</strong>，把这一移动体验以 APK / IPA / HAP 安装包形态覆盖到主流手机系统，一套前端、一键出包、版本统一管理。
+平台由 <strong>WEB、APP、DEVICE、EDGE、SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TRANSFORM、PANEL、IDEA、HARNESS、SITE</strong> 等核心模块组成，并以 <strong>COMPILE</strong> 承接多平台打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 欧拉(openEuler)</strong> / Windows / macOS / ARM）。在能力侧，平台覆盖 GB28181 / ONVIF 多协议摄像头接入、<strong>RTC 消费级摄像头 P2P 桥接</strong>（基于 go2rtc，覆盖 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——门店 Tapo 补盲、涂鸦白牌纳管、海外 Ring/Nest 门铃、米家存量利旧、Wyze 低成本扩点、DoorBird 门口对讲、GoPro 机动机位、石头扫地机移动视角等场景，Web 一键接入并纳入统一视频与 AI 研判闭环）、<strong>大疆机场与无人机空中视角接入</strong>、实时 / 抓拍 / 巡检算法任务、<strong>RUNTIME 原生高速执行层</strong>（编译型二进制承接拉流解码、YOLO 推理、带框推流与多路原画转发——相对解释型链路更低 CPU/内存、更稳时延；同一二进制覆盖实时 / 抓拍 / 巡检 / 转发）、YOLO 目标检测、<strong>基于 HARNESS 的大模型智能标注</strong>与 SAM3 开放词汇智能标注、人脸/车牌识别、<strong>POST 定制研判</strong>（检出之后按现场规则过滤、复合判断再告警，改规则不必重训模型）、联邦算力集群调度、<strong>SENTINEL 集群节点哨兵</strong>（按业务摸清节点就绪与可调度能力，缺件可自助补齐，任务按真能力下发），以及 <strong>无限联邦边缘集群模式</strong>（普通开发板可即开即用、现场智能就地决策、告警与证据自动汇聚上云，算力随业务任意铺开），还有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物联网设备全生命周期管理，并由 <strong>EDGE C# 边缘采集运行时</strong>在现场以插件化采集器承接 Modbus RTU/TCP、OPC UA 等工业协议采集、本地调度与 MQTT 云边对接，以及<strong>可视化大屏与 Web 工艺组态</strong>，让设备数据既能展成指挥态势、也能落回工艺画面；并新增 <strong>POST 定制研判服务</strong>，把检测结果锻造成可贴现场的业务事件，误报少、规则可配、上线可先试跑；配套 <strong>TRANSFORM 多向数据流转引擎</strong>，把平台侧业务事件按约定投递到 MES / ERP / CRM / WMS 等外部系统，多方对接可配、可追、可复用；配套 <strong>PANEL 交付与值守入口</strong>，让一体机到场当天可装可验，值守与排障不必事事等开发远程敲命令；另以 <strong>SITE 官方网站</strong>对外呈现产品价值、四档硬件选型与安装包入口，让访客先看懂再下载、先选型再落地；并以 <strong>IDEA 社区贡献在线 IDE</strong> 让贡献者浏览器即可打开全仓、用 GitHub Copilot 共创、按改动发布到本机并提交 PR，把开源共建从「先配环境」变成「打开即改」。在体验侧，Web 管控台与移动 App / 小程序能力对齐，让指挥中心与现场巡检同一套业务逻辑、随时随地处置；并新增 <strong>ANDROID / IOS / HARMONYOS 三端壳打包工程</strong>，把这一移动体验以 APK / IPA / HAP 安装包形态覆盖到主流手机系统，一套前端、一键出包、版本统一管理。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -163,6 +163,24 @@ yFeiEye是一个云边端一体化的智能物联网平台，专注于AI与IoT�
   <li><strong>生命周期联动</strong>：设备删除时自动清理 go2rtc 流配置；与设备目录、地图布点、算法任务体系无缝衔接</li>
   <li><strong>Docker 一体化部署</strong>：<code>bash RTC/install_linux.sh start</code> 即可启动 go2rtc + Python 管理服务，默认 host 网络适配 P2P 局域网直连</li>
 </ul>
+
+### 🏷️ 大模型智能标注：用业务语言定义场景，把现场知识训练成专属小模型
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+传统自动标注通常只能输入「人、车、安全帽」等类别词，能够找到通用物体，却很难准确表达客户真正关心的现场规则。yFeiEye 新增独立的<strong>大模型智能标注</strong>窗口，基于现有 <strong>HARNESS 大模型底座</strong>，允许用户直接用完整自然语言描述真实业务场景，例如「标注进入施工区域但没有正确佩戴安全帽的人员，正常佩戴者不要标注」。大模型先理解对象、动作、关系、条件和排除项，再生成结构化标注；用户审核首批结果后，平台自动衔接 YOLO 小模型训练、发布、绑定与批量回标，将一次场景描述沉淀成可在现场持续高速运行的专属识别能力。
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>自然语言比标签更接近真实需求</strong>：标签只能说「是什么」，完整描述还能表达「在哪里、正在做什么、与谁有什么关系、满足什么条件、哪些情况必须排除」，减少通用类别与实际业务目标之间的语义偏差</li>
+  <li><strong>更适合定制化数据冷启动</strong>：无需先准备成熟模型或大量人工样本，用户先描述场景，大模型即可生成第一批候选标注；审核修正后直接进入训练，让行业知识从第一张图片起就进入数据集</li>
+  <li><strong>用大模型的理解力换取小模型的现场效率</strong>：大模型负责少量样本的复杂语义理解，小模型学习审核后的结果并承担后续高频推理，兼顾场景准确性、推理速度、部署成本和边缘运行能力</li>
+  <li><strong>训练结果更贴合客户现场</strong>：训练目标来自用户自己的语言、图片和审核结果，而不是只依赖通用数据集中的宽泛类别，因此得到的小模型更接近项目的真实判定口径</li>
+  <li><strong>完整闭环而非一次性 AI 调用</strong>：场景描述 → 大模型候选标注 → 人工审核 → 小模型训练 → 自动发布与数据集绑定 → 小模型批量回标，模型版本和来源全程可追溯</li>
+</ul>
+
+<p style="font-size: 14px; line-height: 1.8; color: #444; margin: 12px 0;">
+<strong>与 SAM3 智能标注的区别：</strong>SAM3 使用较短的视觉目标提示词，擅长回答「图里哪些像这个目标」并完成定位或分割；大模型智能标注接收完整业务场景描述，重点回答「什么条件下的哪个目标才是用户真正想标的」。两者入口和任务独立，但都可复用审核、训练与小模型回标流水线：通用目标快速提取优先使用 SAM3，涉及动作、关系、条件、例外和行业语义的定制场景优先使用大模型智能标注。
+</p>
 
 ### 🔌 EDGE：C# 边缘采集运行时，让工业现场「采得准、上得去」
 
@@ -413,22 +431,56 @@ yFeiEye是一个云边端一体化的智能物联网平台，专注于AI与IoT�
   <li><strong>贡献闭环</strong>：绑定个人 fork → 开分支改代码 → 推送到 fork → 向官方仓提交 PR</li>
 </ul>
 
-#### 🤖 HARNESS AI 助手
+### 🔌 LLM 统一网关 — 一套协议，接入全部主流大模型厂商
 
-<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
-模块多、链路长，查健康、问架构、找配置常要翻文档、登服务器。HARNESS 把平台知识与实时探测收成<strong>对话式助手</strong>——业务页右下角即问即查，缩短排障与 PoC 周期，少依赖原厂与口口相传的经验。
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+平台将各大厂商大模型统一收敛到一套 OpenAI 兼容协议（<code>/v1/chat/completions</code>）。同一时刻仅启用 1 个大模型，页面内全部 AI 能力（图像/视频理解、自动标注、对话）一键切换；新增厂商零代码——模板注册表加一条即可。首次部署自动播种预置模板数据（占位密钥 <code>sk-placeholder-*</code>、未激活），编辑中填入真实 API 密钥即可启用，全流程有界面引导。
+</p>
+
+| 厂商 | 模板标识 | 模型标识（建议列表） | 说明 |
+| :-- | :-- | :-- | :-- |
+| DeepSeek | `deepseek` | deepseek-v4-flash、deepseek-v4-pro、deepseek-v4-flash-vision-exp | 100 万上下文，官方 API |
+| 阿里云百炼 | `dashscope` | qwen3.8-max、qwen3.7-max/plus/flash、qwen3.6-plus/flash、qwen3.5-plus/flash、qwen3.5-omni-plus/flash、qwen3-vl-plus/flash、qwen-vl-max | OpenAI 兼容模式端点 |
+| 智谱 GLM | `zhipu` | glm-5.3、glm-5.2、glm-5.1、glm-5-turbo、glm-5、glm-4.7、glm-4.7-flash、glm-4.5-flash、glm-4-plus/flash/air、glm-4v-plus/flash、glm-ocr | v4 端点 |
+| OpenAI | `openai` | gpt-5.6-sol、gpt-5.6、gpt-5.6-sol-pro、gpt-5.6-terra、gpt-5.6-luna、gpt-5.5、gpt-5.4-mini、gpt-4.1-mini | 自动兼容 max_completion_tokens |
+| Kimi（月之暗面） | `kimi` | kimi-k2.6、kimi-k2.7-code | K2 系列强制 temperature=1 |
+| Claude（Anthropic） | `claude` | claude-opus-4-7/4-6/4-5、claude-sonnet-4-6/4-5、claude-haiku-4-5 | 官方为 Messages 协议，经 OpenAI 兼容中转/网关接入 |
+| Anthropic 兼容 | `anthropic` | — | 自填 OpenAI 兼容中转端点 |
+| 自定义 | `custom` | — | 任意 OpenAI 兼容端点 |
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>预置模板数据</strong>：全新部署自动播种 6 条模板（DeepSeek / 百炼 / GLM / OpenAI / Kimi / Claude）；占位密钥未替换前，激活与连接测试均被拦截引导，不会出现无效 401</li>
+  <li><strong>其他服务直接使用</strong>：平台将当前启用模型暴露为 OpenAI 兼容端点（<code>POST /v1/chat/completions</code>、<code>GET /v1/models</code>），任何 OpenAI SDK 凭 Bearer Token 即可调用</li>
+  <li><strong>调用韧性</strong>：顺序参数降级（temperature → max_completion_tokens）、SSE 流式、按厂商独立超时</li>
+</ul>
+
+### 🤖 RAG 知识库与智能体
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+在 LLM 统一网关之上，平台将业务文档转化为<strong>可问答的知识资产</strong>，并封装为可对话的<strong>智能体</strong>——从知识沉淀、检索回答到页面内与 IDE 内的智能助手，一条链路打通。
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>问即查</strong>：Agent 调平台 Tool 探测 Gateway / 视频 / 算法等服务健康，并指向相关配置与源码——把 SSH + 翻 compose 压缩成一次对话</li>
-  <li><strong>懂本体</strong>：内置 <code>HARNESS/ontology/AGENTS.md</code> 与全仓工作区，架构、端口、API、安装约定有统一答案</li>
-  <li><strong>页内即聊</strong>：悬浮抽屉 iframe 嵌入，看告警/设备时不跳转、不丢上下文；亦可全屏「AI 助手」或新窗口</li>
-  <li><strong>IDEA 分屏共创</strong>：工具栏一键打开右侧 AI 助手，编辑器与 Agent 同屏；亦可 <code>?file=路径&harness=1</code> 深链打开指定文件并分屏</li>
-  <li><strong>拖入自动 @</strong>：从资源管理器拖文件到助手面板，自动关联为对话上下文</li>
-  <li><strong>双向跳转</strong>：Agent 可通过 <code>easyaiot_open_in_idea</code> 生成门户链接，从问答回到可改可发的完整 IDE；IDEA 改代码提 PR，HARNESS 问架构查健康</li>
-  <li><strong>MCP + Cursor Skill</strong>：同一套 <code>easyaiot_*</code> 能力经 MCP 暴露给 Cursor 等 IDE——管控台能问能查的，开发环境里同样能调，Skill 可跨项目复用</li>
-  <li><strong>全形态开箱</strong>：基于 <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> Sidecar（<code>:3080</code>），<code>mini / standard / full</code> 默认部署即带（<code>EASYAIOT_ENABLE_HARNESS=0</code> 可关）；DeepSeek / OpenAI 兼容端点，Key 在 <code>harness.env</code> 或 UI 自备</li>
-  <li><strong>安全提示</strong>：实验模块，上游 <code>dsh</code> 处于 Developer Preview；生产请限制访问并配置写操作 / Shell 审批；API Key 勿提交 Git</li>
+  <li><strong>知识文档 → 片段 → 知识集</strong>：上传 TXT / Markdown / CSV / JSON / LOG 文件（UTF-8、≤10MB），自动切片写入 Milvus 向量索引；片段可编辑、可独立启停检索，跨文档组合为可复用的知识集</li>
+  <li><strong>RAG 专家（智能体）</strong>：组合多个知识集、配置角色指令与欢迎语即可开聊——回答引用<code>【资料 N】</code>，资料不足不编造，模型不可达时自动降级为纯检索</li>
+  <li><strong>混合检索</strong>：Milvus 向量检索与关键词（类 BM25）打分融合；内置 <code>local-hash</code> 离线 Embedding，无外部 Key 也能跑通全链路</li>
+  <li><strong>AI 助手</strong>：业务页悬浮助手即问即查；HARNESS 对话式助手嵌入 IDEA 在线 IDE，拖文件自动 <code>@</code>、分屏共创，并经 MCP + Cursor Skill 复用到 Cursor 等开发环境</li>
+</ul>
+
+### 🧠 大模型告警后处理（LLM 研判）— 让「检出」变成「可信」
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+传统视觉算法解决了「看见」，却把「信不信」留给了人——安全帽、越线、明火、睡岗的检测框每天刷屏，值守要逐条点开图片人工复核，误报淹没真警情，真警情又怕漏掉。yFeiEye 把<strong>大模型语义理解接入告警链路</strong>：算法任务可配置<strong>大模型后处理规则</strong>，命中规则的告警自动进入独立研判队列，由多模态大模型逐条查看现场图片（或短视频），给出<strong>「确认成立 / 判定误报」的结论、置信度与理由</strong>并回写告警——值守从「逐图盯帧」变成「只看结论」，把高频误报挡在通知之外。
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>独立异步研判队列</strong>：规则匹配后经 Kafka 投递、异步执行，研判慢、模型抖动都不阻塞告警落库与通知链路；研判失败只记日志，绝不拖垮主流程</li>
+  <li><strong>抽检与限流控成本</strong>：命中规则的告警按<strong>抽检比例</strong>（如 10% = 每 10 条抽 1 条）进入大模型队列，叠加<strong>同任务最小研判间隔</strong>防止高频事件重复调用；未命中抽检或被限流的告警自动标记「未抽检 / 限流跳过」，大模型费用与告警量解耦，量再大成本也可控</li>
+  <li><strong>图片 / 视频双研判</strong>：默认看图研判，可切换短视频研判并配置事件前后窗口与切片最大时长；录像缺失时自动回退图片研判，链路不断</li>
+  <li><strong>门控通知（二次判断）</strong>：对误报敏感的任务开启后，<strong>大模型确认事件成立才发送通知，判定误报则直接抑制</strong>——把「告警风暴」收敛成「精准提醒」，值班手机不再被误报轰炸</li>
+  <li><strong>失败策略按现场取值</strong>：模型调用失败时可选 <code>skip</code>（不改动原结果）/ <code>confirm</code>（放行通知）/ <code>reject</code>（抑制通知），在漏报与误报之间按现场风险偏好取值，宁缺毋滥还是宁滥毋缺由你定</li>
+  <li><strong>可绑定智能体与模型</strong>：研判可挂载 RAG 专家（携带知识库上下文作答），也可单独指定大模型、覆盖研判提示词、强制 JSON 结构化输出，与 LLM 统一网关一键切换厂商</li>
+  <li><strong>结论完整回写与展示</strong>：研判状态（确认成立 / 误报 / 研判中 / 研判失败 / 未抽检等）、置信度、理由与结构化属性全部回写告警；WEB 与 APP 告警列表带状态标签、可按「已抽检 / 未抽检 / 各结论」筛选，研判详情弹框一屏查看图片、结论、理由与执行信息</li>
 </ul>
 
 ### 📦 内置 AI 模型
@@ -898,6 +950,8 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 
 | | | |
 |:---:|:---:|:---:|
+| ![视频监控](.image/banner/banner1255.png) | ![视频监控](.image/banner/banner1256.png) | ![视频监控](.image/banner/banner1257.png) |
+| ![视频监控](.image/banner/banner1237.png) | ![视频监控](.image/banner/banner1238.png) | ![视频监控](.image/banner/banner1239.png) |
 | ![视频监控](.image/banner/banner1225.png) | ![视频监控](.image/banner/banner1226.png) | ![视频监控](.image/banner/banner1227.png) |
 | ![视频监控](.image/banner/banner1228.png) | ![视频监控](.image/banner/banner1229.png) | ![视频监控](.image/banner/banner1230.png) |
 | ![视频监控](.image/banner/banner1219.png) | ![视频监控](.image/banner/banner1220.png) | ![视频监控](.image/banner/banner1221.png) |
@@ -916,10 +970,15 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 | ![预览](.image/banner/banner1104.png) | ![接入](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![实况](.image/banner/banner1183.jpg) | ![地图](.image/banner/banner1184.jpg) |  |
 
-#### 🤖 AI助手
+#### 🤖 RAG 知识库与智能体
 
 | | | |
 |:---:|:---:|:---:|
+| ![大模型管理](.image/banner/banner1243.png) | ![大模型配置](.image/banner/banner1244.png) | ![RAG 知识库](.image/banner/banner1246.png) |
+| ![模型模板](.image/banner/banner1243.png) | ![厂商接入](.image/banner/banner1244.png) | ![模型调用](.image/banner/banner1245.png) |
+| ![知识库](.image/banner/banner1246.png) | ![知识文档](.image/banner/banner1247.png) | ![知识片段](.image/banner/banner1248.png) |
+| ![知识集](.image/banner/banner1249.png) | ![RAG专家](.image/banner/banner1250.png) | ![RAG问答](.image/banner/banner1251.png) |
+| ![智能助手](.image/banner/banner1252.png) | ![智能体对话](.image/banner/banner1253.png) | ![智能体效果测试](.image/banner/banner1254.png) |
 | ![IDEA登录](.image/banner/banner1203.png) | ![IDEA工作区](.image/banner/banner1204.png) | ![IDEA开发](.image/banner/banner1205.png) |
 | ![AI助手对话](.image/banner/banner1210.png) | ![AI助手分析](.image/banner/banner1211.png) | ![AI助手协作](.image/banner/banner1212.png) |
 
@@ -945,13 +1004,6 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 | ![预览](.image/banner/banner1082.jpg) | ![算法](.image/banner/banner1062.jpg) | ![创建](.image/banner/banner1063.png) |
 | ![画面](.image/banner/banner1064.jpg) | ![分析](.image/banner/banner1065.jpg) | ![结果](.image/banner/banner1066.jpg) |
 | ![回看](.image/banner/banner1067.jpg) | ![实况](.image/banner/banner1052.jpg) | ![智能](.image/banner/banner1054.jpg) |
-
-#### 📋 告警工单
-
-| | | |
-|:---:|:---:|:---:|
-| ![流程设计](.image/banner/banner1231.png) | ![节点配置](.image/banner/banner1232.png) | ![选择审批人](.image/banner/banner1233.png) |
-| ![条件分支](.image/banner/banner1234.png) | ![条件规则](.image/banner/banner1235.png) | ![并行分支](.image/banner/banner1236.png) |
 
 #### 📦 数据集
 
@@ -990,13 +1042,20 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 | ![列表](.image/banner/banner1133.jpg) | ![状态](.image/banner/banner1134.jpg) | ![配置](.image/banner/banner1135.jpg) |
 | ![分配](.image/banner/banner1136.jpg) |  |  |
 
-#### 🔔 告警
+#### 🔔 告警事件
 
 | | | |
 |:---:|:---:|:---:|
 | ![事件](.image/banner/banner1089.jpg) | ![处理](.image/banner/banner1090.jpg) | ![通知](.image/banner/banner1029.jpg) |
 | ![配置](.image/banner/banner1030.jpg) | ![列表](.image/banner/banner1072.jpg) | ![详情](.image/banner/banner1031.jpg) |
 | ![处置](.image/banner/banner1070.jpg) | ![统计](.image/banner/banner1071.jpg) |  |
+
+#### 📋 告警工单
+
+| | | |
+|:---:|:---:|:---:|
+| ![流程设计](.image/banner/banner1231.png) | ![节点配置](.image/banner/banner1232.png) | ![选择审批人](.image/banner/banner1233.png) |
+| ![条件分支](.image/banner/banner1234.png) | ![条件规则](.image/banner/banner1235.png) | ![并行分支](.image/banner/banner1236.png) |
 
 #### ⚙️ 系统
 

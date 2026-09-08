@@ -144,6 +144,9 @@ services:
       # Kafka配置（使用host网络模式时走Kafka EXTERNAL listener，避免broker回传Kafka:9092导致DNS失败）
       # 如果Kafka运行在其他机器上，使用宿主机IP，例如：192.168.1.100:9094
       - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9094}
+      - POST_INGRESS_TRANSPORT=${POST_INGRESS_TRANSPORT:-mqtt}
+      - POST_FAIL_STRATEGY=${POST_FAIL_STRATEGY:-closed}
+      - POST_FAILOVER_OPEN=${POST_FAILOVER_OPEN:-false}
       # TDengine配置（使用localhost，因为使用host网络模式）
       - TDENGINE_HOST=${TDENGINE_HOST:-localhost}
       - TDENGINE_PORT=${TDENGINE_PORT:-6030}

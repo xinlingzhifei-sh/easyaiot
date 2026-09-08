@@ -48,3 +48,6 @@ face_rec.onnx
 # Runtime evidence/access caches must never enter a release commit.
 /data/media-access-audit/
 /data/seekable-playback/
+scrfd_10g.onnx
+.recording-storage.env
+.docker-compose.runc.override.yaml

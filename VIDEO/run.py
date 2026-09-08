@@ -3,6 +3,7 @@
 @email reese
 """
 import argparse
+import json
 import os
 import socket
 import sys
@@ -228,6 +229,7 @@ def create_app(start_background_tasks=None):
                 AlgorithmModelService, RegionModelService, DeviceStorageConfig, Playback,
                 RecordSpace,                 AlgorithmTask, FrameExtractor, Sorter, Pusher, DeviceDetectionRegion,
                 DeviceTrackSession, DeviceTrackPoint, PatrolSession, AlgorithmPostProcessResult,
+                AlgorithmTaskLlmRule, AlgorithmLlmJudgeResult,
                 AiModel, PostPlugin, PostPluginService,
             )
             db.create_all()
@@ -244,6 +246,9 @@ def create_app(start_background_tasks=None):
                 ensure_camera_ingress_columns,
                 ensure_media_asset_compat_columns,
                 ensure_post_plugin_tables,
+                ensure_algorithm_task_llm_columns,
+                ensure_alert_llm_columns,
+                ensure_algorithm_llm_tables,
             )
             ensure_algorithm_task_sam_columns(db.engine)
             ensure_algorithm_task_pose_columns(db.engine)
@@ -257,6 +262,9 @@ def create_app(start_background_tasks=None):
             ensure_camera_ingress_columns(db.engine)
             ensure_media_asset_compat_columns(db.engine)
             ensure_post_plugin_tables(db.engine)
+            ensure_algorithm_task_llm_columns(db.engine)
+            ensure_alert_llm_columns(db.engine)
+            ensure_algorithm_llm_tables(db.engine)
 
             # 迁移：检查并添加缺失的列和表
             try:
@@ -461,6 +469,144 @@ def create_app(start_background_tasks=None):
                         """))
                         db.session.commit()
                         print("✅ device_detection_region.task_id 列添加成功")
+
+                    for col_name, col_def in (
+                        ('hit_mode', 'VARCHAR(50)'),
+                        ('min_overlap_ratio', 'DOUBLE PRECISION'),
+                    ):
+                        result = db.session.execute(text("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                AND table_name = 'device_detection_region'
+                                AND column_name = :column_name
+                            );
+                        """), {'column_name': col_name})
+                        if not result.scalar():
+                            print(f"⚠️  device_detection_region.{col_name} 列不存在，正在添加...")
+                            db.session.execute(text(
+                                f'ALTER TABLE device_detection_region ADD COLUMN {col_name} {col_def};'
+                            ))
+                            db.session.commit()
+                            print(f"✅ device_detection_region.{col_name} 列添加成功")
+
+                    # 将旧任务级 region_gate 参数一次性迁移为区域级配置；无旧配置则使用中心点/50%。
+                    supported_region_hit_modes = {
+                        'center', 'bottom_center', 'any_intersection', 'overlap_ratio',
+                        'fully_inside', 'any_corner', 'any', 'all', 'bottom',
+                    }
+                    region_hit_rows = db.session.execute(text("""
+                        SELECT region.id, region.hit_mode, region.min_overlap_ratio, task.post_pipeline
+                        FROM device_detection_region AS region
+                        LEFT JOIN algorithm_task AS task ON task.id = region.task_id
+                        WHERE region.hit_mode IS NULL OR region.min_overlap_ratio IS NULL;
+                    """)).all()
+                    for region_id, current_mode, current_ratio, raw_pipeline in region_hit_rows:
+                        mode = current_mode if current_mode in supported_region_hit_modes else 'center'
+                        ratio = current_ratio
+                        try:
+                            pipeline = json.loads(raw_pipeline) if isinstance(raw_pipeline, str) else raw_pipeline
+                            if isinstance(pipeline, list):
+                                gate = next(
+                                    (step for step in pipeline if isinstance(step, dict)
+                                     and step.get('plugin') == 'region_gate'),
+                                    None,
+                                )
+                                params = gate.get('params') if isinstance(gate, dict) else None
+                                if isinstance(params, dict):
+                                    legacy_mode = params.get('hit_mode')
+                                    if current_mode is None and legacy_mode in supported_region_hit_modes:
+                                        mode = legacy_mode
+                                    if current_ratio is None and params.get('min_overlap_ratio') is not None:
+                                        ratio = float(params['min_overlap_ratio'])
+                        except (TypeError, ValueError, json.JSONDecodeError):
+                            pass
+                        try:
+                            ratio = float(ratio) if ratio is not None else 0.5
+                        except (TypeError, ValueError):
+                            ratio = 0.5
+                        if not 0.01 <= ratio <= 1:
+                            ratio = 0.5
+                        db.session.execute(text("""
+                            UPDATE device_detection_region
+                            SET hit_mode = :hit_mode, min_overlap_ratio = :min_overlap_ratio
+                            WHERE id = :region_id;
+                        """), {
+                            'region_id': region_id,
+                            'hit_mode': mode,
+                            'min_overlap_ratio': ratio,
+                        })
+
+                    # 任务级区域运行态只接受明确 task_id；历史无归属区域先禁用，避免串入多个任务。
+                    db.session.execute(text("""
+                        UPDATE device_detection_region
+                        SET model_ids = NULL
+                        WHERE model_ids IS NOT NULL
+                          AND (BTRIM(model_ids) = '' OR BTRIM(model_ids) = '[]');
+                    """))
+                    invalid_model_scope_ids = []
+                    model_scope_rows = db.session.execute(text("""
+                        SELECT id, model_ids
+                        FROM device_detection_region
+                        WHERE model_ids IS NOT NULL;
+                    """)).all()
+                    for region_id, raw_model_ids in model_scope_rows:
+                        try:
+                            parsed_model_ids = json.loads(raw_model_ids)
+                            if not isinstance(parsed_model_ids, list):
+                                raise ValueError('model_ids is not an array')
+                            normalized_model_ids = sorted({int(value) for value in parsed_model_ids})
+                            if not normalized_model_ids or 0 in normalized_model_ids:
+                                raise ValueError('model_ids is empty or contains reserved zero')
+                            db.session.execute(text("""
+                                UPDATE device_detection_region
+                                SET model_ids = :model_ids
+                                WHERE id = :region_id;
+                            """), {
+                                'region_id': region_id,
+                                'model_ids': json.dumps(normalized_model_ids, separators=(',', ':')),
+                            })
+                        except (TypeError, ValueError, json.JSONDecodeError):
+                            invalid_model_scope_ids.append(region_id)
+                            db.session.execute(text("""
+                                UPDATE device_detection_region
+                                SET model_ids = NULL, is_enabled = FALSE
+                                WHERE id = :region_id;
+                            """), {'region_id': region_id})
+                    if invalid_model_scope_ids:
+                        print(
+                            f"⚠️  已禁用模型范围无效的历史区域: {invalid_model_scope_ids}，"
+                            "请在任务区域编辑器中重新确认"
+                        )
+                    db.session.execute(text("""
+                        WITH unique_task AS (
+                            SELECT device_id, MIN(task_id) AS task_id
+                            FROM algorithm_task_device
+                            GROUP BY device_id
+                            HAVING COUNT(DISTINCT task_id) = 1
+                        )
+                        UPDATE device_detection_region AS region
+                        SET task_id = unique_task.task_id
+                        FROM unique_task
+                        WHERE region.task_id IS NULL
+                          AND region.device_id = unique_task.device_id;
+                    """))
+                    orphan_count = db.session.execute(text("""
+                        SELECT COUNT(*) FROM device_detection_region WHERE task_id IS NULL;
+                    """)).scalar() or 0
+                    if orphan_count:
+                        db.session.execute(text("""
+                            UPDATE device_detection_region
+                            SET is_enabled = FALSE
+                            WHERE task_id IS NULL AND COALESCE(is_enabled, TRUE) = TRUE;
+                        """))
+                        print(f"⚠️  已禁用 {orphan_count} 条无 task_id 的历史区域，请人工确认归属")
+                    db.session.execute(text("""
+                        CREATE INDEX IF NOT EXISTS idx_device_detection_region_task_device_enabled
+                        ON device_detection_region (task_id, device_id, sort_order)
+                        WHERE is_enabled = TRUE;
+                    """))
+                    db.session.commit()
 
                 # 轨迹回放表：device_track_session / device_track_point
                 for track_table in ('device_track_session', 'device_track_point'):
@@ -984,6 +1130,110 @@ def create_app(start_background_tasks=None):
                     for (lib_id,) in libs:
                         _face_lib_svc.ensure_person_records(int(lib_id))
                     print("✅ 人脸归一化人员数据迁移检查完成")
+
+                    # 人脸库自动采集生产化字段（兼容已有数据库原地升级）
+                    for col_name, col_def in (
+                        ('enroll_mode', "VARCHAR(20) NOT NULL DEFAULT 'pending'"),
+                        ('candidate_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('duplicate_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('rejected_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('capture_failed_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('error_count', 'INTEGER NOT NULL DEFAULT 0'),
+                    ):
+                        exists = db.session.execute(text("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = 'face_auto_enroll_task'
+                                  AND column_name = :column_name
+                            )
+                        """), {'column_name': col_name}).scalar()
+                        if not exists:
+                            db.session.execute(text(
+                                f'ALTER TABLE face_auto_enroll_task ADD COLUMN {col_name} {col_def}'
+                            ))
+                    db.session.commit()
+                    print("✅ 人脸自动采集数据库结构检查完成")
+
+                    # 电子身份：未知现实姓名时仍能跨摄像头归一化并形成轨迹
+                    db.create_all()
+                    for col_name, col_def in (
+                        ('identity_id', 'INTEGER'),
+                        ('identity_code', 'VARCHAR(100)'),
+                        ('identity_name', 'VARCHAR(255)'),
+                        ('identity_similarity', 'DOUBLE PRECISION'),
+                        ('identity_resolution', 'VARCHAR(20)'),
+                    ):
+                        exists = db.session.execute(text("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = 'face_match_record'
+                                  AND column_name = :column_name
+                            )
+                        """), {'column_name': col_name}).scalar()
+                        if not exists:
+                            db.session.execute(text(
+                                f'ALTER TABLE face_match_record ADD COLUMN {col_name} {col_def}'
+                            ))
+                    for index_sql in (
+                        'CREATE INDEX IF NOT EXISTS ix_face_match_record_identity_id ON face_match_record(identity_id)',
+                        'CREATE INDEX IF NOT EXISTS ix_face_match_record_identity_code ON face_match_record(identity_code)',
+                    ):
+                        db.session.execute(text(index_sql))
+                    db.session.commit()
+                    print("✅ 电子身份与轨迹数据库结构检查完成")
+
+                    # 车辆电子身份（VID）：基于现有车牌 OCR 的匿名车辆归一化与轨迹
+                    db.create_all()
+                    for col_name, col_def in (
+                        ('vehicle_identity_id', 'INTEGER'),
+                        ('vehicle_identity_code', 'VARCHAR(100)'),
+                        ('vehicle_identity_name', 'VARCHAR(255)'),
+                        ('vehicle_resolution', 'VARCHAR(30)'),
+                        ('normalized_plate_no', 'VARCHAR(20)'),
+                        ('risk_flags', 'TEXT'),
+                    ):
+                        exists = db.session.execute(text("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = 'plate_match_record'
+                                  AND column_name = :column_name
+                            )
+                        """), {'column_name': col_name}).scalar()
+                        if not exists:
+                            db.session.execute(text(
+                                f'ALTER TABLE plate_match_record ADD COLUMN {col_name} {col_def}'
+                            ))
+                    for col_name, col_def in (
+                        ('enroll_mode', "VARCHAR(20) NOT NULL DEFAULT 'pending'"),
+                        ('candidate_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('duplicate_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('rejected_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('capture_failed_count', 'INTEGER NOT NULL DEFAULT 0'),
+                        ('error_count', 'INTEGER NOT NULL DEFAULT 0'),
+                    ):
+                        exists = db.session.execute(text("""
+                            SELECT EXISTS (
+                                SELECT FROM information_schema.columns
+                                WHERE table_schema = 'public'
+                                  AND table_name = 'plate_auto_enroll_task'
+                                  AND column_name = :column_name
+                            )
+                        """), {'column_name': col_name}).scalar()
+                        if not exists:
+                            db.session.execute(text(
+                                f'ALTER TABLE plate_auto_enroll_task ADD COLUMN {col_name} {col_def}'
+                            ))
+                    for index_sql in (
+                        'CREATE INDEX IF NOT EXISTS ix_plate_match_record_vehicle_identity_id ON plate_match_record(vehicle_identity_id)',
+                        'CREATE INDEX IF NOT EXISTS ix_plate_match_record_vehicle_identity_code ON plate_match_record(vehicle_identity_code)',
+                        'CREATE INDEX IF NOT EXISTS ix_plate_match_record_normalized_plate_no ON plate_match_record(normalized_plate_no)',
+                    ):
+                        db.session.execute(text(index_sql))
+                    db.session.commit()
+                    print("✅ 车辆电子身份与轨迹数据库结构检查完成")
                 except Exception as e:
                     print(f"⚠️  人脸归一化表迁移失败: {str(e)}")
                     import traceback
@@ -1071,6 +1321,16 @@ def create_app(start_background_tasks=None):
         print(f"✅ Algorithm Task Blueprint 注册成功")
     except Exception as e:
         print(f"❌ Algorithm Task Blueprint 注册失败: {str(e)}")
+
+    try:
+        from app.blueprints import algorithm_task_llm_rule
+        app.register_blueprint(
+            algorithm_task_llm_rule.algorithm_task_llm_rule_bp,
+            url_prefix='/video/algorithm/llm-rule',
+        )
+        print(f"✅ Algorithm Task LLM Rule Blueprint 注册成功")
+    except Exception as e:
+        print(f"❌ Algorithm Task LLM Rule Blueprint 注册失败: {str(e)}")
 
     try:
         from app.blueprints import patrol
@@ -1705,6 +1965,14 @@ def create_app(start_background_tasks=None):
                 print(f"ℹ️  算法任务启动恢复: recovered={alg_recovered}")
         except Exception as e:
             print(f"⚠️  算法任务启动恢复失败: {str(e)}")
+
+        try:
+            from app.services.face_auto_enroll_service import restore_auto_enroll_jobs
+            restored_face_jobs = restore_auto_enroll_jobs()
+            if restored_face_jobs:
+                print(f"ℹ️  人脸自动采集启动恢复: restored={restored_face_jobs}")
+        except Exception as e:
+            print(f"⚠️  人脸自动采集启动恢复失败: {str(e)}")
 
     # 最后注册退出钩子，确保 LIFO 下最先执行：停止监控线程与调度器
     from app.services.camera_service import register_scheduler_shutdown

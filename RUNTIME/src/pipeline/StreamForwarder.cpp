@@ -616,13 +616,11 @@ void StreamForwarder::forwardLoop() {
     while (running_.load()) {
         const bool ok = useFfmpeg ? ffmpegRelaySession() : remuxSession();
         if (!ok) {
-            LOG(WARNING) << "[FORWARD] Session failed, retry in "
-                         << kReconnectDelayMs << "ms";
+            LOG(WARNING) << "[FORWARD] Session failed; retrying in " << kReconnectDelayMs << " ms";
         } else if (!running_.load()) {
             break;
         } else {
-            LOG(WARNING) << "[FORWARD] Session ended, reconnect in "
-                         << kReconnectDelayMs << "ms";
+            LOG(WARNING) << "[FORWARD] Session ended; reconnecting in " << kReconnectDelayMs << " ms";
         }
 
         for (int i = 0; i < kReconnectDelayMs / 100 && running_.load(); ++i) {

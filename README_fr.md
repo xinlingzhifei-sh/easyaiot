@@ -110,6 +110,17 @@ Les projets IoT intelligents butent le plus souvent sur le « dernier kilomètre
   <li><strong>Docker tout-en-un</strong> : <code>bash RTC/install_linux.sh start</code> lance go2rtc + API de gestion ; host network pour P2P LAN</li>
 </ul>
 
+### 🏷️ Annotation intelligente par LLM : décrire le métier, entraîner un petit modèle dédié
+
+L'annotation classique se limite souvent à « personne », « véhicule » ou « casque » et exprime mal les règles réelles du terrain. yFeiEye ajoute un flux indépendant fondé sur <strong>HARNESS</strong> : l'utilisateur décrit la scène en langage naturel ; le LLM comprend objets, actions, relations, conditions et exclusions, puis produit des annotations structurées. Après validation humaine, la plateforme enchaîne automatiquement entraînement, publication, liaison et réannotation par un petit modèle YOLO.
+
+- <strong>Plus fidèle qu'une étiquette</strong> : le langage naturel décrit lieu, action, relation, condition et exception.
+- <strong>Démarrage à froid sur mesure</strong> : aucun détecteur mature ni grand corpus annoté n'est requis avant le premier apprentissage.
+- <strong>Compréhension et efficacité</strong> : le LLM traite la sémantique complexe ; le petit modèle assure ensuite une inférence rapide, économique et compatible edge.
+- <strong>Boucle traçable</strong> : description → candidats LLM → validation → entraînement → publication et liaison → réannotation en masse.
+
+<strong>Différence avec SAM3 :</strong> SAM3 localise ou segmente les objets correspondant à une courte invite visuelle. Le LLM détermine, à partir d'une description métier complète, quelle cible doit être annotée et sous quelles conditions. SAM3 convient aux objets génériques ; le LLM aux actions, relations, conditions, exceptions et à la sémantique métier.
+
 ### 🔌 EDGE : Runtime de collecte edge C# — « collecter avec précision, remonter efficacement » sur le terrain industriel
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
@@ -359,22 +370,56 @@ Beaucoup de projets réduisent l'IoT à un « registre d'appareils + relais de m
   <li><strong>Boucle de contribution</strong> : Lier votre fork → branche → éditer → pousser vers le fork → ouvrir une PR vers l'officiel</li>
 </ul>
 
-#### 🤖 Assistant IA HARNESS
+### 🔌 Passerelle LLM unifiée — un protocole, tous les grands fournisseurs de LLM
 
-<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 10px 0 12px;">
-Nombreux modules et chaînes longues — vérifier la santé, comprendre l'architecture ou trouver une config impliquent souvent documentation et SSH. HARNESS regroupe connaissance plateforme et sondes live dans un <strong>assistant conversationnel</strong> : demandez et vérifiez depuis le coin inférieur droit de toute page métier, pour raccourcir dépannage et PoC avec moins de dépendance au fournisseur et au savoir tacite.
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+La plateforme converge tous les grands fournisseurs de LLM vers un protocole unique compatible OpenAI (<code>/v1/chat/completions</code>). Un seul modèle est actif à la fois — toutes les capacités IA intégrées (compréhension image/vidéo, étiquetage automatique, chat) basculent instantanément. Ajouter un fournisseur est sans code : une entrée dans le registre de modèles. Les données de modèles prédéfinis sont initialisées automatiquement au premier déploiement (clés placeholder <code>sk-placeholder-*</code>, inactives) ; saisissez une vraie clé API dans l'éditeur pour l'activer — l'interface guide tout le processus.
+</p>
+
+| Fournisseur | Clé de modèle | Identifiants de modèles (suggestions) | Remarques |
+| :-- | :-- | :-- | :-- |
+| DeepSeek | `deepseek` | deepseek-v4-flash, deepseek-v4-pro, deepseek-v4-flash-vision-exp | Contexte 1M ; API officielle |
+| Bailian (Alibaba Cloud) | `dashscope` | qwen3.8-max, qwen3.7-max/plus/flash, qwen3.6-plus/flash, qwen3.5-plus/flash, qwen3.5-omni-plus/flash, qwen3-vl-plus/flash, qwen-vl-max | Point de terminaison compatible OpenAI |
+| Zhipu GLM | `zhipu` | glm-5.3, glm-5.2, glm-5.1, glm-5-turbo, glm-5, glm-4.7, glm-4.7-flash, glm-4.5-flash, glm-4-plus/flash/air, glm-4v-plus/flash, glm-ocr | Point de terminaison v4 |
+| OpenAI | `openai` | gpt-5.6-sol, gpt-5.6, gpt-5.6-sol-pro, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-5.4-mini, gpt-4.1-mini | Compatibilité max_completion_tokens auto |
+| Kimi (Moonshot) | `kimi` | kimi-k2.6, kimi-k2.7-code | K2 impose temperature=1 |
+| Claude (Anthropic) | `claude` | claude-opus-4-7/4-6/4-5, claude-sonnet-4-6/4-5, claude-haiku-4-5 | API Messages native — connexion via relais compatible OpenAI |
+| Anthropic compatible | `anthropic` | — | Renseigner un relais compatible OpenAI |
+| Personnalisé | `custom` | — | Tout point de terminaison compatible OpenAI |
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Modèles prédéfinis</strong> : 6 modèles (DeepSeek / Bailian / GLM / OpenAI / Kimi / Claude) initialisés au déploiement neuf ; activation et test bloqués tant qu'une vraie clé API ne remplace pas le placeholder</li>
+  <li><strong>Pour d'autres services</strong> : le modèle actif est exposé comme point de terminaison compatible OpenAI (<code>POST /v1/chat/completions</code>, <code>GET /v1/models</code>) — tout SDK OpenAI peut l'appeler avec un jeton Bearer</li>
+  <li><strong>Résilience</strong> : repli paramétré ordonné (temperature → max_completion_tokens), SSE streaming, délais d'attente par fournisseur</li>
+</ul>
+
+### 🤖 Base de connaissances RAG et agents IA
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+Construite sur la passerelle LLM unifiée, la plateforme transforme vos documents métier en <strong>connaissances interrogeables</strong> encapsulées dans des <strong>agents IA conversationnels</strong> — une seule chaîne, de la curation des connaissances aux réponses sourcées, jusqu'aux assistants intégrés aux pages et à l'IDE.
 </p>
 
 <ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
-  <li><strong>Demander et vérifier</strong> : l'Agent appelle les Tools plateforme pour sonder Gateway / vidéo / IA et pointe config et sources — SSH + compose en une conversation</li>
-  <li><strong>Connaît l'ontologie</strong> : <code>HARNESS/ontology/AGENTS.md</code> intégré et workspace dépôt complet — architecture, ports, API et conventions d'install au même endroit</li>
-  <li><strong>Discuter dans la page</strong> : tiroir flottant iframe — pas de changement de page ni perte de contexte sur alertes/appareils ; plein écran « Assistant IA » ou nouvelle fenêtre</li>
-  <li><strong>Co-création IDEA en écran partagé</strong> : la barre d'outils ouvre l'assistant à droite — éditeur et Agent côte à côte ; ou deep-link <code>?file=chemin&harness=1</code></li>
-  <li><strong>Glisser pour @ auto</strong> : déposez des fichiers de l'explorateur sur le panneau assistant pour les attacher au contexte</li>
-  <li><strong>Saut bidirectionnel</strong> : l'Agent peut générer des liens portail via <code>easyaiot_open_in_idea</code> — du Q&amp;R vers un IDE complet ; IDEA pour le code et les PR, HARNESS pour architecture et santé</li>
-  <li><strong>MCP + Cursor Skill</strong> : mêmes capacités <code>easyaiot_*</code> via MCP vers Cursor et autres IDE — ce que la console permet de demander/vérifier, l'environnement dev peut l'invoquer ; Skills réutilisables entre projets</li>
-  <li><strong>Prêt dans tous les profils</strong> : Sidecar <a href="https://github.com/deepseek-ai/deepseek-harness" style="color: #3498db; text-decoration: none; font-weight: 600;">DeepSeek Harness</a> (<code>:3080</code>) ; inclus par défaut en <code>mini / standard / full</code> (<code>EASYAIOT_ENABLE_HARNESS=0</code> pour désactiver) ; endpoints DeepSeek / compatibles OpenAI ; clé dans <code>harness.env</code> ou l'UI</li>
-  <li><strong>Sécurité</strong> : module expérimental ; <code>dsh</code> en Developer Preview ; restreindre l'accès en prod et configurer approbation écriture/Shell ; ne pas committer les clés API</li>
+  <li><strong>Documents → segments → ensembles</strong> : importez des fichiers TXT / Markdown / CSV / JSON / LOG (UTF-8, ≤ 10 Mo) ; chaque document est découpé automatiquement en segments indexés en vecteurs dans Milvus — segments modifiables, activables/désactivables individuellement dans la recherche, et composables entre documents en ensembles réutilisables</li>
+  <li><strong>Experts RAG (agents)</strong> : combinez plusieurs ensembles, définissez une consigne de rôle et un message d'accueil, puis discutez — les réponses citent <code>【Source N】</code>, refusent d'inventer quand le matériel est insuffisant, et retombent en mode recherche seule si le modèle est injoignable</li>
+  <li><strong>Recherche hybride</strong> : recherche vectorielle (Milvus) fusionnée avec un score de mots-clés type BM25 ; le repli d'embedding <code>local-hash</code> hors ligne garde toute la chaîne démontrable sans clé externe</li>
+  <li><strong>Assistant IA</strong> : un assistant flottant répond sur les pages métier ; l'assistant conversationnel HARNESS vit dans l'IDE cloud IDEA — glissez des fichiers pour <code>@</code>-mentionner automatiquement, co-créez en écran partagé — et les mêmes capacités <code>easyaiot_*</code> sont exposées via MCP + Cursor Skill à Cursor et autres IDE</li>
+</ul>
+
+### 🧠 Post-traitement LLM des alertes (jugement LLM) — du « détecté » au « fiable »
+
+<p style="font-size: 14px; line-height: 1.8; color: #555; margin: 15px 0;">
+Les algorithmes de vision traditionnels ont résolu le « voir », mais laissent le « croire ou non » à l'humain — les boîtes de détection des casques, franchissements de ligne, flammes nues ou postes de sommeil défilent chaque jour ; la supervision doit ouvrir chaque image pour une vérification manuelle, les fausses alertes noient les vraies, et les vraies risquent d'être manquées. yFeiEye branche la <strong>compréhension sémantique des grands modèles sur la chaîne d'alertes</strong> : une tâche algorithmique peut configurer des <strong>règles de post-traitement LLM</strong> ; les alertes qui correspondent entrent automatiquement dans une file de jugement dédiée, où un grand modèle multimodal examine chaque alerte sur l'image du site (ou une courte vidéo) et produit <strong>une conclusion « confirmé / jugé fausse alerte », un niveau de confiance et une justification</strong>, réécrits sur l'alerte — la supervision passe de « scruter image par image » à « lire uniquement les conclusions », et les fausses alertes fréquentes sont bloquées avant la notification.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>File de jugement asynchrone dédiée</strong> : après correspondance de règle, l'alerte est déposée via Kafka et exécutée en asynchrone ; un jugement lent ou un modèle instable ne bloquent jamais l'enregistrement de l'alerte ni la chaîne de notification ; un échec de jugement n'est que journalisé, sans jamais faire tomber le flux principal</li>
+  <li><strong>Échantillonnage et limitation pour maîtriser les coûts</strong> : les alertes correspondantes entrent dans la file LLM selon un <strong>taux d'échantillonnage</strong> (ex. 10 % = 1 alerte sur 10), cumulé avec un <strong>intervalle minimal de jugement par tâche</strong> pour éviter les appels répétés sur les événements à haute fréquence ; les alertes non échantillonnées ou limitées sont automatiquement marquées « non échantillonné / limité » — le coût LLM est découplé du volume d'alertes, quel que soit le volume</li>
+  <li><strong>Double jugement image / vidéo</strong> : par défaut, jugement sur image ; commutable sur courte vidéo avec fenêtre avant/après l'événement et durée de coupe maximale configurables ; repli automatique sur l'image si l'enregistrement manque — la chaîne ne casse jamais</li>
+  <li><strong>Notification à porte (double vérification)</strong> : sur les tâches sensibles aux fausses alertes, <strong>la notification n'est envoyée que si le grand modèle confirme l'événement ; un jugement « fausse alerte » la supprime directement</strong> — la « tempête d'alertes » devient une « alerte précise », le téléphone de garde n'est plus bombardé</li>
+  <li><strong>Stratégie d'échec selon le terrain</strong> : en cas d'échec d'appel au modèle, choisir <code>skip</code> (ne pas modifier le résultat d'origine) / <code>confirm</code> (laisser passer la notification) / <code>reject</code> (supprimer la notification) — entre les non-détections et les fausses alertes, selon le risque du site, à vous de décider</li>
+  <li><strong>Agents et modèles liables</strong> : le jugement peut s'appuyer sur un expert RAG (réponse avec le contexte de la base de connaissances), ou spécifier un grand modèle dédié, écraser la consigne de jugement, forcer une sortie JSON structurée — et basculer de fournisseur en un clic via la passerelle LLM unifiée</li>
+  <li><strong>Conclusion complète réécrite et affichée</strong> : statut du jugement (confirmé / fausse alerte / en cours / échec / non échantillonné…), niveau de confiance, justification et attributs structurés sont tous réécrits sur l'alerte ; les listes d'alertes WEB et APP portent des étiquettes de statut et filtrent par « échantillonné / non échantillonné / chaque conclusion », et le détail du jugement s'affiche en une seule fenêtre : image, conclusion, justification et informations d'exécution</li>
 </ul>
 
 ### 📦 Modèles IA intégrés
@@ -831,6 +876,8 @@ yFeiEye est un projet d'apprentissage open source, sans lien avec des activités
 
 | | | |
 |:---:|:---:|:---:|
+| ![Vidéosurveillance](.image/banner/banner1255.png) | ![Vidéosurveillance](.image/banner/banner1256.png) | ![Vidéosurveillance](.image/banner/banner1257.png) |
+| ![Vidéosurveillance](.image/banner/banner1237.png) | ![Vidéosurveillance](.image/banner/banner1238.png) | ![Vidéosurveillance](.image/banner/banner1239.png) |
 | ![Vidéosurveillance](.image/banner/banner1225.png) | ![Vidéosurveillance](.image/banner/banner1226.png) | ![Vidéosurveillance](.image/banner/banner1227.png) |
 | ![Vidéosurveillance](.image/banner/banner1228.png) | ![Vidéosurveillance](.image/banner/banner1229.png) | ![Vidéosurveillance](.image/banner/banner1230.png) |
 | ![Vidéosurveillance](.image/banner/banner1219.png) | ![Vidéosurveillance](.image/banner/banner1220.png) | ![Vidéosurveillance](.image/banner/banner1221.png) |
@@ -849,10 +896,15 @@ yFeiEye est un projet d'apprentissage open source, sans lien avec des activités
 | ![Aperçu](.image/banner/banner1104.png) | ![Accès](.image/banner/banner1105.png) | ![NVR](.image/banner/banner1106.png) |
 | ![Vue live](.image/banner/banner1183.jpg) | ![Carte](.image/banner/banner1184.jpg) |  |
 
-#### 🤖 Assistant IA
+#### 🤖 Base de connaissances RAG et agents IA
 
 | | | |
 |:---:|:---:|:---:|
+| ![Gestion des modèles LLM](.image/banner/banner1243.png) | ![Configuration LLM](.image/banner/banner1244.png) | ![Base de connaissances RAG](.image/banner/banner1246.png) |
+| ![Modèles LLM](.image/banner/banner1243.png) | ![Fournisseur LLM](.image/banner/banner1244.png) | ![Appel LLM](.image/banner/banner1245.png) |
+| ![Base de connaissances](.image/banner/banner1246.png) | ![Documents de connaissances](.image/banner/banner1247.png) | ![Segments de connaissances](.image/banner/banner1248.png) |
+| ![Ensembles de connaissances](.image/banner/banner1249.png) | ![Expert RAG](.image/banner/banner1250.png) | ![Q&R RAG](.image/banner/banner1251.png) |
+| ![Assistant IA](.image/banner/banner1252.png) | ![Dialogue agent IA](.image/banner/banner1253.png) | ![Test d'effet agent](.image/banner/banner1254.png) |
 | ![Connexion IDEA](.image/banner/banner1203.png) | ![Espace IDEA](.image/banner/banner1204.png) | ![Développement IDEA](.image/banner/banner1205.png) |
 | ![Dialogue Assistant IA](.image/banner/banner1210.png) | ![Analyse Assistant IA](.image/banner/banner1211.png) | ![Collaboration Assistant IA](.image/banner/banner1212.png) |
 
@@ -878,13 +930,6 @@ yFeiEye est un projet d'apprentissage open source, sans lien avec des activités
 | ![Aperçu](.image/banner/banner1082.jpg) | ![Algorithme](.image/banner/banner1062.jpg) | ![Créer](.image/banner/banner1063.png) |
 | ![Image](.image/banner/banner1064.jpg) | ![Analyse](.image/banner/banner1065.jpg) | ![Résultats](.image/banner/banner1066.jpg) |
 | ![Relecture](.image/banner/banner1067.jpg) | ![Vue live](.image/banner/banner1052.jpg) | ![Intelligent](.image/banner/banner1054.jpg) |
-
-#### 📋 Bons de travail d'alerte
-
-| | | |
-|:---:|:---:|:---:|
-| ![Conception de flux](.image/banner/banner1231.png) | ![Configuration de nœud](.image/banner/banner1232.png) | ![Sélection des approbateurs](.image/banner/banner1233.png) |
-| ![Branches conditionnelles](.image/banner/banner1234.png) | ![Règles de condition](.image/banner/banner1235.png) | ![Branches parallèles](.image/banner/banner1236.png) |
 
 #### 📦 Jeux de données
 
@@ -923,13 +968,20 @@ yFeiEye est un projet d'apprentissage open source, sans lien avec des activités
 | ![Liste](.image/banner/banner1133.jpg) | ![État](.image/banner/banner1134.jpg) | ![Configuration](.image/banner/banner1135.jpg) |
 | ![Allocation](.image/banner/banner1136.jpg) |  |  |
 
-#### 🔔 Alertes
+#### 🔔 Événements d'alerte
 
 | | | |
 |:---:|:---:|:---:|
 | ![Événements](.image/banner/banner1089.jpg) | ![Traitement](.image/banner/banner1090.jpg) | ![Notification](.image/banner/banner1029.jpg) |
 | ![Configuration](.image/banner/banner1030.jpg) | ![Liste](.image/banner/banner1072.jpg) | ![Détails](.image/banner/banner1031.jpg) |
 | ![Traitement](.image/banner/banner1070.jpg) | ![Statistiques](.image/banner/banner1071.jpg) |  |
+
+#### 📋 Bons de travail d'alerte
+
+| | | |
+|:---:|:---:|:---:|
+| ![Conception de flux](.image/banner/banner1231.png) | ![Configuration de nœud](.image/banner/banner1232.png) | ![Sélection des approbateurs](.image/banner/banner1233.png) |
+| ![Branches conditionnelles](.image/banner/banner1234.png) | ![Règles de condition](.image/banner/banner1235.png) | ![Branches parallèles](.image/banner/banner1236.png) |
 
 #### ⚙️ Système
 

@@ -161,7 +161,7 @@ bool RTMPEncoder::init(const std::string& rtmpUrl, int width, int height, int fp
                 _encodeEp = "h264_nvenc";
                 opened = true;
                 LOG(INFO) << "[RTMP] Using h264_nvenc preset=" << opts.nvencPreset
-                          << " gpu=" << opts.gpuDeviceId;
+                          << " GPU=" << opts.gpuDeviceId;
             } else {
                 LOG(WARNING) << "[RTMP] h264_nvenc open failed, falling back to libx264";
                 _encWidth = width;
@@ -222,7 +222,7 @@ bool RTMPEncoder::init(const std::string& rtmpUrl, int width, int height, int fp
             char errbuf[AV_ERROR_MAX_STRING_SIZE];
             av_strerror(ret, errbuf, sizeof(errbuf));
             LOG(ERROR) << "[RTMP] Failed to open RTMP URL: " << errbuf
-                      << " (URL: " << rtmpUrl << ")";
+                      << " (URL: " << rtmpUrl << "）";
             av_dict_free(&options);
             release();
             return false;

@@ -70,12 +70,22 @@ export interface DeviceDetectionRegion {
   opacity: number;
   is_enabled: boolean;
   sort_order: number;
+  model_scope?: 'all' | 'selected';
   model_ids?: number[]; // 关联的算法模型ID列表
   minStaySeconds?: number;
   inertiaFrames?: number;
   loiteringSeconds?: number;
+  hit_mode?: string;
+  min_overlap_ratio?: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface DeviceRegionSnapshot {
+  task_id: number;
+  device_id: string;
+  revision: number;
+  regions: DeviceDetectionRegion[];
 }
 
 /**
@@ -87,7 +97,7 @@ export const getDeviceRegions = (device_id: string, task_id: number) => {
     `${DEVICE_DETECTION_PREFIX}/task/${task_id}/device/${device_id}/regions`,
     undefined,
     undefined,
-    SILENT_REQUEST_OPTIONS,
+    { isTransformResponse: false, ...SILENT_REQUEST_OPTIONS },
   );
 };
 
@@ -100,13 +110,60 @@ export async function listDeviceRegionsSafe(
 ): Promise<DeviceDetectionRegion[]> {
   try {
     const response = await getDeviceRegions(device_id, task_id);
-    return parseDeviceRegionsResponse(response);
+    return parseDeviceRegionsResponse((response as any)?.data || response);
   } catch (error) {
     const status = (error as { response?: { status?: number } })?.response?.status;
     if (status === 404) return [];
     throw error;
   }
 }
+
+export async function getDeviceRegionsSnapshot(
+  device_id: string,
+  task_id: number,
+): Promise<DeviceRegionSnapshot> {
+  try {
+    const response = await getDeviceRegions(device_id, task_id);
+    const obj = (((response as any)?.data || response) || {}) as Record<string, any>;
+    return {
+      task_id,
+      device_id,
+      revision: Number(obj.revision || 1),
+      regions: parseDeviceRegionsResponse(obj).map((region) => ({
+        ...region,
+        model_scope: region.model_scope || ((region.model_ids || []).length ? 'selected' : 'all'),
+        model_ids: region.model_ids || [],
+      })),
+    };
+  } catch (error) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status === 404) return { task_id, device_id, revision: 1, regions: [] };
+    throw error;
+  }
+}
+
+export const replaceDeviceRegions = (
+  device_id: string,
+  task_id: number,
+  expected_revision: number,
+  regions: DeviceDetectionRegion[],
+) => {
+  return commonApi<{
+    code: number;
+    msg: string;
+    task_id: number;
+    device_id: string;
+    revision: number;
+    runtime_sync_status: 'applied' | 'pending' | 'not_running';
+    data: DeviceDetectionRegion[];
+  }>(
+    'put',
+    `${DEVICE_DETECTION_PREFIX}/task/${task_id}/device/${device_id}/regions`,
+    {},
+    { expected_revision, regions },
+    { isTransformResponse: false, ...SILENT_REQUEST_OPTIONS },
+  );
+};
 
 /**
  * 在指定任务下创建设备检测区域
@@ -124,6 +181,8 @@ export const createDeviceRegion = (device_id: string, task_id: number, data: {
   minStaySeconds?: number;
   inertiaFrames?: number;
   loiteringSeconds?: number;
+  hit_mode?: string;
+  min_overlap_ratio?: number;
 }) => {
   return commonApi<{ code: number; msg: string; data: DeviceDetectionRegion }>(
     'post',

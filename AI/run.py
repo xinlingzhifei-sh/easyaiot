@@ -315,6 +315,7 @@ def create_app():
                 ensure_model_table_status_column,
                 ensure_model_origin_columns,
                 ensure_model_class_columns,
+                ensure_model_family_columns,
                 ensure_train_task_name_column,
                 ensure_train_task_dataset_columns,
                 ensure_train_task_cluster_columns,
@@ -330,6 +331,7 @@ def create_app():
             ensure_model_table_status_column(db.engine)
             ensure_model_origin_columns(db.engine)
             ensure_model_class_columns(db.engine)
+            ensure_model_family_columns(db.engine)
             ensure_train_task_name_column(db.engine)
             ensure_train_task_dataset_columns(db.engine)
             ensure_train_task_cluster_columns(db.engine)
@@ -339,6 +341,11 @@ def create_app():
             ensure_auto_label_task_cluster_columns(db.engine)
             ensure_auto_label_subtask_table(db.engine)
             ensure_auto_label_model_history_table(db.engine)
+            # 大模型预置模板数据播种（仅空表时执行，幂等；占位密钥 sk-placeholder-* 填入真实密钥后启用）
+            from app.services.llm_template_seed import ensure_llm_template_seed
+            seed_result = ensure_llm_template_seed()
+            if seed_result.get('inserted'):
+                print(f"✅ 已播种 {seed_result['inserted']} 条大模型预置模板数据（填入真实 API 密钥后即可启用）")
             print(f"✅ 数据库连接成功，表结构已创建/验证")
         except Exception as e:
             error_msg = str(e)
@@ -352,7 +359,7 @@ def create_app():
 
     # 注册蓝图（延迟导入，避免在环境变量加载前就导入）
     try:
-        from app.blueprints import export, inference, model, train, train_task, llm, llm_deploy, ocr, speech, deploy, auto_label, plate, minio_proxy, sam, pose
+        from app.blueprints import export, inference, model, train, train_task, llm, llm_deploy, rag, ocr, speech, deploy, auto_label, plate, sam, pose, minio_proxy, llm_internal
         
         app.register_blueprint(minio_proxy.minio_proxy_bp)
         app.register_blueprint(export.export_bp, url_prefix='/model/export')
@@ -361,6 +368,8 @@ def create_app():
         app.register_blueprint(train.train_bp, url_prefix='/model/train_task')
         app.register_blueprint(train_task.train_task_bp, url_prefix='/model/train_task')
         app.register_blueprint(llm.llm_bp, url_prefix='/model/llm')
+        app.register_blueprint(llm_internal.llm_internal_bp, url_prefix='/model/llm/internal')
+        app.register_blueprint(rag.rag_bp, url_prefix='/model/rag')
         app.register_blueprint(llm_deploy.llm_deploy_bp, url_prefix='/model/llm_deploy')
         app.register_blueprint(ocr.ocr_bp, url_prefix='/model/ocr')
         app.register_blueprint(speech.speech_bp, url_prefix='/model/speech')

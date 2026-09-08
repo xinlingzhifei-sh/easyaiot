@@ -103,9 +103,9 @@ export async function checkHarnessHealth(): Promise<HarnessHealth> {
 }
 
 export const HARNESS_QUICK_PROMPTS = [
-  '用 easyaiot_list_modules 介绍 yFeiEye 各模块职责与端口',
-  '调用 easyaiot_gateway_health 检查 Gateway 是否正常',
-  '调用 easyaiot_dev_portals 告诉我 WEB / IDEA / HARNESS 怎么打开',
+  '介绍 yFeiEye 各模块职责与端口',
+  '检查 yFeiEye 网关是否正常',
+  '告诉我 yFeiEye WEB / IDEA / HARNESS 怎么打开',
   '阅读 README_zh.md，用三句话概括 yFeiEye 平台定位',
   '打开 HARNESS/README.md，说明如何新建会话才能看到全仓源码',
   '我想新增一个摄像头接入流程，应该改 WEB 还是 VIDEO 模块？',
