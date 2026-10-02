@@ -42,7 +42,7 @@ yFeiEye 官方網站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-平臺由 <strong>WEB、APP、DEVICE、EDGE、SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TRANSFORM、PANEL、IDEA、HARNESS、SITE</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>RTC 消費級攝像頭 P2P 橋接</strong>（基於 go2rtc，覆蓋 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——門店 Tapo 補盲、塗鴉白牌納管、海外 Ring/Nest 門鈴、米家存量利舊、Wyze 低成本擴點、DoorBird 門口對講、GoPro 機動機位、石頭掃地機移動視角等場景，Web 一鍵接入並納入統一視頻與 AI 研判閉環）、<strong>大疆機場與無人機空中視角接入</strong>、即時 / 抓拍 / 巡檢算法任務、<strong>RUNTIME 原生高速執行層</strong>（編譯型二進制承接拉流解碼、YOLO 推理、帶框推流與多路原畫轉發——相對解釋型鏈路更低 CPU/內存、更穩時延；同一二進制覆蓋即時 / 抓拍 / 巡檢 / 轉發）、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、<strong>POST 定製研判</strong>（檢出之後按現場規則過濾、複合判斷再告警，改規則不必重訓模型）、聯邦算力集羣調度、<strong>SENTINEL 集羣節點哨兵</strong>（按業務摸清節點就緒與可調度能力，缺件可自助補齊，任務按真能力下發），以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，並由 <strong>EDGE C# 邊緣採集運行時</strong>在現場以插件化採集器承接 Modbus RTU/TCP、OPC UA 等工業協議採集、本地調度與 MQTT 云邊對接，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>POST 定製研判服務</strong>，把檢測結果鍛造成可貼現場的業務事件，誤報少、規則可配、上線可先試跑；配套 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、四檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地；並以 <strong>IDEA 社區貢獻在線 IDE</strong> 讓貢獻者瀏覽器即可打開全倉、用 GitHub Copilot 共創、按改動發佈到本機並提交 PR，把開源共建從「先配環境」變成「打開即改」。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置；並新增 <strong>ANDROID / IOS / HARMONYOS 三端殼打包工程</strong>，把這一移動體驗以 APK / IPA / HAP 安裝包形態覆蓋到主流手機系統，一套前端、一鍵出包、版本統一管理。
+平臺由 <strong>WEB、APP、DEVICE、EDGE、SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TWIN、TRANSFORM、PANEL、IDEA、HARNESS、SITE、TERMINAL</strong> 等核心模組組成，並以 <strong>COMPILE</strong> 承接多平臺打包交付（含 Ubuntu / CentOS·RHEL <strong>7～9</strong>（x86 + <strong>CentOS ARM</strong>，按 el7/el8/el9 分包） / <strong>麒麟(Kylin) / 歐拉(openEuler)</strong> / Windows / macOS / ARM）。在能力側，平臺覆蓋 GB28181 / ONVIF 多協議攝像頭接入、<strong>RTC 消費級攝像頭 P2P 橋接</strong>（基於 go2rtc，覆蓋 <strong>Tapo、Tuya、Ring、Nest、小米、Wyze、DoorBird、GoPro、Roborock</strong> 九大品牌——門店 Tapo 補盲、塗鴉白牌納管、海外 Ring/Nest 門鈴、米家存量利舊、Wyze 低成本擴點、DoorBird 門口對講、GoPro 機動機位、石頭掃地機移動視角等場景，Web 一鍵接入並納入統一視頻與 AI 研判閉環）、<strong>大疆機場與無人機空中視角接入</strong>、即時 / 抓拍 / 巡檢算法任務、<strong>RUNTIME 原生高速執行層</strong>（編譯型二進制承接拉流解碼、YOLO 推理、帶框推流與多路原畫轉發——相對解釋型鏈路更低 CPU/內存、更穩時延；同一二進制覆蓋即時 / 抓拍 / 巡檢 / 轉發）、YOLO 目標檢測與 SAM 零樣本自動標註、人臉/車牌識別、<strong>POST 定製研判</strong>（檢出之後按現場規則過濾、複合判斷再告警，改規則不必重訓模型）、聯邦算力集羣調度、<strong>SENTINEL 集羣節點哨兵</strong>（按業務摸清節點就緒與可調度能力，缺件可自助補齊，任務按真能力下發），以及 <strong>無限聯邦邊緣集羣模式</strong>（普通開發板可即開即用、現場智能就地決策、告警與證據自動匯聚上雲，算力隨業務任意鋪開），還有 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA 物聯網設備全生命週期管理，並由 <strong>EDGE C# 邊緣採集運行時</strong>在現場以插件化採集器承接 Modbus RTU/TCP、OPC UA 等工業協議採集、本地調度與 MQTT 云邊對接，以及<strong>可視化大屏與 Web 工藝組態</strong>，讓設備數據既能展成指揮態勢、也能落回工藝畫面；並新增 <strong>POST 定製研判服務</strong>，把檢測結果鍛造成可貼現場的業務事件，誤報少、規則可配、上線可先試跑；配套 <strong>TRANSFORM 多向數據流轉引擎</strong>，把平臺側業務事件按約定投遞到 MES / ERP / CRM / WMS 等外部系統，多方對接可配、可追、可複用；配套 <strong>PANEL 交付與值守入口</strong>，讓一體機到場當天可裝可驗，值守與排障不必事事等開發遠程敲命令；另以 <strong>SITE 官方網站</strong>對外呈現產品價值、四檔硬體選型與安裝包入口，讓訪客先看懂再下載、先選型再落地；並以 <strong>IDEA 社區貢獻在線 IDE</strong> 讓貢獻者瀏覽器即可打開全倉、用 GitHub Copilot 共創、按改動發佈到本機並提交 PR，把開源共建從「先配環境」變成「打開即改」；另以 <strong>TERMINAL 終端模組</strong>（基於開源 uniTerm 整合改名）提供 SSH / RDP / VNC / SFTP / 資料庫 / Kubernetes 等 30 餘種協議的一站式終端與遠端維運入口。在體驗側，Web 管控臺與移動 App / 小程序能力對齊，讓指揮中心與現場巡檢同一套業務邏輯、隨時隨地處置；並新增 <strong>ANDROID / IOS / HARMONYOS 三端殼打包工程</strong>，把這一移動體驗以 APK / IPA / HAP 安裝包形態覆蓋到主流手機系統，一套前端、一鍵出包、版本統一管理。
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -82,6 +82,21 @@ yFeiEye是一個雲邊端一體化的智能物聯網平臺，專註於AI與IoT�
 | ![系統概覽](.image/banner/panel/panel_1000.png) | ![容器管理](.image/banner/panel/panel_1001.png) | ![容器日誌](.image/banner/panel/panel_1002.png) |
 | ![一鍵部署](.image/banner/panel/panel_1003.png) | ![鏡像就緒](.image/banner/panel/panel_1004.png) | ![鏡像拉取](.image/banner/panel/panel_1005.png) |
 | ![系統診斷](.image/banner/panel/panel_1006.png) | ![系統維護](.image/banner/panel/panel_1007.png) | ![服務拓撲](.image/banner/panel/panel_1008.png) |
+
+### ⌨️ TERMINAL：30+ 協議收進一個入口，值守排障不必再裝一排工具
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+現場排障最耗時的往往不是故障本身，而是工具的拼湊：SSH 一個客戶端、資料庫另裝 Navicat、Redis 再開一個、傳檔案另起 SFTP、看容器還要登伺服器敲命令——帳號、隧道、跳板各配一套，換台機器再配一遍。TERMINAL 基於開源 uniTerm 整合改名，以 <strong>30 餘種協議</strong>覆蓋遠端終端、遠端桌面、檔案傳輸、資料庫、容器五大維運場景，yFeiEye 全套中介軟體左欄即點即連；以 Wails v3（Go + Vue 3）打成 Windows / macOS / Linux 單體應用、亦可 server 模式純 HTTP 執行，把「裝一排工具、配一堆客戶端」變成「開一個入口、連所有現場」。
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>遠端終端與桌面</strong>：SSH / Telnet / Mosh 遠端終端與本地、串口終端，密碼 / 密鑰認證 + <strong>SSH 隧道端口轉發</strong>直達內網；RDP / VNC / SPICE / X11 遠端桌面，Windows 機器不必另裝遠控也能直接進入</li>
+  <li><strong>檔案傳輸</strong>：SFTP / SCP / FTP / SMB / WebDAV / S3 雙欄瀏覽，支援 <code>rz</code>/<code>sz</code> 與拖曳上傳，日誌包、取證檔案當場拉回本地</li>
+  <li><strong>資料庫客戶端</strong>：MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB 開箱即用，庫表結構、SQL 查詢、結果集編輯、Redis 鍵值視覺化一站完成，不必另裝 Navicat / RDM</li>
+  <li><strong>容器與監控</strong>：Kubernetes / Docker / Podman / nerdctl 容器終端、日誌、啟停一屏辦完，配合 CPU / 記憶體 / 磁碟 / 網路 / 行程<strong>即時監控</strong>定位資源瓶頸</li>
+</ul>
+
+![yFeiEye Terminal](.image/banner/terminal/yfeieye-terminal-home.png)
 
 ### 📡 RTC：消費級攝像頭 P2P 橋接，讓「沒有 RTSP」的設備也能進平臺
 
@@ -543,7 +558,7 @@ yFeiEye積極響應在地化戰略，全面支持在地化硬體和作業系統�
 ## 🧩 項目結構
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISUALIZE、TRANSFORM、PANEL、SITE 等核心模組組成，並配套 COMPILE 多平臺打包交付能力：
+yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE, SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TWIN、TRANSFORM、PANEL、IDEA、HARNESS、SITE、TERMINAL 等核心模組組成，並配套 COMPILE 多平臺打包交付能力：
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -693,7 +708,7 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
     <li><strong>一鍵分發</strong>：WEB「業務運行時分發」或安裝腳本批量下發；中心機隨 VIDEO 安裝自動掛載本機執行器</li>
     <li><strong>事件面 MQTT</strong>：告警/抓拍/後處理發往 EMQX 算法總線，由 <strong>iot-sink</strong> 落庫、歸檔與通知 enrichment</li>
     <li><strong>管理面 HTTP 心跳</strong>：任務存活回 VIDEO，啓停與任務表由 VIDEO 管理</li>
-    <li><strong>NFS 媒體根</strong>：告警圖、SRS 錄像統一寫入 <strong>NFS 共享媒體根</strong>（`EASYAIOT_MEDIA_ROOT`，默認 `/mnt/easyaiot-media`；無 sudo 時 fallback 至 `$HOME/easyaiot/media`）；MQTT 只帶路徑，由 <strong>iot-sink</strong> 讀盤歸檔 MinIO</li>
+    <li><strong>NFS 媒體根</strong>：告警圖、SRS 錄像統一寫入 <strong>NFS 共享媒體根</strong>（`EASYAIOT_MEDIA_ROOT`，默認 `/mnt/easyaiot-media`；無 sudo 時 fallback 至 `$HOME/easyaiot/media`）；MQTT 只帶路徑，由 <strong>iot-sink</strong> 讀盤歸檔 RustFS</li>
   </ul>
 </td>
 </tr>
@@ -723,6 +738,15 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TWIN模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;"><ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>多行業數位孪生</strong>：內建工業園區、智慧校園、智慧港口與零碳能源基地四套 Three.js 三維場景</li>
+    <li><strong>三維漫遊與空間定位</strong>：支援旋轉、縮放、預設視角平滑切換，設備狀態與即時告警在場景中聯動高亮</li>
+    <li><strong>樓棟樓層運維</strong>：可聚焦樓棟、切換樓層、隔離顯示本層設備，並統計在線、告警與未綁定數量</li>
+    <li><strong>設備與資料綁定</strong>：編輯模式可將三維物件綁定至傳感器、攝影機、PLC / 邊緣網關，支援 MQTT、Modbus TCP、OPC UA、GB28181、ONVIF</li>
+    <li><strong>可替換的模型與資料層</strong>：當前 MVP 使用程式化場景與模擬資料；穩定設備 ID 映射可後續換入 Blender / GLB 資產與 yFeiEye API、MQTT over WebSocket 或後端 WebSocket</li>
+  </ul></td>
+</tr><tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TRANSFORM模組</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -761,6 +785,17 @@ yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE、VIDEO、RTC、AI、RUNTIME、VISU
     <li><strong>頁內懸浮抽屜</strong>：業務頁不跳轉即聊；<code>mini / standard / full</code> 默認自帶</li>
     <li><strong>IDEA 分屏聯動</strong>：編輯器右側嵌助手，拖入 <code>@</code>、深鏈定位與雙向跳轉</li>
     <li><strong>MCP / Skill</strong>：管控臺與 IDE 共用平臺語義，Skill 可跨項目復用</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TERMINAL模組</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>一站式終端（終端 / Terminal）</strong>：基於開源 <code>uniTerm</code> 整合改名，覆蓋 SSH / Telnet / Mosh 遠端終端、本地與串口終端，密碼 / 密鑰認證，並支援 SSH 隧道端口轉發</li>
+    <li><strong>多協議遠端維運</strong>：SFTP / SCP / FTP / SMB / WebDAV / S3 檔案傳輸（雙欄瀏覽與 <code>rz</code>/<code>sz</code>），RDP / VNC / SPICE / X11 遠端桌面，MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB 等資料庫客戶端</li>
+    <li><strong>容器與監控</strong>：Kubernetes / Docker / Podman / nerdctl 容器接入，伺服器 CPU / 記憶體 / 磁碟 / 網路 / 行程即時監控</li>
+    <li><strong>跨平臺桌面交付</strong>：Wails v3（Go + Vue 3）構建，產物覆蓋 Windows / macOS / Linux，亦可 <code>server</code> 模式純 HTTP 服務執行</li>
   </ul>
 </td>
 </tr>
@@ -875,7 +910,7 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 
 ## 🎬 演示影片
 
-- Bilibili：https://www.bilibili.com/video/BV1d3846yEQz/?vd_source=5d3350c0182a2cf35c2739f3d16c1161
+- Bilibili：https://www.bilibili.com/video/BV1Kkaw6NE1B/?vd_source=2f810014df44025e0bcef187560a91c4
 
 ## ⚙️ 項目地址
 
@@ -905,6 +940,10 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 | ![預覽](.image/banner/banner1188.png) | ![組件](.image/banner/banner1189.png) | ![數據源](.image/banner/banner1190.png) |
 | ![發佈](.image/banner/banner1191.png) | ![運行](.image/banner/banner1192.png) | ![模板](.image/banner/banner1193.png) |
 | ![資產](.image/banner/banner1194.png) | ![大屏](.image/banner/banner1195.png) | ![展示](.image/banner/banner1196.png) |
+| ![數位孪生](.image/banner/banner1258.png) | ![爆炸視圖](.image/banner/banner1259.png) | ![樓層視圖](.image/banner/banner1260.png) |
+| ![數位孪生](.image/banner/banner1261.png) | ![爆炸視圖](.image/banner/banner1262.png) | ![樓層視圖](.image/banner/banner1263.png) |
+| ![數位孪生](.image/banner/banner1264.png) | ![爆炸視圖](.image/banner/banner1265.png) | ![樓層視圖](.image/banner/banner1266.png) |
+| ![數位孪生](.image/banner/banner1267.png) | ![爆炸視圖](.image/banner/banner1268.png) | ![樓層視圖](.image/banner/banner1269.png) |
 
 #### 📹 視頻監控
 

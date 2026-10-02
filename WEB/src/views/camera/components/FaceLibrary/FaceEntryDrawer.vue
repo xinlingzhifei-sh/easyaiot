@@ -90,9 +90,11 @@
                   :width="100"
                   :height="100"
                   style="object-fit: cover; border-radius: 8px; cursor: pointer"
-                  :preview="{ mask: '预览' }"
+                  :preview="true"
                   :fallback="fallbackImg"
-                />
+                >
+                  <template #previewMask>预览</template>
+                </a-image>
                 <a-avatar v-else :size="100" shape="square">
                   <template #icon><UserOutlined style="font-size: 40px" /></template>
                 </a-avatar>
@@ -161,6 +163,18 @@ import {
 import { getEntryColumns } from './Data';
 import FaceEntryModal from './FaceEntryModal.vue';
 import FaceNormalizeModal from './FaceNormalizeModal.vue';
+import {
+  Avatar as AAvatar,
+  Card as ACard,
+  Col as ACol,
+  Empty as AEmpty,
+  Image as AImage,
+  InputSearch as AInputSearch,
+  Row as ARow,
+  Spin as ASpin,
+  Tag as ATag,
+  Tooltip as ATooltip,
+} from 'ant-design-vue';
 import { Button, PopConfirmButton } from '@/components/Button'
 defineOptions({ name: 'FaceEntryDrawer' });
 

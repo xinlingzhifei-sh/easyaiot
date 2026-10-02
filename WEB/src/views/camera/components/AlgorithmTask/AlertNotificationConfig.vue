@@ -44,7 +44,7 @@
             :loading="templateLoading[channel]"
             show-search
             :filter-option="filterTemplateOption"
-            @change="handleTemplateChange(channel, $event)"
+            @change="handleTemplateChange(channel, $event as string | number)"
             :disabled="isViewMode"
             style="width: 100%"
           >
@@ -77,6 +77,13 @@
 
 <script lang="ts" setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import {
+  FormItem as AFormItem,
+  Switch as ASwitch,
+  Select as ASelect,
+  SelectOption as ASelectOption,
+  InputNumber as AInputNumber,
+} from 'ant-design-vue';
 import { notifyTemplateQueryByType } from '@/api/device/notice';
 
 interface Props {

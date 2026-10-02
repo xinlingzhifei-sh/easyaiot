@@ -58,6 +58,7 @@ apply_deploy_profile() {
             # RUNTIME 告警走 HTTP → VIDEO，不依赖 MQTT/EMQX
             export EASYAIOT_ENABLE_EMQX=0
             export EASYAIOT_ENABLE_HARNESS=0
+            export EASYAIOT_ENABLE_TERMINAL=0
             export EASYAIOT_ENABLE_IDEA=0
             export EASYAIOT_ENABLE_PANEL=0
             export EASYAIOT_ENABLE_MQTT_DEMO=0
@@ -182,16 +183,18 @@ is_full_deploy_profile() {
 }
 
 # 按部署形态判断业务模块是否启用
-#   APP / VISUALIZE / TRANSFORM — 仅 full 全量形态
+#   APP / VISUALIZE / TWIN / TRANSFORM — 仅 full 全量形态
 #   POST — 仅 standard / full（mini / edge 不部署定制后处理）
 #   PANEL — 源码/Docker 部署默认启用；安装包（deb/桌面端）本身即为 PANEL，
 #           由 systemd/二进制托管，部署时不应再拉 Docker PANEL（EASYAIOT_ENABLE_PANEL=0）。
 #           无源码 runtime 未显式开启时也默认跳过。
 #   IDEA — 社区贡献在线 IDE，mini/standard/full 均启用（EASYAIOT_ENABLE_IDEA=0 关闭）
 #   HARNESS — DeepSeek Harness AI Agent，mini/standard/full 均启用（EASYAIOT_ENABLE_HARNESS=0 关闭）
+#   TERMINAL — 多协议终端 server（SSH/RDP/VNC/K8s，WEB 助手第三入口），mini/standard/full 均启用
+#              （EASYAIOT_ENABLE_TERMINAL=0 关闭；edge 形态无 WEB 助手入口，自动关闭）
 module_enabled_for_deploy_profile() {
     case "$1" in
-        APP|VISUALIZE|TRANSFORM) [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "full" ] ;;
+        APP|VISUALIZE|TWIN|TRANSFORM) [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "full" ] ;;
         POST)
             case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
                 standard|full) return 0 ;;
@@ -209,6 +212,12 @@ module_enabled_for_deploy_profile() {
             ;;
         HARNESS)
             case "${EASYAIOT_ENABLE_HARNESS:-}" in
+                0|false|FALSE|no|NO|off|OFF) return 1 ;;
+                *) return 0 ;;
+            esac
+            ;;
+        TERMINAL)
+            case "${EASYAIOT_ENABLE_TERMINAL:-}" in
                 0|false|FALSE|no|NO|off|OFF) return 1 ;;
                 *) return 0 ;;
             esac
@@ -893,6 +902,9 @@ apply_python_service_deploy_env() {
             _set_env_docker_kv "$env_file" NODE_REMOTE_DEPLOY true
         fi
         if [ "$module" = "VIDEO" ]; then
+            # 模型信息/权重下载统一指向 AI 服务（edge 切回 full 后残留的
+            # AI_SERVICE_URL=…/video 会回环 VIDEO 自身，模型记录 404）
+            _set_env_docker_kv "$env_file" AI_SERVICE_URL "http://127.0.0.1:5000"
             # RTC / go2rtc：存量 .env.docker 可能缺项，安装/切形态时补齐
             _set_env_docker_kv "$env_file" RTC_SERVICE_URL "http://127.0.0.1:6100"
             _set_env_docker_kv "$env_file" RTC_GO2RTC_WEB_URL "/dev-api/go2rtc/"

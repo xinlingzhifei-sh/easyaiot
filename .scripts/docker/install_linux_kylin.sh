@@ -89,6 +89,7 @@ echo "" >> "$LOG_FILE"
 MODULES=(
     "HARNESS"          # DeepSeek Harness AI Agent（IDEA 分屏依赖，须优先就绪）
     "IDEA"             # 社区贡献在线 IDE
+    "TERMINAL"         # 多协议终端（SSH/RDP/VNC/K8s，WEB 助手第三入口）
     ".scripts/docker"  # 基础服务（Nacos、PostgreSQL、Redis等）
     "DEVICE"           # Device服务（网关和微服务）
     "AI"               # AI服务
@@ -98,6 +99,7 @@ MODULES=(
     "WEB"              # Web前端服务
     "APP"              # App移动端H5（仅 full 全量形态）
     "VISUALIZE"        # 可视化编辑器（仅 full 全量形态）
+    "TWIN"             # 数字孪生引擎（仅 full / 含可视化形态）
     "TRANSFORM"        # 系统对接（仅 full 全量形态）
     "PANEL"            # 运维控制台：源码/Docker 可装；安装包本身即为 PANEL，部署默认跳过
 )
@@ -105,7 +107,7 @@ MODULES=(
 # 编排前置模块（仅控制启动顺序；失败不再中止后续模块）
 is_bootstrap_module() {
     case "$1" in
-        HARNESS|IDEA) return 0 ;;
+        HARNESS|IDEA|TERMINAL) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -113,6 +115,7 @@ is_bootstrap_module() {
 # 模块名称映射
 declare -A MODULE_NAMES
 MODULE_NAMES["HARNESS"]="HARNESS AI助手"
+MODULE_NAMES["TERMINAL"]="TERMINAL多协议终端"
 MODULE_NAMES["IDEA"]="IDEA在线IDE"
 MODULE_NAMES[".scripts/docker"]="基础服务"
 MODULE_NAMES["DEVICE"]="Device服务"
@@ -123,12 +126,14 @@ MODULE_NAMES["VIDEO"]="Video服务"
 MODULE_NAMES["WEB"]="Web前端服务"
 MODULE_NAMES["APP"]="App移动端H5"
 MODULE_NAMES["VISUALIZE"]="可视化编辑器"
+MODULE_NAMES["TWIN"]="数字孪生引擎"
 MODULE_NAMES["TRANSFORM"]="数据转发"
 MODULE_NAMES["PANEL"]="运维控制台"
 
 # 模块端口映射
 declare -A MODULE_PORTS
 MODULE_PORTS["HARNESS"]="3080"
+MODULE_PORTS["TERMINAL"]="9245"
 MODULE_PORTS["IDEA"]="9300"
 MODULE_PORTS[".scripts/docker"]="8848"  # Nacos端口
 MODULE_PORTS["DEVICE"]="48080"           # Gateway端口
@@ -139,12 +144,14 @@ MODULE_PORTS["VIDEO"]="6000"
 MODULE_PORTS["WEB"]="8888"
 MODULE_PORTS["APP"]="9010"
 MODULE_PORTS["VISUALIZE"]="8002"
+MODULE_PORTS["TWIN"]="8003"
 MODULE_PORTS["TRANSFORM"]="48096"
 MODULE_PORTS["PANEL"]="9200"
 
 # 模块健康检查端点
 declare -A MODULE_HEALTH_ENDPOINTS
 MODULE_HEALTH_ENDPOINTS["HARNESS"]="/"
+MODULE_HEALTH_ENDPOINTS["TERMINAL"]="/"
 MODULE_HEALTH_ENDPOINTS["IDEA"]="/health"
 MODULE_HEALTH_ENDPOINTS[".scripts/docker"]="/nacos/actuator/health"
 MODULE_HEALTH_ENDPOINTS["DEVICE"]="/actuator/health"  # Gateway健康检查
@@ -155,6 +162,7 @@ MODULE_HEALTH_ENDPOINTS["VIDEO"]="/actuator/health"
 MODULE_HEALTH_ENDPOINTS["WEB"]="/health"
 MODULE_HEALTH_ENDPOINTS["APP"]="/health"
 MODULE_HEALTH_ENDPOINTS["VISUALIZE"]="/health"
+MODULE_HEALTH_ENDPOINTS["TWIN"]="/health"
 MODULE_HEALTH_ENDPOINTS["TRANSFORM"]="/actuator/health"
 MODULE_HEALTH_ENDPOINTS["PANEL"]="/health"
 
@@ -787,6 +795,10 @@ execute_module_command() {
             print_error "未检测到 HARNESS 目录，无法部署 AI 助手"
             return 1
         fi
+        if [ "$module" = "TERMINAL" ]; then
+            print_error "未检测到 TERMINAL 目录，无法部署多协议终端"
+            return 1
+        fi
         if [ "$module" = "PANEL" ]; then
             print_info "跳过运维控制台（PANEL）：$(panel_skip_deploy_reason)（runtime 无 PANEL 目录）"
             return 0
@@ -809,6 +821,10 @@ execute_module_command() {
             print_error "未检测到 HARNESS/install_linux.sh，无法部署 AI 助手"
             return 1
         fi
+        if [ "$module" = "TERMINAL" ]; then
+            print_error "未检测到 TERMINAL/install_linux.sh，无法部署多协议终端"
+            return 1
+        fi
         if [ "$module" = "PANEL" ]; then
             print_info "跳过运维控制台（PANEL）：$(panel_skip_deploy_reason)（无 install_linux.sh）"
             return 0
@@ -829,7 +845,7 @@ execute_module_command() {
 
     local defer_agent_sync=0
     case "$module" in
-        DEVICE|AI|RTC|POST|VIDEO|WEB|APP|VISUALIZE|TRANSFORM) defer_agent_sync=1 ;;
+        DEVICE|AI|RTC|POST|VIDEO|WEB|APP|VISUALIZE|TWIN|TRANSFORM) defer_agent_sync=1 ;;
     esac
     if [ "$defer_agent_sync" -eq 1 ]; then
         export EASYAIOT_DEFER_PLATFORM_AGENT_SYNC=1
@@ -1112,7 +1128,7 @@ start_all() {
 
     # HARNESS 先于 IDEA（失败跳过并继续后续模块）
     local module
-    for module in HARNESS IDEA; do
+    for module in HARNESS TERMINAL IDEA; do
         if module_enabled_for_deploy_profile "$module"; then
             print_section "启动 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "start"; then
@@ -1381,7 +1397,7 @@ clean_all() {
 
 # 清理 build-runtime 构建产物：先停止服务，再调用 cleanup_build_runtime.sh
 # 用法: clean-build-runtime [模块] [选项...]
-#   模块为可选的 build-runtime 模块名（HARNESS|IDEA|DEVICE|AI|RTC|POST|VIDEO|WEB|APP|VISUALIZE|TRANSFORM|PANEL），
+#   模块为可选的 build-runtime 模块名（HARNESS|TERMINAL|IDEA|DEVICE|AI|RTC|POST|VIDEO|WEB|APP|VISUALIZE|TWIN|TRANSFORM|PANEL），
 #   指定后仅停止该模块服务、仅清理该模块镜像与该模块 .build-cache；其余选项原样透传给 cleanup_build_runtime.sh。
 clean_build_runtime() {
     shift
@@ -1498,7 +1514,7 @@ update_all() {
     # HARNESS 先于 IDEA（失败跳过并继续后续模块）
     collect_biz_modules
     local module
-    for module in HARNESS IDEA; do
+    for module in HARNESS TERMINAL IDEA; do
         if module_enabled_for_deploy_profile "$module"; then
             print_section "更新 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "update"; then
@@ -1576,6 +1592,9 @@ verify_all() {
         if module_enabled_for_deploy_profile HARNESS; then
             echo -e "  AI 助手 (HARNESS):      http://localhost:3080"
         fi
+        if module_enabled_for_deploy_profile TERMINAL; then
+            echo -e "  终端助手 (TERMINAL):    http://localhost:9245"
+        fi
         echo -e "  基础服务 (Nacos):     http://localhost:8848/nacos"
         echo -e "  基础服务 (MinIO):     http://localhost:9000 (API), http://localhost:9001 (Console)"
         echo -e "  基础服务 (Milvus):    http://localhost:9091 (Health), localhost:19530 (gRPC)"
@@ -1590,6 +1609,9 @@ verify_all() {
         fi
         if module_enabled_for_deploy_profile VISUALIZE; then
             echo -e "  可视化编辑器:           http://localhost:8002"
+        fi
+        if module_enabled_for_deploy_profile TWIN; then
+            echo -e "  数字孪生引擎:           http://localhost:8003"
         fi
         if module_enabled_for_deploy_profile TRANSFORM; then
             echo -e "  系统对接 (TRANSFORM):   http://localhost:48096"

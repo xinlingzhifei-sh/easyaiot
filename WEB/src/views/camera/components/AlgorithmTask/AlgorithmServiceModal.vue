@@ -66,6 +66,16 @@
 
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
+import {
+  type FormProps,
+  Modal as AModal,
+  Form as AForm,
+  FormItem as AFormItem,
+  InputNumber as AInputNumber,
+  Select as ASelect,
+  SelectOption as ASelectOption,
+  Switch as ASwitch,
+} from 'ant-design-vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import {
   createTaskService,
@@ -99,7 +109,7 @@ const formData = ref({
   is_enabled: true,
 });
 
-const rules = {
+const rules: FormProps['rules'] = {
   service_name: [{ required: true, message: '请输入服务名称', trigger: 'blur' }],
   service_url: [{ required: true, message: '请输入服务URL', trigger: 'blur' }],
   request_method: [{ required: true, message: '请选择请求方法', trigger: 'change' }],

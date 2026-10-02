@@ -1090,6 +1090,7 @@ update_service() {
     print_info "更新服务..."
     check_docker
     check_docker_compose
+    ensure_ssl_certs || exit 1
 
     # 拉取预构建：跳过 git / 构建，仅 recreate（需部署形态匹配）
     if [ "${EASYAIOT_SKIP_BUILD:-0}" = "1" ] \

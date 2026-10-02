@@ -42,12 +42,12 @@ class ModelService:
     @staticmethod
     def get_minio_client():
         """创建并返回Minio客户端（从.env加载配置）"""
-        minio_endpoint = os.getenv('MINIO_ENDPOINT', 'localhost:9000')
-        access_key = os.getenv('MINIO_ACCESS_KEY', '')
-        secret_key = os.getenv('MINIO_SECRET_KEY', '')
+        minio_endpoint = (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', 'localhost:9000'))
+        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', ''))
+        secret_key = (os.getenv('S3_SECRET_KEY') or os.getenv('MINIO_SECRET_KEY', ''))
         if not access_key or not secret_key:
             raise RuntimeError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
-        secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
+        secure = (os.getenv('S3_SECURE') or os.getenv('MINIO_SECURE', 'false')).lower() == 'true'
 
         return Minio(
             minio_endpoint,
@@ -59,9 +59,9 @@ class ModelService:
     @staticmethod
     def _get_minio_config_info():
         """获取MinIO配置信息（用于诊断，不包含敏感信息）"""
-        minio_endpoint = os.getenv('MINIO_ENDPOINT', 'MinIO:9000')
-        access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-        secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
+        minio_endpoint = os.getenv('S3_ENDPOINT') or (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', 'RustFS:9000'))
+        access_key = os.getenv('S3_ACCESS_KEY') or (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', 'minioadmin'))
+        secure = (os.getenv('S3_SECURE') or os.getenv('MINIO_SECURE', 'false')).lower() == 'true'
         # 只显示访问密钥的前4个字符，用于诊断
         access_key_display = access_key[:4] + '***' if len(access_key) > 4 else '***'
         return {
@@ -69,7 +69,7 @@ class ModelService:
             'access_key': access_key_display,
             'secure': secure,
             'access_key_set': bool(access_key),
-            'secret_key_set': bool(os.getenv('MINIO_SECRET_KEY'))
+            'secret_key_set': bool(os.getenv('S3_SECRET_KEY') or os.getenv('MINIO_SECRET_KEY'))
         }
 
     @staticmethod
@@ -114,9 +114,9 @@ class ModelService:
     @staticmethod
     def _get_minio_config_info():
         """获取MinIO配置信息（用于诊断，不包含敏感信息）"""
-        minio_endpoint = os.getenv('MINIO_ENDPOINT', 'MinIO:9000')
-        access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-        secure = os.getenv('MINIO_SECURE', 'false').lower() == 'true'
+        minio_endpoint = (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', 'MinIO:9000'))
+        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', 'minioadmin'))
+        secure = (os.getenv('S3_SECURE') or os.getenv('MINIO_SECURE', 'false')).lower() == 'true'
         # 只显示访问密钥的前4个字符，用于诊断
         access_key_display = access_key[:4] + '***' if len(access_key) > 4 else '***'
         return {

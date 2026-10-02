@@ -101,6 +101,8 @@ declare global {
     VITE_UPLOAD_MAX_CONCURRENCY?: string
     /** VISUALIZE 大屏编辑器基址 */
     VITE_GLOB_VISUALIZE_URL?: string
+    /** 数字孪生运行时基址 */
+    VITE_GLOB_TWIN_URL?: string
     /** FUXA 组态编辑器基址 */
     VITE_GLOB_FUXA_URL?: string
     /** yFeiEye PANEL 运维控制台（留空则使用当前访问域名 + 9200 端口） */
@@ -111,6 +113,8 @@ declare global {
     VITE_IDEA_TOKEN?: string
     /** yFeiEye HARNESS AI 助手（留空则使用当前访问域名 + 3080 端口） */
     VITE_HARNESS_URL?: string
+    /** yFeiEye TERMINAL 多协议终端（留空则使用当前访问域名 + 9245 端口） */
+    VITE_TERMINAL_URL?: string
     VITE_HARNESS_APP_NAME?: string
     /** HARNESS LLM 统一网关模式：harness（默认，网关优先+直连回退）| direct（始终直连 AI 模块） */
     VITE_LLM_GATEWAY_MODE?: string

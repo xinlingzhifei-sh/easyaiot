@@ -166,7 +166,7 @@
               <a-form-item :label="field.title">
                 <a-select
                   v-if="field.enum"
-                  v-model:value="selectedStepParams[field.key]"
+                  v-model:value="selectedStepParams[field.key] as string | undefined"
                   :disabled="disabled || isDefaultMode"
                   allow-clear
                   @change="emitChange"
@@ -175,14 +175,14 @@
                 </a-select>
                 <a-input-number
                   v-else-if="field.type === 'number' || field.type === 'integer'"
-                  v-model:value="selectedStepParams[field.key]"
+                  v-model:value="selectedStepParams[field.key] as number | undefined"
                   :disabled="disabled || isDefaultMode"
                   style="width: 100%"
                   @change="emitChange"
                 />
                 <a-select
                   v-else-if="field.type === 'array'"
-                  v-model:value="selectedStepParams[field.key]"
+                  v-model:value="selectedStepParams[field.key] as string[] | undefined"
                   mode="tags"
                   :disabled="disabled || isDefaultMode"
                   placeholder="输入后回车"
@@ -216,6 +216,19 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
+import {
+  Alert as AAlert,
+  Space as ASpace,
+  Tag as ATag,
+  Switch as ASwitch,
+  Form as AForm,
+  FormItem as AFormItem,
+  Select as ASelect,
+  SelectOption as ASelectOption,
+  Divider as ADivider,
+  InputNumber as AInputNumber,
+  Empty as AEmpty,
+} from 'ant-design-vue';
 import { Button } from '@/components/Button';
 import { useDrawer } from '@/components/Drawer';
 import { useMessage } from '@/hooks/web/useMessage';

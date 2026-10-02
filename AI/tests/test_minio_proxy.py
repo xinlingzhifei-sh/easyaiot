@@ -66,20 +66,14 @@ def test_minio_proxy_rejects_protected_media_buckets(monkeypatch, bucket_name):
     assert calls == []
 
 
-def test_minio_proxy_uses_parsed_object_name_in_local_mode(monkeypatch):
+def test_minio_proxy_uses_parsed_object_name_in_local_mode(monkeypatch, tmp_path):
     from app.blueprints import minio_proxy
     from app.utils import service_urls
-    from app.services import local_storage_service
-
-    calls = []
     monkeypatch.setattr(service_urls, 'minio_storage_enabled', lambda: False)
-
-    def fake_read_local_object(bucket_name, object_name):
-        calls.append((bucket_name, object_name))
-        return b'model-bytes', 'application/octet-stream', None
-
-    monkeypatch.setattr(
-        local_storage_service, 'read_local_object', fake_read_local_object)
+    monkeypatch.setenv('LOCAL_STORAGE_ROOT', str(tmp_path))
+    model_path = tmp_path / 'models' / 'weights' / 'demo.pt'
+    model_path.parent.mkdir(parents=True)
+    model_path.write_bytes(b'model-bytes')
 
     app = Flask(__name__)
     app.register_blueprint(minio_proxy.minio_proxy_bp)
@@ -90,7 +84,8 @@ def test_minio_proxy_uses_parsed_object_name_in_local_mode(monkeypatch):
 
     assert response.status_code == 200
     assert response.data == b'model-bytes'
-    assert calls == [('models', 'weights/demo.pt')]
+    assert response.headers['Accept-Ranges'] == 'bytes'
+    response.close()
 
 
 @pytest.mark.parametrize('prefix', ['../secret', 'a/../../secret', '%2Fabsolute'])

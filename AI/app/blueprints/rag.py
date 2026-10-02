@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import re
 
 import requests
 from flask import Blueprint, jsonify, request
@@ -105,6 +107,97 @@ def segments():
     return ok([item.to_dict() for item in items])
 
 
+AUTO_META_PROMPT = (
+    '你是知识库整理助手。阅读下面的知识片段，输出一个 JSON 对象（不要输出其他文字）：\n'
+    '{{"title": "不超过 30 字的标题，概括这段知识讲什么", '
+    '"tags": ["2-4 个业务标签，如设备名/工序/故障类型"]}}\n\n片段内容：\n{content}'
+)
+
+
+@rag_bp.route('/segments/auto-meta', methods=['POST'])
+def segments_auto_meta():
+    """用已启用大模型为片段批量生成标题与业务标签（内容不变，不重新向量化）。"""
+    data = request.get_json(silent=True) or {}
+    ids = ids_from(data, 'ids')[:20]
+    if not ids:
+        return jsonify({'code': 400, 'msg': '请选择知识片段'}), 400
+    items = RagKnowledgeSegment.query.filter(RagKnowledgeSegment.id.in_(ids)).all()
+    if not items:
+        return jsonify({'code': 404, 'msg': '知识片段不存在'}), 404
+    model = LLMModel.query.filter_by(is_active=True).order_by(LLMModel.id).first()
+    if not model:
+        return jsonify({'code': 400, 'msg': '未启用任何大模型，请先在「模型配置」中启用'}), 400
+    updated, failed = 0, []
+    for item in items:
+        try:
+            result = invoke_chat(model, [{'role': 'user', 'content': AUTO_META_PROMPT.format(content=item.content[:4000])}],
+                                 stream=False, timeout=max(model.timeout or 60, 60))
+            parsed = _parse_meta_json(result.get('response', ''))
+            if not parsed:
+                raise ValueError('模型未返回有效 JSON')
+            if parsed.get('title'):
+                item.title = str(parsed['title'])[:80]
+            tags = [str(tag).strip() for tag in (parsed.get('tags') or []) if str(tag).strip()]
+            if tags:
+                item.tags = tags[:4]
+            updated += 1
+        except Exception as exc:
+            logger.warning('片段 %s 自动补全失败: %s', item.id, exc)
+            failed.append(item.title or f'片段 {item.id}')
+    db.session.commit()
+    message = f'已为 {updated} 个片段补全标题与标签'
+    if failed:
+        message += f'，{len(failed)} 个失败（{"、".join(failed[:3])}）'
+    return ok({'updated': updated, 'failed': failed}, message)
+
+
+def _parse_meta_json(text: str):
+    match = re.search(r'\{.*\}', text or '', re.DOTALL)
+    if not match:
+        return None
+    try:
+        parsed = json.loads(match.group(0))
+        return parsed if isinstance(parsed, dict) else None
+    except Exception:
+        return None
+
+
+@rag_bp.route('/segments/merge', methods=['POST'])
+def segments_merge():
+    """合并同一文档的多个片段：内容拼接、标签并集，知识集引用自动改挂到新片段。"""
+    data = request.get_json(silent=True) or {}
+    ids = ids_from(data, 'ids')
+    if len(ids) < 2:
+        return jsonify({'code': 400, 'msg': '至少选择 2 个片段才能合并'}), 400
+    items = [RagKnowledgeSegment.query.get(value) for value in ids]
+    if not all(items):
+        return jsonify({'code': 404, 'msg': '部分知识片段不存在'}), 404
+    document_ids = {item.document_id for item in items}
+    if len(document_ids) > 1:
+        return jsonify({'code': 400, 'msg': '只能合并同一文档下的片段'}), 400
+    content = '\n\n'.join(item.content.strip() for item in items)
+    tags = list(dict.fromkeys(tag for item in items for tag in (item.tags or [])))
+    merged = RagKnowledgeSegment(
+        document_id=items[0].document_id,
+        segment_index=max(item.segment_index for item in items),
+        title=str(data.get('title') or '').strip() or items[0].title or '合并片段',
+        content=content, tags=tags, is_enabled=any(item.is_enabled for item in items),
+        search_terms=' '.join(tags + terms(content)),
+    )
+    db.session.add(merged)
+    db.session.flush()
+    for knowledge_set in RagKnowledgeSet.query.all():
+        current = list(knowledge_set.segments)
+        if any(item in current for item in items):
+            knowledge_set.segments = [value for value in current if value not in items] + [merged]
+    for item in items:
+        get_rag_vector_store().delete_segment(item.id)
+        db.session.delete(item)
+    replace_segment_vector(merged)
+    db.session.commit()
+    return ok(merged.to_dict(), f'已合并为 1 个片段，{len(items) - 1} 个源片段已删除')
+
+
 @rag_bp.route('/segments/<int:item_id>', methods=['PUT', 'DELETE'])
 def segment_item(item_id):
     item = RagKnowledgeSegment.query.get_or_404(item_id)
@@ -193,6 +286,10 @@ def save_expert(item=None):
     item = item or RagExpert()
     item.name, item.category, item.knowledge_sets = name, category, sets
     item.system_prompt, item.welcome_message = prompt, data.get('welcome_message')
+    if item.id is None:
+        item.is_enabled = bool(data.get('is_enabled', True))
+    elif 'is_enabled' in data:
+        item.is_enabled = bool(data.get('is_enabled'))
     db.session.add(item)
     db.session.commit()
     return ok(item.to_dict(), 'RAG 专家已保存')
@@ -219,12 +316,22 @@ def expert_chat(item_id):
     sources = retrieve_segments(segment_ids, question, limit=int(data.get('top_k') or 5))
     context = '\n\n'.join(f'【资料 {index}｜{item["document_name"]}】\n{item["content"]}'
                             for index, item in enumerate(sources, 1)) or '未检索到相关知识。'
+    # 多轮调试：仅保留最近 6 条有效历史，避免上下文超长
+    history = []
+    for row in (data.get('history') or []):
+        if not isinstance(row, dict):
+            continue
+        role, content = row.get('role'), str(row.get('content') or '').strip()
+        if role in ('user', 'assistant') and content:
+            history.append({'role': role, 'content': content})
+    history = history[-6:]
     model = LLMModel.query.filter_by(is_active=True).order_by(LLMModel.id).first()
     if not model:
         response = f'【检索结果】\n\n{sources[0]["content"]}' if sources else '知识集中没有检索到相关依据。'
         return ok({'response': response, 'model': None, 'mode': 'retrieval', 'sources': sources})
-    messages = [{'role': 'system', 'content': f'{expert.system_prompt}\n必须依据资料回答，资料不足时明确说明，不得编造。引用使用【资料 1】格式。\n\n{context}'},
-                {'role': 'user', 'content': question}]
+    messages = [{'role': 'system', 'content': f'{expert.system_prompt}\n必须依据资料回答，资料不足时明确说明，不得编造。引用使用【资料 1】格式。\n\n{context}'}]
+    messages.extend(history)
+    messages.append({'role': 'user', 'content': question})
     try:
         result = invoke_chat(model, messages, stream=False, timeout=model.timeout)
         return ok({'response': result['response'], 'model': model.model_name, 'sources': sources})
@@ -236,4 +343,9 @@ def expert_chat(item_id):
 
 @rag_bp.route('/health', methods=['GET'])
 def health():
-    return ok(get_rag_vector_store().health())
+    status = get_rag_vector_store().health()
+    # 检索底座透明化：local-hash 为词频降级向量，语义检索需配置 Embedding 服务
+    status['embedding_mode'] = ('openai-compatible'
+                                if os.getenv('RAG_EMBEDDING_BASE_URL') and os.getenv('RAG_EMBEDDING_MODEL')
+                                else 'local-hash')
+    return ok(status)

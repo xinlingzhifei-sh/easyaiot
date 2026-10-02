@@ -42,7 +42,7 @@ Many smart IoT projects hit the same wall at deployment: video systems, device p
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-The platform comprises core modules including <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TRANSFORM, PANEL, IDEA, HARNESS, and SITE</strong>, with <strong>COMPILE</strong> handling multi-platform packaging and delivery (including Ubuntu / CentOS·RHEL <strong>7–9</strong> (x86 + <strong>CentOS ARM</strong>, packages per el7/el8/el9) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM). On the capability side, the platform covers GB28181 / ONVIF multi-protocol camera access, <strong>RTC consumer-camera P2P bridging</strong> (based on go2rtc, covering <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, and Roborock</strong>—store Tapo fill-in, Tuya white-label onboarding, overseas Ring/Nest doorbells, Xiaomi reuse, Wyze low-cost scale-out, DoorBird intercom, GoPro mobile views, Roborock vacuum cameras—with one-click Web onboarding into unified video and AI judgment), <strong>DJI dock and drone aerial view access</strong>, real-time / snapshot / patrol algorithm tasks, <strong>RUNTIME native high-speed execution layer</strong> (compiled binary owns pull/decode, YOLO inference, boxed push, and multi-channel raw forward—lower CPU/memory and steadier latency than interpreted paths; one binary covers realtime / snap / patrol / forward), YOLO object detection and SAM zero-shot auto-annotation, face/plate recognition, <strong>POST custom judgment</strong> (after detection, filter and composite rules before alerting—change rules without retraining models), federated compute cluster scheduling, <strong>SENTINEL cluster-node sentinel</strong> (continuously reveals per-node readiness and schedulable business capacity, requests environment fill-in when gaps appear, and dispatches work by real capability), and <strong>Infinite Federated Edge Cluster mode</strong> (ordinary development boards ready out of the box, on-site intelligence for local decisions, alerts and evidence automatically aggregated to the cloud, compute scaling with business as needed), plus MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT device lifecycle management, with the <strong>EDGE C# edge collection runtime</strong> handling Modbus RTU/TCP, OPC UA, and other on-site industrial protocols via pluggable collectors, local scheduling, and MQTT cloud-edge integration, plus <strong>visualization dashboards and Web SCADA configuration</strong>, so device data can be displayed as command-center situational awareness and mapped back to process screens; plus the new <strong>POST custom judgment service</strong>, which turns detections into field-ready business events—fewer false alarms, configurable rules, trial runs before go-live; plus the <strong>TRANSFORM multidirectional data-flow engine</strong>, which delivers platform-side business events to external systems such as MES / ERP / CRM / WMS by contract—multi-party integration that is configurable, traceable, and reusable; and the companion <strong>PANEL delivery & watch entry</strong>, so appliances can be installed and accepted on arrival day, and watch/troubleshooting no longer wait on developers running remote commands every time; plus the <strong>SITE official website</strong> to present product value, four hardware tiers, and installer entry—so visitors understand first, then download and deploy; and <strong>IDEA community cloud IDE</strong> so contributors can open the full repo in a browser, co-create with GitHub Copilot, publish local changes, and submit PRs—turning open-source collaboration from “set up the environment first” into “open and edit”. On the experience side, the Web console and mobile App / mini-program are capability-aligned, so command centers and field inspections share the same business logic—handle incidents anytime, anywhere; and the new <strong>ANDROID / IOS / HARMONYOS packaging shells</strong> ship that mobile experience as installable apps on every mainstream phone OS (APK / IPA / HAP) from one frontend codebase, with one-command builds and unified version management.
+The platform comprises core modules including <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, and TERMINAL</strong>, with <strong>COMPILE</strong> handling multi-platform packaging and delivery (including Ubuntu / CentOS·RHEL <strong>7–9</strong> (x86 + <strong>CentOS ARM</strong>, packages per el7/el8/el9) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM). On the capability side, the platform covers GB28181 / ONVIF multi-protocol camera access, <strong>RTC consumer-camera P2P bridging</strong> (based on go2rtc, covering <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, and Roborock</strong>—store Tapo fill-in, Tuya white-label onboarding, overseas Ring/Nest doorbells, Xiaomi reuse, Wyze low-cost scale-out, DoorBird intercom, GoPro mobile views, Roborock vacuum cameras—with one-click Web onboarding into unified video and AI judgment), <strong>DJI dock and drone aerial view access</strong>, real-time / snapshot / patrol algorithm tasks, <strong>RUNTIME native high-speed execution layer</strong> (compiled binary owns pull/decode, YOLO inference, boxed push, and multi-channel raw forward—lower CPU/memory and steadier latency than interpreted paths; one binary covers realtime / snap / patrol / forward), YOLO object detection and SAM zero-shot auto-annotation, face/plate recognition, <strong>POST custom judgment</strong> (after detection, filter and composite rules before alerting—change rules without retraining models), federated compute cluster scheduling, <strong>SENTINEL cluster-node sentinel</strong> (continuously reveals per-node readiness and schedulable business capacity, requests environment fill-in when gaps appear, and dispatches work by real capability), and <strong>Infinite Federated Edge Cluster mode</strong> (ordinary development boards ready out of the box, on-site intelligence for local decisions, alerts and evidence automatically aggregated to the cloud, compute scaling with business as needed), plus MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT device lifecycle management, with the <strong>EDGE C# edge collection runtime</strong> handling Modbus RTU/TCP, OPC UA, and other on-site industrial protocols via pluggable collectors, local scheduling, and MQTT cloud-edge integration, plus <strong>visualization dashboards and Web SCADA configuration</strong>, so device data can be displayed as command-center situational awareness and mapped back to process screens; plus the new <strong>POST custom judgment service</strong>, which turns detections into field-ready business events—fewer false alarms, configurable rules, trial runs before go-live; plus the <strong>TRANSFORM multidirectional data-flow engine</strong>, which delivers platform-side business events to external systems such as MES / ERP / CRM / WMS by contract—multi-party integration that is configurable, traceable, and reusable; and the companion <strong>PANEL delivery & watch entry</strong>, so appliances can be installed and accepted on arrival day, and watch/troubleshooting no longer wait on developers running remote commands every time; plus the <strong>SITE official website</strong> to present product value, four hardware tiers, and installer entry—so visitors understand first, then download and deploy; and <strong>IDEA community cloud IDE</strong> so contributors can open the full repo in a browser, co-create with GitHub Copilot, publish local changes, and submit PRs—turning open-source collaboration from “set up the environment first” into “open and edit”; plus the <strong>TERMINAL module</strong> (integrated and renamed from the open-source uniTerm), an all-in-one terminal and remote-ops entry covering 30+ protocols including SSH / RDP / VNC / SFTP / databases / Kubernetes. On the experience side, the Web console and mobile App / mini-program are capability-aligned, so command centers and field inspections share the same business logic—handle incidents anytime, anywhere; and the new <strong>ANDROID / IOS / HARMONYOS packaging shells</strong> ship that mobile experience as installable apps on every mainstream phone OS (APK / IPA / HAP) from one frontend codebase, with one-command builds and unified version management.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -82,6 +82,21 @@ Smart IoT projects most often stall at the last mile: the machine is on site, ye
 | ![Overview](.image/banner/panel/panel_1000.png) | ![Containers](.image/banner/panel/panel_1001.png) | ![Logs](.image/banner/panel/panel_1002.png) |
 | ![Deploy](.image/banner/panel/panel_1003.png) | ![Images](.image/banner/panel/panel_1004.png) | ![Pull](.image/banner/panel/panel_1005.png) |
 | ![Diagnose](.image/banner/panel/panel_1006.png) | ![Maintain](.image/banner/panel/panel_1007.png) | ![Topology](.image/banner/panel/panel_1008.png) |
+
+### ⌨️ TERMINAL: 30+ Protocols Behind One Entry—No More Toolbelt for On-Call Troubleshooting
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+On-site troubleshooting rarely stalls on the fault itself—it stalls on stitching tools together: one client for SSH, a separate install of Navicat for databases, another app for Redis, a standalone SFTP client for transfers, and raw server logins just to run docker commands—accounts, tunnels, and jump hosts configured per machine, and reconfigured on every new one. TERMINAL, integrated and renamed from the open-source uniTerm, covers <strong>30+ protocols</strong> across five ops scenarios—remote terminal, remote desktop, file transfer, databases, and containers—and connects the full yFeiEye middleware stack with one click from the left panel; packaged with Wails v3 (Go + Vue 3) as a single app for Windows / macOS / Linux, or run in server mode over pure HTTP—turning “a toolbelt of tools and a pile of clients” into “one entry, every site.”
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>Remote terminals & desktops</strong>: SSH / Telnet / Mosh remote terminals plus local and serial terminals, with password / key auth and <strong>SSH tunnel port forwarding</strong> straight into intranets; RDP / VNC / SPICE / X11 remote desktops—operate Windows machines with no extra remote-control installs</li>
+  <li><strong>File transfer</strong>: dual-pane browsing over SFTP / SCP / FTP / SMB / WebDAV / S3 with <code>rz</code>/<code>sz</code> and drag-and-drop upload—pull log bundles and evidence files back on the spot</li>
+  <li><strong>Database clients</strong>: MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB out of the box—table structures, SQL queries, result-set editing, and visual Redis key management in one place, with no more side-installed Navicat / RDM</li>
+  <li><strong>Containers & monitoring</strong>: Kubernetes / Docker / Podman / nerdctl container terminals, logs, and start/stop on one screen, plus real-time CPU / memory / disk / network / process monitoring to locate resource bottlenecks</li>
+</ul>
+
+![yFeiEye Terminal](.image/banner/terminal/yfeieye-terminal-home.png)
 
 ### 📡 RTC: Consumer-Camera P2P Bridging—Bring "No RTSP" Devices Into the Platform
 
@@ -550,7 +565,7 @@ yFeiEye actively responds to localization strategies, providing comprehensive su
 ## 🧩 Project Structure
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, and SITE, plus COMPILE multi-platform packaging and delivery:
+yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, and TERMINAL, plus COMPILE multi-platform packaging and delivery:
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -712,7 +727,7 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>One-Click Distribute</strong>: WEB “workload distribute” or install scripts batch-deploy; center VIDEO install auto-mounts the local executor</li>
     <li><strong>Event plane MQTT</strong>: Alerts/snapshots/post-process via EMQX algo bus; <strong>iot-sink</strong> persists, archives, and enriches notifications</li>
     <li><strong>Management plane HTTP heartbeat</strong>: Task liveness reports to VIDEO; start/stop and task table managed by VIDEO</li>
-    <li><strong>NFS media root</strong>: Alert images and SRS DVR unified to <strong>NFS shared media root</strong> (<code>EASYAIOT_MEDIA_ROOT</code>, default <code>/mnt/easyaiot-media</code>; falls back to <code>$HOME/easyaiot/media</code> without sudo); MQTT carries paths only; <strong>iot-sink</strong> reads disk and archives to MinIO</li>
+    <li><strong>NFS media root</strong>: Alert images and SRS DVR unified to <strong>NFS shared media root</strong> (<code>EASYAIOT_MEDIA_ROOT</code>, default <code>/mnt/easyaiot-media</code>; falls back to <code>$HOME/easyaiot/media</code> without sudo); MQTT carries paths only; <strong>iot-sink</strong> reads disk and archives to RustFS</li>
   </ul>
 </td>
 </tr>
@@ -738,6 +753,18 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>Dashboard Delivery</strong>: Drag-and-drop charts, metrics, and layouts; components can connect to platform data sources and IoT metrics, supporting rapid command dashboards for campus situational awareness, production-line KPIs, equipment ops, energy consumption, and more</li>
     <li><strong>Clear Division with SCADA</strong>: Dashboards use this module; process SCADA uses Web SCADA capability; project metadata is unified under the DEVICE visualization backend</li>
     <li><strong>Deployment Profile</strong>: Same as APP as a full-edition capability; mini / standard can skip per field hardware, reducing edge lite deployment size</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TWIN Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>Multi-industry digital twins</strong>: Four built-in Three.js scenes for an industrial park, smart campus, smart port, and net-zero energy base, with project-specific themes and operational views</li>
+    <li><strong>3D navigation and spatial positioning</strong>: Rotate, zoom, and smoothly switch preset viewpoints; device locations, online/warning/offline states, and live alerts highlight together in the scene</li>
+    <li><strong>Building and floor operations</strong>: Focus a building, switch floors, isolate devices on the active floor, and track device, online, warning, and unbound counts together</li>
+    <li><strong>Device and data binding</strong>: In edit mode, bind 3D objects and points to sensors, cameras, PLCs / edge gateways via MQTT, Modbus TCP, OPC UA, GB28181, or ONVIF</li>
+    <li><strong>Replaceable model and data layers</strong>: The MVP currently uses procedural scenes and simulated live data; stable device-ID mapping allows later replacement with Blender / GLB assets and yFeiEye API, MQTT over WebSocket, or backend WebSocket sources</li>
   </ul>
 </td>
 </tr>
@@ -780,6 +807,17 @@ yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, VIDEO, RT
     <li><strong>In-page floating drawer</strong>: Chat without leaving business pages; included by default in <code>mini / standard / full</code></li>
     <li><strong>IDEA split-pane link</strong>: Assistant beside the editor; drag-to-<code>@</code>, deep links, and two-way jump</li>
     <li><strong>MCP / Skill</strong>: Console and IDE share platform semantics; Skills reusable across projects</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TERMINAL Module</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>All-in-one terminal (终端 / Terminal)</strong>: integrated and renamed from the open-source <code>uniTerm</code>; SSH / Telnet / Mosh remote terminal plus local and serial terminals, password / key auth, and SSH tunnel port forwarding</li>
+    <li><strong>Multi-protocol remote ops</strong>: SFTP / SCP / FTP / SMB / WebDAV / S3 file transfer (dual-pane browsing and <code>rz</code>/<code>sz</code>), RDP / VNC / SPICE / X11 remote desktop, and database clients for MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB</li>
+    <li><strong>Containers &amp; monitoring</strong>: Kubernetes / Docker / Podman / nerdctl container access and real-time server CPU / memory / disk / network / process monitoring</li>
+    <li><strong>Cross-platform desktop delivery</strong>: built with Wails v3 (Go + Vue 3); artifacts cover Windows / macOS / Linux, and it can also run headless as a pure HTTP <code>server</code></li>
   </ul>
 </td>
 </tr>
@@ -875,6 +913,20 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 - [Windows Image Deploy](.doc/部署文档/平台Windows部署文档.md) — `install_windows.ps1` recommended entry
 - [Deployment Best Practices](.doc/部署文档/部署最佳实践_en.md) — Profiles, environment requirements, one-click deploy (incl. CentOS **7–9** / **CentOS ARM** / **Kylin (麒麟) / openEuler (欧拉)**), troubleshooting, and production recommendations
 
+## 📘 Operations Manual
+
+For delivery, watchkeeping, and business operations: organized by **operation chains** (goal → prerequisites → steps → acceptance). Assumes the platform is already deployed and available. (Content is currently in Simplified Chinese.)
+
+- [Platform Operations Manual (Index)](.doc/操作手册/README.md) — How to read, shortest closed loop, and doc index
+- [Operation Chain Overview](.doc/操作手册/00-操作链总览.md) — Global map, menu quick reference, same-day PoC checklist
+- [Login & Basic Setup](.doc/操作手册/01-登录与基础准备.md) — Accounts, org, permissions, notification channels
+- [Video Device Onboarding](.doc/操作手册/02-视频设备接入.md) — ONVIF / NVR / GB28181 / RTC / DJI → preview & stream forward
+- [AI Algorithm Task Loop](.doc/操作手册/03-AI算法任务闭环.md) — Labeling/models → tasks → alerts
+- [IoT Device Onboarding](.doc/操作手册/04-物联网设备接入.md) — Product thing model → devices → EDGE / industrial acquisition
+- [Alerts, Notifications & External Integration](.doc/操作手册/05-告警通知与对外联动.md) — Alert handling, notifications, TRANSFORM
+- [Visualization Dashboards](.doc/操作手册/06-可视化大屏.md) — Dashboard/SCADA edit, publish, and display
+- [APP Mobile Watchkeeping](.doc/操作手册/07-APP移动值守.md) — Mobile vs WEB capability map
+
 ## ⚙️ Project Repositories
 
 - Gitee: [yFeiEye](https://gitee.com/reese/easyaiot)
@@ -903,6 +955,10 @@ compensate third parties for damages caused by usage. All yFeiEye-related resour
 | ![Preview](.image/banner/banner1188.png) | ![Components](.image/banner/banner1189.png) | ![Data Source](.image/banner/banner1190.png) |
 | ![Publish](.image/banner/banner1191.png) | ![Runtime](.image/banner/banner1192.png) | ![Template](.image/banner/banner1193.png) |
 | ![Assets](.image/banner/banner1194.png) | ![Big Screen](.image/banner/banner1195.png) | ![Display](.image/banner/banner1196.png) |
+| ![Digital Twin](.image/banner/banner1258.png) | ![Exploded View](.image/banner/banner1259.png) | ![Floor View](.image/banner/banner1260.png) |
+| ![Digital Twin](.image/banner/banner1261.png) | ![Exploded View](.image/banner/banner1262.png) | ![Floor View](.image/banner/banner1263.png) |
+| ![Digital Twin](.image/banner/banner1264.png) | ![Exploded View](.image/banner/banner1265.png) | ![Floor View](.image/banner/banner1266.png) |
+| ![Digital Twin](.image/banner/banner1267.png) | ![Exploded View](.image/banner/banner1268.png) | ![Floor View](.image/banner/banner1269.png) |
 
 #### 📹 Video Surveillance
 

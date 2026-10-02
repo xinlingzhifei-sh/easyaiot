@@ -42,7 +42,7 @@ yFeiEye 공식 웹사이트: [http://36.111.47.113:8090/](http://36.111.47.113:8
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-플랫폼은 <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TRANSFORM, PANEL, IDEA, HARNESS, SITE</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, <strong>POST 맞춤 판정</strong>(검출 후 현장 규칙으로 필터·복합 판단 후 경보, 규칙 변경에 재학습 불필요), 연합 연산 클러스터 스케줄링, <strong>SENTINEL 클러스터 노드 센티널</strong>(업무별로 노드 준비도와 스케줄 가능 역량을 지속적으로 파악하고, 결손 시 환경 보완을 요청하며, 실제 역량에 따라 작업을 배정), 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리와 <strong>EDGE C# 엣지 수집 런타임</strong>이 현장에서 Modbus RTU/TCP, OPC UA 등 산업 프로토콜 수집, 로컬 스케줄링, MQTT 클라우드-엣지 연동을 플러그인형 수집기로 담당하며, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>POST 맞춤 판정 서비스</strong>로 검출 결과를 현장에 맞는 업무 이벤트로 단련하고—오경보 감소·규칙 구성·상선 전 시운전; 함께 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·4단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 하며; <strong>IDEA 커뮤니티 온라인 IDE</strong>로 기여자가 브라우저에서 전체 저장소를 열고 GitHub Copilot으로 공동 창작하며, 변경분을 로컬에 배포하고 PR을 제출할 수 있게 해 오픈소스 협업을 「먼저 환경 구성」에서 「열고 바로 수정」으로 바꿉니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다. 여기에 더해 새로운 <strong>ANDROID / IOS / HARMONYOS 셸 패키징 엔지니어링</strong>이 이 모바일 경험을 APK / IPA / HAP 설치 패키지 형태로 주류 휴대폰 OS에 전달합니다. 하나의 프런트엔드, 원클릭 빌드, 통합 버전 관리.
+플랫폼은 <strong>WEB, APP, DEVICE, EDGE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, TERMINAL</strong> 등 핵심 모듈로 구성되며, <strong>COMPILE</strong>이 다중 플랫폼 패키징·납품을 담당합니다(Ubuntu / CentOS·RHEL <strong>7–9</strong>(x86 + <strong>CentOS ARM</strong>, el7/el8/el9 패키지) / <strong>Kylin (麒麟) / openEuler (欧拉)</strong> / Windows / macOS / ARM 포함). 역량 측면에서 GB28181 / ONVIF 다중 프로토콜 카메라 접속, <strong>RTC 소비자급 카메라 P2P 브리지</strong>(go2rtc 기반, <strong>Tapo, Tuya, Ring, Nest, Xiaomi, Wyze, DoorBird, GoPro, Roborock</strong> 9대 브랜드 지원 — 매장 Tapo 보완, Tuya 화이트라벨, 해외 Ring/Nest 초인종, Xiaomi 재활용, Wyze 저비용 확장, DoorBird 대화, GoPro 기동 시점, Roborock 청소기 카메라 — Web 원클릭 접속으로 통합 영상·AI 판정), <strong>DJI 도크·드론 공중 시점 접속</strong>, 실시간 / 스냅샷 / 순찰 알고리즘 작업, <strong>RUNTIME 네이티브 고속 실행 계층</strong>(컴파일 바이너리가 풀링·디코딩·YOLO 추론·박스 푸시·다중 원본 전달을 담당 — 인터프리터 경로 대비 CPU/메모리 더 낮고 지연 더 안정; 단일 바이너리가 실시간 / 스냅샷 / 순찰 / 전달을 커버), YOLO 객체 검출과 SAM 제로샷 자동 라벨링, 얼굴/번호판 인식, <strong>POST 맞춤 판정</strong>(검출 후 현장 규칙으로 필터·복합 판단 후 경보, 규칙 변경에 재학습 불필요), 연합 연산 클러스터 스케줄링, <strong>SENTINEL 클러스터 노드 센티널</strong>(업무별로 노드 준비도와 스케줄 가능 역량을 지속적으로 파악하고, 결손 시 환경 보완을 요청하며, 실제 역량에 따라 작업을 배정), 그리고 <strong>무한 연합 엣지 클러스터 모드</strong>(일반 개발보드도 즉시 사용, 현장 지능의 로컬 의사결정, 경보·증거 자동 클라우드 집약, 업무에 따른 연산 확장)와 MQTT / TCP / HTTP / Modbus-TCP / Modbus-RTU / OPC UA IoT 장치 수명주기 관리와 <strong>EDGE C# 엣지 수집 런타임</strong>이 현장에서 Modbus RTU/TCP, OPC UA 등 산업 프로토콜 수집, 로컬 스케줄링, MQTT 클라우드-엣지 연동을 플러그인형 수집기로 담당하며, <strong>시각화 대형 화면과 Web SCADA 구성</strong>으로 장치 데이터를 지휘 상황으로 펼치고 공정 화면에 되돌리며; 신규 <strong>POST 맞춤 판정 서비스</strong>로 검출 결과를 현장에 맞는 업무 이벤트로 단련하고—오경보 감소·규칙 구성·상선 전 시운전; 함께 <strong>TRANSFORM 다방향 데이터 흐름 엔진</strong>으로 플랫폼 측 업무 이벤트를 MES / ERP / CRM / WMS 등 외부 시스템에 계약대로 전달해 다자 연동을 구성·추적·재사용 가능하게 하고; 동반 <strong>PANEL 납품·당직 진입점</strong>으로 일체기가 도착한 당일 설치·인수가 가능하고, 당직·장애 대응이 매번 개발자 원격 명령을 기다리지 않게 하며; <strong>SITE 공식 웹사이트</strong>로 제품 가치·4단계 하드웨어 선택·설치 패키지 진입점을 제시해 방문자가 먼저 이해한 뒤 다운로드하고 배포하도록 하며; <strong>IDEA 커뮤니티 온라인 IDE</strong>로 기여자가 브라우저에서 전체 저장소를 열고 GitHub Copilot으로 공동 창작하며, 변경분을 로컬에 배포하고 PR을 제출할 수 있게 해 오픈소스 협업을 「먼저 환경 구성」에서 「열고 바로 수정」으로 바꿉니다. 여기에 더해 <strong>TERMINAL 터미널 모듈</strong>(오픈소스 uniTerm을 통합·개명)이 SSH / RDP / VNC / SFTP / 데이터베이스 / Kubernetes 등 30여 개 프로토콜을 아우르는 올인원 터미널이자 원격 운영 진입점을 제공합니다. 경험 측면에서는 Web 콘솔과 모바일 App / 미니프로그램 능력이 정렬되어 지휘 센터와 현장 순찰이 동일한 업무 논리로 언제 어디서나 처리합니다. 여기에 더해 새로운 <strong>ANDROID / IOS / HARMONYOS 셸 패키징 엔지니어링</strong>이 이 모바일 경험을 APK / IPA / HAP 설치 패키지 형태로 주류 휴대폰 OS에 전달합니다. 하나의 프런트엔드, 원클릭 빌드, 통합 버전 관리.
 </p>
 
 <p style="font-size: 14px; line-height: 1.8; color: #444; margin: 16px 0 8px 0;">
@@ -82,6 +82,21 @@ yFeiEye는 AI와 IoT의 심층적 융합에 초점을 맞춘 클라우드-엣지
 | ![시스템 개요](.image/banner/panel/panel_1000.png) | ![컨테이너 관리](.image/banner/panel/panel_1001.png) | ![컨테이너 로그](.image/banner/panel/panel_1002.png) |
 | ![원클릭 배포](.image/banner/panel/panel_1003.png) | ![이미지 준비](.image/banner/panel/panel_1004.png) | ![이미지 pull](.image/banner/panel/panel_1005.png) |
 | ![시스템 진단](.image/banner/panel/panel_1006.png) | ![시스템 유지보수](.image/banner/panel/panel_1007.png) | ![서비스 토폴로지](.image/banner/panel/panel_1008.png) |
+
+### ⌨️ TERMINAL: 30여 개 프로토콜을 하나의 진입점으로 — 당직 장애 처리에 도구 한 줄을 깔 필요가 없습니다
+
+<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+현장 장애 처리에서 시간을 가장 많이 쓰는 곳은 장애 자체가 아니라 도구 잇기입니다. SSH에는 클라이언트 하나, 데이터베이스에는 Navicat을 따로, Redis에는 또 하나, 파일 전송에는 SFTP를 새로, 컨테이너 로그를 보려면 서버에 직접 접속해 명령을 쳐야 합니다 — 계정·터널·점프호스트를 장비마다 따로 설정하고, 장비가 바뀌면 또 다시 설정합니다. TERMINAL은 오픈소스 uniTerm을 통합·개명한 것으로 <strong>30여 개 프로토콜</strong>로 원격 터미널·원격 데스크톱·파일 전송·데이터베이스·컨테이너 다섯 가지 운영 시나리오를 커버하고, 왼쪽 패널에서 yFeiEye 미들웨어 전 스택을 클릭 한 번으로 연결합니다. Wails v3(Go + Vue 3)로 Windows / macOS / Linux 단일 앱으로 빌드되며 server 모드로 순수 HTTP 실행도 가능해, 「도구 한 줄, 클라이언트 잔뜩」이 「진입점 하나, 모든 현장」으로 바뀝니다.
+</p>
+
+<ul style="font-size: 14px; line-height: 1.8; color: #444; margin: 10px 0;">
+  <li><strong>원격 터미널 & 데스크톱</strong>: SSH / Telnet / Mosh 원격 터미널과 로컬·시리얼 터미널, 비밀번호 / 키 인증 + <strong>SSH 터널 포트 포워딩</strong>으로 인트라넷까지 직통. RDP / VNC / SPICE / X11 원격 데스크톱으로 원격 제어 프로그램 추가 설치 없이 Windows 장비에 바로 접속</li>
+  <li><strong>파일 전송</strong>: SFTP / SCP / FTP / SMB / WebDAV / S3 투 페인트 탐색, <code>rz</code>/<code>sz</code>와 드래그 앤 드롭 업로드 지원 — 로그 묶음과 증거 파일을 그 자리에서 바로 내려받기</li>
+  <li><strong>데이터베이스 클라이언트</strong>: MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB 기본 제공 — 테이블 구조, SQL 조회, 결과 편집, Redis 키 시각화를 한자리에서. Navicat / RDM 추가 설치 불필요</li>
+  <li><strong>컨테이너 & 모니터링</strong>: Kubernetes / Docker / Podman / nerdctl 컨테이너 터미널·로그·기동/정지를 한 화면에서 처리, CPU / 메모리 / 디스크 / 네트워크 / 프로세스 <strong>실시간 모니터링</strong>으로 병목 원인 파악</li>
+</ul>
+
+![yFeiEye Terminal](.image/banner/terminal/yfeieye-terminal-home.png)
 
 ### 📡 RTC: 소비자급 카메라 P2P 브리지 — 「RTSP 없음」 장치도 플랫폼에
 
@@ -534,7 +549,7 @@ yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨
 ## 🧩 프로젝트 구조
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRANSFORM, PANEL, SITE 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
+yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, TERMINAL 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
 </p>
 
 <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
@@ -684,7 +699,7 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
     <li><strong>원클릭 배포</strong>: WEB 「업무 런타임 배포」 또는 설치 스크립트 일괄 배포; 센터 VIDEO 설치 시 로컬 실행기 자동 마운트</li>
     <li><strong>이벤트면 MQTT</strong>: 경보/스냅샷/후처리는 EMQX 알고리즘 버스로 전송, <strong>iot-sink</strong>가 저장·아카이브·알림 enrichment</li>
     <li><strong>관리면 HTTP 하트비트</strong>: 태스크 생존은 VIDEO로 보고, 기동/중지와 태스크 테이블은 VIDEO가 관리</li>
-    <li><strong>NFS 미디어 루트</strong>: 경보 이미지·SRS 녹화는 <strong>NFS 공유 미디어 루트</strong>에 기록(<code>EASYAIOT_MEDIA_ROOT</code>, 기본 <code>/mnt/easyaiot-media</code>; sudo 없으면 <code>$HOME/easyaiot/media</code>로 fallback); MQTT는 경로만 전달, <strong>iot-sink</strong>가 디스크를 읽어 MinIO에 아카이브</li>
+    <li><strong>NFS 미디어 루트</strong>: 경보 이미지·SRS 녹화는 <strong>NFS 공유 미디어 루트</strong>에 기록(<code>EASYAIOT_MEDIA_ROOT</code>, 기본 <code>/mnt/easyaiot-media</code>; sudo 없으면 <code>$HOME/easyaiot/media</code>로 fallback); MQTT는 경로만 전달, <strong>iot-sink</strong>가 디스크를 읽어 RustFS에 아카이브</li>
   </ul>
 </td>
 </tr>
@@ -714,6 +729,15 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
 </td>
 </tr>
 <tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TWIN 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;"><ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>다산업 디지털 트윈</strong>: 산업단지, 스마트 캠퍼스, 스마트 항만, 넷제로 에너지 기지용 Three.js 3D 장면 4종을 기본 제공</li>
+    <li><strong>3D 탐색과 공간 위치</strong>: 회전, 확대/축소, 프리셋 뷰의 부드러운 전환과 장비 상태·실시간 경보 연동 표시</li>
+    <li><strong>건물·층 운영</strong>: 건물 집중, 층 전환, 해당 층 장비 분리 표시와 장비·온라인·경보·미연결 수량 집계</li>
+    <li><strong>장비·데이터 바인딩</strong>: 편집 모드에서 3D 객체를 센서, 카메라, PLC / 엣지 게이트웨이와 MQTT, Modbus TCP, OPC UA, GB28181, ONVIF로 연결</li>
+    <li><strong>교체 가능한 모델과 데이터 계층</strong>: 현재 MVP는 프로시저럴 장면과 시뮬레이션 데이터를 사용하며, 안정적인 장비 ID 매핑으로 Blender / GLB 자산과 yFeiEye API, MQTT over WebSocket, 백엔드 WebSocket으로 교체 가능</li>
+  </ul></td>
+</tr><tr>
 <td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TRANSFORM 모듈</strong></td>
 <td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
   <ul style="margin: 5px 0; padding-left: 20px;">
@@ -752,6 +776,17 @@ yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, VIDEO, RTC, AI, RUNTIME, VISUALIZE, TRA
     <li><strong>페이지 내 플로팅 서랍</strong>: 업무 페이지 이탈 없이 대화; <code>mini / standard / full</code> 기본 포함</li>
     <li><strong>IDEA 분할 화면 연동</strong>: 에디터 오른쪽에 어시스턴트; 드래그-<code>@</code>, 딥링크, 양방향 점프</li>
     <li><strong>MCP / Skill</strong>: 콘솔과 IDE가 플랫폼 시맨틱 공유, Skill 프로젝트 간 재사용</li>
+  </ul>
+</td>
+</tr>
+<tr>
+<td style="padding: 15px; border: 1px solid #e0e0e0; vertical-align: top;"><strong>TERMINAL 모듈</strong></td>
+<td style="padding: 15px; border: 1px solid #e0e0e0; line-height: 1.8; color: #444;">
+  <ul style="margin: 5px 0; padding-left: 20px;">
+    <li><strong>올인원 터미널(終端 / Terminal)</strong>: 오픈소스 <code>uniTerm</code>을 통합·개명. SSH / Telnet / Mosh 원격 터미널과 로컬·시리얼 터미널, 비밀번호 / 키 인증, SSH 터널 포트 포워딩 지원</li>
+    <li><strong>다중 프로토콜 원격 운영</strong>: SFTP / SCP / FTP / SMB / WebDAV / S3 파일 전송(투 페인 탐색과 <code>rz</code>/<code>sz</code>), RDP / VNC / SPICE / X11 원격 데스크톱, MySQL / PostgreSQL / Oracle / SQL Server / Redis / MongoDB 등 데이터베이스 클라이언트</li>
+    <li><strong>컨테이너 · 모니터링</strong>: Kubernetes / Docker / Podman / nerdctl 컨테이너 접속, 서버 CPU / 메모리 / 디스크 / 네트워크 / 프로세스 실시간 모니터링</li>
+    <li><strong>크로스플랫폼 데스크톱 납품</strong>: Wails v3(Go + Vue 3) 기반. Windows / macOS / Linux 산출물 제공, <code>server</code> 모드 순수 HTTP 서버 실행도 가능</li>
   </ul>
 </td>
 </tr>
@@ -844,6 +879,20 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 - [Windows 이미지 배포](.doc/部署文档/平台Windows部署文档_ko.md) — `install_windows.ps1` 권장 진입점
 - [배포 모범 사례](.doc/部署文档/部署最佳实践_ko.md) — 프로파일, 환경 요구, 원클릭 배포(CentOS **7–9** / **CentOS ARM** / **Kylin (麒麟) / openEuler (欧拉)** 포함), 운영 문제 해결 및 프로덕션 권장
 
+## 📘 운영 매뉴얼
+
+납품·당직·업무 운영용: **운영 체인**(목표 → 선행 조건 → 단계 → 검수)으로 구성. 플랫폼이 이미 배포·사용 가능한 상태를 전제로 합니다. (본문은 현재 간체 중문입니다.)
+
+- [플랫폼 운영 매뉴얼(목차)](.doc/操作手册/README.md) — 읽는 법, 최단 폐루프, 문서 색인
+- [운영 체인 개요](.doc/操作手册/00-操作链总览.md) — 전체 지도, 메뉴 빠른 참조, PoC 당일 검수 목록
+- [로그인 및 기본 준비](.doc/操作手册/01-登录与基础准备.md) — 계정, 조직, 권한, 알림 채널
+- [영상 장비 접속](.doc/操作手册/02-视频设备接入.md) — ONVIF / NVR / GB28181 / RTC / DJI → 미리보기·푸시
+- [AI 알고리즘 작업 폐루프](.doc/操作手册/03-AI算法任务闭环.md) — 라벨링/모델 → 작업 → 경보
+- [IoT 장비 접속](.doc/操作手册/04-物联网设备接入.md) — 제품 물모델 → 장비 → EDGE / 산업 수집
+- [경보·알림 및 외부 연동](.doc/操作手册/05-告警通知与对外联动.md) — 경보 처리, 알림, TRANSFORM
+- [시각화 대시보드](.doc/操作手册/06-可视化大屏.md) — 대시보드/공정 편집·게시·송출
+- [APP 모바일 당직](.doc/操作手册/07-APP移动值守.md) — 모바일과 WEB 기능 대조
+
 ## ⚙️ 프로젝트 주소
 
 - Gitee: [yFeiEye](https://gitee.com/reese/easyaiot)
@@ -872,6 +921,10 @@ yFeiEye는 오픈소스 학습 프로젝트이며 상업적 행위와 무관합�
 | ![미리보기](.image/banner/banner1188.png) | ![컴포넌트](.image/banner/banner1189.png) | ![데이터소스](.image/banner/banner1190.png) |
 | ![배포](.image/banner/banner1191.png) | ![실행](.image/banner/banner1192.png) | ![템플릿](.image/banner/banner1193.png) |
 | ![자산](.image/banner/banner1194.png) | ![대형화면](.image/banner/banner1195.png) | ![전시](.image/banner/banner1196.png) |
+| ![디지털 트윈](.image/banner/banner1258.png) | ![전개 뷰](.image/banner/banner1259.png) | ![층 뷰](.image/banner/banner1260.png) |
+| ![디지털 트윈](.image/banner/banner1261.png) | ![전개 뷰](.image/banner/banner1262.png) | ![층 뷰](.image/banner/banner1263.png) |
+| ![디지털 트윈](.image/banner/banner1264.png) | ![전개 뷰](.image/banner/banner1265.png) | ![층 뷰](.image/banner/banner1266.png) |
+| ![디지털 트윈](.image/banner/banner1267.png) | ![전개 뷰](.image/banner/banner1268.png) | ![층 뷰](.image/banner/banner1269.png) |
 
 #### 📹 영상 모니터링
 

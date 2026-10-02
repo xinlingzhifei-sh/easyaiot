@@ -16,7 +16,7 @@
           </Space>
         </template>
         <template v-else-if="column.key === 'is_enabled'">
-          <a-switch :checked="record.is_enabled" size="small" @change="handleToggleEnabled(record)" />
+          <a-switch :checked="record.is_enabled" size="small" @change="handleToggleEnabled(record as AlgorithmModelService)" />
         </template>
       </template>
     </a-table>
@@ -29,7 +29,7 @@
 import { ref, onMounted } from 'vue';
 import { useMessage } from '@/hooks/web/useMessage';
 import { Button } from '@/components/Button'
-import { Space } from 'ant-design-vue'
+import { Space, Table as ATable, Popconfirm as APopconfirm, Switch as ASwitch, Empty as AEmpty } from 'ant-design-vue'
 import {
 listTaskServices,
   deleteTaskService,

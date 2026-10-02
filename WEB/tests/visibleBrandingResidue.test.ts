@@ -63,6 +63,9 @@ for (const relativePath of matched.stdout.split('\0').filter(Boolean)) {
   for (const literal of protectedLiterals) {
     source = source.replaceAll(literal, '')
   }
+  if (relativePath === 'TERMINAL/backend/store/middleware_presets.go') {
+    source = source.replace('const legacyMiddlewareBrand = "EasyAIoT"', '')
+  }
 
   source.split(/\r?\n/).forEach((line, index) => {
     if (oldBrand.test(line)) {
@@ -106,6 +109,16 @@ assert.equal(
   'yfeieye-panel-ui',
   'The PANEL package metadata must use the yFeiEye brand.',
 )
+assert.equal(
+  JSON.parse(readFileSync(resolve(repoRoot, 'TWIN/package.json'), 'utf8')).name,
+  'yfeieye-digital-twin',
+  'The TWIN package metadata must use the yFeiEye brand.',
+)
+assert.match(
+  readFileSync(resolve(repoRoot, 'TERMINAL/frontend/index.html'), 'utf8'),
+  /<title>yFeiEye 终端<\/title>/,
+  'The terminal browser title must use the yFeiEye brand.',
+)
 
 assert.match(
   readFileSync(resolve(repoRoot, 'HARNESS/plugins/easyaiot-llm-gateway.ts'), 'utf8'),
@@ -116,7 +129,7 @@ assert.match(
 for (const name of ['README.md', 'README_zh.md', 'README_zh_tw.md', 'README_fr.md', 'README_ko.md', 'README_ru.md']) {
   assert.doesNotMatch(
     readFileSync(resolve(repoRoot, name), 'utf8'),
-    /banner124[012]\.png/,
+    /banner124[012]\.png|terminal_100[0-8]\.png/,
     `${name} must not display assistant screenshots bearing the old brand.`,
   )
 }

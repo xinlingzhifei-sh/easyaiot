@@ -276,20 +276,20 @@
                     <label>{{ field.title }}</label>
                     <a-select
                       v-if="field.enum"
-                      v-model:value="selectedStep.params![field.key]"
+                      v-model:value="selectedStep.params![field.key] as string | undefined"
                       :disabled="disabled"
                       :options="enumOptionsForField(field)"
                       style="width: 100%"
                     />
                     <a-input-number
                       v-else-if="field.type === 'integer'"
-                      v-model:value="selectedStep.params![field.key]"
+                      v-model:value="selectedStep.params![field.key] as number | undefined"
                       :disabled="disabled"
                       style="width: 100%"
                     />
                     <a-input-number
                       v-else-if="field.type === 'number'"
-                      v-model:value="selectedStep.params![field.key]"
+                      v-model:value="selectedStep.params![field.key] as number | undefined"
                       :disabled="disabled"
                       :min="field.minimum"
                       :max="field.maximum"
@@ -301,7 +301,7 @@
                     </div>
                     <a-select
                       v-else-if="field.type === 'array'"
-                      v-model:value="selectedStep.params![field.key]"
+                      v-model:value="selectedStep.params![field.key] as string[] | undefined"
                       mode="tags"
                       :disabled="disabled"
                       placeholder="输入后回车"
@@ -344,7 +344,16 @@ import {
   LockOutlined,
   PlusOutlined,
 } from '@ant-design/icons-vue';
-import { Alert as AAlert, Empty as AEmpty, Spin } from 'ant-design-vue';
+import {
+  Alert as AAlert,
+  Empty as AEmpty,
+  Spin,
+  Tag as ATag,
+  Tooltip as ATooltip,
+  Switch as ASwitch,
+  Select as ASelect,
+  InputNumber as AInputNumber,
+} from 'ant-design-vue';
 import { BasicDrawer, useDrawer, useDrawerInner } from '@/components/Drawer';
 import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
