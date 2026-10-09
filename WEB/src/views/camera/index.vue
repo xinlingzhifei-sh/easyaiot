@@ -369,9 +369,9 @@ import {
   type DeviceKind,
 } from './utils/deviceCreateOptions';
 import {
+  isDeployCapabilityEnabled,
   isEdgeCameraTabVisible,
   isEdgeNodeEnabled,
-  isEdgeStandaloneDeployProfile,
   isFacePlateLibraryEnabled,
   isGb28181Enabled,
   isRtcEnabled,
@@ -385,8 +385,8 @@ const gb28181Enabled = isGb28181Enabled();
 const edgeNodeEnabled = isEdgeNodeEnabled();
 const facePlateLibraryEnabled = isFacePlateLibraryEnabled();
 const showCameraTab = (tabKey: string) => isEdgeCameraTabVisible(tabKey);
-/** edge 单机合装不部署大疆司空，设备列表隐藏对应接入入口 */
-const showDjiDeviceCreate = !isEdgeStandaloneDeployProfile();
+/** 仅在部署形态显式启用大疆接入能力时展示。 */
+const showDjiDeviceCreate = isDeployCapabilityEnabled('video.dji');
 /** mini / edge 不部署 go2rtc，设备列表隐藏 RTC 接入入口 */
 const showRtcDeviceCreate = isRtcEnabled();
 

@@ -91,13 +91,13 @@ ensure_platform_agent_after_stack() {
 }
 
 # 部署完成后并行常驻 mqtt-demo（01/02/03 独立 clientId），让设备详情各 Tab 有实时数据。
-# 关闭：EASYAIOT_ENABLE_MQTT_DEMO=0；仅部分：MQTT_DEMO_SCRIPTS=up,down
+# 默认关闭；EASYAIOT_ENABLE_MQTT_DEMO=1 显式启用；仅部分：MQTT_DEMO_SCRIPTS=up,down
 ensure_mqtt_demo_after_stack() {
     local demo_dir="${PROJECT_ROOT}/.scripts/mqtt-demo"
     local starter="${demo_dir}/start_mqtt_demo.sh"
     local ensure_paho="${demo_dir}/ensure_paho_ready.sh"
-    if [ "${EASYAIOT_ENABLE_MQTT_DEMO:-1}" = "0" ]; then
-        print_info "跳过 mqtt-demo 自动启动（EASYAIOT_ENABLE_MQTT_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile mqtt-demo; then
+        print_info "跳过 mqtt-demo 自动启动（生产 profile 默认关闭；EASYAIOT_ENABLE_MQTT_DEMO=1 可显式启用）"
         return 0
     fi
     if [ "${EASYAIOT_ENABLE_EMQX:-1}" = "0" ]; then
@@ -142,18 +142,14 @@ ensure_mqtt_demo_after_stack() {
     fi
 }
 
-# full 形态：启动工业协议演示从站（Modbus TCP/RTU + OPC UA），让页面有采集数据。
-# 关闭：EASYAIOT_ENABLE_INDUSTRIAL_DEMO=0；跳过种子：EASYAIOT_APPLY_INDUSTRIAL_SEED=0
+# 工业协议演示从站（Modbus TCP/RTU + OPC UA）不属于生产规格，默认关闭。
+# 开启：EASYAIOT_ENABLE_INDUSTRIAL_DEMO=1；跳过种子：EASYAIOT_APPLY_INDUSTRIAL_SEED=0
 ensure_industrial_demo_after_stack() {
     local demo_dir="${PROJECT_ROOT}/.scripts/industrial-demo"
     local starter="${demo_dir}/start_industrial_demo.sh"
     ensure_deploy_profile
-    if ! is_full_deploy_profile; then
-        print_info "跳过工业协议演示（仅 full 形态自动启动，当前: ${EASYAIOT_DEPLOY_PROFILE}）"
-        return 0
-    fi
-    if [ "${EASYAIOT_ENABLE_INDUSTRIAL_DEMO:-1}" = "0" ]; then
-        print_info "跳过工业协议演示自动启动（EASYAIOT_ENABLE_INDUSTRIAL_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile industrial-demo; then
+        print_info "跳过工业协议演示自动启动（生产 profile 默认关闭；EASYAIOT_ENABLE_INDUSTRIAL_DEMO=1 可显式启用）"
         return 0
     fi
     if [ ! -x "$starter" ] && [ -f "$starter" ]; then
@@ -174,11 +170,11 @@ ensure_industrial_demo_after_stack() {
 # 部署完成后初始化 FLOW 工作流并重放 demo 数据（幂等可重跑）：
 # 菜单/通知模板 → ruoyi-vue-pro20；烟感会签模型 + 路由规则 → iot-flow20；
 # 再向 Kafka 发 8 条告警并驱动出 通过/拒绝/取消/退回/会签半审/抄送 全状态实例。
-# 关闭：EASYAIOT_ENABLE_FLOW_DEMO=0；手动重放：bash .scripts/flow/flow_demo_replay.sh
+# 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 显式启用；手动重放：bash .scripts/flow/flow_demo_replay.sh
 ensure_flow_demo_after_stack() {
     local flow_script="${PROJECT_ROOT}/.scripts/flow/flow_demo_replay.sh"
-    if [ "${EASYAIOT_ENABLE_FLOW_DEMO:-1}" = "0" ]; then
-        print_info "跳过 FLOW 工作流初始化与 demo 重放（EASYAIOT_ENABLE_FLOW_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile flow-demo; then
+        print_info "跳过 FLOW 工作流初始化与 demo 重放（生产 profile 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 可显式启用）"
         return 0
     fi
     if [ ! -f "$flow_script" ]; then
@@ -200,9 +196,6 @@ stop_industrial_demo_before_stack() {
     local stopper="${PROJECT_ROOT}/.scripts/industrial-demo/stop_industrial_demo.sh"
     [ -f "$stopper" ] || return 0
     ensure_deploy_profile
-    if ! is_full_deploy_profile && [ "${EASYAIOT_ENABLE_INDUSTRIAL_DEMO:-1}" != "1" ]; then
-        return 0
-    fi
     chmod +x "$stopper" 2>/dev/null || true
     print_info "停止工业协议演示进程..."
     bash "$stopper" || true
@@ -221,24 +214,12 @@ echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
-# 模块列表（按依赖顺序：HARNESS 先于 IDEA；任一模块失败则跳过并继续后续模块）
-MODULES=(
-    "HARNESS"          # DeepSeek Harness AI Agent（IDEA 分屏依赖，须优先就绪）
-    "IDEA"             # 社区贡献在线 IDE
-    "TERMINAL"         # 多协议终端（SSH/RDP/VNC/K8s，WEB 助手第三入口）
-    ".scripts/docker"  # 基础服务（Nacos、PostgreSQL、Redis等）
-    "DEVICE"           # Device服务（网关和微服务）
-    "AI"               # AI服务
-    "RTC"              # RTC / go2rtc 消费级摄像头桥接（全形态）
-    "POST"             # POST 服务（Infer 流水线；仅 standard/full）
-    "VIDEO"            # Video服务
-    "WEB"              # Web前端服务
-    "APP"              # App移动端H5（仅 full 全量形态）
-    "VISUALIZE"        # 可视化编辑器（仅 full 全量形态）
-    "TWIN"             # 数字孪生引擎（仅 full / 含可视化形态）
-    "TRANSFORM"        # 系统对接（仅 full 全量形态）
-    "PANEL"            # 运维控制台：源码/Docker 可装；安装包本身即为 PANEL，部署默认跳过
-)
+# 模块总顺序来自生产 profile 规范源；各形态再由白名单过滤。
+MODULES=()
+while IFS= read -r _profile_module; do
+    [ -n "$_profile_module" ] && MODULES+=("$_profile_module")
+done < <(deploy_profile_manifest_module_order)
+unset _profile_module
 
 # 编排前置模块（仅控制启动顺序；失败不再中止后续模块）
 is_bootstrap_module() {
@@ -848,39 +829,40 @@ PYEOF
 
 # 创建统一网络（已存在则跳过；FORCE_NETWORK_RECREATE=true 可强制重建）
 create_network() {
-    print_info "检查统一网络 yfeieye-network..."
+    local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+    print_info "检查统一网络 ${network_name}..."
 
-    if docker network inspect yfeieye-network > /dev/null 2>&1; then
+    if docker network inspect "$network_name" > /dev/null 2>&1; then
         if [ "${FORCE_NETWORK_RECREATE:-false}" != "true" ]; then
-            print_info "网络 yfeieye-network 已存在"
+            print_info "网络 ${network_name} 已存在"
             return 0
         fi
         print_warning "FORCE_NETWORK_RECREATE=true：断开容器并重建网络..."
         local containers container
-        containers=$(docker network inspect yfeieye-network --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
+        containers=$(docker network inspect "$network_name" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
         for container in $containers; do
             print_info "断开容器 $container 与网络的连接..."
-            docker network disconnect -f yfeieye-network "$container" 2>/dev/null || true
+            docker network disconnect -f "$network_name" "$container" 2>/dev/null || true
         done
         # disconnect 为同步调用，全部断开后即可删除，无需 sleep
-        if ! docker network rm yfeieye-network 2>/dev/null; then
-            print_error "旧网络删除失败，请确认无容器占用后重试: docker network inspect yfeieye-network"
+        if ! docker network rm "$network_name" 2>/dev/null; then
+            print_error "旧网络删除失败，请确认无容器占用后重试: docker network inspect ${network_name}"
             return 1
         fi
     fi
 
-    print_info "正在创建网络 yfeieye-network..."
+    print_info "正在创建网络 ${network_name}..."
     local create_output
-    if create_output=$(docker network create yfeieye-network 2>&1); then
-        print_success "网络 yfeieye-network 已创建"
+    if create_output=$(docker network create "$network_name" 2>&1); then
+        print_success "网络 ${network_name} 已创建"
     elif echo "$create_output" | grep -qi "already exists"; then
-        print_info "网络 yfeieye-network 已存在（并发创建），继续使用"
+        print_info "网络 ${network_name} 已存在（并发创建），继续使用"
     elif echo "$create_output" | grep -qi "permission denied"; then
         print_error "没有权限创建 Docker 网络"
         print_info "请确保当前用户在 docker 组中，或使用 sudo 运行脚本"
         return 1
     else
-        print_error "无法创建网络 yfeieye-network: $create_output"
+        print_error "无法创建网络 ${network_name}: $create_output"
         print_info "诊断建议："
         print_info "  1. 检查 Docker 服务: sudo systemctl status docker"
         print_info "  2. 检查权限: docker network ls"
@@ -1545,8 +1527,8 @@ start_all() {
     create_network
 
     local module
-    for module in HARNESS TERMINAL IDEA; do
-        if module_enabled_for_deploy_profile "$module"; then
+    for module in "${MODULES[@]}"; do
+        if is_bootstrap_module "$module" && module_enabled_for_deploy_profile "$module"; then
             print_section "启动 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "start"; then
                 print_error "${MODULE_NAMES[$module]} 启动失败，已跳过并继续后续模块"
@@ -1963,8 +1945,8 @@ update_all() {
     fi
     
     local module
-    for module in HARNESS TERMINAL IDEA; do
-        if module_enabled_for_deploy_profile "$module"; then
+    for module in "${MODULES[@]}"; do
+        if is_bootstrap_module "$module" && module_enabled_for_deploy_profile "$module"; then
             print_section "更新 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "update"; then
                 print_error "${MODULE_NAMES[$module]} 更新失败，已跳过并继续后续模块"
@@ -2288,7 +2270,7 @@ show_help() {
     echo "  PARALLEL_BUILD=true          - build 时并行构建各模块（默认串行，防小内存并行 OOM）"
     echo "  FORCE_NETWORK_RECREATE=true  - 启动时强制重建 yfeieye-network（宿主机 IP 变更后使用）"
     echo "  HOST_IP=<ip>                 - 跳过自动探测，强制指定宿主机 IP"
-    echo "  EASYAIOT_ENABLE_INDUSTRIAL_DEMO=0 - full 形态下跳过工业协议演示（Modbus/OPC UA）自动启动"
+    echo "  EASYAIOT_ENABLE_INDUSTRIAL_DEMO=1 - 显式启用工业协议演示（生产 profile 默认关闭）"
     echo "  EASYAIOT_APPLY_INDUSTRIAL_SEED=0   - 启动演示时不写入/刷新工业协议演示设备种子"
     echo "  EASYAIOT_RUNTIME_REGISTRY    - 运行时镜像仓库（默认见 runtime_registry.conf）"
     echo "  EASYAIOT_RUNTIME_BUILD_ARCH  - build-runtime 目标架构: all(默认) | amd64 | arm64"

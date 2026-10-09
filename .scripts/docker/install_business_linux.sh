@@ -66,8 +66,8 @@ ensure_mqtt_demo_after_business_stack() {
     local demo_dir="${PROJECT_ROOT}/.scripts/mqtt-demo"
     local starter="${demo_dir}/start_mqtt_demo.sh"
     local ensure_paho="${demo_dir}/ensure_paho_ready.sh"
-    if [ "${EASYAIOT_ENABLE_MQTT_DEMO:-1}" = "0" ]; then
-        print_info "跳过 mqtt-demo 自动启动（EASYAIOT_ENABLE_MQTT_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile mqtt-demo; then
+        print_info "跳过 mqtt-demo 自动启动（生产 profile 默认关闭；EASYAIOT_ENABLE_MQTT_DEMO=1 可显式启用）"
         return 0
     fi
     if [ "${EASYAIOT_ENABLE_EMQX:-1}" = "0" ]; then
@@ -99,12 +99,8 @@ ensure_industrial_demo_after_business_stack() {
     local demo_dir="${PROJECT_ROOT}/.scripts/industrial-demo"
     local starter="${demo_dir}/start_industrial_demo.sh"
     ensure_deploy_profile
-    if ! is_full_deploy_profile; then
-        print_info "跳过工业协议演示（仅 full 形态，当前: ${EASYAIOT_DEPLOY_PROFILE}）"
-        return 0
-    fi
-    if [ "${EASYAIOT_ENABLE_INDUSTRIAL_DEMO:-1}" = "0" ]; then
-        print_info "跳过工业协议演示（EASYAIOT_ENABLE_INDUSTRIAL_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile industrial-demo; then
+        print_info "跳过工业协议演示（生产 profile 默认关闭；EASYAIOT_ENABLE_INDUSTRIAL_DEMO=1 可显式启用）"
         return 0
     fi
     if [ -f "$starter" ]; then
@@ -114,8 +110,14 @@ ensure_industrial_demo_after_business_stack() {
     fi
 }
 
-# 业务模块（按依赖顺序：HARNESS 先于 IDEA -> 多协议终端 -> 网关/微服务 -> AI/RTC/POST/视频 -> 前端 -> 全量模块 -> 运维控制台）
-ALL_MODULES=(HARNESS IDEA TERMINAL DEVICE AI RTC POST VIDEO WEB APP VISUALIZE TWIN TRANSFORM PANEL)
+# 业务模块沿用生产规格 manifest 的顺序，并排除由中间件安装器负责的基础服务。
+ALL_MODULES=()
+while IFS= read -r _manifest_module; do
+    [ -z "$_manifest_module" ] && continue
+    [ "$_manifest_module" = ".scripts/docker" ] && continue
+    ALL_MODULES+=("$_manifest_module")
+done < <(deploy_profile_manifest_module_order)
+unset _manifest_module
 
 declare -A MODULE_NAMES=(
     [IDEA]="IDEA 在线 IDE"
@@ -266,13 +268,14 @@ check_docker_compose() {
 }
 
 create_network() {
-    if docker network ls --format '{{.Name}}' | grep -qx 'yfeieye-network'; then
-        print_info "网络 yfeieye-network 已存在"
+    local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+    if docker network ls --format '{{.Name}}' | grep -Fxq -- "$network_name"; then
+        print_info "网络 ${network_name} 已存在"
         return 0
     fi
-    print_info "创建网络 yfeieye-network..."
-    if docker network create yfeieye-network &>/dev/null; then
-        print_success "网络 yfeieye-network 已创建"
+    print_info "创建网络 ${network_name}..."
+    if docker network create "$network_name" &>/dev/null; then
+        print_success "网络 ${network_name} 已创建"
     else
         print_warning "创建网络失败或网络已存在，继续执行"
     fi

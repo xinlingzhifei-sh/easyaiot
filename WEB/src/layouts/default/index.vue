@@ -18,15 +18,15 @@ import { useAppInject } from '@/hooks/web/useAppInject'
 
 import { useMultipleTabSetting } from '@/hooks/setting/useMultipleTabSetting'
 import { useUserStoreWithOut } from '@/store/modules/user'
-import { isEdgeStandaloneDeployProfile } from '@/utils/deployProfile'
+import { isHarnessEnabled } from '@/utils/deployProfile'
 
 defineOptions({ name: 'DefaultLayout' })
 
 const LayoutFooter = createAsyncComponent(() => import('@/layouts/default/footer/index.vue'))
 const IdeaFloatBall = createAsyncComponent(() => import('@/components/IdeaFloatBall/index.vue'))
 const userStore = useUserStoreWithOut()
-/** AI 助手悬浮球：跳转 IDEA 门户 :9300（含 HARNESS）；edge 单机合装不展示 */
-const showIdeaBall = computed(() => !!userStore.getAccessToken && !isEdgeStandaloneDeployProfile())
+/** AI 助手悬浮球：仅在部署形态显式启用 HARNESS 时展示。 */
+const showIdeaBall = computed(() => !!userStore.getAccessToken && isHarnessEnabled())
 
 const { prefixCls } = useDesign('default-layout')
 const { getIsMobile } = useAppInject()

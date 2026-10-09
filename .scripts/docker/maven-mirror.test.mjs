@@ -49,8 +49,10 @@ test('device compose loads shared credentials and device overrides explicitly', 
   assert.match(installer, /DEVICE_COMPOSE_ENV_FILE=/);
   assert.match(
     installer,
-    /\$DOCKER_COMPOSE --env-file "\$MIDDLEWARE_ENV_FILE" --env-file "\$DEVICE_COMPOSE_ENV_FILE" -f "\$COMPOSE_FILE"/,
+    /\$DOCKER_COMPOSE --env-file "\$MIDDLEWARE_ENV_FILE" --env-file "\$DEVICE_COMPOSE_ENV_FILE"/,
   );
+  assert.match(installer, /local -a files=\(-f "\$COMPOSE_FILE"\)/);
+  assert.match(installer, /"\$\{files\[@\]\}"/);
   assert.doesNotMatch(compose, /\$\{POSTGRES_USER:\?POSTGRES_USER is required\}/);
   assert.match(compose, /\$\{POSTGRES_USER:-postgres\}/);
 });

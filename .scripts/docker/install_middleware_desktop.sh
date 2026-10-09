@@ -18,7 +18,7 @@ err()   { echo -e "${RED}[ERR]${NC}  $1" >&2; }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
-NETWORK_NAME="easyaiot-network"
+NETWORK_NAME=""
 ARCH_FILE="${SCRIPT_DIR}/.env.arch"
 ENV_FILE="${SCRIPT_DIR}/.env.docker"
 COMPOSE_CMD=()
@@ -29,6 +29,7 @@ BASE_IMAGE=""
 
 # shellcheck source=deploy_profile.sh
 source "${SCRIPT_DIR}/deploy_profile.sh"
+NETWORK_NAME="$(deploy_profile_manifest_network_name)"
 ensure_deploy_profile
 
 # 国内镜像多源回退（与 Linux 中间件安装共用）
@@ -50,7 +51,14 @@ ensure_env_var() {
   echo "${key}=${value}" >> "${ENV_FILE}"
 }
 
-SERVICES=(Nacos PostgresSQL TDengine Redis Kafka MinIO SRS NodeRED FUXA EMQX)
+SERVICES=()
+while IFS= read -r _middleware_service; do
+  case "$_middleware_service" in
+    *-init) continue ;;
+  esac
+  [[ -n "$_middleware_service" ]] && SERVICES+=("$_middleware_service")
+done < <(deploy_profile_manifest_middleware_service_order)
+unset _middleware_service
 MINIO_BUCKETS=(
   "dataset" "datasets" "export-bucket" "inference-inputs" "inference-results" "models" "snap-space" "alert-images"
   "plate-models" "plate-train-results" "plate-train-logs" "plate-inference-results"
@@ -59,15 +67,18 @@ MINIO_BUCKETS=(
 service_port() {
   case "$1" in
     Nacos) echo 8848 ;;
-    PostgresSQL) echo 5432 ;;
+    PostgresSQL) echo 15432 ;;
     TDengine) echo 6030 ;;
     Redis) echo 6379 ;;
     Kafka) echo 9092 ;;
     MinIO) echo 9000 ;;
+    Milvus) echo 9091 ;;
     SRS) echo 1935 ;;
     NodeRED) echo 1880 ;;
     FUXA) echo 1881 ;;
     EMQX) echo 1883 ;;
+    ZLMediaKit) echo 6080 ;;
+    GPUStack) echo 10180 ;;
     *) echo "" ;;
   esac
 }
@@ -76,10 +87,13 @@ service_health() {
   case "$1" in
     Nacos) echo "/nacos/actuator/health" ;;
     MinIO) echo "/minio/health/live" ;;
+    Milvus) echo "/healthz" ;;
     SRS) echo "/api/v1/versions" ;;
     NodeRED) echo "/" ;;
     FUXA) echo "/" ;;
     EMQX) echo "/api/v5/status" ;;
+    ZLMediaKit) echo "/index/api/getServerConfig" ;;
+    GPUStack) echo "/" ;;
     *) echo "" ;;
   esac
 }
@@ -259,7 +273,7 @@ ensure_network() {
 }
 
 get_docker_network_gateway() {
-  local network_name="${1:-easyaiot-network}"
+  local network_name="${1:-${NETWORK_NAME}}"
   local gateway_ip=""
 
   if docker network inspect "$network_name" >/dev/null 2>&1; then
@@ -685,8 +699,10 @@ cmd_update() {
 cmd_verify() {
   ensure_ready
   local ok_count=0
-  local svc port path
+  local svc port path total_count=0
   for svc in "${SERVICES[@]}"; do
+    middleware_service_enabled "$svc" || continue
+    total_count=$((total_count + 1))
     port=$(service_port "$svc")
     path=$(service_health "$svc")
     info "验证 ${svc} (:${port})"
@@ -707,8 +723,8 @@ cmd_verify() {
       fi
     fi
   done
-  info "通过 ${ok_count}/${#SERVICES[@]}"
-  [[ $ok_count -eq ${#SERVICES[@]} ]] || exit 1
+  info "通过 ${ok_count}/${total_count}"
+  [[ $ok_count -eq $total_count ]] || exit 1
 }
 
 usage() {

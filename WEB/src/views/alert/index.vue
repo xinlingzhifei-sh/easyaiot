@@ -8,7 +8,7 @@
         :tabBarGutter="60"
         @tabClick="handleTabClick"
       >
-        <TabPane v-if="!edgeStandalone" key="1" tab="地图分布">
+        <TabPane v-if="alertMapEnabled" key="1" tab="地图分布">
           <AlertMapView
             ref="alertMapViewRef"
             @view-image="handleCardViewImage"
@@ -134,10 +134,9 @@ import { openDeviceInDialogPlayer } from '@/views/camera/utils/devicePlay';
 import { playAlertRecordInModal } from '@/utils/alertRecordPlayback';
 import { hasAlertFaceMatch, hasAlertPlateMatch, isSnapAlertTask, isLlmSampled } from '@/views/alert/alertDisplay';
 import { ingestAlertReviewClue } from '@/api/supervision/alertReview';
-import { isEdgeStandaloneDeployProfile } from '@/utils/deployProfile';
+import { isDeployCapabilityEnabled } from '@/utils/deployProfile';
 
 const router = useRouter();
-const edgeStandalone = isEdgeStandaloneDeployProfile();
 const [registerImageModal, { openModal: openImageModal }] = useModal();
 const [registerFaceAlertModal, { openModal: openFaceAlertModal }] = useModal();
 const [registerPlateAlertModal, { openModal: openPlateAlertModal }] = useModal();
@@ -153,12 +152,14 @@ const ALERT_TAB_KEYS = {
   REVIEW: '3',
 } as const;
 
+const alertMapEnabled = isDeployCapabilityEnabled('alert.map');
+const defaultAlertTab = alertMapEnabled ? ALERT_TAB_KEYS.MAP : ALERT_TAB_KEYS.EVENTS;
 const ALERT_TAB_ID_SET = new Set<string>(Object.values(ALERT_TAB_KEYS));
 
 const viewMode = ref<'table' | 'card'>('card');
 
 const state = reactive<{ activeKey: string }>({
-  activeKey: edgeStandalone ? ALERT_TAB_KEYS.EVENTS : ALERT_TAB_KEYS.MAP,
+  activeKey: defaultAlertTab,
 });
 
 const params = ref<Record<string, any>>({});
@@ -170,12 +171,16 @@ let cardListReload = () => {};
 const lastTableFilterParams = ref<Record<string, any>>({});
 
 function normalizeAlertRouteTab(tab: unknown): string {
-  if (tab === 'map') return ALERT_TAB_KEYS.MAP;
-  if (tab === 'events') return ALERT_TAB_KEYS.EVENTS;
-  if (tab === 'review') return ALERT_TAB_KEYS.REVIEW;
-  const tabStr = String(tab);
-  if (ALERT_TAB_ID_SET.has(tabStr)) return tabStr;
-  return edgeStandalone ? ALERT_TAB_KEYS.EVENTS : ALERT_TAB_KEYS.MAP;
+  const tabStr = tab === 'map'
+    ? ALERT_TAB_KEYS.MAP
+    : tab === 'events'
+      ? ALERT_TAB_KEYS.EVENTS
+      : tab === 'review'
+        ? ALERT_TAB_KEYS.REVIEW
+        : String(tab);
+  if (ALERT_TAB_ID_SET.has(tabStr) && (tabStr !== ALERT_TAB_KEYS.MAP || alertMapEnabled))
+    return tabStr;
+  return defaultAlertTab;
 }
 
 async function activateMapTab() {
@@ -222,7 +227,7 @@ const refreshData = () => {
   const rawTab = route.query.tab ?? (route.query.view === 'map' ? ALERT_TAB_KEYS.MAP : undefined);
   const tab = rawTab
     ? normalizeAlertRouteTab(rawTab)
-    : (edgeStandalone ? ALERT_TAB_KEYS.EVENTS : ALERT_TAB_KEYS.MAP);
+    : defaultAlertTab;
   if (tab === ALERT_TAB_KEYS.MAP) {
     void activateMapTab();
     return;

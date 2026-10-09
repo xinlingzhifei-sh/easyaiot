@@ -11,7 +11,7 @@
   若本机尚未安装 Docker Desktop / WSL，可用：
     .\install_windows.ps1 bootstrap
     .\install_windows.ps1 -Bootstrap
-  调配引擎 CPU/内存（mini 4GB / standard 16GB / full 24GB）：
+  调配引擎 CPU/内存（以 deploy-profiles.json 为准）：
     .\install_windows.ps1 resources
   配置国内镜像加速（与 Linux 一致；FUXA 走专用 1ms 优先）：
     .\install_windows.ps1 mirrors
@@ -295,16 +295,31 @@ function Install-DockerDesktopIfNeeded {
 }
 
 function Get-yFeiEyeResourceTargets {
-    $profile = if ($env:EASYAIOT_DEPLOY_PROFILE) { $env:EASYAIOT_DEPLOY_PROFILE.ToLower() } else { "full" }
+    $manifestPath = Join-Path $PSScriptRoot 'deploy-profiles.json'
+    if (-not (Test-Path -LiteralPath $manifestPath)) {
+        throw "缺少生产部署规格清单: $manifestPath"
+    }
+    $manifest = Get-Content -Raw -LiteralPath $manifestPath -Encoding UTF8 | ConvertFrom-Json
+    $rawProfile = if ($env:EASYAIOT_DEPLOY_PROFILE) { $env:EASYAIOT_DEPLOY_PROFILE.ToLower() } else { [string]$manifest.defaultProfile }
+    $profile = $null
+    foreach ($profileId in $manifest.profileOrder) {
+        $profileConfig = $manifest.profiles.$profileId
+        if ($rawProfile -eq $profileId -or $profileConfig.aliases -contains $rawProfile) {
+            $profile = [string]$profileId
+            break
+        }
+    }
+    if (-not $profile) {
+        throw "未知部署规格: $rawProfile（可选: $($manifest.profileOrder -join ' | ')）"
+    }
+    $resourceConfig = $manifest.profiles.$profile.dockerDesktop
     $hostMem = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 0)
     $hostCpu = (Get-CimInstance Win32_Processor | Measure-Object -Property NumberOfLogicalProcessors -Sum).Sum
     if (-not $hostCpu) { $hostCpu = $env:NUMBER_OF_PROCESSORS }
 
-    switch ($profile) {
-        "mini"     { $wantMem = 4;  $wantCpu = 4; $wantDisk = 60 }
-        "standard" { $wantMem = 16; $wantCpu = 6; $wantDisk = 80 }
-        default    { $wantMem = 24; $wantCpu = 8; $wantDisk = 100 }
-    }
+    $wantMem = [int]$resourceConfig.memoryGiB
+    $wantCpu = [int]$resourceConfig.cpus
+    $wantDisk = [int]$resourceConfig.diskGiB
     if ($env:EASYAIOT_DOCKER_MEMORY_GB) { $wantMem = [int]$env:EASYAIOT_DOCKER_MEMORY_GB }
     if ($env:EASYAIOT_DOCKER_CPUS) { $wantCpu = [int]$env:EASYAIOT_DOCKER_CPUS }
     if ($env:EASYAIOT_DOCKER_DISK_GB) { $wantDisk = [int]$env:EASYAIOT_DOCKER_DISK_GB }

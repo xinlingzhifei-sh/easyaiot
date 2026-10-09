@@ -1,22 +1,180 @@
-/** 与后端 EASYAIOT_DEPLOY_PROFILE 对齐：mini / standard / full */
-export type DeployProfile = 'mini' | 'standard' | 'full';
+import {
+  deploymentProfileManifest,
+  type DeploymentCapabilityId,
+  type DeploymentProfileId,
+} from '@/generated/deploymentProfileManifest';
 
-function normalizeDeployProfile(raw: string | undefined): DeployProfile {
-  const p = String(raw ?? 'full')
-    .trim()
-    .toLowerCase();
-  if (p === 'mini' || p === '1' || p === 'minimal' || p === '4g') return 'mini';
-  if (p === 'standard' || p === '2' || p === 'std' || p === '16g') return 'standard';
-  return 'full';
+export type DeployProfile = DeploymentProfileId;
+
+interface ManifestProfileConfig {
+  aliases?: readonly string[];
+  capabilities?: readonly DeploymentCapabilityId[];
 }
 
-/** 当前前端构建时的部署形态（VITE_GLOB_DEPLOY_PROFILE，默认 full） */
+interface ManifestMenuAlias {
+  capabilityId: DeploymentCapabilityId;
+  componentNames?: readonly string[];
+  routeNames?: readonly string[];
+  pathPrefixes?: readonly string[];
+  legacyTitles?: readonly string[];
+}
+
+interface DeploymentManifestView {
+  defaultProfile?: DeploymentProfileId;
+  profiles: Partial<
+    Record<DeploymentProfileId, ManifestProfileConfig | readonly DeploymentCapabilityId[]>
+  >;
+  web?: {
+    menuAliases?: readonly ManifestMenuAlias[];
+  };
+  menuAliases?: readonly ManifestMenuAlias[];
+}
+
+export interface DeployProfileMenuLike {
+  name?: unknown;
+  path?: unknown;
+  componentName?: unknown;
+  meta?: unknown;
+}
+
+const manifest = deploymentProfileManifest as unknown as DeploymentManifestView;
+
+function normalizeText(value: unknown): string {
+  return String(value ?? '').trim();
+}
+
+function normalizeIdentity(value: unknown): string {
+  return normalizeText(value).toLowerCase();
+}
+
+function normalizeMenuPath(value: unknown): string {
+  const raw = normalizeIdentity(value).split(/[?#]/, 1)[0];
+  if (!raw) return '';
+  const withLeadingSlash = raw.startsWith('/') ? raw : `/${raw}`;
+  const normalized = withLeadingSlash.replace(/\/{2,}/g, '/');
+  return normalized.length > 1 ? normalized.replace(/\/$/, '') : normalized;
+}
+
+function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function hasProfile(profile: string): profile is DeploymentProfileId {
+  return Object.prototype.hasOwnProperty.call(manifest.profiles, profile);
+}
+
+function getProfileConfig(profile: DeploymentProfileId): ManifestProfileConfig {
+  const config = manifest.profiles[profile];
+  if (!config) return {};
+  if (Array.isArray(config)) {
+    return { capabilities: config as readonly DeploymentCapabilityId[] };
+  }
+  return config as ManifestProfileConfig;
+}
+
+function getDefaultProfile(): DeploymentProfileId {
+  if (manifest.defaultProfile && hasProfile(manifest.defaultProfile))
+    return manifest.defaultProfile;
+  if (hasProfile('full')) return 'full';
+  return Object.keys(manifest.profiles)[0] as DeploymentProfileId;
+}
+
+function normalizeDeployProfile(raw: string | undefined): DeployProfile {
+  const normalized = normalizeIdentity(raw || getDefaultProfile());
+  for (const profile of Object.keys(manifest.profiles) as DeploymentProfileId[]) {
+    if (normalizeIdentity(profile) === normalized)
+      return profile;
+    const aliases = getProfileConfig(profile).aliases ?? [];
+    if (aliases.some(alias => normalizeIdentity(alias) === normalized))
+      return profile;
+  }
+  return getDefaultProfile();
+}
+
+function isEnabledFlag(raw: unknown): boolean {
+  return normalizeIdentity(raw) === 'true';
+}
+
+/** 当前前端构建时的有效部署形态（默认 full；edge 兼容旧的独立布尔标识）。 */
 export function getDeployProfile(): DeployProfile {
+  if (isEnabledFlag(import.meta.env.VITE_GLOB_EDGE_STANDALONE) && hasProfile('edge'))
+    return 'edge';
   return normalizeDeployProfile(import.meta.env.VITE_GLOB_DEPLOY_PROFILE);
 }
 
+/** 查询当前（或指定）部署形态是否声明了稳定能力 ID。 */
+export function isDeployCapabilityEnabled(
+  capabilityId: DeploymentCapabilityId,
+  profile: DeployProfile = getDeployProfile(),
+): boolean {
+  return (getProfileConfig(profile).capabilities ?? []).includes(capabilityId);
+}
+
+function getMenuAliases(): readonly ManifestMenuAlias[] {
+  return manifest.web?.menuAliases ?? manifest.menuAliases ?? [];
+}
+
+function isKnownCapabilityId(value: string): value is DeploymentCapabilityId {
+  if (getMenuAliases().some(alias => alias.capabilityId === value))
+    return true;
+  return (Object.keys(manifest.profiles) as DeploymentProfileId[]).some(profile =>
+    (getProfileConfig(profile).capabilities ?? []).includes(value as DeploymentCapabilityId),
+  );
+}
+
+function findAliasByIdentity(
+  field: 'componentNames' | 'routeNames' | 'legacyTitles',
+  value: unknown,
+): DeploymentCapabilityId | undefined {
+  const normalized = normalizeIdentity(value);
+  if (!normalized) return undefined;
+  return getMenuAliases().find(alias =>
+    (alias[field] ?? []).some(candidate => normalizeIdentity(candidate) === normalized),
+  )?.capabilityId;
+}
+
+function findAliasByPath(value: unknown): DeploymentCapabilityId | undefined {
+  const path = normalizeMenuPath(value);
+  if (!path) return undefined;
+  return getMenuAliases().find(alias =>
+    (alias.pathPrefixes ?? []).some((candidate) => {
+      const prefix = normalizeMenuPath(candidate);
+      return !!prefix && (path === prefix || path.startsWith(`${prefix}/`));
+    }),
+  )?.capabilityId;
+}
+
+/**
+ * 将路由/菜单解析为稳定能力 ID。优先级：显式 meta、componentName、route name、路径、旧标题。
+ * 未识别项返回 undefined，由调用方保持可见。
+ */
+export function resolveMenuCapability(
+  menu: DeployProfileMenuLike | string | null | undefined,
+): DeploymentCapabilityId | undefined {
+  const candidate: DeployProfileMenuLike = typeof menu === 'string' ? { name: menu } : (menu ?? {});
+  const meta = isRecord(candidate.meta) ? candidate.meta : {};
+  const explicitCapability = normalizeText(meta.capabilityId);
+  if (explicitCapability)
+    return isKnownCapabilityId(explicitCapability) ? explicitCapability : undefined;
+
+  const componentCapability = findAliasByIdentity(
+    'componentNames',
+    candidate.componentName ?? meta.componentName,
+  );
+  if (componentCapability) return componentCapability;
+
+  const routeCapability = findAliasByIdentity('routeNames', candidate.name);
+  if (routeCapability) return routeCapability;
+
+  const pathCapability = findAliasByPath(candidate.path);
+  if (pathCapability) return pathCapability;
+
+  return findAliasByIdentity('legacyTitles', meta.title ?? candidate.name);
+}
+
 export function isMiniDeployProfile(): boolean {
-  return getDeployProfile() === 'mini';
+  const profile = getDeployProfile();
+  return profile === 'mini' || profile === 'edge';
 }
 
 /** edge 单机合装：登录无租户、无滑块验证码（VITE 编译时关闭） */
@@ -30,11 +188,11 @@ export function isLoginCaptchaEnabled(): boolean {
 
 /** edge 单机合装（与 mini 共用前端裁剪，但零 DEVICE / 无集群 Tab） */
 export function isEdgeStandaloneDeployProfile(): boolean {
-  return String(import.meta.env.VITE_GLOB_EDGE_STANDALONE ?? 'false').trim().toLowerCase() === 'true';
+  return getDeployProfile() === 'edge';
 }
 
-/** edge 单机合装不部署 NFS 集群，仅隐藏 NFS 相关 Tab */
-const EDGE_HIDDEN_CAMERA_TAB_KEYS = new Set([
+/** 仅在部署形态启用 NFS 集群能力时展示相关 Tab。 */
+const NFS_CAMERA_TAB_KEYS = new Set([
   '20', // NFS 集群管理
   '24', // NFS 集群拓扑
   '22', // NFS 节点部署
@@ -42,108 +200,71 @@ const EDGE_HIDDEN_CAMERA_TAB_KEYS = new Set([
 ]);
 
 export function isEdgeCameraTabVisible(tabKey: string): boolean {
-  if (!isEdgeStandaloneDeployProfile())
+  if (!NFS_CAMERA_TAB_KEYS.has(String(tabKey)))
     return true;
-  return !EDGE_HIDDEN_CAMERA_TAB_KEYS.has(String(tabKey));
+  return isDeployCapabilityEnabled('media.nfs-cluster');
 }
 
-/** 大屏「管理后台」默认落地页（edge/mini 均进入流媒体 — 地图分布 Tab） */
+/** 大屏「管理后台」默认落地页：有集群能力时进入节点管理，否则进入流媒体。 */
 export function getAdminHomeRoute(): { path: string; query?: Record<string, string> } {
-  if (isEdgeStandaloneDeployProfile() || isMiniDeployProfile()) {
-    return { path: '/camera/index', query: { tab: '1' } };
-  }
-  return { path: '/node/index' };
+  return isDeployCapabilityEnabled('node.cluster')
+    ? { path: '/node/index' }
+    : { path: '/camera/index', query: { tab: '1' } };
 }
 
-/** mini 形态不启动 iot-gb28181 / WVP，前端不应请求国标接口 */
+/** 当前形态是否部署国标接入能力。 */
 export function isGb28181Enabled(): boolean {
-  return !isMiniDeployProfile();
+  return isDeployCapabilityEnabled('video.gb28181');
 }
 
-/** mini / edge 不部署 go2rtc，前端隐藏 RTC 平台接入入口 */
+/** 当前形态是否部署 RTC 接入能力。 */
 export function isRtcEnabled(): boolean {
-  return !isMiniDeployProfile() && !isEdgeStandaloneDeployProfile();
+  return isDeployCapabilityEnabled('video.rtc');
 }
 
-/** mini / edge 仅保留模型管理（edge 再隐藏推理）；隐藏训练/导出/部署/大模型/SAM 等 */
+/** 当前形态是否部署训练/导出/部署等高级训练能力。 */
 export function isTrainAdvancedEnabled(): boolean {
-  return !isMiniDeployProfile() && !isEdgeStandaloneDeployProfile();
+  return isDeployCapabilityEnabled('ai.training');
 }
 
-/** mini 形态不展示人脸库 / 车牌库 / 场景姿态库 Tab */
+/** 当前形态是否部署身份库能力。 */
 export function isFacePlateLibraryEnabled(): boolean {
-  return !isMiniDeployProfile();
+  return isDeployCapabilityEnabled('video.identity-library');
 }
 
-/** mini / edge 单机不部署 iot-flow 工作流服务，告警管理隐藏「告警工单」Tab */
+/** 当前形态是否部署工作流能力。 */
 export function isFlowTicketEnabled(): boolean {
-  return !isMiniDeployProfile() && !isEdgeStandaloneDeployProfile();
+  return isDeployCapabilityEnabled('workflow.flow');
 }
 
 export function isScenarioPoseLibraryEnabled(): boolean {
-  return !isMiniDeployProfile();
+  return isDeployCapabilityEnabled('video.identity-library');
 }
 
-/** EDGE 模块已移除：边缘联邦由 RUNTIME 原子模式 + MQTT 事件面替代，不再展示边缘节点管理 */
+/** EDGE 联邦入口已移除；节点集群能力由 node.cluster 菜单单独控制。 */
 export function isEdgeNodeEnabled(): boolean {
   return false;
 }
 
-/** mini / standard 均不部署可视化后端与编辑器，统一隐藏相关顶级菜单 */
-const VISUALIZE_HIDDEN_MENU_NAMES = ['可视化管理', '大屏管理', '可视化大屏'] as const;
-const TRANSFORM_HIDDEN_MENU_NAMES = ['系统对接', '数据转发'] as const;
-
-/** mini 形态不部署 iot-flow 工作流服务，隐藏工作流顶级菜单（菜单已改名「告警工单」，入口收敛至告警管理 Tab；
- *  顶级目录 /flow 无 componentName，路由名由路径解析为 Flow） */
-const MINI_HIDDEN_MENU_NAMES = new Set([
-  'Flow',
-  '集群管理',
-  '设备管理',
-  '产品管理',
-  'OTA升级',
-  '数据标注',
-  '规则引擎',
-  '通知管理',
-  '基础设施',
-  ...VISUALIZE_HIDDEN_MENU_NAMES,
-  ...TRANSFORM_HIDDEN_MENU_NAMES,
-]);
-
-/** standard 形态隐藏的顶级菜单 */
-const STANDARD_HIDDEN_MENU_NAMES = new Set([
-  '设备管理',
-  '产品管理',
-  'OTA升级',
-  '规则引擎',
-  ...VISUALIZE_HIDDEN_MENU_NAMES,
-  ...TRANSFORM_HIDDEN_MENU_NAMES,
-]);
-
-/** full 形态才启用可视化（iot-visualize / VISUALIZE） */
+/** 当前形态是否部署可视化能力。 */
 export function isVisualizeEnabled(): boolean {
-  return getDeployProfile() === 'full';
+  return isDeployCapabilityEnabled('visualize');
 }
 
-/** full 形态才启用系统对接（TRANSFORM） */
+/** 当前形态是否部署系统对接能力。 */
 export function isTransformEnabled(): boolean {
-  return getDeployProfile() === 'full';
+  return isDeployCapabilityEnabled('transform');
 }
 
-/** 各部署形态均启用 HARNESS（edge 单机合装除外） */
+/** HARNESS 仅在 manifest 显式声明时启用；生产 profile 默认关闭。 */
 export function isHarnessEnabled(): boolean {
-  return !isEdgeStandaloneDeployProfile();
+  return isDeployCapabilityEnabled('assistant.harness');
 }
 
-function getHiddenMenuNamesForDeployProfile(): Set<string> {
-  const profile = getDeployProfile();
-  if (profile === 'mini') return MINI_HIDDEN_MENU_NAMES;
-  if (profile === 'standard') return STANDARD_HIDDEN_MENU_NAMES;
-  return new Set();
-}
-
-/** 当前部署形态下是否应隐藏该菜单项（按菜单名称匹配） */
-export function isMenuHiddenByDeployProfile(menuName: string | undefined | null): boolean {
-  const name = String(menuName ?? '').trim();
-  if (!name) return false;
-  return getHiddenMenuNamesForDeployProfile().has(name);
+/** 当前部署形态下是否应隐藏该路由/菜单；未知项默认可见。 */
+export function isMenuHiddenByDeployProfile(
+  menu: DeployProfileMenuLike | string | null | undefined,
+): boolean {
+  const capabilityId = resolveMenuCapability(menu);
+  return capabilityId ? !isDeployCapabilityEnabled(capabilityId) : false;
 }

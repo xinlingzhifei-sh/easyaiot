@@ -47,11 +47,20 @@ GPUSTACK_ADMIN_PASSWORD="${GPUSTACK_ADMIN_PASSWORD:-}"
 # GPUSTACK_TOKEN 由 API 动态获取；若已导出则优先使用环境变量中的值
 GPUSTACK_API_COOKIE_FILE="${SCRIPT_DIR}/logs/.gpustack_api_cookie"
 # 跳过 GPUStack（Server 容器、Worker、镜像拉取、数据目录递归 chmod）。
-# 导出 SKIP_GPUSTACK=true 可避免 gpustack_data 大目录的递归 777 卡顿、加速部署。
-SKIP_GPUSTACK="${SKIP_GPUSTACK:-false}"
+# 生产 profile 默认关闭；EASYAIOT_ENABLE_GPUSTACK=1 可显式启用，SKIP_GPUSTACK=true
+# 仍可只关闭 Worker、镜像拉取和数据目录处理。
+_GPUSTACK_SKIP_EXPLICIT=0
+[ "${SKIP_GPUSTACK+x}" = "x" ] && _GPUSTACK_SKIP_EXPLICIT=1
+SKIP_GPUSTACK="${SKIP_GPUSTACK:-true}"
 
 refresh_compose_profile_args() {
     apply_deploy_profile
+    if ! middleware_service_enabled GPUStack; then
+        SKIP_GPUSTACK=true
+    elif [ "$_GPUSTACK_SKIP_EXPLICIT" -eq 0 ]; then
+        SKIP_GPUSTACK=false
+    fi
+    export SKIP_GPUSTACK
     COMPOSE_PROFILE_ARGS=()
     local flags
     flags=$(compose_profile_flags)
@@ -108,19 +117,15 @@ echo "=========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
 
-# 中间件服务列表
-MIDDLEWARE_SERVICES=(
-    "Nacos"
-    "PostgresSQL"
-    "Redis"
-    "Kafka"
-    "MinIO"
-    "Milvus"
-    "SRS"
-    "NodeRED"
-    "FUXA"
-    "ZLMediaKit"
-)
+# 中间件运行时服务列表（初始化 job 不参与常驻状态检查）。
+MIDDLEWARE_SERVICES=()
+while IFS= read -r _middleware_service; do
+    case "$_middleware_service" in
+        *-init) continue ;;
+    esac
+    [ -n "$_middleware_service" ] && MIDDLEWARE_SERVICES+=("$_middleware_service")
+done < <(deploy_profile_manifest_middleware_service_order)
+unset _middleware_service
 
 # 默认不启动（省内存）；TDengine 仅 full 自动开启，EMQX 在 standard/full 自动开启
 # 也可显式设置 EASYAIOT_ENABLE_TDENGINE=1 / EASYAIOT_ENABLE_EMQX=1
@@ -1676,28 +1681,29 @@ check_docker_compose() {
 
 # 创建统一网络
 create_network() {
-    print_info "创建统一网络 yfeieye-network..."
+    local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+    print_info "创建统一网络 ${network_name}..."
     
     # 检查网络是否已存在
-    if docker network ls | grep -q yfeieye-network; then
-        print_info "网络 yfeieye-network 已存在，跳过创建"
+    if docker network ls --format '{{.Name}}' | grep -Fxq -- "$network_name"; then
+        print_info "网络 ${network_name} 已存在，跳过创建"
         # 简化处理：如果网络已存在，直接使用，不进行任何测试（避免卡住）
         # 如果网络真的有问题，后续启动容器时会报错，届时再处理
         return 0
     fi
     
     # 创建网络（如果不存在或已删除）
-    print_info "正在创建网络 yfeieye-network..."
-    local create_output=$(docker network create yfeieye-network 2>&1)
+    print_info "正在创建网络 ${network_name}..."
+    local create_output=$(docker network create "$network_name" 2>&1)
     local create_exit_code=$?
     
     if [ $create_exit_code -eq 0 ]; then
-        print_success "网络 yfeieye-network 已创建"
+        print_success "网络 ${network_name} 已创建"
         return 0
     else
         # 检查错误原因
         if echo "$create_output" | grep -qi "already exists"; then
-            print_info "网络 yfeieye-network 已存在（可能在检查后创建）"
+            print_info "网络 ${network_name} 已存在（可能在检查后创建）"
             return 0
         elif echo "$create_output" | grep -qi "permission denied"; then
             print_error "没有权限创建 Docker 网络"
@@ -1706,7 +1712,7 @@ create_network() {
         elif echo "$create_output" | grep -qi "network with name.*already exists"; then
             print_warning "网络名称冲突，尝试使用不同的方法..."
             # 再次检查网络是否存在
-            if docker network ls | grep -q yfeieye-network; then
+            if docker network ls --format '{{.Name}}' | grep -Fxq -- "$network_name"; then
                 print_info "网络已存在，继续使用现有网络"
                 return 0
             else
@@ -1714,7 +1720,7 @@ create_network() {
                 return 1
             fi
         else
-            print_error "无法创建网络 yfeieye-network"
+            print_error "无法创建网络 ${network_name}"
             print_error "错误信息: $create_output"
             print_info "诊断建议："
             print_info "  1. 检查 Docker 服务是否正常运行: sudo systemctl status docker"
@@ -6635,23 +6641,8 @@ install_middleware() {
     local failed_containers=()
     for service in "${MIDDLEWARE_SERVICES[@]}"; do
         middleware_service_enabled "$service" || continue
-        local container_name=""
-        case "$service" in
-            "Nacos") container_name="nacos-server" ;;
-            "PostgresSQL") container_name="postgres-server" ;;
-            "TDengine") container_name="tdengine-server" ;;
-            "Redis") container_name="redis-server" ;;
-            "Kafka") container_name="kafka-server" ;;
-            "MinIO") container_name="minio-server" ;;
-            "SRS") container_name="srs-server" ;;
-            "NodeRED") container_name="nodered-server" ;;
-            "FUXA") container_name="fuxa-server" ;;
-            "EMQX") container_name="emqx-server" ;;
-            "ZLMediaKit") container_name="zlmediakit-server" ;;
-            "Milvus") container_name="milvus-server" ;;
-        esac
-        
-        if [ -n "$container_name" ]; then
+        local container_name
+        for container_name in $(deploy_profile_manifest_middleware_service_containers "$service"); do
             local container_status=$(docker ps -a --filter "name=^${container_name}$" --format "{{.Status}}" 2>/dev/null | head -1 || echo "")
             if [ -n "$container_status" ]; then
                 if echo "$container_status" | grep -qE "Exited|Dead|Restarting|Created"; then
@@ -6663,7 +6654,7 @@ install_middleware() {
                     failed_containers+=("$service")
                 fi
             fi
-        fi
+        done
     done
     
     if [ ${#failed_containers[@]} -gt 0 ]; then
@@ -6921,7 +6912,17 @@ restart_middleware() {
     prepare_zlmediakit_config
 
     print_info "重启所有中间件服务..."
-    mw_compose up -d --force-recreate
+    cleanup_profile_excluded_containers
+    local -a _skip_optional=()
+    local _up_rc
+    read -r -a _skip_optional <<< "$(collect_skippable_optional_services)"
+    if compose_up_middleware --force-recreate "${_skip_optional[@]}"; then
+        _up_rc=0
+    else
+        _up_rc=$?
+        print_error "中间件重启失败（compose 退出码 ${_up_rc}）"
+        return "$_up_rc"
+    fi
     
     print_success "所有中间件重启完成"
     echo ""

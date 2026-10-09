@@ -111,15 +111,24 @@ echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
-# 模块列表（按依赖顺序）
-MODULES=(
-    ".scripts/docker"  # 基础服务（Nacos、PostgreSQL、Redis等）
-    "DEVICE"           # Device服务（网关和微服务）
-     "AI"               # AI服务
-     "VIDEO"            # Video服务
-    "WEB"              # Web前端服务
-    "VISUALIZE"        # 可视化编辑器（仅 full 全量形态）
-)
+# 模块顺序来自生产规格 manifest；仅保留此 macOS 安装器真实支持的模块。
+MODULES=()
+while IFS= read -r _manifest_module; do
+    case "$_manifest_module" in
+        .scripts/docker|DEVICE|AI|VIDEO|WEB|VISUALIZE)
+            MODULES+=("$_manifest_module")
+            ;;
+    esac
+done < <(deploy_profile_manifest_module_order)
+unset _manifest_module
+
+_count_enabled_modules() {
+    local count=0 module
+    for module in "${MODULES[@]}"; do
+        module_enabled_for_deploy_profile "$module" && count=$((count + 1))
+    done
+    echo "$count"
+}
 
 # 模块信息（使用函数兼容 bash 3.2）
 get_module_name() {
@@ -467,16 +476,17 @@ EOF
 
 # 创建统一网络
 create_network() {
-    print_info "创建统一网络 yfeieye-network..."
-    if docker network inspect yfeieye-network >/dev/null 2>&1; then
-        print_info "网络 yfeieye-network 已存在"
+    local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+    print_info "创建统一网络 ${network_name}..."
+    if docker network inspect "$network_name" >/dev/null 2>&1; then
+        print_info "网络 ${network_name} 已存在"
         return
     fi
 
-    if docker network create yfeieye-network >/dev/null 2>&1; then
-        print_success "网络 yfeieye-network 已创建"
+    if docker network create "$network_name" >/dev/null 2>&1; then
+        print_success "网络 ${network_name} 已创建"
     else
-        print_error "无法创建网络 yfeieye-network"
+        print_error "无法创建网络 ${network_name}"
         exit 1
     fi
 }
@@ -560,12 +570,20 @@ execute_module_command() {
         else
             compose_cmd="docker compose"
         fi
+        local -a device_targets=()
+        local -a device_profile_args=()
+        read -r -a device_targets <<< "$(device_enabled_services)"
+        read -r -a device_profile_args <<< "$(device_compose_profile_flags)"
+        if [ ${#device_targets[@]} -eq 0 ]; then
+            print_info "当前部署形态不启用 DEVICE 服务，跳过"
+            return 0
+        fi
         
         print_info "执行 $module_name: $command"
         
         case "$command" in
             install|start)
-                if $compose_cmd -f "$compose_file" up -d 2>&1 | tee -a "$LOG_FILE"; then
+                if $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" up -d "${device_targets[@]}" 2>&1 | tee -a "$LOG_FILE"; then
                     print_success "$module_name: $command 执行成功"
                     return 0
                 else
@@ -583,7 +601,7 @@ execute_module_command() {
                 fi
                 ;;
             restart)
-                if $compose_cmd -f "$compose_file" restart 2>&1 | tee -a "$LOG_FILE"; then
+                if $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" restart "${device_targets[@]}" 2>&1 | tee -a "$LOG_FILE"; then
                     print_success "$module_name: $command 执行成功"
                     return 0
                 else
@@ -592,15 +610,15 @@ execute_module_command() {
                 fi
                 ;;
             status)
-                $compose_cmd -f "$compose_file" ps 2>&1 | tee -a "$LOG_FILE"
+                $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" ps "${device_targets[@]}" 2>&1 | tee -a "$LOG_FILE"
                 return $?
                 ;;
             logs)
-                $compose_cmd -f "$compose_file" logs --tail=100 2>&1 | tee -a "$LOG_FILE"
+                $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" logs --tail=100 "${device_targets[@]}" 2>&1 | tee -a "$LOG_FILE"
                 return $?
                 ;;
             build)
-                if $compose_cmd -f "$compose_file" build --no-cache 2>&1 | tee -a "$LOG_FILE"; then
+                if $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" build --no-cache "${device_targets[@]}" 2>&1 | tee -a "$LOG_FILE"; then
                     print_success "$module_name: $command 执行成功"
                     return 0
                 else
@@ -618,7 +636,7 @@ execute_module_command() {
                 fi
                 ;;
             update)
-                if ($compose_cmd -f "$compose_file" pull && $compose_cmd -f "$compose_file" up -d) 2>&1 | tee -a "$LOG_FILE"; then
+                if ($compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" pull "${device_targets[@]}" && $compose_cmd ${device_profile_args[@]+"${device_profile_args[@]}"} -f "$compose_file" up -d "${device_targets[@]}") 2>&1 | tee -a "$LOG_FILE"; then
                     print_success "$module_name: $command 执行成功"
                     return 0
                 else
@@ -746,7 +764,8 @@ install_mac() {
     fi
     
     local success_count=0
-    local total_count=${#MODULES[@]}
+    local total_count
+    total_count=$(_count_enabled_modules)
     
     for module in "${MODULES[@]}"; do
         if ! module_enabled_for_deploy_profile "$module"; then
@@ -1147,7 +1166,8 @@ verify_all() {
     check_docker "$@"
     
     local success_count=0
-    local total_count=${#MODULES[@]}
+    local total_count
+    total_count=$(_count_enabled_modules)
     local failed_modules=()
     
     for module in "${MODULES[@]}"; do

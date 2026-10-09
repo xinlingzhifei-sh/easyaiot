@@ -55,23 +55,14 @@ if [ -f "${PROJECT_ROOT}/.scripts/node/ensure_platform_agent_invoke.sh" ]; then
   source "${PROJECT_ROOT}/.scripts/node/ensure_platform_agent_invoke.sh"
 fi
 
-# 模块列表（按依赖顺序：HARNESS 先于 IDEA；任一模块失败则跳过并继续后续模块）
-MODULES=(
-  "HARNESS"
-  "IDEA"
-  ".scripts/docker"
-  "DEVICE"
-  "AI"
-  "RTC"
-  "POST"
-  "VIDEO"
-  "WEB"
-  "APP"
-  "VISUALIZE"
-  "TWIN"
-  "TRANSFORM"
-  "PANEL"
-)
+# 模块顺序来自生产规格 manifest；桌面端继续排除未支持的 TERMINAL。
+MODULES=()
+while IFS= read -r _manifest_module; do
+  [ -z "$_manifest_module" ] && continue
+  [ "$_manifest_module" = "TERMINAL" ] && continue
+  MODULES+=("$_manifest_module")
+done < <(deploy_profile_manifest_module_order)
+unset _manifest_module
 
 # 编排前置模块（install/start/restart/update 失败时终止后续步骤）
 is_bootstrap_module() {
@@ -214,11 +205,11 @@ print_section() {
 
 
 # 部署完成后初始化 FLOW 工作流并重放 demo 数据（幂等可重跑），与 install_linux.sh 的 after_stack 钩子一致。
-# 关闭：EASYAIOT_ENABLE_FLOW_DEMO=0
+# 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 显式启用
 ensure_flow_demo_after_stack() {
     local flow_script="${PROJECT_ROOT}/.scripts/flow/flow_demo_replay.sh"
-    if [ "${EASYAIOT_ENABLE_FLOW_DEMO:-1}" = "0" ]; then
-        print_info "跳过 FLOW 工作流初始化与 demo 重放（EASYAIOT_ENABLE_FLOW_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile flow-demo; then
+        print_info "跳过 FLOW 工作流初始化与 demo 重放（生产 profile 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 可显式启用）"
         return 0
     fi
     if [ ! -f "$flow_script" ]; then
@@ -1116,12 +1107,13 @@ detect_host_ip_desktop() {
 }
 
 create_network() {
-  if ! docker network inspect easyaiot-network >/dev/null 2>&1; then
-    print_info "创建 Docker 网络: easyaiot-network"
-    docker network create easyaiot-network >/dev/null
+  local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+  if ! docker network inspect "$network_name" >/dev/null 2>&1; then
+    print_info "创建 Docker 网络: ${network_name}"
+    docker network create "$network_name" >/dev/null
     print_success "网络已创建"
   else
-    print_info "Docker 网络 easyaiot-network 已存在"
+    print_info "Docker 网络 ${network_name} 已存在"
   fi
 }
 
@@ -1492,7 +1484,8 @@ desktop_start() {
 
   # HARNESS 先于 IDEA（失败跳过并继续后续模块）
   local module
-  for module in HARNESS IDEA; do
+  for module in "${MODULES[@]}"; do
+    is_bootstrap_module "$module" || continue
     if module_enabled_for_deploy_profile "$module"; then
       print_section "启动 $(module_name "$module")"
       if ! execute_module_command "$module" "start"; then
@@ -1624,7 +1617,8 @@ desktop_update() {
 
   # HARNESS 先于 IDEA（失败跳过并继续后续模块）
   local module
-  for module in HARNESS IDEA; do
+  for module in "${MODULES[@]}"; do
+    is_bootstrap_module "$module" || continue
     if module_enabled_for_deploy_profile "$module"; then
       print_section "更新 $(module_name "$module")"
       if ! execute_module_command "$module" "update"; then

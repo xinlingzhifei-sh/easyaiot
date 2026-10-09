@@ -58,7 +58,7 @@ function getAsyncMenus() {
     return items.filter((item) => {
       const show = !item.meta?.hideMenu
         && !item.hideMenu
-        && !isMenuHiddenByDeployProfile(item.name)
+        && !isMenuHiddenByDeployProfile(item)
       if (show && item.children)
         item.children = menuFilter(item.children)
 

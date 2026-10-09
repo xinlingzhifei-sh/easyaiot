@@ -54,7 +54,7 @@ INDEPENDENT_MODULES=(
 # SITE 官方网站：仅 site 命令使用，不参与 pull/build-runtime 全量清单
 SITE_MODULE_MAPPING="aiot-site|site-service|SITE"
 
-# 仅 full 全量形态部署（远程名 ↔ 本地名，与 INDEPENDENT_MODULES 格式相同）
+# 扩展运行时模块（远程名 ↔ 本地名，与 INDEPENDENT_MODULES 格式相同）；是否属于形态由 manifest 决定
 # 注意：aiot-visualize 已用于 DEVICE 后端 iot-module-visualize-biz，前端用 aiot-visualize-web
 FULL_ONLY_MODULES=(
     "aiot-app|app-service|APP"
@@ -65,7 +65,11 @@ FULL_ONLY_MODULES=(
 
 PROFILE_DEPENDENT_REMOTES=(aiot-web)
 FULL_ONLY_REMOTES=(aiot-app aiot-visualize-web aiot-twin aiot-transform)
-ALL_DEPLOY_PROFILES=(edge mini standard full)
+ALL_DEPLOY_PROFILES=()
+while IFS= read -r _manifest_profile; do
+    [ -n "$_manifest_profile" ] && ALL_DEPLOY_PROFILES+=("$_manifest_profile")
+done < <(deploy_profile_manifest_profile_ids)
+unset _manifest_profile
 ALL_RUNTIME_ARCHS=(amd64 arm64)
 
 # ============================================================================
@@ -112,8 +116,14 @@ runtime_is_single_arch_build() {
     [ -n "$a" ] && [ "$a" != "all" ]
 }
 
-# build-runtime 可选单模块（IDEA/TERMINAL/PANEL 全形态；POST 仅 standard/full；APP/VISUALIZE/TWIN/TRANSFORM 仅 full）
-ALL_RUNTIME_BUILD_MODULES=(HARNESS IDEA TERMINAL DEVICE AI RTC POST VIDEO WEB APP VISUALIZE TWIN TRANSFORM PANEL)
+# build-runtime 使用 manifest 顺序；基础服务不属于独立业务镜像构建目标。
+ALL_RUNTIME_BUILD_MODULES=()
+while IFS= read -r _manifest_module; do
+    [ -z "$_manifest_module" ] && continue
+    [ "$_manifest_module" = ".scripts/docker" ] && continue
+    ALL_RUNTIME_BUILD_MODULES+=("$_manifest_module")
+done < <(deploy_profile_manifest_module_order)
+unset _manifest_module
 
 runtime_build_module_help() {
     local out="all" m
@@ -176,6 +186,24 @@ runtime_build_includes_module() {
     [ -z "$sel" ] || [ "$sel" = "$mod" ]
 }
 
+# 查询指定部署形态是否启用模块；在子 shell 中切换形态，避免污染调用方状态。
+runtime_module_enabled_for_profile() {
+    local module="$1" profile="${2:-${EASYAIOT_DEPLOY_PROFILE:-full}}"
+    (
+        export EASYAIOT_DEPLOY_PROFILE="$profile"
+        module_enabled_for_deploy_profile "$module"
+    )
+}
+
+runtime_module_enabled_for_any_profile() {
+    local module="$1" profile
+    shift
+    for profile in "$@"; do
+        runtime_module_enabled_for_profile "$module" "$profile" && return 0
+    done
+    return 1
+}
+
 # 解析 build-runtime 模块 CLI/环境变量（install_*.sh 第二参数）
 runtime_apply_build_module_arg() {
     local arg="${1:-${EASYAIOT_RUNTIME_BUILD_MODULE:-}}"
@@ -195,19 +223,19 @@ runtime_apply_build_module_arg() {
     return 0
 }
 
-# 单模块 APP / VISUALIZE / TWIN / TRANSFORM 与部署形态兼容性校验（均仅 full）
+# 单个扩展运行时模块与目标部署形态兼容性校验
 runtime_validate_build_module_profile() {
-    case "${EASYAIOT_RUNTIME_BUILD_MODULE:-}" in
-        APP|VISUALIZE|TWIN|TRANSFORM) ;;
-        *) return 0 ;;
-    esac
-    if [ "${EASYAIOT_RUNTIME_BUILD_ALL_PROFILES:-0}" = "1" ]; then
-        return 0
-    fi
-    if [ "${EASYAIOT_DEPLOY_PROFILE:-full}" != "full" ]; then
-        runtime_img_msg error "${EASYAIOT_RUNTIME_BUILD_MODULE} 模块仅 full 形态可用，当前形态: ${EASYAIOT_DEPLOY_PROFILE:-未设置}"
+    local selected="${EASYAIOT_RUNTIME_BUILD_MODULE:-}" mapping module
+    [ -z "$selected" ] && return 0
+    for mapping in "${FULL_ONLY_MODULES[@]}"; do
+        module="${mapping##*|}"
+        [ "$selected" = "$module" ] || continue
+        if runtime_module_enabled_for_any_profile "$selected" "$@"; then
+            return 0
+        fi
+        runtime_img_msg error "${selected} 模块不属于目标部署形态: $*"
         return 1
-    fi
+    done
     return 0
 }
 
@@ -442,8 +470,9 @@ runtime_interactive_select_profile() {
         ensure_deploy_profile 2>/dev/null || export EASYAIOT_DEPLOY_PROFILE="${EASYAIOT_DEPLOY_PROFILE:-full}"
         return 0
     fi
-    case "${EASYAIOT_DEPLOY_PROFILE:-}" in
-        edge|mini|standard|full)
+    local _known_profile
+    for _known_profile in "${ALL_DEPLOY_PROFILES[@]}"; do
+        if [ "${EASYAIOT_DEPLOY_PROFILE:-}" = "$_known_profile" ]; then
             if declare -F apply_deploy_profile >/dev/null 2>&1; then
                 if [ "$purpose" = "build" ]; then
                     save_deploy_profile 2>/dev/null || true
@@ -454,8 +483,8 @@ runtime_interactive_select_profile() {
             fi
             runtime_img_msg info "部署形态: $(runtime_profile_label "${EASYAIOT_DEPLOY_PROFILE}") (${EASYAIOT_DEPLOY_PROFILE})（环境变量已指定）"
             return 0
-            ;;
-    esac
+        fi
+    done
     if [ ! -t 0 ] || runtime_is_source_free_runtime; then
         export EASYAIOT_DEPLOY_PROFILE="${EASYAIOT_DEPLOY_PROFILE:-full}"
         if declare -F apply_deploy_profile >/dev/null 2>&1; then
@@ -978,41 +1007,36 @@ runtime_images_collect_check_refs() {
     local profile="${2:-${EASYAIOT_DEPLOY_PROFILE:-full}}"
     local tag="${3:-latest}"
     _out=()
-    case "$profile" in
-        edge)
-            # 零 DEVICE：仅 VIDEO + WEB（前端镜像与 mini 共用）
-            _out+=("video-service:${tag}")
-            _out+=("web-service:${tag}-mini")
-            return 0
-            ;;
-    esac
-    _out=(
-        "easyaiot/idea-portal:${tag}"
-        "easyaiot/idea-workspace:${tag}"
-        "easyaiot/harness:${tag}"
-        "easyaiot/terminal:${tag}"
-        "ai-service:${tag}"
-        "rtc-service:${tag}"
-        "video-service:${tag}"
-    )
-    case "$profile" in
-        standard|full) _out+=("post-service:${tag}") ;;
-    esac
-    local _di _dlname
-    for _di in "${!DEVICE_LOCAL_NAMES[@]}"; do
-        if runtime_device_image_needed_for_pull "$_di" "$profile"; then
-            _dlname="${DEVICE_LOCAL_NAMES[$_di]}"
-            _out+=("${_dlname}:${tag}")
-        fi
+    local mapping remote rest local_name module _di frontend_profile web_ref
+    for mapping in "${INDEPENDENT_MODULES[@]}"; do
+        remote="${mapping%%|*}"
+        rest="${mapping#*|}"
+        local_name="${rest%%|*}"
+        module="${mapping##*|}"
+        runtime_is_profile_dependent "$remote" && continue
+        runtime_module_enabled_for_profile "$module" "$profile" || continue
+        _out+=("${local_name}:${tag}")
     done
-    case "$profile" in
-        mini)     _out+=("web-service:${tag}-mini") ;;
-        standard) _out+=("web-service:${tag}-standard") ;;
-        *)        _out+=("web-service:${tag}") ;;
-    esac
-    if [ "$profile" = "full" ]; then
-        _out+=("app-service:${tag}")
+    if runtime_module_enabled_for_profile DEVICE "$profile"; then
+        for _di in "${!DEVICE_LOCAL_NAMES[@]}"; do
+            if runtime_device_image_needed_for_pull "$_di" "$profile"; then
+                _out+=("${DEVICE_LOCAL_NAMES[$_di]}:${tag}")
+            fi
+        done
     fi
+    if runtime_module_enabled_for_profile WEB "$profile"; then
+        frontend_profile="$(deploy_profile_manifest_frontend_profile "$profile")"
+        web_ref="web-service:${tag}"
+        [ "$frontend_profile" = "full" ] || web_ref="${web_ref}-${frontend_profile}"
+        _out+=("$web_ref")
+    fi
+    for mapping in "${FULL_ONLY_MODULES[@]}"; do
+        rest="${mapping#*|}"
+        local_name="${rest%%|*}"
+        module="${mapping##*|}"
+        runtime_module_enabled_for_profile "$module" "$profile" || continue
+        _out+=("${local_name}:${tag}")
+    done
 }
 
 # 删除与当前系统架构不一致的本地预构建镜像；清除无效拉取标记

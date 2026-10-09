@@ -77,24 +77,12 @@ print_section() {
     echo -e "${CYAN}========================================${NC}"
 }
 
-MIDDLEWARE_CONTAINERS=(
-    nacos-server postgres-server postgres-init redis-server kafka-server
-    minio-server milvus-server srs-server nodered-server fuxa-server emqx-server
-    zlmediakit-server tdengine-server tdengine-init
-)
-DEVICE_CONTAINERS=(
-    iot-gateway iot-system iot-infra iot-device iot-dataset iot-node
-    iot-visualize iot-tdengine iot-file iot-message iot-sink iot-gb28181
-)
-APP_CONTAINERS=(
-    ai-service rtc-service post-service video-service web-service app-service
-    pusher-service sorter-service frame-extractor-service
-)
+read -r -a MIDDLEWARE_CONTAINERS <<< "$(deploy_profile_manifest_middleware_containers)"
+read -r -a DEVICE_CONTAINERS <<< "$(deploy_profile_manifest_device_containers)"
+read -r -a APP_CONTAINERS <<< "$(deploy_profile_manifest_application_containers)"
 
 # edge 形态典型 Docker 容器（RUNTIME 为宿主机进程，不计入）
-EDGE_EXPECTED_CONTAINERS=(
-    postgres-server redis-server srs-server video-service web-service
-)
+read -r -a EDGE_EXPECTED_CONTAINERS <<< "$(deploy_profile_manifest_expected_containers edge)"
 
 is_edge_expected_container() {
     array_contains "$1" "${EDGE_EXPECTED_CONTAINERS[@]}"
@@ -184,12 +172,13 @@ read_host_memory_mib() {
 
 collect_running_easyaiot_containers() {
     local -a found=()
-    local name
+    local name network_name
+    network_name="$(deploy_profile_manifest_network_name)"
 
-    if docker network inspect easyaiot-network >/dev/null 2>&1; then
+    if docker network inspect "$network_name" >/dev/null 2>&1; then
         while IFS= read -r name; do
             [ -n "$name" ] && found+=("$name")
-        done < <(docker ps --filter network=easyaiot-network --format '{{.Names}}' 2>/dev/null | sort -u)
+        done < <(docker ps --filter "network=$network_name" --format '{{.Names}}' 2>/dev/null | sort -u)
     fi
 
     local all_known=("${MIDDLEWARE_CONTAINERS[@]}" "${DEVICE_CONTAINERS[@]}" "${APP_CONTAINERS[@]}")
@@ -239,7 +228,7 @@ infer_profile_from_containers() {
 
     for name in "${running[@]}"; do
         case "$name" in
-            iot-device|iot-tdengine|iot-dataset|iot-node|iot-file|iot-message|iot-sink|iot-gb28181)
+            iot-device|iot-tdengine|iot-dataset|iot-node|iot-file|iot-message|iot-gb28181)
                 echo "standard"
                 return 0
                 ;;
@@ -269,18 +258,16 @@ profile_budget_check() {
 
 resolve_target_profile() {
     if [ -n "$TARGET_PROFILE" ]; then
-        case "$TARGET_PROFILE" in
-            0|edge) echo "edge" ;;
-            1|mini) echo "mini" ;;
-            2|standard) echo "standard" ;;
-            3|full) echo "full" ;;
-            *) print_err "无效规格: $TARGET_PROFILE（可选: edge | mini | standard | full）"; exit 2 ;;
-        esac
+        local resolved
+        if ! resolved="$(deploy_profile_manifest_normalize "$TARGET_PROFILE")"; then
+            print_err "无效规格: $TARGET_PROFILE（可选: edge | mini | standard | full）"
+            exit 2
+        fi
+        echo "$resolved"
         return
     fi
     load_saved_deploy_profile
-    apply_deploy_profile
-    echo "${EASYAIOT_DEPLOY_PROFILE:-full}"
+    deploy_profile_manifest_normalize "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
 json_escape() {
@@ -386,7 +373,7 @@ main() {
         if $JSON_OUTPUT; then
             echo '{"error":"no_running_containers"}'
         else
-            print_warn "未发现运行中的 yFeiEye 容器（easyaiot-network 或已知容器名）"
+            print_warn "未发现运行中的 yFeiEye 容器（$(deploy_profile_manifest_network_name) 或已知容器名）"
         fi
         exit 1
     fi
@@ -476,23 +463,7 @@ main() {
             edge_extra=$(awk -v a="$edge_extra" -v b="$mib" 'BEGIN { printf "%.2f", a+b }')
         done
         echo ""
-        print_info "edge 典型 5 容器合计: $(format_mib "$edge_core_mib")（PG/Redis/SRS/VIDEO/WEB）"
-        if awk -v e="$edge_extra" 'BEGIN { exit (e > 0.01) ? 0 : 1 }'; then
-            print_warn "另有非 edge 典型容器占用 $(format_mib "$edge_extra")（如历史 full/standard 残留，可 stop 后重跑本脚本）"
-        fi
-        print_info "edge 推荐内存上限: $(deploy_profile_budget_label edge)（含边缘推理与峰值缓冲）"
-    fi
-
-    if [ "$target_profile" = "edge" ] || [ "$inferred_profile" = "edge" ]; then
-        local edge_core_mib edge_extra=0 name mib
-        edge_core_mib=$(sum_edge_expected_mib "${containers[@]}")
-        for name in "${containers[@]}"; do
-            is_edge_expected_container "$name" && continue
-            mib="${MEM_MIB[$name]:-0}"
-            edge_extra=$(awk -v a="$edge_extra" -v b="$mib" 'BEGIN { printf "%.2f", a+b }')
-        done
-        echo ""
-        print_info "edge 典型 5 容器合计: $(format_mib "$edge_core_mib")（PG/Redis/SRS/VIDEO/WEB）"
+        print_info "edge 典型 ${#EDGE_EXPECTED_CONTAINERS[@]} 容器合计: $(format_mib "$edge_core_mib")（按生产 profile 清单）"
         if awk -v e="$edge_extra" 'BEGIN { exit (e > 0.01) ? 0 : 1 }'; then
             print_warn "另有非 edge 典型容器占用 $(format_mib "$edge_extra")（如历史 full/standard 残留，可 stop 后重跑本脚本）"
         fi
@@ -501,14 +472,17 @@ main() {
 
     print_section "部署规格符合性"
     load_saved_deploy_profile
-    apply_deploy_profile
-    print_info "当前部署规格: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE:-未设置})"
+    EASYAIOT_DEPLOY_PROFILE="$(deploy_profile_manifest_normalize "${EASYAIOT_DEPLOY_PROFILE:-full}")"
+    print_info "当前部署规格: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
     print_info "运行态推断:   ${inferred_profile}"
     print_info "本次对比基准: ${target_profile}（上限 $(deploy_profile_budget_label "$target_profile")）"
     echo ""
 
     local profile p_label headroom status
-    local -a profiles_to_show=(edge mini standard full)
+    local -a profiles_to_show=()
+    while IFS= read -r profile; do
+        [ -n "$profile" ] && profiles_to_show+=("$profile")
+    done < <(deploy_profile_manifest_profile_ids)
     if ! $SHOW_ALL_PROFILES; then
         profiles_to_show=("$target_profile")
     fi

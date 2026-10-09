@@ -20,14 +20,22 @@ _EDGE_COMMON="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/edge_deploy_common.s
 [ -f "$_EDGE_COMMON" ] && source "$_EDGE_COMMON"
 unset _EDGE_COMMON
 
+# 生产部署规格的唯一事实源由 deploy-profiles.json 生成；运行时只读取生成的 Shell。
+_DEPLOY_PROFILE_MANIFEST_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/deploy-profiles.generated.sh"
+if [ ! -f "$_DEPLOY_PROFILE_MANIFEST_SH" ]; then
+    echo "缺少部署规格生成文件: $_DEPLOY_PROFILE_MANIFEST_SH" >&2
+    return 1 2>/dev/null || exit 1
+fi
+# shellcheck source=deploy-profiles.generated.sh
+# shellcheck disable=SC1090
+source "$_DEPLOY_PROFILE_MANIFEST_SH"
+
+# 统一导出 Compose 外部网络名，业务模块不得继续维护独立网络常量。
+EASYAIOT_NETWORK_NAME="$(deploy_profile_manifest_network_name)"
+export EASYAIOT_NETWORK_NAME
+
 _resolve_deploy_profile_raw() {
-    local p="${EASYAIOT_DEPLOY_PROFILE:-full}"
-    case "$p" in
-        0|edge|pure-edge|standalone-edge) echo "edge" ;;
-        1|mini|minimal|4g|4G) echo "mini" ;;
-        2|standard|std|16g|16G) echo "standard" ;;
-        3|full|complete|*) echo "full" ;;
-    esac
+    deploy_profile_manifest_normalize "${EASYAIOT_DEPLOY_PROFILE:-}"
 }
 
 _deploy_profile_repo_root() {
@@ -48,35 +56,22 @@ _deploy_profile_load_media_root_helpers() {
 }
 
 apply_deploy_profile() {
+    local normalized_profile
     _deploy_profile_load_media_root_helpers
-    EASYAIOT_DEPLOY_PROFILE="$(_resolve_deploy_profile_raw)"
+    normalized_profile="$(_resolve_deploy_profile_raw)" || return 1
+    EASYAIOT_DEPLOY_PROFILE="$normalized_profile"
     export EASYAIOT_DEPLOY_PROFILE
 
-    case "$EASYAIOT_DEPLOY_PROFILE" in
-        edge)
-            export EASYAIOT_ENABLE_TDENGINE=0
-            # RUNTIME 告警走 HTTP → VIDEO，不依赖 MQTT/EMQX
-            export EASYAIOT_ENABLE_EMQX=0
-            export EASYAIOT_ENABLE_HARNESS=0
-            export EASYAIOT_ENABLE_TERMINAL=0
-            export EASYAIOT_ENABLE_IDEA=0
-            export EASYAIOT_ENABLE_PANEL=0
-            export EASYAIOT_ENABLE_MQTT_DEMO=0
-            ;;
-        mini)
-            export EASYAIOT_ENABLE_TDENGINE=0
-            export EASYAIOT_ENABLE_EMQX=1
-            ;;
-        standard)
-            export EASYAIOT_ENABLE_TDENGINE=0
-            export EASYAIOT_ENABLE_EMQX=1
-            ;;
-        full)
-            export EASYAIOT_ENABLE_TDENGINE=1
-            export EASYAIOT_ENABLE_EMQX=1
-            ;;
-    esac
-
+    if deploy_profile_manifest_middleware_enabled "$EASYAIOT_DEPLOY_PROFILE" TDengine; then
+        export EASYAIOT_ENABLE_TDENGINE=1
+    else
+        export EASYAIOT_ENABLE_TDENGINE=0
+    fi
+    if deploy_profile_manifest_middleware_enabled "$EASYAIOT_DEPLOY_PROFILE" EMQX; then
+        export EASYAIOT_ENABLE_EMQX=1
+    else
+        export EASYAIOT_ENABLE_EMQX=0
+    fi
     # 确保宿主机 bind 源是真实目录（误建成文件会导致 daemon: mkdir ... file exists）
     if command -v ensure_easyaiot_media_bind_source >/dev/null 2>&1 || type ensure_easyaiot_media_bind_source >/dev/null 2>&1; then
         EASYAIOT_MEDIA_ROOT="$(ensure_easyaiot_media_bind_source)"
@@ -92,60 +87,35 @@ apply_deploy_profile() {
     sync_deploy_profile_to_modules
 }
 
-# docker compose --profile 参数（mini/standard/full 启用 EMQX；full 另启 TDengine；edge 无 profile）
+# docker compose --profile 参数由规范源中的中间件白名单派生。
 compose_profile_flags() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        full) echo "--profile tdengine --profile emqx" ;;
-        mini|standard) echo "--profile emqx" ;;
-        edge) echo "" ;;
-        *) echo "" ;;
-    esac
+    deploy_profile_manifest_compose_profile_flags "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
 # 返回空格分隔的中间件 compose 服务名（跳过列表，传给 compose_up_middleware）
 middleware_skipped_services() {
-    local -a skips=()
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        edge)
-            # 仅保留 PostgreSQL / Redis / SRS；无 DEVICE → 无 Nacos/MinIO/EMQX/Kafka
-            skips+=(Milvus ZLMediaKit NodeRED FUXA TDengine TDengine-init Kafka MinIO Nacos)
-            ;;
-        mini)
-            skips+=(Milvus ZLMediaKit NodeRED FUXA TDengine TDengine-init)
-            ;;
-        standard)
-            skips+=(NodeRED FUXA TDengine TDengine-init)
-            ;;
-        full)
-            ;;
-    esac
-    echo "${skips[*]}"
+    local service override value
+    for service in $(deploy_profile_manifest_middleware_skipped_services "${EASYAIOT_DEPLOY_PROFILE:-full}"); do
+        override="$(deploy_profile_manifest_middleware_override_env "$service")"
+        if [ -n "$override" ]; then
+            value="${!override:-}"
+            case "$value" in
+                1|true|TRUE|yes|YES|on|ON) continue ;;
+            esac
+        fi
+        printf '%s ' "$service"
+    done
+    echo ""
 }
 
 # DEVICE compose 服务：跳过列表
 device_skipped_services() {
-    local -a skips=()
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        edge)
-            # 零 DEVICE：全部跳过（模块级也会跳过；此处兜底）
-            skips+=(iot-gateway iot-system iot-infra iot-sink iot-device iot-dataset iot-node iot-visualize iot-file iot-message iot-gb28181 iot-tdengine)
-            ;;
-        mini)
-            # 不部署 iot-flow（告警工单）：mini 无工作流引擎，前端隐藏工单 Tab/菜单
-            skips+=(iot-device iot-dataset iot-node iot-visualize iot-flow iot-file iot-message iot-gb28181 iot-tdengine)
-            ;;
-        standard)
-            skips+=(iot-device iot-tdengine iot-visualize)
-            ;;
-        full)
-            ;;
-    esac
-    echo "${skips[*]}"
+    deploy_profile_manifest_device_skipped_services "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
-# DEVICE compose 服务：仅启动白名单（空表示除跳过列表外全部启动）
+# DEVICE compose 服务：正向白名单，新增服务不会被生产规格隐式拉起。
 device_enabled_services() {
-    echo ""
+    deploy_profile_manifest_device_enabled_services "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
 # mini：精简 DEVICE/中间件，事件面仍为 Gateway→iot-sink
@@ -163,18 +133,12 @@ is_edge_deploy_profile() {
 
 # 本地存储热路径（告警图/录像不经 MinIO）：mini 与 edge
 is_local_storage_deploy_profile() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini|edge) return 0 ;;
-        *) return 1 ;;
-    esac
+    deploy_profile_manifest_local_storage "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
 # WEB 前端构建/镜像标签：edge 与 mini 共用裁剪菜单（VITE 仅识别 mini/standard/full）
 frontend_deploy_profile() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        edge) echo "mini" ;;
-        *) echo "${EASYAIOT_DEPLOY_PROFILE:-full}" ;;
-    esac
+    deploy_profile_manifest_frontend_profile "${EASYAIOT_DEPLOY_PROFILE:-full}"
 }
 
 # full 形态：含 TDengine / iot-sink 工业协议演示等完整能力
@@ -182,65 +146,33 @@ is_full_deploy_profile() {
     [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "full" ]
 }
 
-# 按部署形态判断业务模块是否启用
-#   APP / VISUALIZE / TWIN / TRANSFORM — 仅 full 全量形态
-#   POST — 仅 standard / full（mini / edge 不部署定制后处理）
-#   PANEL — 源码/Docker 部署默认启用；安装包（deb/桌面端）本身即为 PANEL，
-#           由 systemd/二进制托管，部署时不应再拉 Docker PANEL（EASYAIOT_ENABLE_PANEL=0）。
-#           无源码 runtime 未显式开启时也默认跳过。
-#   IDEA — 社区贡献在线 IDE，mini/standard/full 均启用（EASYAIOT_ENABLE_IDEA=0 关闭）
-#   HARNESS — DeepSeek Harness AI Agent，mini/standard/full 均启用（EASYAIOT_ENABLE_HARNESS=0 关闭）
-#   TERMINAL — 多协议终端 server（SSH/RDP/VNC/K8s，WEB 助手第三入口），mini/standard/full 均启用
-#              （EASYAIOT_ENABLE_TERMINAL=0 关闭；edge 形态无 WEB 助手入口，自动关闭）
+# 按部署形态判断业务模块是否启用。生产规格使用正向白名单；开发/宿主控制模块
+# 默认关闭，仅可通过 manifest 声明的 EASYAIOT_ENABLE_* 环境变量显式开启。
 module_enabled_for_deploy_profile() {
-    case "$1" in
-        APP|VISUALIZE|TWIN|TRANSFORM) [ "${EASYAIOT_DEPLOY_PROFILE:-full}" = "full" ] ;;
-        POST)
-            case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-                standard|full) return 0 ;;
-                *) return 1 ;;
-            esac
-            ;;
-        DEVICE)
-            # edge：零 DEVICE（无 gateway/system/sink）；告警/DVR 由 VIDEO 本地消化
-            is_edge_deploy_profile && return 1
-            return 0
-            ;;
-        AI|RTC)
-            is_edge_deploy_profile && return 1
-            return 0
-            ;;
-        HARNESS)
-            case "${EASYAIOT_ENABLE_HARNESS:-}" in
-                0|false|FALSE|no|NO|off|OFF) return 1 ;;
-                *) return 0 ;;
-            esac
-            ;;
-        TERMINAL)
-            case "${EASYAIOT_ENABLE_TERMINAL:-}" in
-                0|false|FALSE|no|NO|off|OFF) return 1 ;;
-                *) return 0 ;;
-            esac
-            ;;
-        PANEL)
-            case "${EASYAIOT_ENABLE_PANEL:-}" in
-                0|false|FALSE|no|NO|off|OFF) return 1 ;;
-                1|true|TRUE|yes|YES|on|ON) return 0 ;;
-            esac
-            # 未显式设置：PANEL 安装包 / 无源码 runtime 默认不二次部署
-            if type runtime_is_source_free_runtime >/dev/null 2>&1 && runtime_is_source_free_runtime; then
-                return 1
-            fi
-            [ "${EASYAIOT_ENABLE_PANEL:-1}" != "0" ]
-            ;;
-        IDEA)
-            case "${EASYAIOT_ENABLE_IDEA:-}" in
-                0|false|FALSE|no|NO|off|OFF) return 1 ;;
-                *) return 0 ;;
-            esac
-            ;;
-        *) return 0 ;;
-    esac
+    local module="$1" override value
+    override="$(deploy_profile_manifest_module_override_env "$module")"
+    if [ -n "$override" ]; then
+        value="${!override:-}"
+        case "$value" in
+            1|true|TRUE|yes|YES|on|ON) return 0 ;;
+            0|false|FALSE|no|NO|off|OFF) return 1 ;;
+        esac
+    fi
+    deploy_profile_manifest_module_enabled "${EASYAIOT_DEPLOY_PROFILE:-full}" "$module"
+}
+
+# 演示功能不属于生产规格，默认关闭；只接受 manifest 声明的显式开关。
+deploy_feature_enabled_for_profile() {
+    local feature="$1" override value
+    override="$(deploy_profile_manifest_feature_override_env "$feature")"
+    if [ -n "$override" ]; then
+        value="${!override:-}"
+        case "$value" in
+            1|true|TRUE|yes|YES|on|ON) return 0 ;;
+            0|false|FALSE|no|NO|off|OFF) return 1 ;;
+        esac
+    fi
+    deploy_profile_manifest_feature_enabled "${EASYAIOT_DEPLOY_PROFILE:-full}" "$feature"
 }
 
 # 跳过 PANEL 部署时的说明（安装包场景避免误判为“形态少装了模块”）
@@ -258,18 +190,12 @@ panel_skip_deploy_reason() {
 
 # mini / standard 形态均不部署 TDengine 中间件
 is_tdengine_disabled_deploy_profile() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini|standard|edge) return 0 ;;
-        *) return 1 ;;
-    esac
+    ! deploy_profile_manifest_middleware_enabled "${EASYAIOT_DEPLOY_PROFILE:-full}" TDengine
 }
 
 # mini / standard 形态均不部署可视化（iot-visualize / VISUALIZE 编辑器 / FUXA / 相关菜单）
 is_visualize_disabled_deploy_profile() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        mini|standard|edge) return 0 ;;
-        *) return 1 ;;
-    esac
+    ! module_enabled_for_deploy_profile VISUALIZE
 }
 
 # iot-sink Spring Profile（local + 形态专用 profile）；edge 不部署 sink
@@ -287,43 +213,31 @@ iot_sink_spring_profiles_active() {
 
 # DEVICE 是否需要 tdengine compose profile
 device_compose_profile_flags() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
-        full) echo "--profile tdengine" ;;
-        *) echo "" ;;
-    esac
+    if deploy_profile_manifest_device_enabled_services "${EASYAIOT_DEPLOY_PROFILE:-full}" | grep -qw iot-tdengine; then
+        echo "--profile tdengine"
+    else
+        echo ""
+    fi
 }
 
 # 各形态推荐内存上限（MiB，供 analyze_deploy_memory.sh 等脚本引用）
 deploy_profile_budget_mib() {
-    case "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}" in
-        edge) echo "2048" ;;
-        mini|1) echo "4096" ;;
-        standard|2) echo "16384" ;;
-        full|3|*) echo "20480" ;;
-    esac
+    deploy_profile_manifest_budget_mib "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}"
 }
 
 deploy_profile_budget_label() {
-    case "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}" in
-        edge) echo "2 GB" ;;
-        mini|1) echo "4 GB" ;;
-        standard|2) echo "16 GB" ;;
-        full|3|*) echo "20 GB" ;;
-    esac
+    deploy_profile_manifest_budget_label "${1:-${EASYAIOT_DEPLOY_PROFILE:-full}}"
 }
 
 _deploy_profile_desc() {
-    case "${EASYAIOT_DEPLOY_PROFILE:-}" in
+    case "${EASYAIOT_DEPLOY_PROFILE:-full}" in
         edge)
             case "${EASYAIOT_EDGE_MORPHOLOGY:-standalone}" in
                 integrated) echo "edge / integrated（云边一体形态）" ;;
-                *) echo "edge / standalone（纯边缘形态，推荐 ≥ 2 GB）" ;;
+                *) deploy_profile_manifest_label edge ;;
             esac
             ;;
-        mini) echo "mini（边缘精简版，推荐 ≥ 4 GB）" ;;
-        standard) echo "standard（标准版，推荐 ≥ 16 GB）" ;;
-        full) echo "full（完整版，推荐 ≥ 20 GB）" ;;
-        *) echo "full（完整版，推荐 ≥ 20 GB）" ;;
+        *) deploy_profile_manifest_label "${EASYAIOT_DEPLOY_PROFILE:-full}" ;;
     esac
 }
 
@@ -995,30 +909,38 @@ _container_exists_by_name() {
 cleanup_profile_excluded_containers() {
     ensure_deploy_profile 2>/dev/null || apply_deploy_profile
 
+    local -a candidates=()
     local -a to_stop=()
-    local name skip found
+    local name skip service module found
 
-    if is_tdengine_disabled_deploy_profile; then
-        for name in tdengine-server tdengine-init; do
-            _container_exists_by_name "$name" && to_stop+=("$name")
+    for service in $(middleware_skipped_services); do
+        for name in $(deploy_profile_manifest_middleware_service_containers "$service"); do
+            [ -n "$name" ] && candidates+=("$name")
         done
+    done
+    for skip in $(device_skipped_services); do
+        [ -n "$skip" ] && candidates+=("$skip")
+    done
+    for module in $(deploy_profile_manifest_module_order); do
+        module_enabled_for_deploy_profile "$module" && continue
+        for name in $(deploy_profile_manifest_module_containers "$module"); do
+            [ -n "$name" ] && candidates+=("$name")
+        done
+    done
+    if ! module_enabled_for_deploy_profile IDEA; then
+        while IFS= read -r name; do
+            [ -n "$name" ] && candidates+=("$name")
+        done < <(docker ps -a --filter 'label=easyaiot.idea.managed=1' --format '{{.Names}}' 2>/dev/null || true)
     fi
 
-    # edge 零 DEVICE，不会执行 DEVICE/install_linux.sh 的 stop_device_disabled_services
-    if is_edge_deploy_profile || ! module_enabled_for_deploy_profile DEVICE; then
-        for skip in $(device_skipped_services); do
-            [ -z "$skip" ] && continue
-            _container_exists_by_name "$skip" || continue
-            found=0
-            for name in "${to_stop[@]}"; do
-                if [ "$name" = "$skip" ]; then
-                    found=1
-                    break
-                fi
-            done
-            [ "$found" -eq 0 ] && to_stop+=("$skip")
+    for name in "${candidates[@]}"; do
+        _container_exists_by_name "$name" || continue
+        found=0
+        for skip in "${to_stop[@]}"; do
+            [ "$skip" = "$name" ] && found=1 && break
         done
-    fi
+        [ "$found" -eq 0 ] && to_stop+=("$name")
+    done
 
     [ ${#to_stop[@]} -eq 0 ] && return 0
 

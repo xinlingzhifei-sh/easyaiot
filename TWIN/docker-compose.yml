@@ -11,5 +11,5 @@ services:
 
 networks:
   easyaiot-network:
-    name: easyaiot-network
+    name: ${EASYAIOT_NETWORK_NAME:-yfeieye-network}
     external: true

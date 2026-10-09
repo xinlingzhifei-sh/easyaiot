@@ -19,7 +19,7 @@ import {filter} from '@/utils/helper/treeHelper'
 import projectSetting from '@/settings/projectSetting'
 import {PageEnum} from '@/enums/pageEnum'
 import {PermissionModeEnum} from '@/enums/appEnum'
-import {isHarnessEnabled, isMenuHiddenByDeployProfile} from '@/utils/deployProfile'
+import {isMenuHiddenByDeployProfile} from '@/utils/deployProfile'
 
 interface PermissionState {
   // Permission code list
@@ -136,11 +136,7 @@ export const usePermissionStore = defineStore('app-permission', {
       /** 按部署形态裁剪后端菜单/路由（mini、standard 隐藏 IoT 平台未部署模块） */
       const filterRoutesByDeployProfile = (routes: AppRouteRecordRaw[]): AppRouteRecordRaw[] => {
         return routes
-          .filter((route) => {
-            if (route.name === 'HarnessManage' && !isHarnessEnabled())
-              return false
-            return !isMenuHiddenByDeployProfile(route.name)
-          })
+          .filter(route => !isMenuHiddenByDeployProfile(route))
           .map((route) => {
             if (!route.children?.length)
               return route
@@ -191,6 +187,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routes = filter(asyncRoutes, routeFilter)
           // 对一级路由根据角色权限过滤
           routes = routes.filter(routeFilter)
+          routes = filterRoutesByDeployProfile(routes)
           // Convert multi-level routing to level 2 routing
           // 将多级路由转换为 2 级路由
           routes = flatMultiLevelRoutes(routes)
@@ -202,6 +199,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routes = filter(asyncRoutes, routeFilter)
           // 对一级路由再次根据角色权限过滤
           routes = routes.filter(routeFilter)
+          routes = filterRoutesByDeployProfile(routes)
           // 将路由转换成菜单
           const menuList = transformRouteToMenu(routes, true)
           // 移除掉 ignoreRoute: true 的路由 非一级路由
@@ -238,7 +236,10 @@ export const usePermissionStore = defineStore('app-permission', {
           // Dynamically introduce components
           // 动态引入组件
           routeList = transformObjToRoute(routeList)
-          const requiredLocalBackRoutes = resolveRequiredLocalBackRoutes(routeList, [node])
+          const requiredLocalBackRoutes = resolveRequiredLocalBackRoutes(
+            routeList,
+            filterRoutesByDeployProfile([node]),
+          )
           //  Background routing to menu structure
           //  后台路由到菜单结构
           const backMenuList = transformRouteToMenu([dashboard, ...requiredLocalBackRoutes, ...routeList])
@@ -250,7 +251,7 @@ export const usePermissionStore = defineStore('app-permission', {
           routeList = routeList.filter(routeRemoveIgnoreFilter)
           routeList = flatMultiLevelRoutes(routeList)
           console.log('routeList---', routeList);
-          routes = [PAGE_NOT_FOUND_ROUTE, dashboard, ...routeList, node]
+          routes = filterRoutesByDeployProfile([PAGE_NOT_FOUND_ROUTE, dashboard, ...routeList, node])
           break
       }
 

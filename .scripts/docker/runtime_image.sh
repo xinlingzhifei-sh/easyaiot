@@ -69,7 +69,7 @@
 #     docker.cnb.cool/holmesian/easyaiot/aiot-web:amd64          → web-service:latest          (full)
 #     docker.cnb.cool/holmesian/easyaiot/aiot-web-mini:amd64     → web-service:latest-mini     (mini)
 #     docker.cnb.cool/holmesian/easyaiot/aiot-web-standard:amd64 → web-service:latest-standard (standard)
-#   仅 full 形态（APP 移动端 H5 / VISUALIZE 可视化编辑器 / TWIN 数字孪生 / TRANSFORM 系统对接）:
+#   扩展模块（APP / VISUALIZE / TRANSFORM 由 full 清单启用；TWIN 默认关闭，可显式开启）:
 #     docker.cnb.cool/holmesian/easyaiot/aiot-app:amd64              → app-service:latest
 #     docker.cnb.cool/holmesian/easyaiot/aiot-visualize-web:amd64    → visualize-service:latest
 #     docker.cnb.cool/holmesian/easyaiot/aiot-twin:amd64             → easyaiot-twin:latest
@@ -796,7 +796,7 @@ local_image_ready() {
 
 # 检查构建计划中指定架构的本地镜像是否已全部就绪（依赖外层 build_profiles；单模块时仅检查该模块）
 all_build_plan_images_ready_for_arch() {
-    local target_arch="$1" profile mapping tmp rname lname
+    local target_arch="$1" mapping tmp rname lname
 
     for mapping in "${INDEPENDENT_MODULES[@]}"; do
         rname="${mapping%%|*}"; tmp="${mapping#*|}"; lname="${tmp%%|*}"
@@ -806,19 +806,15 @@ all_build_plan_images_ready_for_arch() {
         local_image_ready "$lname" "" "$target_arch" || return 1
     done
 
-    # 仅 full 形态模块（APP / VISUALIZE / TRANSFORM）
+    # 扩展运行时模块（是否属于构建形态由 manifest 决定）
     for mapping in "${FULL_ONLY_MODULES[@]}"; do
         local rname="${mapping%%|*}"
         local tmp="${mapping#*|}"
         local lname="${tmp%%|*}"
         local mod="${mapping##*|}"
         runtime_build_includes_module "$mod" || continue
-        for profile in "${build_profiles[@]}"; do
-            if [ "$profile" = "full" ]; then
-                local_image_ready "$lname" "" "$target_arch" || return 1
-                break
-            fi
-        done
+        runtime_module_enabled_for_any_profile "$mod" "${build_profiles[@]}" || continue
+        local_image_ready "$lname" "" "$target_arch" || return 1
     done
 
     if runtime_build_includes_module DEVICE; then
@@ -1022,7 +1018,7 @@ _build_push_track() {
 # 统计当前构建计划下单架构应构建的镜像数量（用于跨架构前置失败时汇总；单模块时仅计该模块）
 count_planned_images_for_arch() {
     local -a profiles=("$@")
-    local count=0 mapping rname _bp
+    local count=0 mapping rname
 
     for mapping in "${INDEPENDENT_MODULES[@]}"; do
         rname="${mapping%%|*}"
@@ -1032,16 +1028,12 @@ count_planned_images_for_arch() {
         count=$((count + 1))
     done
 
-    # full 专属：APP / VISUALIZE / TRANSFORM
+    # 扩展运行时模块（是否属于构建形态由 manifest 决定）
     for mapping in "${FULL_ONLY_MODULES[@]}"; do
         local _fmod="${mapping##*|}"
         runtime_build_includes_module "$_fmod" || continue
-        for _bp in "${profiles[@]}"; do
-            if [ "$_bp" = "full" ]; then
-                count=$((count + 1))
-                break
-            fi
-        done
+        runtime_module_enabled_for_any_profile "$_fmod" "${profiles[@]}" || continue
+        count=$((count + 1))
     done
 
     if runtime_build_includes_module DEVICE; then
@@ -1106,7 +1098,7 @@ build_all_modules() {
         build_profiles=("${ALL_DEPLOY_PROFILES[@]}")
     fi
 
-    if ! runtime_validate_build_module_profile; then
+    if ! runtime_validate_build_module_profile "${build_profiles[@]}"; then
         exit 1
     fi
 
@@ -1255,20 +1247,15 @@ build_all_modules() {
             _build_push_track "$rname" "$lname" "" "$target_arch"
         done
 
-        # ── full 专属模块（APP / VISUALIZE / TRANSFORM）──
+        # ── 扩展运行时模块（是否属于构建形态由 manifest 决定）──
         for mapping in "${FULL_ONLY_MODULES[@]}"; do
             local _frname="${mapping%%|*}"
             local _ftmp="${mapping#*|}"
             local _flname="${_ftmp%%|*}"
             local _fmod="${mapping##*|}"
             runtime_build_includes_module "$_fmod" || continue
-            local _bp
-            for _bp in "${build_profiles[@]}"; do
-                if [ "$_bp" = "full" ]; then
-                    _build_push_track "$_frname" "$_flname" "" "$target_arch"
-                    break
-                fi
-            done
+            runtime_module_enabled_for_any_profile "$_fmod" "${build_profiles[@]}" || continue
+            _build_push_track "$_frname" "$_flname" "" "$target_arch"
         done
 
         # ── DEVICE ──
@@ -1456,18 +1443,20 @@ print_local_runtime_image_list() {
             runtime_device_image_needed_for_pull "$i" "$pull_profile" || continue
             _print_local_image_line "$(local_ref "${DEVICE_LOCAL_NAMES[$i]}")"
         done
-        if [ "$pull_profile" = "full" ]; then
-            for mapping in "${FULL_ONLY_MODULES[@]}"; do
-                tmp="${mapping#*|}"; lname="${tmp%%|*}"
-                _print_local_image_line "$(local_ref "$lname")"
-            done
-        fi
+        for mapping in "${FULL_ONLY_MODULES[@]}"; do
+            local mod="${mapping##*|}"
+            runtime_module_enabled_for_profile "$mod" "$pull_profile" || continue
+            tmp="${mapping#*|}"; lname="${tmp%%|*}"
+            _print_local_image_line "$(local_ref "$lname")"
+        done
     else
         local lname tmp
         for lname in "${DEVICE_LOCAL_NAMES[@]}"; do
             _print_local_image_line "$(local_ref "$lname")"
         done
         for mapping in "${FULL_ONLY_MODULES[@]}"; do
+            local mod="${mapping##*|}"
+            runtime_module_enabled_for_any_profile "$mod" "$@" || continue
             tmp="${mapping#*|}"; lname="${tmp%%|*}"
             _print_local_image_line "$(local_ref "$lname")"
         done
@@ -1685,11 +1674,16 @@ pull_all_images() {
         fi
     done
 
-    # APP 模块（仅 full 形态）
-    if [ "$pull_profile" = "full" ] && [ "${_EASYAIOT_DNS_ABORT}" -eq 0 ]; then
+    # 扩展运行时模块（是否属于当前形态由 manifest 决定）
+    if [ "${_EASYAIOT_DNS_ABORT}" -eq 0 ]; then
         for mapping in "${FULL_ONLY_MODULES[@]}"; do
             [ "${_EASYAIOT_DNS_ABORT}" -eq 1 ] && break
-            local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"
+            local rname="${mapping%%|*}"; local tmp="${mapping#*|}"; local lname="${tmp%%|*}"; local mod="${mapping##*|}"
+            if ! runtime_module_enabled_for_profile "$mod" "$pull_profile"; then
+                print_info "跳过 ${rname} → ${lname}（${pull_profile} 不部署 ${mod}）"
+                shared_skipped=$((shared_skipped + 1))
+                continue
+            fi
             local rref; rref=$(remote_ref "$rname" "" "$CURRENT_ARCH")
             local lref; lref=$(local_ref "$lname")
 
@@ -1720,7 +1714,7 @@ pull_all_images() {
         return 1
     fi
 
-    # 共享镜像总数 = 非形态相关的独立模块 + 当前形态需要的 DEVICE +（full 时）APP
+    # 共享镜像总数 = 非形态相关的独立模块 + 当前形态需要的 DEVICE + manifest 启用的扩展模块
     local shared_total=0
     for mapping in "${INDEPENDENT_MODULES[@]}"; do
         local rname="${mapping%%|*}"
@@ -1733,9 +1727,11 @@ pull_all_images() {
         shared_total=$((shared_total + 1))
     done
     shared_total=$((shared_total + device_pull_total))
-    if [ "$pull_profile" = "full" ]; then
-        shared_total=$((shared_total + ${#FULL_ONLY_MODULES[@]}))
-    fi
+    for mapping in "${FULL_ONLY_MODULES[@]}"; do
+        local mod="${mapping##*|}"
+        runtime_module_enabled_for_profile "$mod" "$pull_profile" || continue
+        shared_total=$((shared_total + 1))
+    done
     echo ""
     print_info "共享镜像: 成功 ${shared_ok}/${shared_total}, 失败 ${shared_fail}/${shared_total}, 跳过 ${shared_skipped} 个（当前形态不部署）"
 

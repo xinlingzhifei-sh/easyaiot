@@ -85,24 +85,20 @@ echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
-# 模块列表（按依赖顺序：HARNESS 先于 IDEA；任一模块失败则跳过并继续后续模块）
-MODULES=(
-    "HARNESS"          # DeepSeek Harness AI Agent（IDEA 分屏依赖，须优先就绪）
-    "IDEA"             # 社区贡献在线 IDE
-    "TERMINAL"         # 多协议终端（SSH/RDP/VNC/K8s，WEB 助手第三入口）
-    ".scripts/docker"  # 基础服务（Nacos、PostgreSQL、Redis等）
-    "DEVICE"           # Device服务（网关和微服务）
-    "AI"               # AI服务
-    "RTC"              # RTC / go2rtc 消费级摄像头桥接（全形态）
-    "POST"             # POST 服务（Infer 流水线；仅 standard/full）
-    "VIDEO"            # Video服务
-    "WEB"              # Web前端服务
-    "APP"              # App移动端H5（仅 full 全量形态）
-    "VISUALIZE"        # 可视化编辑器（仅 full 全量形态）
-    "TWIN"             # 数字孪生引擎（仅 full / 含可视化形态）
-    "TRANSFORM"        # 系统对接（仅 full 全量形态）
-    "PANEL"            # 运维控制台：源码/Docker 可装；安装包本身即为 PANEL，部署默认跳过
-)
+# 模块列表由生产规格 manifest 提供统一依赖顺序。
+MODULES=()
+while IFS= read -r _manifest_module; do
+    [ -n "$_manifest_module" ] && MODULES+=("$_manifest_module")
+done < <(deploy_profile_manifest_module_order)
+unset _manifest_module
+
+_count_enabled_modules() {
+    local count=0 module
+    for module in "${MODULES[@]}"; do
+        module_enabled_for_deploy_profile "$module" && count=$((count + 1))
+    done
+    echo "$count"
+}
 
 # 编排前置模块（仅控制启动顺序；失败不再中止后续模块）
 is_bootstrap_module() {
@@ -216,11 +212,11 @@ print_section() {
 
 
 # 部署完成后初始化 FLOW 工作流并重放 demo 数据（幂等可重跑），与 install_linux.sh 的 after_stack 钩子一致。
-# 关闭：EASYAIOT_ENABLE_FLOW_DEMO=0
+# 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 显式启用
 ensure_flow_demo_after_stack() {
     local flow_script="${PROJECT_ROOT}/.scripts/flow/flow_demo_replay.sh"
-    if [ "${EASYAIOT_ENABLE_FLOW_DEMO:-1}" = "0" ]; then
-        print_info "跳过 FLOW 工作流初始化与 demo 重放（EASYAIOT_ENABLE_FLOW_DEMO=0）"
+    if ! deploy_feature_enabled_for_profile flow-demo; then
+        print_info "跳过 FLOW 工作流初始化与 demo 重放（生产 profile 默认关闭；EASYAIOT_ENABLE_FLOW_DEMO=1 可显式启用）"
         return 0
     fi
     if [ ! -f "$flow_script" ]; then
@@ -696,40 +692,41 @@ ensure_docker_buildx_plugin() {
 # 删网重建——把常规启动变成破坏性操作。宿主机 IP 变更等罕见场景需重建时显式执行：
 #   FORCE_NETWORK_RECREATE=true ./install_linux.sh start
 create_network() {
-    print_info "检查统一网络 yfeieye-network..."
+    local network_name="${EASYAIOT_NETWORK_NAME:-$(deploy_profile_manifest_network_name)}"
+    print_info "检查统一网络 ${network_name}..."
 
-    if docker network inspect yfeieye-network > /dev/null 2>&1; then
+    if docker network inspect "$network_name" > /dev/null 2>&1; then
         if [ "${FORCE_NETWORK_RECREATE:-false}" != "true" ]; then
-            print_info "网络 yfeieye-network 已存在"
+            print_info "网络 ${network_name} 已存在"
             return 0
         fi
         print_warning "FORCE_NETWORK_RECREATE=true：断开容器并重建网络..."
         local containers container
-        containers=$(docker network inspect easyaiot-network --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
+        containers=$(docker network inspect "$network_name" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null || echo "")
         for container in $containers; do
             print_info "断开容器 $container 与网络的连接..."
-            docker network disconnect -f easyaiot-network "$container" 2>/dev/null || true
+            docker network disconnect -f "$network_name" "$container" 2>/dev/null || true
         done
         # disconnect 为同步调用，全部断开后即可删除，无需 sleep
-        if ! docker network rm easyaiot-network 2>/dev/null; then
-            print_error "旧网络删除失败，请确认无容器占用后重试: docker network inspect easyaiot-network"
+        if ! docker network rm "$network_name" 2>/dev/null; then
+            print_error "旧网络删除失败，请确认无容器占用后重试: docker network inspect ${network_name}"
             return 1
         fi
         print_success "旧网络已删除"
     fi
 
-    print_info "正在创建网络 yfeieye-network..."
+    print_info "正在创建网络 ${network_name}..."
     local create_output
-    if create_output=$(docker network create yfeieye-network 2>&1); then
-        print_success "网络 yfeieye-network 已创建"
+    if create_output=$(docker network create "$network_name" 2>&1); then
+        print_success "网络 ${network_name} 已创建"
     elif echo "$create_output" | grep -qi "already exists"; then
-        print_info "网络 yfeieye-network 已存在（并发创建），继续使用"
+        print_info "网络 ${network_name} 已存在（并发创建），继续使用"
     elif echo "$create_output" | grep -qi "permission denied"; then
         print_error "没有权限创建 Docker 网络"
         print_info "请确保当前用户在 docker 组中，或使用 sudo 运行脚本"
         return 1
     else
-        print_error "无法创建网络 yfeieye-network: $create_output"
+        print_error "无法创建网络 ${network_name}: $create_output"
         print_info "诊断建议："
         print_info "  1. 检查 Docker 服务: sudo systemctl status docker"
         print_info "  2. 检查权限: docker network ls"
@@ -979,7 +976,8 @@ install_linux() {
     fi
     
     local success_count=0
-    local total_count=${#MODULES[@]}
+    local total_count
+    total_count=$(_count_enabled_modules)
     
     for module in "${MODULES[@]}"; do
         if ! module_enabled_for_deploy_profile "$module"; then
@@ -1128,7 +1126,8 @@ start_all() {
 
     # HARNESS 先于 IDEA（失败跳过并继续后续模块）
     local module
-    for module in HARNESS TERMINAL IDEA; do
+    for module in "${MODULES[@]}"; do
+        is_bootstrap_module "$module" || continue
         if module_enabled_for_deploy_profile "$module"; then
             print_section "启动 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "start"; then
@@ -1514,7 +1513,8 @@ update_all() {
     # HARNESS 先于 IDEA（失败跳过并继续后续模块）
     collect_biz_modules
     local module
-    for module in HARNESS TERMINAL IDEA; do
+    for module in "${MODULES[@]}"; do
+        is_bootstrap_module "$module" || continue
         if module_enabled_for_deploy_profile "$module"; then
             print_section "更新 ${MODULE_NAMES[$module]}"
             if ! execute_module_command "$module" "update"; then
@@ -1568,7 +1568,8 @@ verify_all() {
     check_docker "$@"
     
     local success_count=0
-    local total_count=${#MODULES[@]}
+    local total_count
+    total_count=$(_count_enabled_modules)
     local failed_modules=()
     
     for module in "${MODULES[@]}"; do
