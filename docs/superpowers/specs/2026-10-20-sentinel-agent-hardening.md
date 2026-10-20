@@ -4,6 +4,7 @@
 
 - 推荐：先落地方案 C 中对控制面零影响的部分（本次已完成），以方案 B（只出站）为目标架构分阶段推进
 - 本次实施：Agent 侧改用 waitress、监听地址支持多地址、离线包缺 waitress 时降级不阻断部署
+- 2026-10-21 追加（仍只改 Agent）：方案 C 第 4 项的鉴权失败限速与摄像头网段扫描并发上限，以及第 5 项的应用层替代——可选来源白名单 `AGENT_ALLOWED_SOURCES`，见第 6 节"P0 追加"
 - 待决策：见第 7 节
 
 ## 背景
@@ -153,7 +154,7 @@
 
 | 阶段 | 内容 | 是否动 iot-node |
 |---|---|---|
-| P0（本次） | waitress；多地址监听；监听所有网卡时启动告警；离线包缺 waitress 时降级安装 | 否 |
+| P0（本次） | waitress；多地址监听；监听所有网卡时启动告警；离线包缺 waitress 时降级安装；鉴权失败限速、扫描并发上限、可选来源白名单 | 否 |
 | P1 | 放行 `commands/*` 与 `sentinel/remediate*`；补齐 `SYNC_RELATIVE_FILES`；token 改 SecureRandom，控制面改常量时间比较；`isAgentPipWheelsReady` 增加 waitress 检查；`AgentDeployUtil` 改写监听地址 | 是（小改） |
 | P2 | B 主体：Agent 注册全部 executor，控制面逐类切到队列加长轮询 | 是（大改） |
 | P3 | 默认关闭入站端口；控制面入口 HTTPS；token 按方向拆分并哈希存储 | 是 |
@@ -167,6 +168,15 @@
 - `requirements.txt` 锁定 `waitress==3.0.2`：纯 Python，无传递依赖，要求 Python ≥ 3.9。3.0.1 修复了 GHSA-3f84-rpwh-47g6（半开连接导致忙等）和 GHSA-9298-4cf8-g4wj（请求走私）。现有的 `WSDiscovery==2.1.2` 已要求 Python ≥ 3.9，所以 Agent 的 Python 下限没有变化。
 - `export_pip_wheels.sh` 在没有目标 Python 做 dry-run 校验时，按文件名检查的清单也加入 waitress，旧离线包会被判为不完整并刷新。
 - `install.sh`：离线 wheel 目录缺 waitress 时，跳过它安装其余依赖并告警，不让整次部署失败（对应 1.6 第 4 条）；安装后检查 waitress 能否导入，不能则告警。
+
+### P0 追加（2026-10-21，仍只改 Agent）
+
+全部实现在 `agent_server.py` 内，没有新增模块文件：iot-node 按固定清单同步 Agent 文件，新增文件不会同步到已部署节点，会导致导入失败。
+
+- **来源白名单** `AGENT_ALLOWED_SOURCES`（IP 或 CIDR，逗号/空格分隔），默认为空、不限制。配置后不在名单内的来源一律 HTTP 403，包括 `/health`。回环地址始终放行，iot-node 经 SSH 的健康探测不受影响。条目全部写错时只放行回环地址（收紧而不是放开），启动时打 ERROR。只看套接字对端地址，不读 `X-Forwarded-For`。这是第 5 项主机防火墙的应用层替代，不依赖 nftables / firewalld。
+- **鉴权失败限速**：同一来源在 `AGENT_AUTH_FAIL_WINDOW`（默认 60s）内失败 `AGENT_AUTH_FAIL_LIMIT`（默认 20）次后，封禁 `AGENT_AUTH_BLOCK_SECONDS`（默认 300s），期间返回 HTTP 429 并带 `Retry-After`。封禁期内携带正确令牌的请求同样拒绝，否则"猜中 200、猜错 429"仍可用来试探令牌。成功请求不计数；回环地址不限速；`/health` 不计数；`LIMIT=0` 关闭。状态只在内存中，最多跟踪 4096 个来源。第 5 节提到的"控制面用旧令牌被挡"问题影响有限：令牌不对时请求本来就会失败，而 iot-node 重新部署会重写 `agent.env` 并重启 Agent，限速状态随之清空。
+- **摄像头网段扫描并发上限** `AGENT_CAMERA_SCAN_CONCURRENCY`（默认 2，0 表示不限）：超出时立即返回 HTTP 429，不排队占线程。iot-node 把非 2xx 作为 `AGENT_COMMAND_FAILED` 原样报给管理端。
+- 原有鉴权失败契约不变：HTTP 400、body `code=401`、`msg=Agent 认证失败`。
 
 ### 为什么本次不把默认监听地址改成 127.0.0.1
 
