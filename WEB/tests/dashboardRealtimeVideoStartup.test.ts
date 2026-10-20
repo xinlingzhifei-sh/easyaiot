@@ -1,6 +1,7 @@
 import * as assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { createDashboardDirectPlayHarness } from './dashboardDirectPlayHarness'
 
 const videoMonitor = readFileSync(
   fileURLToPath(
@@ -26,17 +27,20 @@ assert.match(
   'Dashboard live video should persist the explicit AI choice and default it to off unless the user enables it.',
 )
 
-assert.match(
-  videoMonitor,
-  /function shouldEnableAiForPlay\(\): boolean \{\s*return enableAi\.value\s*\}/,
-  'Direct playback AI selection should read only the explicit video header toggle.',
-)
+async function checkRestoredDirectPlayAiChoice() {
+  const device = { id: 'restored-camera', device_kind: 'direct' }
+  for (const savedAiChoice of [null, 'false', 'true']) {
+    const monitor = createDashboardDirectPlayHarness(videoMonitor, savedAiChoice)
+    await monitor.resolvePlayUrlsForDevice(device)
+    assert.deepEqual(
+      monitor.calls,
+      [{ device, enableAi: savedAiChoice === 'true' }],
+      'Restored direct playback should respect the saved AI choice and default to off.',
+    )
+  }
+}
 
-assert.match(
-  videoMonitor,
-  /return pickDirectPlayUrls\(dev,\s*(?:enableAi\.value|shouldEnableAiForPlay\(\))\)/,
-  'Dashboard direct camera playback should restore through the current explicit AI toggle state after route navigation.',
-)
+void checkRestoredDirectPlayAiChoice()
 
 assert.match(
   videoMonitor,

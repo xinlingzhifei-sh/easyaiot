@@ -1,6 +1,7 @@
 import * as assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { createDashboardDirectPlayHarness } from './dashboardDirectPlayHarness'
 
 const videoMonitor = readFileSync(
   fileURLToPath(
@@ -62,17 +63,21 @@ assert.match(
   'Toggling AI on should start recognition for visible videos and then reload them through the AI stream path.',
 )
 
-assert.match(
-  videoMonitor,
-  /function shouldEnableAiForPlay\(\): boolean \{\s*return enableAi\.value\s*\}/,
-  'Direct playback AI selection should read only the explicit video header toggle.',
-)
+async function checkDirectPlayAiToggle() {
+  const device = { id: 'live-camera', device_kind: 'direct' }
+  const monitor = createDashboardDirectPlayHarness(videoMonitor, null)
+  for (const enabled of [false, true, false]) {
+    monitor.enableAi.value = enabled
+    await monitor.resolvePlayUrlsForDevice(device)
+  }
+  assert.deepEqual(
+    monitor.calls,
+    [false, true, false].map((enableAi) => ({ device, enableAi })),
+    'Direct playback should follow the live AI toggle through off, on, and off again.',
+  )
+}
 
-assert.match(
-  videoMonitor,
-  /return pickDirectPlayUrls\(dev,\s*(?:enableAi\.value|shouldEnableAiForPlay\(\))\)/,
-  'Dashboard direct camera playback should prefer the AI stream only after the video header toggle is enabled.',
-)
+void checkDirectPlayAiToggle()
 
 assert.match(
   videoMonitor,
