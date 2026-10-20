@@ -424,6 +424,7 @@ create_env_file() {
                 print_info "桌面端部署：使用容器网络中间件地址"
                 _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-video20"
                 _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
             else
                 print_info "自动配置中间件连接信息（使用host网络模式，通过localhost访问中间件）..."
                 _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-video20"
@@ -451,6 +452,11 @@ create_env_file() {
             print_info "桌面端部署：保留/使用容器网络中间件地址（postgres-server 等）"
             _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-video20"
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+            # bridge 网络里 localhost / RustFS 都解析不到，改用中间件服务名 MinIO；自定义的其他地址保留
+            if grep -Eq '^MINIO_ENDPOINT=(localhost|127\.0\.0\.1|RustFS)?(:|$)' .env.docker; then
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
+                print_info "已更新MinIO连接为 MinIO:9000（容器网络模式）"
+            fi
         else
             print_info "检查并更新中间件连接信息（使用host网络模式）..."
 

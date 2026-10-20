@@ -501,7 +501,7 @@ def _normalize_minio_endpoint(raw: str) -> str:
 
 def _get_minio_client():
     """算法子进程内创建 MinIO 客户端（与 download 逻辑共用环境变量）。"""
-    endpoint = _normalize_minio_endpoint((os.getenv('S3_ENDPOINT') or (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', ''))).strip())
+    endpoint = _normalize_minio_endpoint((os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', '')).strip())
     if not endpoint:
         return None
     try:
@@ -809,7 +809,7 @@ def _download_model_from_minio_direct(bucket_name: str, object_key: str, local_p
     跨容器时算法任务会收到 code=0 但本机文件不存在/为空）。
     需配置与 AI 模块一致的 MINIO_ENDPOINT / MINIO_ACCESS_KEY / MINIO_SECRET_KEY / MINIO_SECURE。
     """
-    endpoint = _normalize_minio_endpoint((os.getenv('S3_ENDPOINT') or (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', ''))).strip())
+    endpoint = _normalize_minio_endpoint((os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', '')).strip())
     if not endpoint:
         return False
     try:

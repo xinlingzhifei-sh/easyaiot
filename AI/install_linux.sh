@@ -804,7 +804,12 @@ create_env_file() {
             print_info "自动配置中间件连接信息..."
             _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-ai20"
             _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
-            _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
+            if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+                # 桌面端为 bridge 网络，localhost 不通，改用中间件服务名 MinIO
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
+            else
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
+            fi
             _set_env_docker_kv .env.docker NACOS_NAMESPACE ""
 
             print_success "中间件连接信息已自动配置"
@@ -820,6 +825,11 @@ create_env_file() {
             _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-ai20"
             _set_env_docker_kv .env.docker JAVA_BACKEND_URL "http://iot-system:48099"
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+            # bridge 网络里 localhost / RustFS 都解析不到，改用中间件服务名 MinIO；自定义的其他地址保留
+            if grep -Eq '^MINIO_ENDPOINT=(localhost|127\.0\.0\.1|RustFS)?(:|$)' .env.docker; then
+                _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
+                print_info "已更新MinIO连接为 MinIO:9000（容器网络模式）"
+            fi
         else
             print_info "检查并更新中间件连接信息..."
 
