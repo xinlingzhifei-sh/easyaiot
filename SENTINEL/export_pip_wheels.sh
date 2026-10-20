@@ -79,7 +79,8 @@ verify_offline_install() {
   fi
 
   local pat count
-  for pat in requests psutil Flask minio pip setuptools wheel; do
+  # waitress 为生产 WSGI 服务器：旧离线包缺它时判为不完整并刷新
+  for pat in requests psutil Flask minio waitress pip setuptools wheel; do
     if ! wheel_matches_pattern "${pat}*"; then
       return 1
     fi

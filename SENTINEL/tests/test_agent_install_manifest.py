@@ -57,6 +57,20 @@ class AgentInstallManifestTest(unittest.TestCase):
                     self.assertIn(runtime_file, source)
                 self.assertIn('for f in "${AGENT_RUNTIME_FILES[@]}"', source)
 
+    def test_waitress_is_pinned_and_checked_in_offline_bundle(self):
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
+        export_script = (ROOT / "export_pip_wheels.sh").read_text(encoding="utf-8")
+
+        self.assertIn("waitress==3.0.2", [line.strip() for line in requirements])
+        self.assertIn("minio waitress pip setuptools wheel", export_script)
+
+    def test_install_tolerates_stale_offline_bundle_without_waitress(self):
+        source = INSTALL_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("! has_bootstrap_wheel waitress", source)
+        self.assertEqual(source.count('-r "$OFFLINE_REQ"'), 2)
+        self.assertLess(source.index('local OFFLINE_REQ='), source.index("setup_agent_site_packages; then"))
+
 
 if __name__ == "__main__":
     unittest.main()

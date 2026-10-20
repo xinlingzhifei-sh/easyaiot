@@ -282,17 +282,21 @@ WRAP
     EXEC_PYTHON="$launcher"
   }
 
-  verify_agent_imports() {
+  agent_can_import() {
+    local modules="$1"
     if [ -d "$SITE_PKG" ]; then
-      sudo env PYTHONPATH="$SITE_PKG" $PYTHON -c \
-        "import flask, psutil, requests, minio, yaml, httpx, wsdiscovery, onvif, mqtt_manager" 2>/dev/null \
+      sudo env PYTHONPATH="$SITE_PKG" $PYTHON -c "import ${modules}" 2>/dev/null \
         && return 0
     fi
     if [ -n "$RUN_PYTHON" ] && [ -x "$RUN_PYTHON" ]; then
-      sudo "$RUN_PYTHON" -c "import flask, psutil, requests, minio, yaml, httpx, wsdiscovery, onvif, mqtt_manager" 2>/dev/null \
+      sudo "$RUN_PYTHON" -c "import ${modules}" 2>/dev/null \
         && return 0
     fi
     return 1
+  }
+
+  verify_agent_imports() {
+    agent_can_import "flask, psutil, requests, minio, yaml, httpx, wsdiscovery, onvif, mqtt_manager"
   }
 
   setup_agent_site_packages() {
@@ -329,7 +333,7 @@ PY
 
     if ! sudo env PYTHONPATH="$SITE_PKG" $PYTHON -m pip install \
         --target="$SITE_PKG" --no-index --find-links "$WHEELS_DIR" \
-        -r requirements.txt -q; then
+        -r "$OFFLINE_REQ" -q; then
       echo "INSTALL_FAIL: site-packages 离线依赖安装失败" >&2
       return 1
     fi
@@ -398,7 +402,7 @@ PY
     if [ ! -x "$VENV_DIR/bin/pip" ]; then
       return 1
     fi
-    if ! sudo "$VENV_DIR/bin/pip" install --no-index --find-links "$WHEELS_DIR" -r requirements.txt -q; then
+    if ! sudo "$VENV_DIR/bin/pip" install --no-index --find-links "$WHEELS_DIR" -r "$OFFLINE_REQ" -q; then
       echo "INSTALL_FAIL: venv 离线依赖安装失败" >&2
       return 1
     fi
@@ -408,6 +412,15 @@ PY
     echo "==> venv 已就绪: $RUN_PYTHON"
     return 0
   }
+
+  # 控制面缓存的旧离线包可能还没有 waitress（iot-node 只按 flask/requests 等少数 wheel 判断离线包就绪）：
+  # 此时跳过它安装其余依赖，Agent 启动时回退到 Flask 内置服务器并告警，避免整次部署失败
+  local OFFLINE_REQ="requirements.txt"
+  if [ "$HAS_OFFLINE_WHEELS" -eq 1 ] && ! has_bootstrap_wheel waitress; then
+    echo "WARN: pip-wheels 缺少 waitress，Agent 将回退到 Flask 内置服务器；请在平台重新执行 export_pip_wheels.sh 后重新部署" >&2
+    OFFLINE_REQ="requirements-offline.txt"
+    grep -viE '^[[:space:]]*waitress([^[:alnum:]_.-]|$)' requirements.txt | sudo tee "$OFFLINE_REQ" > /dev/null
+  fi
 
   if [ "$HAS_OFFLINE_WHEELS" -eq 1 ] && setup_agent_site_packages; then
     :
@@ -427,6 +440,9 @@ PY
   if ! verify_agent_imports; then
     echo "INSTALL_FAIL: 依赖安装后 import 验证失败" >&2
     exit 1
+  fi
+  if ! agent_can_import waitress; then
+    echo "WARN: waitress 不可用，Agent 将回退到 Flask 内置开发服务器（不适合生产）" >&2
   fi
 
   if [ ! -f "$INSTALL_DIR/agent.env" ]; then

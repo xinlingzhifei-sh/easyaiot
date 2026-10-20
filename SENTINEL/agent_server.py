@@ -4,6 +4,9 @@ Agent HTTP 服务：接收控制面下发的部署/停止指令。
 import hmac
 import logging
 import os
+import re
+from typing import List
+
 from flask import Flask, jsonify, request
 
 from workload_manager import WorkloadManager, find_available_port
@@ -18,8 +21,11 @@ from camera_access import scan_segment as camera_scan_segment
 logger = logging.getLogger('easyaiot-sentinel.server')
 
 AGENT_TOKEN = os.environ.get('AGENT_TOKEN', '')
+# 可写多个地址（逗号或空格分隔），如 "10.0.0.5,127.0.0.1"；iot-node 经 SSH 探测 127.0.0.1 健康检查，收紧时须保留回环地址
 AGENT_LISTEN_HOST = os.environ.get('AGENT_LISTEN_HOST', '0.0.0.0')
 AGENT_LISTEN_PORT = int(os.environ.get('AGENT_LISTEN_PORT', '9100'))
+# 控制面最长请求约 330s（摄像头网段扫描），线程过少会让并发扫描挤占部署与健康探测
+AGENT_HTTP_THREADS = int(os.environ.get('AGENT_HTTP_THREADS', '16'))
 
 app = Flask(__name__)
 manager = WorkloadManager()
@@ -258,6 +264,35 @@ def create_app():
     return app
 
 
+def parse_listen_hosts(raw: str) -> List[str]:
+    hosts = list(dict.fromkeys(h.strip('[]') for h in re.split(r'[,\s]+', raw or '') if h.strip('[]')))
+    # 通配地址已覆盖同族所有网卡，再绑具体地址会端口冲突（Linux 下 EADDRINUSE）导致 Agent 起不来
+    if '0.0.0.0' in hosts:
+        hosts = [h for h in hosts if h == '0.0.0.0' or ':' in h]
+    if '::' in hosts:
+        hosts = [h for h in hosts if h == '::' or ':' not in h]
+    return hosts or ['0.0.0.0']
+
+
+def _listen_endpoint(host: str, port: int) -> str:
+    return f'[{host}]:{port}' if ':' in host else f'{host}:{port}'
+
+
 def run_server():
-    logger.info('Agent HTTP 服务启动 %s:%s', AGENT_LISTEN_HOST, AGENT_LISTEN_PORT)
-    app.run(host=AGENT_LISTEN_HOST, port=AGENT_LISTEN_PORT, threaded=True, use_reloader=False)
+    hosts = parse_listen_hosts(AGENT_LISTEN_HOST)
+    if any(h in ('0.0.0.0', '::') for h in hosts):
+        logger.warning('Agent HTTP 服务监听所有网卡；可在 agent.env 设置 AGENT_LISTEN_HOST=<内网IP>,127.0.0.1 收紧')
+    try:
+        from waitress import serve
+    except ImportError:
+        # 旧节点只同步了源码未重装依赖、或控制面离线包尚未刷新时，保证 Agent 照常启动
+        logger.warning('未安装 waitress，回退到 Flask 内置开发服务器（不适合生产）；'
+                       '请在平台重新执行 SENTINEL/export_pip_wheels.sh 后重新部署 Agent')
+        if len(hosts) > 1:
+            logger.warning('Flask 内置服务器只能监听一个地址，仅使用 %s，忽略 %s', hosts[0], ','.join(hosts[1:]))
+        logger.info('Agent HTTP 服务启动 %s:%s', hosts[0], AGENT_LISTEN_PORT)
+        app.run(host=hosts[0], port=AGENT_LISTEN_PORT, threaded=True, use_reloader=False)
+        return
+    listen = ' '.join(_listen_endpoint(h, AGENT_LISTEN_PORT) for h in hosts)
+    logger.info('Agent HTTP 服务启动（waitress）%s，线程数 %s', listen, AGENT_HTTP_THREADS)
+    serve(app, listen=listen, threads=AGENT_HTTP_THREADS)
