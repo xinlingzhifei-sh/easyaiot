@@ -1,6 +1,6 @@
 # VIDEO 业务依赖（不含 PyTorch；由 requirements.txt 或 requirements-docker.txt 引用）
 setuptools<81
-Flask==2.3.2
+Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
 Flask-CORS>=3.0.0
 # YOLO26 需 ultralytics>=8.4.0；YOLO11/YOLOv8 仍兼容

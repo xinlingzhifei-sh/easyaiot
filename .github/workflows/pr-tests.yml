@@ -101,17 +101,12 @@ jobs:
 
       # VIDEO/tests 实际 import 到的最小依赖集（不装 requirements*.txt：torch/ultralytics/paddle 等测试用不到）。
       # 版本与 VIDEO/requirements-base.txt 对齐；onnxruntime 用 CPU 版代替 onnxruntime-gpu，API 一致。
-      # Werkzeug<3.1：Flask 2.3.2 的 test client 读取 werkzeug.__version__，Werkzeug 3.1 已删除该属性，
-      # 不钉版本时所有用 app.test_client() 的用例都会 AttributeError。运行时（run.py）不受影响，
-      # 所以只在 CI 里钉，不改 requirements-base.txt（会让生产停在 3.0.x，并使 OFFLINE_MODE=1 的离线 wheel 包失配）；
-      # 根治办法是升级到 Flask 2.3.3（改用 importlib.metadata 取版本）后删掉这一行。
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
             pytest \
-            "Flask==2.3.2" \
-            "Werkzeug<3.1" \
+            "Flask==2.3.3" \
             "Flask-SQLAlchemy==3.0.5" \
             "python-dotenv==1.0.0" \
             "requests>=2.31.0" \
@@ -145,14 +140,13 @@ jobs:
           cache: pip
           cache-dependency-path: .github/workflows/pr-tests.yml
 
-      # AI/tests 实际 import 到的最小依赖集，版本与 AI/requirements-base.txt 对齐；Werkzeug<3.1 原因同 VIDEO job。
+      # AI/tests 实际 import 到的最小依赖集，版本与 AI/requirements-base.txt 对齐。
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
             pytest \
-            "Flask==2.3.2" \
-            "Werkzeug<3.1" \
+            "Flask==2.3.3" \
             "Flask-SQLAlchemy==3.0.5" \
             "python-dotenv==1.0.0" \
             "minio==7.2.0" \
