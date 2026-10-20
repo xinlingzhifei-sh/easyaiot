@@ -10,4 +10,5 @@ if command -v conda >/dev/null 2>&1; then
   PYTHON="conda run -n AI --no-capture-output python"
 fi
 
-exec $PYTHON run.py --env=prod "$@"
+# --server=waitress：生产 HTTP 服务器，不受 .env.prod 里 AI_HTTP_SERVER 影响
+exec $PYTHON run.py --env=prod --server=waitress "$@"

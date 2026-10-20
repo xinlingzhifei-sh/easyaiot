@@ -145,6 +145,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
 
 # 启动前动态补全 onnxruntime-gpu 所需的 nvidia 库路径
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-# 启动命令
-CMD ["python", "run.py"]
+# 启动命令（waitress 生产服务器；本地调试用 python run.py --dev）
+CMD ["python", "run.py", "--server=waitress"]
 

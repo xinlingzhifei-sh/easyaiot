@@ -26,6 +26,8 @@ from app.utils.nacos_registration import (
     resolve_registration_ip,
 )
 from app.utils.video_env import load_video_env, validate_production_runtime_secrets
+from app.utils.background_tasks_guard import background_tasks_owner, claim_background_tasks
+from app.utils.http_server import add_server_arguments
 
 from app.blueprints import camera, alert, snap, playback, record, algorithm_task, stream_forward, face
 
@@ -40,6 +42,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='VIDEO服务启动脚本')
     parser.add_argument('--env', type=str, default='',
                        help='指定环境配置文件，例如: --env=prod 会加载 .env.prod，默认加载 .env')
+    add_server_arguments(parser)
     args = parser.parse_args()
     return args
 
@@ -1469,6 +1472,14 @@ def create_app(start_background_tasks=None):
         skip = os.getenv('VIDEO_SKIP_BACKGROUND_TASKS', '').strip().lower()
         start_background_tasks = skip not in ('1', 'true', 'yes', 'on')
 
+    # 同一进程只启动一份后台任务：再次调用 create_app() 或在 multiprocessing 子进程里调用时跳过
+    if start_background_tasks and not claim_background_tasks('VIDEO run.create_app'):
+        logger.warning(
+            '后台任务已由 %s 启动（或当前为 multiprocessing 子进程），本次 create_app() 不再启动后台任务',
+            background_tasks_owner() or '父进程',
+        )
+        start_background_tasks = False
+
     if start_background_tasks:
         try:
             from app.services.srs_container_guard_service import maybe_fix_srs_on_startup
@@ -1981,61 +1992,63 @@ def create_app(start_background_tasks=None):
     return app
 
 
-def check_port_available(host, port):
-    """检查端口是否可用"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind((host, port))
-        sock.close()
-        return True
-    except OSError:
-        return False
-    finally:
-        try:
-            sock.close()
-        except:
-            pass
-
-
 if __name__ == '__main__':
     import signal
 
-    app = create_app()
+    from app.utils.http_server import (
+        SERVER_WAITRESS,
+        require_waitress,
+        reserve_listen_socket,
+        resolve_server_kind,
+        run_dev_server,
+        serve_with_waitress,
+    )
+
+    # 生产默认 waitress（单进程多线程，见 app/utils/http_server.py）；--dev 或 VIDEO_HTTP_SERVER=dev 走 Flask 开发服务器
+    server_kind = resolve_server_kind(args.server, 'VIDEO_HTTP_SERVER')
+    if server_kind == SERVER_WAITRESS:
+        require_waitress()
+
     # 从环境变量读取主机和端口配置
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_RUN_PORT', 6000))
 
-    def _graceful_shutdown(signum, frame):
-        from app.services.camera_service import shutdown_background_services
-        shutdown_background_services(wait=True)
-        sys.exit(0)
-
-    # Flask 启动后会覆盖信号处理，因此在 run 前注册并在退出路径上依赖 atexit
-    for _sig in (signal.SIGTERM, signal.SIGINT):
-        try:
-            signal.signal(_sig, _graceful_shutdown)
-        except Exception:
-            pass
-
-    # 检查端口是否可用
-    if not check_port_available(host, port):
-        print(f"❌ 错误: 端口 {port} 已被占用")
+    # 先占住端口再 create_app()：端口已被另一实例占用时，在拉起后台任务和 RUNTIME 子进程之前退出
+    try:
+        listen_sock = reserve_listen_socket(host, port)
+    except OSError as e:
+        print(f"❌ 错误: 无法监听 {host}:{port}（{e}），端口可能已被占用")
         print(f"💡 解决方案:")
         print(f"   1. 检查是否有其他进程在使用端口 {port}: lsof -i :{port} 或 netstat -tulpn | grep {port}")
         print(f"   2. 停止占用端口的进程")
         print(f"   3. 或者修改环境变量 FLASK_RUN_PORT 使用其他端口")
         sys.exit(1)
 
+    app = create_app()
+
+    def _graceful_shutdown(signum, frame):
+        from app.services.camera_service import shutdown_background_services
+        shutdown_background_services(wait=True)
+        sys.exit(0)
+
+    # create_app() 里 register_scheduler_shutdown() 装的信号处理只关后台服务、不退出进程，这里覆盖为关完即退出。
+    # waitress 捕获 SystemExit 后关闭线程池并返回，随后解释器正常退出，atexit 钩子（Nacos 注销、停止守护进程）照常执行。
+    for _sig in (signal.SIGTERM, signal.SIGINT):
+        try:
+            signal.signal(_sig, _graceful_shutdown)
+        except Exception:
+            pass
+
     # 获取实际IP地址
     ip = getattr(app, 'registered_ip', None) or get_local_ip()
-    print(f"🚀 服务启动: http://{ip}:{port}")
+    print(f"🚀 服务启动: http://{ip}:{port}（HTTP 服务器: {server_kind}）")
 
-    try:
-        app.run(host=host, port=port)
-    except OSError as e:
-        if "Address already in use" in str(e):
-            print(f"❌ 错误: 端口 {port} 已被占用")
-            print(f"💡 请检查是否有其他进程在使用该端口")
-        else:
+    if server_kind == SERVER_WAITRESS:
+        serve_with_waitress(app, listen_sock, env_prefix='VIDEO', default_threads=64)
+    else:
+        listen_sock.close()
+        try:
+            run_dev_server(app, host, port)
+        except OSError as e:
             print(f"❌ 启动失败: {str(e)}")
-        sys.exit(1)
+            sys.exit(1)

@@ -12,7 +12,8 @@ services:
     # 这样宿主机 docker-entrypoint.sh 即使没有可执行位也能正常启动。
     # 注意：覆盖 entrypoint 会重置镜像 CMD，故必须同时显式声明 command。
     entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]
-    command: ["python", "run.py"]
+    # --server=waitress：生产用 waitress 单进程多线程承载（后台任务在进程内只启动一份），不走 Flask 开发服务器
+    command: ["python", "run.py", "--server=waitress"]
 
     # 环境变量文件（用于Docker部署）
     env_file:

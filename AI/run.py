@@ -20,6 +20,8 @@ from sqlalchemy import text
 
 from app.utils.nacos_registration import NacosRegistrationConfig, NacosRegistrationLoop
 from app.utils.ai_env import load_ai_env
+from app.utils.background_tasks_guard import background_tasks_owner, claim_background_tasks
+from app.utils.http_server import add_server_arguments
 
 _repo_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 _lib_root = os.path.join(_repo_root, '.scripts', 'lib')
@@ -54,8 +56,9 @@ except RuntimeError as e:
 # 解析命令行参数
 def parse_args():
     parser = argparse.ArgumentParser(description='启动模型服务器')
-    parser.add_argument('--env', type=str, default='', 
+    parser.add_argument('--env', type=str, default='',
                        help='指定环境配置文件，例如: --env=prod 会加载 .env.prod，默认加载 .env')
+    add_server_arguments(parser)
     args = parser.parse_args()
     return args
 
@@ -179,7 +182,19 @@ def send_heartbeat(client, ip, port, stop_event):
             time.sleep(5)
 
 
-def create_app():
+def create_app(start_background_tasks=None):
+    """创建 Flask 应用。
+
+    start_background_tasks 为 None 时由本进程首次调用认领后台任务（Nacos 注册心跳、部署心跳检查、
+    自动标注调度、中断训练恢复等）。训练/导出线程里 `from run import create_app` 取应用上下文、
+    spawn 子进程（视频推理）里再次调用时只建应用，不再启动后台任务，见 app/utils/background_tasks_guard.py。
+    """
+    if start_background_tasks is not False:
+        claimed = claim_background_tasks('AI run.create_app')
+        if start_background_tasks and not claimed:
+            print(f"⚠️  后台任务已由 {background_tasks_owner() or '父进程'} 启动，本次 create_app() 不再启动后台任务")
+        start_background_tasks = claimed
+
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
     if not app.config['SECRET_KEY']:
@@ -380,7 +395,7 @@ def create_app():
         app.register_blueprint(pose.pose_bp, url_prefix='/model/pose')
         
         # SAM 模型预热：在后台线程加载模型，避免首请求因冷加载（3.26GB）超时
-        if os.getenv('SAM_ENABLED', 'false').lower() in ('1', 'true', 'yes'):
+        if start_background_tasks and os.getenv('SAM_ENABLED', 'false').lower() in ('1', 'true', 'yes'):
             try:
                 import threading as _sam_warmup_threading
                 def _sam_warmup():
@@ -402,52 +417,54 @@ def create_app():
         app.register_blueprint(cluster.cluster_inference_bp, url_prefix='/model/cluster')
         print(f"✅ 所有蓝图注册成功")
         
-        # 启动心跳超时检查任务
-        try:
-            from app.blueprints.deploy import start_heartbeat_checker
-            start_heartbeat_checker(app)
-        except Exception as e:
-            print(f"⚠️  启动心跳检查任务失败: {str(e)}")
+        # 以下为后台任务与启动期一次性任务，只在认领了后台任务的进程里执行
+        if start_background_tasks:
+            # 启动心跳超时检查任务
+            try:
+                from app.blueprints.deploy import start_heartbeat_checker
+                start_heartbeat_checker(app)
+            except Exception as e:
+                print(f"⚠️  启动心跳检查任务失败: {str(e)}")
 
-        # 恢复因容器/进程重启而中断的训练任务
-        try:
-            from app.blueprints.train import recover_stale_train_tasks
-            recovered = recover_stale_train_tasks(app)
-            if recovered:
-                print(f'✅ 已将 {recovered} 个因服务重启中断的训练任务标记为失败')
-        except Exception as e:
-            print(f'⚠️  恢复中断训练任务失败: {str(e)}')
+            # 恢复因容器/进程重启而中断的训练任务
+            try:
+                from app.blueprints.train import recover_stale_train_tasks
+                recovered = recover_stale_train_tasks(app)
+                if recovered:
+                    print(f'✅ 已将 {recovered} 个因服务重启中断的训练任务标记为失败')
+            except Exception as e:
+                print(f'⚠️  恢复中断训练任务失败: {str(e)}')
 
-        # mini 形态：将 MinIO 磁盘历史数据同步到 flat 本地存储（模型封面/权重等）
-        try:
-            from app.utils.service_urls import is_mini_deploy_profile
-            if is_mini_deploy_profile():
-                from app.services.local_storage_service import (
-                    get_minio_seed_data_root,
-                    migrate_seed_data_to_local_storage,
-                )
-                seed_root = get_minio_seed_data_root()
-                if seed_root:
-                    copied, skipped = migrate_seed_data_to_local_storage(
-                        buckets=['models'],
-                        skip_existing=True,
+            # mini 形态：将 MinIO 磁盘历史数据同步到 flat 本地存储（模型封面/权重等）
+            try:
+                from app.utils.service_urls import is_mini_deploy_profile
+                if is_mini_deploy_profile():
+                    from app.services.local_storage_service import (
+                        get_minio_seed_data_root,
+                        migrate_seed_data_to_local_storage,
                     )
-                    if copied:
-                        print(f'✅ mini 形态：已从种子目录同步 {copied} 个 models 对象到本地存储')
-                    elif skipped:
-                        print(f'✅ mini 形态：models 本地存储已就绪（{skipped} 个对象）')
-                else:
-                    print('ℹ️  mini 形态：未找到 MinIO 种子数据目录，跳过历史对象同步')
-        except Exception as e:
-            print(f'⚠️  mini MinIO 历史数据同步失败: {str(e)}')
+                    seed_root = get_minio_seed_data_root()
+                    if seed_root:
+                        copied, skipped = migrate_seed_data_to_local_storage(
+                            buckets=['models'],
+                            skip_existing=True,
+                        )
+                        if copied:
+                            print(f'✅ mini 形态：已从种子目录同步 {copied} 个 models 对象到本地存储')
+                        elif skipped:
+                            print(f'✅ mini 形态：models 本地存储已就绪（{skipped} 个对象）')
+                    else:
+                        print('ℹ️  mini 形态：未找到 MinIO 种子数据目录，跳过历史对象同步')
+            except Exception as e:
+                print(f'⚠️  mini MinIO 历史数据同步失败: {str(e)}')
 
-        # 启动自动标注队列调度器
-        try:
-            from app.services.auto_label_cluster_service import start_auto_label_queue_coordinator
-            start_auto_label_queue_coordinator(app)
-            print('✅ 自动标注队列调度器已启动')
-        except Exception as e:
-            print(f'⚠️  启动自动标注队列调度器失败: {str(e)}')
+            # 启动自动标注队列调度器
+            try:
+                from app.services.auto_label_cluster_service import start_auto_label_queue_coordinator
+                start_auto_label_queue_coordinator(app)
+                print('✅ 自动标注队列调度器已启动')
+            except Exception as e:
+                print(f'⚠️  启动自动标注队列调度器失败: {str(e)}')
     except Exception as e:
         print(f"❌ 蓝图注册失败: {str(e)}")
         import traceback
@@ -480,6 +497,22 @@ def create_app():
             return '', 204
 
     init_health_check(app)
+
+    # 时间格式化过滤器
+    @app.template_filter('beijing_time')
+    def beijing_time_filter(dt):
+        if dt:
+            utc = pytz.timezone('UTC')
+            beijing = pytz.timezone('Asia/Shanghai')
+            utc_time = utc.localize(dt)
+            beijing_time = utc_time.astimezone(beijing)
+            return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
+        return '未知'
+
+    # 只建应用、不启动后台任务的调用（训练/导出线程、spawn 子进程）不注册 Nacos，
+    # 否则子进程退出时的 atexit 注销会把主服务实例从 Nacos 摘掉（同一 ip:port）
+    if not start_background_tasks:
+        return app
 
     # Nacos registration must survive slow Nacos startup after host reboots.
     nacos_server = os.getenv('NACOS_SERVER', 'localhost:8848')
@@ -558,61 +591,60 @@ def create_app():
 
     atexit.register(deregister_service)
 
-    # 时间格式化过滤器
-    @app.template_filter('beijing_time')
-    def beijing_time_filter(dt):
-        if dt:
-            utc = pytz.timezone('UTC')
-            beijing = pytz.timezone('Asia/Shanghai')
-            utc_time = utc.localize(dt)
-            beijing_time = utc_time.astimezone(beijing)
-            return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
-        return '未知'
-
     return app
 
 
-def check_port_available(host, port):
-    """检查端口是否可用"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind((host, port))
-        sock.close()
-        return True
-    except OSError:
-        return False
-    finally:
-        try:
-            sock.close()
-        except:
-            pass
-
-
 if __name__ == '__main__':
-    app = create_app()
+    import signal
+
+    from app.utils.http_server import (
+        SERVER_WAITRESS,
+        require_waitress,
+        reserve_listen_socket,
+        resolve_server_kind,
+        run_dev_server,
+        serve_with_waitress,
+    )
+
+    # 生产默认 waitress（单进程多线程，见 app/utils/http_server.py）；--dev 或 AI_HTTP_SERVER=dev 走 Flask 开发服务器
+    server_kind = resolve_server_kind(args.server, 'AI_HTTP_SERVER')
+    if server_kind == SERVER_WAITRESS:
+        require_waitress()
+
     # 从环境变量读取主机和端口配置
     host = os.getenv('FLASK_RUN_HOST', '0.0.0.0')
     port = int(os.getenv('FLASK_RUN_PORT', 5000))
-    
-    # 检查端口是否可用
-    if not check_port_available(host, port):
-        print(f"❌ 错误: 端口 {port} 已被占用")
+
+    # 先占住端口再 create_app()：端口已被另一实例占用时，在启动后台任务、注册 Nacos 之前退出
+    try:
+        listen_sock = reserve_listen_socket(host, port)
+    except OSError as e:
+        print(f"❌ 错误: 无法监听 {host}:{port}（{e}），端口可能已被占用")
         print(f"💡 解决方案:")
         print(f"   1. 检查是否有其他进程在使用端口 {port}: lsof -i :{port} 或 netstat -tulpn | grep {port}")
         print(f"   2. 停止占用端口的进程")
         print(f"   3. 或者修改环境变量 FLASK_RUN_PORT 使用其他端口")
         sys.exit(1)
-    
+
+    app = create_app()
+
+    # 容器里 python 是 PID 1，SIGTERM 没有处理函数时会被内核忽略，docker stop 只能等到 SIGKILL，
+    # atexit 里的 Nacos 注销也就不会执行。转成 SystemExit：waitress 捕获后关闭线程池返回，解释器正常退出。
+    try:
+        signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
+    except Exception:
+        pass
+
     # 获取实际IP地址
     ip = getattr(app, 'registered_ip', None) or get_local_ip()
-    print(f"🚀 服务启动: http://{ip}:{port}")
-    
-    try:
-        app.run(host=host, port=port)
-    except OSError as e:
-        if "Address already in use" in str(e):
-            print(f"❌ 错误: 端口 {port} 已被占用")
-            print(f"💡 请检查是否有其他进程在使用该端口")
-        else:
+    print(f"🚀 服务启动: http://{ip}:{port}（HTTP 服务器: {server_kind}）")
+
+    if server_kind == SERVER_WAITRESS:
+        serve_with_waitress(app, listen_sock, env_prefix='AI', default_threads=16)
+    else:
+        listen_sock.close()
+        try:
+            run_dev_server(app, host, port)
+        except OSError as e:
             print(f"❌ 启动失败: {str(e)}")
-        sys.exit(1)
+            sys.exit(1)

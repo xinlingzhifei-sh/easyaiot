@@ -107,13 +107,14 @@ def session_events(session_id):
         finally:
             unsubscribe(session_id, q)
 
+    # 不要设置 Connection 等逐跳头：PEP 3333 禁止 WSGI 应用设置，waitress 会直接返回 500；
+    # HTTP/1.1 下 waitress 默认保持连接，流式响应自动用 chunked 编码
     return Response(
         stream_with_context(generate()),
         mimetype='text/event-stream',
         headers={
             'Cache-Control': 'no-cache',
             'X-Accel-Buffering': 'no',
-            'Connection': 'keep-alive',
         },
     )
 
