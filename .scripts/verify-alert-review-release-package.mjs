@@ -732,6 +732,12 @@ export function scanStatefulReleaseMountGate(files) {
         || !line.includes('--force-recreate'),
     );
   };
+  // compose 包装函数要么直接 -f docker-compose.yaml，要么先把它放进 files 数组，再按需追加 desktop/GPU/runtime 覆盖文件。
+  const composeWrapperUsesBaseComposeFile = (source, envFileVar) => (
+    source.includes(`$COMPOSE_CMD --env-file "${envFileVar}" -f "\${SCRIPT_DIR}/docker-compose.yaml"`)
+    || (source.includes('local -a files=(-f "${SCRIPT_DIR}/docker-compose.yaml")')
+      && source.includes(`$COMPOSE_CMD --env-file "${envFileVar}" "\${files[@]}"`))
+  );
   const pipedComposeStopFailureIsSwallowed = (source, functionName, composeWrapper) => {
     const body = shellFunctionBody(source, functionName);
     if (!body) return false;
@@ -906,9 +912,23 @@ export function scanStatefulReleaseMountGate(files) {
         reason: 'middleware_nacos_empty_data_preflight_missing',
       });
     }
+    const middlewareComposeUpBody = shellFunctionBody(
+      middlewareInstaller,
+      'compose_up_middleware',
+    );
+    // compose_up_middleware --force-recreate 只有在函数内每次 up（含失败重试）都带上
+    // compose_up_args 时才真正强制重建；出现裸 `mw_compose up` 就视为可能丢掉 --force-recreate。
+    const composeUpMiddlewareForcesRecreate = middlewareComposeUpBody.includes(
+      'compose_up_args+=(--force-recreate)',
+    ) && middlewareComposeUpBody.includes('mw_compose "${compose_up_args[@]}"')
+      && !/\bmw_compose\s+up\b/.test(middlewareComposeUpBody);
+    const recreatesViaComposeUpMiddleware = (body) => body.includes(
+      'compose_up_middleware --force-recreate',
+    ) && composeUpMiddlewareForcesRecreate;
     const middlewareRestartBody = shellFunctionBody(middlewareInstaller, 'restart_middleware');
     if (middlewareRestartBody && (
-      !middlewareRestartBody.includes('mw_compose up -d --force-recreate')
+      !(middlewareRestartBody.includes('mw_compose up -d --force-recreate')
+        || recreatesViaComposeUpMiddleware(middlewareRestartBody))
       || middlewareRestartBody.includes('mw_compose restart')
       || middlewareRestartBody.includes('mw_compose down')
       || middlewareRestartBody.includes('--remove-orphans')
@@ -921,7 +941,7 @@ export function scanStatefulReleaseMountGate(files) {
     }
     const middlewareUpdateBody = shellFunctionBody(middlewareInstaller, 'update_middleware');
     if (middlewareUpdateBody && (
-      !middlewareUpdateBody.includes('compose_up_middleware --force-recreate')
+      !recreatesViaComposeUpMiddleware(middlewareUpdateBody)
       || !middlewareUpdateBody.includes('return "${_up_rc}"')
     )) {
       blockers.push({
@@ -930,10 +950,6 @@ export function scanStatefulReleaseMountGate(files) {
         reason: 'middleware_update_does_not_recreate_state_mounts',
       });
     }
-    const middlewareComposeUpBody = shellFunctionBody(
-      middlewareInstaller,
-      'compose_up_middleware',
-    );
     const repairCanReclassifyComposeFailure = /if\s+\[[^\n]*_repair_rc[^\n]*\][^\n]*_up_rc[^\n]*;?\s*then[\s\S]*?_up_rc\s*=\s*0/.test(
       middlewareComposeUpBody,
     );
@@ -972,11 +988,9 @@ export function scanStatefulReleaseMountGate(files) {
       (line) => /^\s*\$COMPOSE_CMD\b/.test(line)
         && !line.includes('--env-file "$AI_COMPOSE_ENV_FILE"'),
     );
-    if (hasRawComposeInvocation || !containsAll(installer, [
-      'AI_COMPOSE_ENV_FILE=',
-      '$COMPOSE_CMD --env-file "$AI_COMPOSE_ENV_FILE" -f "${SCRIPT_DIR}/docker-compose.yaml"',
-      'ai_compose up',
-    ])) {
+    if (hasRawComposeInvocation
+        || !containsAll(installer, ['AI_COMPOSE_ENV_FILE=', 'ai_compose up'])
+        || !composeWrapperUsesBaseComposeFile(installer, '$AI_COMPOSE_ENV_FILE')) {
       blockers.push({
         path,
         group: releaseGroupFor(path),
@@ -1034,11 +1048,9 @@ export function scanStatefulReleaseMountGate(files) {
       (line) => /^\s*\$COMPOSE_CMD\b/.test(line)
         && !line.includes('--env-file "$VIDEO_COMPOSE_ENV_FILE"'),
     );
-    if (hasRawComposeInvocation || !containsAll(installer, [
-      'VIDEO_COMPOSE_ENV_FILE=',
-      '$COMPOSE_CMD --env-file "$VIDEO_COMPOSE_ENV_FILE" -f "${SCRIPT_DIR}/docker-compose.yaml"',
-      'video_compose up',
-    ])) {
+    if (hasRawComposeInvocation
+        || !containsAll(installer, ['VIDEO_COMPOSE_ENV_FILE=', 'video_compose up'])
+        || !composeWrapperUsesBaseComposeFile(installer, '$VIDEO_COMPOSE_ENV_FILE')) {
       blockers.push({
         path,
         group: releaseGroupFor(path),
@@ -1046,8 +1058,13 @@ export function scanStatefulReleaseMountGate(files) {
       });
     }
     const restartBody = shellFunctionBody(installer, 'restart_service');
+    // video_compose_up_or_fail 把参数原样转给 video_compose up，等价于直接 up --force-recreate。
+    const upOrFailForwardsArgs = shellFunctionBody(installer, 'video_compose_up_or_fail')
+      .includes('video_compose up "$@"');
     if (restartBody && (
-      !restartBody.includes('video_compose up -d --force-recreate')
+      !(restartBody.includes('video_compose up -d --force-recreate')
+        || (upOrFailForwardsArgs
+          && restartBody.includes('video_compose_up_or_fail -d --force-recreate')))
       || restartBody.includes('video_compose restart')
     )) {
       blockers.push({

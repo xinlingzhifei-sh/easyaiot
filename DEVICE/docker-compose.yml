@@ -377,7 +377,7 @@ services:
       - SPRING_REDIS_HOST=Redis # Redis地址（使用Docker服务名）
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=Kafka:9092 # Kafka地址（告警创建事件消费）
     volumes:
-      - ../.build-cache/device/logs:/root/logs/
+      - ${YFEIEYE_DEVICE_STATE_ROOT:-/opt/yfeieye-source/shared/device}/logs:/root/logs/
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:48097/actuator/health"]
       interval: 30s

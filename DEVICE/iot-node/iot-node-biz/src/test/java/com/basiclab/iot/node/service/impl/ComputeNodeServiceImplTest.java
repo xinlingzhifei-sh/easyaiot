@@ -5,7 +5,7 @@ import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
 import com.basiclab.iot.node.dal.pgsql.NodeMetricSnapshotMapper;
 import com.basiclab.iot.node.dal.pgsql.NodeSshCredentialMapper;
 import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
-import com.basiclab.iot.node.enums.NodeRoleEnum;
+import com.basiclab.iot.node.util.NodeFunctions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -46,7 +46,7 @@ class ComputeNodeServiceImplTest {
         platformNode.setId(4L);
         platformNode.setName("platform");
         platformNode.setHost("1.95.118.210");
-        platformNode.setNodeRole(NodeRoleEnum.HYBRID.getRole());
+        platformNode.setNodeRole(NodeFunctions.toCsv(NodeFunctions.PLATFORM_DEFAULT));
         Map<String, Boolean> caps = new HashMap<>();
         caps.put("platform", true);
         caps.put("ai_inference", true);

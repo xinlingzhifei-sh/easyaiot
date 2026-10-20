@@ -7,15 +7,17 @@ const devicePlaySource = readFileSync(
   'utf8',
 )
 
+// 启用 AI 时直接播 /ai，原始流只作播放器回退（AI_PLAY_FALLBACK_MS 内切回）。
+// 先播原始流、后台等 AI 的旧做法会让空 /live 把 SRS 挂住，分屏一直加载中（见 pickDirectPlayUrls 注释）。
 assert.match(
   devicePlaySource,
-  /return \{ url: videoUrl, pendingAiUrl: aiUrl \};/,
-  'AI playback should start the original stream immediately while the AI stream is still pending.',
+  /return \{\s*url: aiUrl,\s*fallbackUrl: videoUrl,\s*preferAi: true,/,
+  'AI playback should start the AI stream directly and keep the original stream as the player fallback.',
 )
 
 assert.match(
   devicePlaySource,
-  /export function schedulePendingAiStreamUpgrade[\s\S]*probeStreamPlayable\(ai, AI_STREAM_PROBE_MS\)[\s\S]*onUpgrade\(\)/,
+  /export function schedulePendingAiStreamUpgrade[\s\S]*const probeMs = options\?\.probeMs \?\? AI_STREAM_PROBE_MS;[\s\S]*const ready = await probeStreamPlayable\(ai, probeMs\);\s*if \(!ready \|\| !shouldUpgrade\(\)\) return;\s*onUpgrade\(\)/,
   'AI playback should probe in the background and upgrade only after the AI stream becomes playable.',
 )
 

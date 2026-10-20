@@ -47,14 +47,23 @@ def import_model_blueprint_for_list(monkeypatch, items):
             assert error_out is False
             return FakePagination()
 
+        # 列表接口用 Model.query.filter(Model.family_key.in_(...)).all() 补齐同族成员
+        def filter(self, *_args):
+            return self
+
+        def all(self):
+            return list(items)
+
     class FakeModel:
         query = FakeQuery()
         created_at = SimpleNamespace(desc=lambda: object())
+        family_key = SimpleNamespace(in_=lambda _keys: object())
 
     db_models = types.ModuleType('db_models')
     db_models.db = SimpleNamespace(session=SimpleNamespace(add=lambda *_args: None, commit=lambda: None))
     db_models.Model = FakeModel
     db_models.InferenceTask = object
+    db_models.AutoLabelModelHistory = object
     monkeypatch.setitem(sys.modules, 'db_models', db_models)
 
     monkeypatch.delitem(sys.modules, 'app.blueprints.model', raising=False)

@@ -53,6 +53,7 @@ def import_model_blueprint(monkeypatch, downloaded_content: bytes):
     db_models.db = SimpleNamespace(session=SimpleNamespace(add=lambda *_args: None, commit=lambda: None))
     db_models.Model = FakeModel
     db_models.InferenceTask = object
+    db_models.AutoLabelModelHistory = object
     monkeypatch.setitem(sys.modules, 'db_models', db_models)
 
     monkeypatch.delitem(sys.modules, 'app.blueprints.model', raising=False)

@@ -28,7 +28,13 @@ assert.match(
 
 assert.match(
   videoMonitor,
-  /return pickDirectPlayUrls\(dev,\s*enableAi\.value\)/,
+  /function shouldEnableAiForPlay\(\): boolean \{\s*return enableAi\.value\s*\}/,
+  'Direct playback AI selection should read only the explicit video header toggle.',
+)
+
+assert.match(
+  videoMonitor,
+  /return pickDirectPlayUrls\(dev,\s*(?:enableAi\.value|shouldEnableAiForPlay\(\))\)/,
   'Dashboard direct camera playback should restore through the current explicit AI toggle state after route navigation.',
 )
 

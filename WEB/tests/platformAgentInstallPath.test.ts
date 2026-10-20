@@ -6,8 +6,9 @@ const ensureScript = readFileSync(
   fileURLToPath(new URL('../../.scripts/node/ensure_platform_agent.sh', import.meta.url)),
   'utf8',
 );
+// Agent 源码已从 NODE/ 迁到 SENTINEL/（ensure 脚本默认 SOURCE_DIR=$ROOT/SENTINEL）。
 const installScript = readFileSync(
-  fileURLToPath(new URL('../../NODE/install.sh', import.meta.url)),
+  fileURLToPath(new URL('../../SENTINEL/install.sh', import.meta.url)),
   'utf8',
 );
 
@@ -18,8 +19,13 @@ assert.match(
 );
 assert.match(
   ensureScript,
+  /SOURCE_DIR="\$\{EASYAIOT_AGENT_SOURCE_PATH:-\$ROOT\/SENTINEL\}"/,
+  'Platform agent ensure script should default to the SENTINEL agent sources checked above.',
+);
+assert.match(
+  ensureScript,
   /bash "\$\{SOURCE_DIR\}\/install\.sh" install/,
-  'Platform agent ensure script should use NODE/install.sh when /opt/easyaiot/node-agent is missing.',
+  'Platform agent ensure script should use SENTINEL/install.sh when /opt/easyaiot/node-agent is missing.',
 );
 assert.match(
   ensureScript,

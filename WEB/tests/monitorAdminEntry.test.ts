@@ -93,8 +93,9 @@ assert.match(
   'Back-end permission mode should include the local cluster-management route in the visible menu list.',
 )
 
+// 注册前会再按部署形态裁剪（mini/standard 隐藏未部署模块），所以允许外层 filterRoutesByDeployProfile(...)。
 assert.match(
   permissionStore,
-  /routes\s+=\s+\[PAGE_NOT_FOUND_ROUTE,\s+dashboard,\s+\.\.\.routeList,\s+node\]/,
+  /routes\s+=\s+(?:filterRoutesByDeployProfile\()?\[PAGE_NOT_FOUND_ROUTE,\s+dashboard,\s+\.\.\.routeList,\s+node\]/,
   'Back-end permission mode should always register the local cluster-management page after server routes so the admin entry can render it.',
 )

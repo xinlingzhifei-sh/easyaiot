@@ -5264,7 +5264,7 @@ compose_up_middleware() {
             && [ ${#_retry_services[@]} -lt ${#up_services[@]} ]; then
             print_warning "因镜像不可用跳过可选中间件后重试：$(_format_service_list "${_drop_optional[@]}")"
             : > "$_up_log"
-            mw_compose up -d "${_retry_services[@]}" > "$_up_log" 2>&1
+            mw_compose "${compose_up_args[@]}" "${_retry_services[@]}" > "$_up_log" 2>&1
             _up_rc=$?
             cat "$_up_log" >> "$LOG_FILE"
             up_services=("${_retry_services[@]}")

@@ -19,8 +19,9 @@ assert.match(
   'If the launcher fails, the API must not leave the task marked enabled and successful.',
 )
 
+// 启动期间若任务已被并发停止（is_enabled 已为 False），直接重新抛出，不覆盖停止流程写入的状态。
 assert.match(
   algorithmTaskService,
-  /except Exception as e:\s*\n\s*logger\.warning\(f"启动任务 \{task_id\} 的服务时出错:[\s\S]*task\.is_enabled\s*=\s*False[\s\S]*task\.run_status\s*=\s*'stopped'[\s\S]*db\.session\.commit\(\)[\s\S]*raise RuntimeError\(service_message\)/,
+  /except Exception as e:\s*\n(?:\s*if not task\.is_enabled:\s*\n\s*raise\s*\n)?\s*logger\.warning\(f"启动任务 \{task_id\} 的服务时出错:[\s\S]*task\.is_enabled\s*=\s*False[\s\S]*task\.run_status\s*=\s*'stopped'[\s\S]*db\.session\.commit\(\)[\s\S]*raise RuntimeError\(service_message\)/,
   'Launcher exceptions must also clear the enabled/running state and fail the start request.',
 )

@@ -689,16 +689,10 @@ update_service() {
     # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
     if easyaiot_update_should_recreate_only ai-service:latest; then
         cleanup_renamed_containers
-        $COMPOSE_CMD up -d --remove-orphans --no-deps --quiet-pull ai-service 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
-        print_success "服务更新完成"
-        check_status
-        return 0
-    fi
-
-    # 拉取预构建 / 无 git：禁止 git pull，仅 recreate
-    if easyaiot_update_should_recreate_only ai-service:latest; then
-        cleanup_renamed_containers
-        $COMPOSE_CMD up -d --remove-orphans --no-deps --quiet-pull ai-service 2>&1 | grep -v "^Creating\|^Starting\|^Pulling\|^Waiting\|^Container" || true
+        if ! ai_compose up -d --force-recreate --remove-orphans --no-deps --quiet-pull ai-service; then
+            print_error "AI 服务更新失败"
+            return 1
+        fi
         print_success "服务更新完成"
         check_status
         return 0

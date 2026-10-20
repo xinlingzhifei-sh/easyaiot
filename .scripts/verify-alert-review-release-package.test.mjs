@@ -356,6 +356,72 @@ assert.deepEqual(swallowedVideoLifecycleFailureScan.blockers.map((blocker) => bl
   'video_compose_lifecycle_failure_swallowed',
 ]);
 
+const middlewareInstallerHeader = [
+  'MIDDLEWARE_ENV_FILE=',
+  '$COMPOSE_CMD --env-file "$MIDDLEWARE_ENV_FILE" -f "$COMPOSE_FILE" "$@"',
+  'prepare-srs-config)',
+  'prepare_srs_config --config-only',
+  'ensure_nacos_data_ready()',
+  'YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT',
+  'find "$nacos_data_dir" -mindepth 1 -print -quit',
+  'ensure_nacos_data_ready || exit 1',
+];
+
+// restart 委托给会转发 --force-recreate 的 helper、compose 文件经 files 数组拼接时，仍满足契约。
+const delegatedRecreateScan = scanStatefulReleaseMountGate([
+  {
+    path: '.scripts/docker/install_middleware_linux.sh',
+    content: [
+      ...middlewareInstallerHeader,
+      'compose_up_middleware() {',
+      '  local -a compose_up_args=(up -d)',
+      '  [ "${1:-}" = "--force-recreate" ] && compose_up_args+=(--force-recreate)',
+      '  mw_compose "${compose_up_args[@]}" "${up_services[@]}"',
+      '}',
+      'restart_middleware() {',
+      '  compose_up_middleware --force-recreate "${_skip_optional[@]}"',
+      '}',
+    ].join('\n'),
+  },
+  {
+    path: 'VIDEO/install_linux.sh',
+    content: [
+      'VIDEO_COMPOSE_ENV_FILE=',
+      'video_compose() {',
+      '  local -a files=(-f "${SCRIPT_DIR}/docker-compose.yaml")',
+      '  $COMPOSE_CMD --env-file "$VIDEO_COMPOSE_ENV_FILE" "${files[@]}" "$@"',
+      '}',
+      'video_compose_up_or_fail() {',
+      '  video_compose up "$@"',
+      '}',
+      'restart_service() {',
+      '  video_compose_up_or_fail -d --force-recreate --remove-orphans',
+      '}',
+    ].join('\n'),
+  },
+]);
+assert.deepEqual(delegatedRecreateScan.blockers, []);
+
+// helper 的失败重试若改用裸 `mw_compose up`，就会丢掉 --force-recreate。
+const droppedRecreateRetryScan = scanStatefulReleaseMountGate([{
+  path: '.scripts/docker/install_middleware_linux.sh',
+  content: [
+    ...middlewareInstallerHeader,
+    'compose_up_middleware() {',
+    '  local -a compose_up_args=(up -d)',
+    '  [ "${1:-}" = "--force-recreate" ] && compose_up_args+=(--force-recreate)',
+    '  mw_compose "${compose_up_args[@]}" "${up_services[@]}"',
+    '  mw_compose up -d "${_retry_services[@]}"',
+    '}',
+    'restart_middleware() {',
+    '  compose_up_middleware --force-recreate "${_skip_optional[@]}"',
+    '}',
+  ].join('\n'),
+}]);
+assert.deepEqual(droppedRecreateRetryScan.blockers.map((blocker) => blocker.reason), [
+  'middleware_restart_does_not_recreate_state_mounts',
+]);
+
 const currentStatefulReleaseFiles = [
   'DEVICE/docker-compose.yml',
   'DEVICE/install_linux.sh',

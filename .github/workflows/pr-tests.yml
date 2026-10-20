@@ -1,0 +1,232 @@
+name: PR Tests
+
+# PR 级测试：按改动路径只跑对应模块的 job。
+# 目前没有跳过的已知失败测试；如确需临时跳过，请在对应步骤里显式列出并注明原因，修复后同步删掉。
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changed modules
+    runs-on: ubuntu-latest
+    outputs:
+      device: ${{ steps.filter.outputs.device }}
+      video: ${{ steps.filter.outputs.video }}
+      ai: ${{ steps.filter.outputs.ai }}
+      web: ${{ steps.filter.outputs.web }}
+      scripts: ${{ steps.filter.outputs.scripts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # 改动本 workflow 时全部 job 都跑一遍
+          filters: |
+            device:
+              - 'DEVICE/**'
+              - '.github/workflows/pr-tests.yml'
+            video:
+              - 'VIDEO/**'
+              - '.github/workflows/pr-tests.yml'
+            ai:
+              - 'AI/**'
+              - '.github/workflows/pr-tests.yml'
+            web:
+              - 'WEB/**'
+              - '.github/workflows/pr-tests.yml'
+            scripts:
+              - '.scripts/**'
+              - '.github/workflows/pr-tests.yml'
+
+  device:
+    name: DEVICE (mvn test)
+    needs: changes
+    if: needs.changes.outputs.device == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: DEVICE
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: DEVICE/**/pom.xml
+
+      # 全量 reactor：本地依赖已缓存时约 17 分钟（682 个用例），暂不按改动模块 -pl 拆分
+      - name: mvn test
+        run: mvn -B -q test -Drevision=1.0.0
+
+  video:
+    name: VIDEO (pytest)
+    needs: changes
+    if: needs.changes.outputs.video == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: VIDEO
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: .github/workflows/pr-tests.yml
+
+      # VIDEO/tests 实际 import 到的最小依赖集（不装 requirements*.txt：torch/ultralytics/paddle 等测试用不到）。
+      # 版本与 VIDEO/requirements-base.txt 对齐；onnxruntime 用 CPU 版代替 onnxruntime-gpu，API 一致。
+      # Werkzeug<3.1：Flask 2.3.2 的 test client 读取 werkzeug.__version__，Werkzeug 3.1 已删除该属性，
+      # 不钉版本时所有用 app.test_client() 的用例都会 AttributeError。运行时（run.py）不受影响，
+      # 所以只在 CI 里钉，不改 requirements-base.txt（会让生产停在 3.0.x，并使 OFFLINE_MODE=1 的离线 wheel 包失配）；
+      # 根治办法是升级到 Flask 2.3.3（改用 importlib.metadata 取版本）后删掉这一行。
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            pytest \
+            "Flask==2.3.2" \
+            "Werkzeug<3.1" \
+            "Flask-SQLAlchemy==3.0.5" \
+            "python-dotenv==1.0.0" \
+            "requests>=2.31.0" \
+            "numpy>=1.26.4,<3" \
+            "opencv-python-headless>=4.8.0" \
+            "onnxruntime==1.20.0" \
+            "Pillow>=10.0.0"
+
+      # tests/ 下没有 __init__.py，用 unittest discover 无法导入；且部分用例是 pytest 风格函数，统一用 pytest。
+      # 必须在 VIDEO 目录下运行，测试通过 `import app` 引用 VIDEO/app。
+      - name: pytest
+        run: python -m pytest tests -q -p no:cacheprovider
+
+  ai:
+    name: AI (pytest)
+    needs: changes
+    if: needs.changes.outputs.ai == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: AI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: .github/workflows/pr-tests.yml
+
+      # AI/tests 实际 import 到的最小依赖集，版本与 AI/requirements-base.txt 对齐；Werkzeug<3.1 原因同 VIDEO job。
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            pytest \
+            "Flask==2.3.2" \
+            "Werkzeug<3.1" \
+            "Flask-SQLAlchemy==3.0.5" \
+            "python-dotenv==1.0.0" \
+            "minio==7.2.0" \
+            "numpy>=1.26.4,<3" \
+            "opencv-python-headless>=4.8.0" \
+            "Pillow>=10.0.0"
+
+      - name: pytest
+        run: python -m pytest tests -q -p no:cacheprovider
+
+  web:
+    name: WEB (type check + tests)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: WEB
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 版本取自 WEB/package.json 的 packageManager 字段
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: WEB/package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: WEB/pnpm-lock.yaml
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm type:check
+
+      # WEB/tests/*.test.ts 是纯 Node 断言脚本（不是 vitest），逐个用 tsx 运行，全部跑完再汇总失败。
+      - name: Run tests/*.test.ts
+        run: |
+          failed=()
+          for f in tests/*.test.ts; do
+            echo "::group::$f"
+            if ! pnpm exec tsx "$f"; then
+              failed+=("$f")
+            fi
+            echo "::endgroup::"
+          done
+          if [ ${#failed[@]} -gt 0 ]; then
+            printf '::error::failed: %s\n' "${failed[@]}"
+            exit 1
+          fi
+
+  scripts:
+    name: .scripts (node --test)
+    needs: changes
+    if: needs.changes.outputs.scripts == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: node --test
+        run: |
+          mapfile -t files < <(find .scripts -name '*.test.mjs' -not -path '*/node_modules/*' | sort)
+          node --test "${files[@]}"
