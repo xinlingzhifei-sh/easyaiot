@@ -8,7 +8,7 @@ exec java ${JAVA_OPTS:-} -jar "$JAR" \
   --spring.kafka.bootstrap-servers="${KAFKA_BOOTSTRAP:-127.0.0.1:9092}" \
   --spring.datasource.dynamic.datasource.master.url="${POSTGRES_URL:-jdbc:postgresql://127.0.0.1:5432/iot-transform20}" \
   --spring.datasource.dynamic.datasource.master.username="${POSTGRES_USERNAME:-postgres}" \
-  --spring.datasource.dynamic.datasource.master.password="${POSTGRES_PASSWORD:-iot45722414822}" \
+  --spring.datasource.dynamic.datasource.master.password="${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置（与中间件 .scripts/docker/.env.docker 一致）}" \
   --transform.node-id="${TRANSFORM_NODE_ID:-}" \
   --transform.role="${TRANSFORM_ROLE:-full}" \
   --transform.instance-id="${TRANSFORM_INSTANCE_ID:-}" \

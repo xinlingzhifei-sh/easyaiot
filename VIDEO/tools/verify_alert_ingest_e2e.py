@@ -10,7 +10,7 @@
 用法（仓库根或任意目录）：
   python3 VIDEO/tools/verify_alert_ingest_e2e.py
   python3 VIDEO/tools/verify_alert_ingest_e2e.py --skip-media
-  VIDEO_DB_URL=postgresql://postgres:iot45722414822@127.0.0.1:5432/iot-video20 \\
+  VIDEO_DB_URL=postgresql://postgres:<POSTGRES_PASSWORD>@127.0.0.1:5432/iot-video20 \\
     MQTT_BROKER_URLS=127.0.0.1:1883 python3 VIDEO/tools/verify_alert_ingest_e2e.py
 
 环境变量：
@@ -22,6 +22,7 @@
   VERIFY_TASK_ID     默认 1
   VERIFY_TENANT_ID   默认 MQTT_ALGO_TENANT / YFEIEYE_VIDEO_LEGACY_TENANT_ID / 1
   VIDEO_DB_* / PG*   或 VIDEO_DB_URL；也可用 DOCKER_PG_CONTAINER=postgres-server
+                     口令（VIDEO_DB_PASSWORD / PGPASSWORD）无默认值，取中间件 POSTGRES_PASSWORD
   E2E_TIMEOUT_SEC    轮询入库超时，默认 20
 """
 from __future__ import annotations
@@ -183,7 +184,9 @@ def _psql_local(sql: str) -> str:
     host = env.get('VIDEO_DB_HOST') or env.get('PGHOST') or '127.0.0.1'
     port = env.get('VIDEO_DB_PORT') or env.get('PGPORT') or '5432'
     user = env.get('VIDEO_DB_USER') or env.get('PGUSER') or 'postgres'
-    password = env.get('VIDEO_DB_PASSWORD') or env.get('PGPASSWORD') or 'iot45722414822'
+    password = env.get('VIDEO_DB_PASSWORD') or env.get('PGPASSWORD') or ''
+    if not password:
+        raise RuntimeError('未设置 VIDEO_DB_PASSWORD / PGPASSWORD（与中间件 POSTGRES_PASSWORD 一致）')
     db = env.get('VIDEO_DB_NAME') or env.get('PGDATABASE') or 'iot-video20'
     env['PGPASSWORD'] = password
     proc = subprocess.run(

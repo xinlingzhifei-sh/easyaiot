@@ -11,7 +11,7 @@ RECEIVER_PORT="${RECEIVER_PORT:-18080}"
 BACKUP_DIR="${TRANSFORM_BACKUP_DIR:-$ROOT/data/transform-backup}"
 PG_CONTAINER="${PG_CONTAINER:-postgres-server}"
 PG_USER="${POSTGRES_USERNAME:-postgres}"
-PG_PASS="${POSTGRES_PASSWORD:-iot45722414822}"
+PG_PASS="${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置（与中间件 .scripts/docker/.env.docker 一致）}"
 
 mkdir -p "$BACKUP_DIR" "$E2E"
 cd "$E2E"

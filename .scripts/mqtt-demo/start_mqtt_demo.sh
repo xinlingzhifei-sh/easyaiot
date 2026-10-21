@@ -56,6 +56,7 @@ MQTT_PORT="${MQTT_PORT:-1883}"
 PRODUCT="${PRODUCT:-9820630576939008}"
 DEVICE="${DEVICE:-9720084293632004}"
 TENANT_ID="${TENANT_ID:-1}"
+# 演示产品 product.password（种子数据，非平台凭据）；secret-hygiene: allow
 PASSWORD="${PASSWORD:-32423}"
 AUTH_MODE="${AUTH_MODE:-device}"
 MQTT_DEMO_SCRIPTS="${MQTT_DEMO_SCRIPTS:-up,down,full}"

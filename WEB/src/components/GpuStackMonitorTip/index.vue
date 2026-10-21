@@ -22,13 +22,15 @@
             class="copy-icon"
             @click.stop="handleCopy(username, '账号')"
           />
-          <span class="tip-divider">|</span>
-          <span class="tip-meta tip-meta-password" :title="password">密码 {{ password }}</span>
-          <Icon
-            icon="tdesign:copy-filled"
-            class="copy-icon"
-            @click.stop="handleCopy(password, '密码')"
-          />
+          <template v-if="password">
+            <span class="tip-divider">|</span>
+            <span class="tip-meta tip-meta-password" :title="password">密码 {{ password }}</span>
+            <Icon
+              icon="tdesign:copy-filled"
+              class="copy-icon"
+              @click.stop="handleCopy(password, '密码')"
+            />
+          </template>
         </span>
       </template>
     </Alert>

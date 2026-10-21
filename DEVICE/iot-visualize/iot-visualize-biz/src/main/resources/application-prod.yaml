@@ -153,7 +153,7 @@ iot:
     base-url: ${IOT_FUXA_BASE_URL:http://10.0.0.87:1881}
     public-url: ${IOT_FUXA_PUBLIC_URL:http://36.111.47.113:1881}
     username: ${IOT_FUXA_USERNAME:admin}
-    password: ${IOT_FUXA_PASSWORD:123456}
+    password: ${IOT_FUXA_PASSWORD}
     # 演示工艺图只读：平台打开演示组态一律 preview（配合公网 nginx 禁 /editor）
     demo-read-only: ${IOT_FUXA_DEMO_READ_ONLY:true}
     # 全部组态强制预览；运维改图请直连容器内网 10.0.0.87:1881

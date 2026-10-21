@@ -368,6 +368,12 @@ services:
     environment:
       - TZ=Asia/Shanghai # 配置程序默认时区为上海（中国标准时间）
       - JAVA_OPTS=-Xms256m -Xmx512m
+      # iot-flow 的 local yaml 不再内置口令，必须由中间件 .env.docker 提供
+      - NACOS_USERNAME=${NACOS_USERNAME:?NACOS_USERNAME is required}
+      - NACOS_PASSWORD=${NACOS_PASSWORD:?NACOS_PASSWORD is required}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
       - SPRING_PROFILES_ACTIVE=local # 指定程序运行环境
       - SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR=Nacos:8848 # 配置中心地址（使用Docker服务名）
       - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE= # 使用默认命名空间（public）

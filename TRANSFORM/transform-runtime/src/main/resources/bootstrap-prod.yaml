@@ -4,7 +4,7 @@ spring:
       discovery:
         server-addr: ${NACOS_ADDR:Nacos:8848}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:basiclab@iot78475418754}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
         group: ${NACOS_GROUP:DEFAULT_GROUP}
         metadata:
@@ -13,7 +13,7 @@ spring:
       config:
         server-addr: ${NACOS_ADDR:Nacos:8848}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:basiclab@iot78475418754}
+        password: ${NACOS_PASSWORD}
         namespace: ${NACOS_NAMESPACE:}
         group: ${NACOS_GROUP:DEFAULT_GROUP}
         file-extension: yaml

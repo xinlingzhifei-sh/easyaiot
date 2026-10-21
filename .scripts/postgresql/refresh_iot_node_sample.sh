@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-postgres-server}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-iot45722414822}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置（与中间件 .scripts/docker/.env.docker 一致）}"
 POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 DB_NAME="iot-node20"

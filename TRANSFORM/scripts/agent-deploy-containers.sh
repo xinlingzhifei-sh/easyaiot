@@ -54,7 +54,7 @@ for i in $(seq 1 "$COUNT"); do
     "KAFKA_BOOTSTRAP": "$KAFKA",
     "POSTGRES_URL": "$POSTGRES_URL",
     "POSTGRES_USERNAME": "${POSTGRES_USERNAME:-postgres}",
-    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-iot45722414822}"
+    "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置（与中间件 .scripts/docker/.env.docker 一致）}"
   }
 }
 EOF

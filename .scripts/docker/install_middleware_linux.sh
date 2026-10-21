@@ -6445,6 +6445,7 @@ fix_nacos_derby_corruption() {
 # Nacos 2.2+ 在 auth 开启后 /v1/auth/users/admin 可能不支持匿名调用，需用默认 nacos/nacos 登录后创建。
 # 密码必须与各服务 bootstrap-*.yaml 的 spring.cloud.nacos.*.password 一致。
 NACOS_INIT_PASSWORD="${NACOS_INIT_PASSWORD:-}"
+# Nacos 镜像出厂口令，仅用于首次登录后改成 NACOS_PASSWORD；secret-hygiene: allow
 NACOS_DEFAULT_PASSWORD="${NACOS_DEFAULT_PASSWORD:-nacos}"
 ensure_nacos_admin_user() {
     docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^nacos-server$' || return 0

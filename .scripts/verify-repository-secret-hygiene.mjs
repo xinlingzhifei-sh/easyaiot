@@ -39,7 +39,40 @@ const SECRET_PATTERNS = [
     kind: 'private-key-block',
     pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----[\s\S]{64,}?-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g,
   },
+  {
+    // 历史上硬编码在 compose / yaml / 安装脚本 / 源码中的平台默认口令；
+    // 拆开拼接，避免本文件自身命中
+    kind: 'known-default-credential',
+    pattern: new RegExp(
+      `(?:${['iot', '45722414822'].join('')}|${['basiclab', '@iot'].join('')}[A-Za-z0-9]{6,})`,
+      'g',
+    ),
+  },
 ];
+
+// 配置类文件：compose / Spring yaml / shell / env 模板等，额外做逐行的口令字面量检查
+const CONFIG_FILE_PATTERN = /(?:\.ya?ml|\.sh|\.properties|\.ps1|\.ini|\.conf|\.toml)$|(?:^|\/)Dockerfile[^/]*$|(?:^|\/)(?:[^/]*\.)?env\.example$|(?:^|\/)\.env(?:\.[^/]*)?$/i;
+const CONFIG_FILE_EXCLUDES = [
+  /(?:^|\/)pnpm-lock\.yaml$/i,
+  /(?:^|\/)\.github\/workflows\//i,
+  /(?:^|\/)3rdparty\//i,
+];
+// 变量名以 password / passwd / secret / token（可带 _key）结尾才视为凭据，排除 *_SECRET_DIR 之类
+const SECRET_NAME = '[A-Za-z0-9_.-]*(?:password|passwd|secret|token)(?:[_-]key)?';
+// ${SECRET:-literal}（shell / compose）与 ${secret:literal}（Spring）：给凭据写了字面量默认值
+const SECRET_LITERAL_FALLBACK = new RegExp(
+  `\\$\\{(${SECRET_NAME}):-?(?![-?=+}$\\\\])([^}]*)\\}`,
+  'gi',
+);
+// postgresql://user:pass@ 这类连接串中内嵌的口令
+const CONNECTION_STRING_CREDENTIAL = /\b(?:postgres(?:ql)?|mysql|redis|rediss|amqp|mongodb)(?:\+\w+)?:\/\/[^\s:@/'"]*:([^\s@/'"]+)@/gi;
+// YAML（含注释掉的行与 compose 列表项）中 password: literal / - PASSWORD=literal
+const YAML_SECRET_ENTRY = new RegExp(
+  `^\\s*(?:#\\s*)?(?:-\\s+)?(${SECRET_NAME})\\s*[:=]\\s*(.*)$`,
+  'i',
+);
+// 同一行或上一行带此标记时跳过逐行检查（仅用于上游出厂口令、演示种子数据等已评审的例外）
+const ALLOW_MARKER = 'secret-hygiene: allow';
 
 const FORBIDDEN_TRACKED_PATHS = [
   /^deploy-packages\//i,
@@ -55,6 +88,8 @@ const FORBIDDEN_TRACKED_PATHS = [
   /^WEB\/\.env\.development\.bak$/i,
   /^TASK\/config\/test[^/]*\.ini$/i,
   /^\.scripts\/docker\/\.env\.docker$/i,
+  // 各模块安装脚本生成的 .env.docker 含真实凭据，只允许跟踪 *.example 模板
+  /(?:^|\/)\.env\.docker$/i,
 ];
 
 function isRuntimeEnvironmentPath(file) {
@@ -88,7 +123,63 @@ function isSafeEnvPlaceholder(value) {
     return true;
   }
   return /^(?:CHANGE_ME|CHANGEME|PLACEHOLDER|EXAMPLE|YOUR_[A-Z0-9_]+|X{4,}|<[^>]+>)$/i
-    .test(value);
+    .test(value)
+    || /^your[-_]/i.test(value)
+    || /change[-_]?me/i.test(value);
+}
+
+// 连接串 / yaml 中的口令占位：变量引用、尖括号、CHANGE_ME、纯说明文字（如「密码」）等
+function isSafeCredentialPlaceholder(value) {
+  const normalized = normalizeEnvValue(value).replace(/\s+#.*$/, '').trim();
+  if (!normalized || normalized.startsWith('#') || /^\\?\$/.test(normalized)) {
+    return true;
+  }
+  if (!/[A-Za-z0-9]/.test(normalized)) {
+    return true;
+  }
+  return isSafeEnvPlaceholder(normalized)
+    || /^(?:password|passwd|pass|secret|token|%s|\*+|\{[^}]*\}|true|false|null|~|[|>][-+]?)$/i.test(normalized);
+}
+
+function isConfigFile(file) {
+  const normalized = String(file).replaceAll('\\', '/');
+  return CONFIG_FILE_PATTERN.test(normalized)
+    && !CONFIG_FILE_EXCLUDES.some(pattern => pattern.test(normalized));
+}
+
+function isEnvTemplateOrRuntimeFile(file) {
+  return /(?:^|\/)\.env(?:\.|$)|(?:^|\/)(?:[^/]*\.)?env\.example$/i.test(file);
+}
+
+function scanConfigLines(lines, file, findings) {
+  const yaml = /\.ya?ml$/i.test(file);
+  lines.forEach((line, index) => {
+    if (line.includes(ALLOW_MARKER) || (index > 0 && lines[index - 1].includes(ALLOW_MARKER))) {
+      return;
+    }
+    SECRET_LITERAL_FALLBACK.lastIndex = 0;
+    for (const match of line.matchAll(SECRET_LITERAL_FALLBACK)) {
+      if (!isSafeCredentialPlaceholder(match[2])) {
+        findings.push(finding(file, index + 1, 'secret-literal-fallback'));
+      }
+    }
+    CONNECTION_STRING_CREDENTIAL.lastIndex = 0;
+    for (const match of line.matchAll(CONNECTION_STRING_CREDENTIAL)) {
+      if (!isSafeCredentialPlaceholder(match[1])) {
+        findings.push(finding(file, index + 1, 'connection-string-credential'));
+      }
+    }
+    // MinIO 出厂账号（用户名与口令相同），配置与脚本里不得作为默认值
+    if (/\bminioadmin\b/i.test(line)) {
+      findings.push(finding(file, index + 1, 'minio-default-credential'));
+    }
+    if (yaml) {
+      const match = line.match(YAML_SECRET_ENTRY);
+      if (match && !isSafeCredentialPlaceholder(match[2])) {
+        findings.push(finding(file, index + 1, 'yaml-secret-literal'));
+      }
+    }
+  });
 }
 
 export function isForbiddenTrackedPath(file) {
@@ -108,8 +199,13 @@ export function scanText(text, file = '<memory>') {
     }
   }
 
-  if (/(?:^|\/)\.env(?:\.|$)/i.test(file.replaceAll('\\', '/'))) {
-    source.split(/\r?\n/).forEach((line, index) => {
+  const normalizedFile = file.replaceAll('\\', '/');
+  const lines = source.split(/\r?\n/);
+  if (isEnvTemplateOrRuntimeFile(normalizedFile)) {
+    lines.forEach((line, index) => {
+      if (line.includes(ALLOW_MARKER) || (index > 0 && lines[index - 1].includes(ALLOW_MARKER))) {
+        return;
+      }
       const match = line.match(
         /^\s*([A-Z0-9_]*(?:PASSWORD|PASSWD|SECRET|TOKEN|KEY)[A-Z0-9_]*)\s*=\s*(.*?)\s*$/,
       );
@@ -121,6 +217,10 @@ export function scanText(text, file = '<memory>') {
         findings.push(finding(file, index + 1, 'tracked-env-secret-literal'));
       }
     });
+  }
+
+  if (isConfigFile(normalizedFile)) {
+    scanConfigLines(lines, normalizedFile, findings);
   }
 
   return findings;

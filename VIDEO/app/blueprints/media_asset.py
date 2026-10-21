@@ -206,10 +206,15 @@ def _event_minio_client():
     endpoint = (os.getenv('MINIO_UPLOAD_ENDPOINT') or os.getenv('MINIO_ENDPOINT') or 'localhost:9000').strip()
     endpoint = endpoint.removeprefix('http://').removeprefix('https://').rstrip('/')
     secure = (os.getenv('MINIO_UPLOAD_SECURE') or os.getenv('MINIO_SECURE') or 'false').lower() == 'true'
+    access_key = (os.getenv('MINIO_ACCESS_KEY') or '').strip()
+    secret_key = os.getenv('MINIO_SECRET_KEY') or ''
+    # 不回退到 MinIO 出厂账号，缺配置时让调用方返回 503
+    if not access_key or not secret_key:
+        raise RuntimeError('MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置')
     return Minio(
         endpoint,
-        access_key=os.getenv('MINIO_ACCESS_KEY', 'minioadmin'),
-        secret_key=os.getenv('MINIO_SECRET_KEY', ''),
+        access_key=access_key,
+        secret_key=secret_key,
         secure=secure,
     )
 

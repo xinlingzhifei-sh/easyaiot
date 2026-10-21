@@ -12,7 +12,7 @@ New deployments can use `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, and
 Before and after migration, verify the target with a temporary bucket:
 
 ```bash
-export RUSTFS_ACCESS_KEY=minioadmin
+export RUSTFS_ACCESS_KEY='destination-access-key'
 export RUSTFS_SECRET_KEY='destination-secret'
 ./verify_rustfs_s3.sh
 ```
@@ -24,10 +24,10 @@ RustFS is available on 9000. Do not mount `minio_data` directly into RustFS.
 
 ```bash
 export MINIO_SOURCE_ENDPOINT=http://127.0.0.1:19000
-export MINIO_SOURCE_ACCESS_KEY=minioadmin
+export MINIO_SOURCE_ACCESS_KEY='source-access-key'
 export MINIO_SOURCE_SECRET_KEY='source-secret'
 export RUSTFS_DEST_ENDPOINT=http://127.0.0.1:9000
-export RUSTFS_ACCESS_KEY=minioadmin
+export RUSTFS_ACCESS_KEY='destination-access-key'
 export RUSTFS_SECRET_KEY='destination-secret'
 
 ./migrate_minio_to_rustfs.sh --dry-run

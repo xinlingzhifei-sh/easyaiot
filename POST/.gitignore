@@ -1,6 +1,7 @@
 .env
 .env.*
-!.env.docker
+# .env.docker 含真实凭据，不入库；模板见 .env.docker.example / env.example
+!.env.docker.example
 
 # install 脚本自动生成的架构配置（与 AI/VIDEO/RTC 一致）
 .env.arch

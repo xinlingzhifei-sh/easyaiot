@@ -411,8 +411,19 @@ clean_compose_cache() {
     print_success "VIDEO 服务的 compose 缓存已清理完成"
 }
 
+# 用中间件 .env.docker 的 POSTGRES_PASSWORD 拼 VIDEO 库连接串（不在脚本里写死口令）；读不到则安装失败
+video_database_url() {
+    build_middleware_postgres_url "$1" "$2" iot-video20
+}
+
 # 创建 .env.docker 文件（用于Docker部署）
 create_env_file() {
+    local db_url
+    if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+        db_url="$(video_database_url postgres-server 5432)" || { print_error "无法生成 DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+    else
+        db_url="$(video_database_url localhost 15432)" || { print_error "无法生成 DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+    fi
     if [ ! -f .env.docker ]; then
         print_info ".env.docker 文件不存在，正在创建..."
         if [ -f env.example ]; then
@@ -422,12 +433,12 @@ create_env_file() {
             # 临时文件写回，兼容 macOS BSD sed；凭据沿用 env.example，不在脚本中覆盖。
             if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
                 print_info "桌面端部署：使用容器网络中间件地址"
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-video20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
             else
                 print_info "自动配置中间件连接信息（使用host网络模式，通过localhost访问中间件）..."
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-video20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
                 _set_env_docker_kv .env.docker REDIS_HOST "localhost"
@@ -450,7 +461,7 @@ create_env_file() {
         # Docker Desktop 使用 bridge + 服务名，不能改回 localhost（host 网络在 Desktop 无效）
         if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
             print_info "桌面端部署：保留/使用容器网络中间件地址（postgres-server 等）"
-            _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-video20"
+            _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
             # bridge 网络里 localhost / RustFS 都解析不到，改用中间件服务名 MinIO；自定义的其他地址保留
             if grep -Eq '^MINIO_ENDPOINT=(localhost|127\.0\.0\.1|RustFS)?(:|$)' .env.docker; then
@@ -462,8 +473,12 @@ create_env_file() {
 
             # 检查并更新数据库连接（如果还是旧的服务名，改为localhost）
             if grep -q "DATABASE_URL=.*PostgresSQL" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-video20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 print_info "已更新数据库连接为 localhost:15432（host网络模式）"
+            # 安装脚本管理的本机连接串：口令随中间件 POSTGRES_PASSWORD 同步，避免与中间件不一致
+            elif grep -Eq '^DATABASE_URL=postgresql://[^@]*@localhost:15432/iot-video20([?]|$)' .env.docker && ! grep -qxF "DATABASE_URL=$db_url" .env.docker; then
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
+                print_info "已按中间件 POSTGRES_PASSWORD 同步 DATABASE_URL"
             fi
 
             # 检查并更新Nacos配置（如果还是IP地址或旧的服务名，改为localhost）

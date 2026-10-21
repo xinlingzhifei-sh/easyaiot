@@ -244,7 +244,7 @@ python -m edge run                 # 常驻，订阅 mqtt/iot-algo-task-cmd 任�
 
 ## 7. 安全注意事项
 
-- **凭据配置现状**：`DEVICE/docker-compose.yml`、中间件 `.scripts/docker/docker-compose.yml`、`RUNTIME/docker-compose.yml` 已改为 `${VAR:?...}` 必填 / `${VAR:-}` 读取密码与令牌。但默认口令明文仍残留在不少文件中，例如 DEVICE `iot-flow` 的 `application-local.yaml` / `bootstrap-local.yaml`、`TRANSFORM/docker-compose.yml` 及其 `application-*.yaml` / `bootstrap-*.yaml`、AI / VIDEO / POST 的 `docker-compose.desktop.yaml` 与 `env.example`、`POST/.env.docker`、部分安装脚本和少量源码（iot-node、VIDEO、TERMINAL 中间件预设、WEB）。属历史现状，勿扩散；新增配置一律走环境变量，不要硬编码真实密钥，可用 `.scripts/verify-repository-secret-hygiene.mjs` 自查。
+- **凭据配置现状**：各模块 compose 一律 `${VAR:?...}` 必填 / `${VAR:-}` 读取密码与令牌，Spring yaml 用无默认值的 `${VAR}`（缺失即启动失败），源码与脚本不带默认口令。中间件凭据的单一来源是 `.scripts/docker/.env.docker`（可用 `YFEIEYE_MIDDLEWARE_ENV_FILE` 覆盖）：AI / VIDEO / POST / TRANSFORM 安装脚本经 `deploy_profile.sh` 的 `read_middleware_secret` / `build_middleware_postgres_url` 从中读取并写入各自 `.env.docker`，读不到即报错。模块 `.env.docker` 不入库，只跟踪 `env.example` / `.env.docker.example` 占位模板。新增配置一律走环境变量，提交前用 `.scripts/verify-repository-secret-hygiene.mjs` 自查（会检查已知历史口令、`${SECRET:-字面量}`、连接串内嵌口令、YAML 口令字面量、env 模板非占位值；确属上游出厂口令或演示种子数据时，在该行或上一行注明 `secret-hygiene: allow`）。
 - `.env`、`agent.env`、`edge.env` 等凭据文件严禁提交；Read/编辑工具默认也会拦截，写脚本时同样不要去 cat 它们。
 - `SENTINEL/agent_server.py` 的 HTTP 端点靠 `X-Agent-Token` 鉴权；改动时不要绕过或弱化该校验。
 - 远程节点 `agent.env` 中 `PLATFORM_AGENT=0` 不可改为 1（`SENTINEL/agent.env.example` 明确；`PLATFORM_AGENT_BOOTSTRAP_TOKEN` 仅控制面宿主机使用）。

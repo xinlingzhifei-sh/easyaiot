@@ -555,7 +555,7 @@ SQL 位於 `.scripts/tdengine/tdengine_super_tables.sql`，full 規格自動初�
 | Nacos | nacos | nacos | :8848/nacos |
 | PostgreSQL | postgres | <POSTGRES_PASSWORD> | — |
 | Redis | — | <REDIS_OR_MINIO_PASSWORD> | — |
-| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> | :9001 |
+| MinIO | <MINIO_ROOT_USER> | <REDIS_OR_MINIO_PASSWORD> | :9001 |
 | EMQX | admin | <EMQX_DASHBOARD_PASSWORD> | :18083 |
 | Milvus | — | — | :9091 |
 

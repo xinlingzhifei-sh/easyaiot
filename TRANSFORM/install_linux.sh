@@ -56,11 +56,16 @@ check_docker_compose() {
         print_error "Docker Compose 未安装"
         exit 1
     fi
+    # compose 变量替换读 .env.docker（apply_transform_deploy_env 从中间件凭据同步），
+    # 与 DEVICE 的 --env-file 做法一致；docker-compose.yml 中口令为 ${VAR:?} 必填
+    if [ -f "${SCRIPT_DIR}/.env.docker" ]; then
+        COMPOSE_CMD="${COMPOSE_CMD} --env-file ${SCRIPT_DIR}/.env.docker"
+    fi
 }
 
 require_full_profile() {
     ensure_deploy_profile
-    apply_transform_deploy_env "$EASYAIOT_ROOT"
+    apply_transform_deploy_env "$EASYAIOT_ROOT" --strict
     if [ "${EASYAIOT_DEPLOY_PROFILE:-full}" != "full" ]; then
         print_warning "TRANSFORM 仅在 full 全量部署形态下启用，当前: ${EASYAIOT_DEPLOY_PROFILE}"
         exit 1
@@ -124,7 +129,7 @@ cleanup_renamed_containers() {
 ensure_env_file() {
     if [ ! -f .env.docker ]; then
         print_info "生成 .env.docker ..."
-        apply_transform_deploy_env "$EASYAIOT_ROOT"
+        apply_transform_deploy_env "$EASYAIOT_ROOT" --strict
     fi
     mkdir -p data/transform-backup
 }

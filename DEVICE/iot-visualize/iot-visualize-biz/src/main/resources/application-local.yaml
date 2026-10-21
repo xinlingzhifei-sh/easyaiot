@@ -148,7 +148,7 @@ iot:
     base-url: ${IOT_FUXA_BASE_URL:http://127.0.0.1:1881}
     public-url: ${IOT_FUXA_PUBLIC_URL:http://127.0.0.1:1881}
     username: ${IOT_FUXA_USERNAME:admin}
-    password: ${IOT_FUXA_PASSWORD:123456}
+    password: ${IOT_FUXA_PASSWORD}
     # 内置演示组态只读（ID 9311–9314）；本地默认可编辑非演示组态
     demo-read-only: ${IOT_FUXA_DEMO_READ_ONLY:true}
     force-preview: ${IOT_FUXA_FORCE_PREVIEW:false}

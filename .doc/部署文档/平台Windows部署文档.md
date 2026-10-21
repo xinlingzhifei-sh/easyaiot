@@ -281,7 +281,7 @@ Middleware installation paths:
 F:\EASYLOT\PostgreSQL16\
 F:\EASYLOT\Redis\
 F:\EASYLOT\nacos\     #### Enable authentication    Search online for instructions
-F:\EASYLOT\rustfs\  ##### The project has database or RustFS passwords. All passwords must match those in the project configuration. E.g., RustFS username: minioadmin, password: iot**
+F:\EASYLOT\rustfs\  ##### The project has database or RustFS passwords. All passwords must match those in the project configuration. E.g., RustFS username: <MINIO_ROOT_USER>, password: iot**
 F:\EASYLOT\kafka\   ### Download yourself
 F:\EASYLOT\TDengine\  #### Download yourself
 ```
@@ -373,14 +373,14 @@ http://localhost:8848/nacos
 - Version: Latest
 - API Port: 9000
 - Console Port: 9001
-- Username: minioadmin
+- Username: <MINIO_ROOT_USER>
 - Password: `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Startup Commands
 ```powershell
 cd F:\EASYLOT\rustfs
-$env:RUSTFS_ACCESS_KEY="minioadmin"
-$env:RUSTFS_SECRET_KEY="basiclab@iot975248395"
+$env:RUSTFS_ACCESS_KEY="<MINIO_ROOT_USER>"
+$env:RUSTFS_SECRET_KEY="<MINIO_ROOT_PASSWORD>"
 $env:RUSTFS_ADDRESS="0.0.0.0:9000"
 $env:RUSTFS_CONSOLE_ADDRESS="0.0.0.0:9001"
 .\rustfs.exe data
@@ -576,7 +576,7 @@ NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # RustFS
 MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
+MINIO_ACCESS_KEY=<MINIO_ROOT_USER>
 MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # FFmpeg Path (Must be full path on Windows)
@@ -979,7 +979,7 @@ npm run dev
 | PostgreSQL | postgres | <POSTGRES_PASSWORD> |
 | Redis | - | <REDIS_OR_MINIO_PASSWORD> |
 | Nacos | nacos | <NACOS_PASSWORD> |
-| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
+| MinIO | <MINIO_ROOT_USER> | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | WEB Frontend | admin | admin123 |
 | Test Camera | admin | sr336699 |

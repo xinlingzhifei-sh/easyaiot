@@ -51,6 +51,45 @@ ensure_env_var() {
   echo "${key}=${value}" >> "${ENV_FILE}"
 }
 
+read_env_var() {
+  local key="$1"
+  sed -n "s/^${key}=//p" "${ENV_FILE}" 2>/dev/null | tail -1 | tr -d '\r'
+}
+
+# 临时文件写回（Git Bash / macOS 均可用）；awk 经 ENVIRON 取值，口令中的特殊字符原样写入
+set_env_var() {
+  local key="$1" value="$2" tmp="${ENV_FILE}.tmp.$$"
+  if grep -q "^${key}=" "${ENV_FILE}" 2>/dev/null; then
+    _ENV_KEY="${key}" _ENV_VALUE="${value}" awk 'index($0, ENVIRON["_ENV_KEY"] "=") == 1 { print ENVIRON["_ENV_KEY"] "=" ENVIRON["_ENV_VALUE"]; next } { print }' \
+      "${ENV_FILE}" > "$tmp" && mv "$tmp" "${ENV_FILE}"
+  else
+    ensure_env_var "${key}" "${value}"
+  fi
+}
+
+generate_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 24
+    return
+  fi
+  if command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import secrets; print(secrets.token_hex(24))'
+    return
+  fi
+  err "无法生成随机凭据：缺少 openssl 与 python3"
+  exit 1
+}
+
+# 与 install_middleware_mac.sh 一致：缺失或仍为 CHANGE_ME 时生成随机凭据，已有值保持不变（不回退到默认口令）
+ensure_generated_secret() {
+  local key="$1" current
+  current="$(read_env_var "${key}")"
+  if [[ -n "${current}" && "${current}" != "CHANGE_ME" ]]; then
+    return
+  fi
+  set_env_var "${key}" "$(generate_secret)"
+}
+
 SERVICES=()
 while IFS= read -r _middleware_service; do
   case "$_middleware_service" in
@@ -245,15 +284,31 @@ ensure_env() {
   local example="${SCRIPT_DIR}/env.example"
   [[ -f "$example" ]] || { err "缺少 env.example"; exit 1; }
   [[ -f "${ENV_FILE}" ]] || cp "$example" "${ENV_FILE}"
-  ensure_env_var "POSTGRES_PASSWORD" "iot45722414822"
+  ensure_generated_secret "POSTGRES_PASSWORD"
   ensure_env_var "DATABASE_URL" "postgresql://postgres:\${POSTGRES_PASSWORD}@PostgresSQL:5432/iot-ai20"
   ensure_env_var "NACOS_SERVER" "Nacos:8848"
   ensure_env_var "NACOS_NAMESPACE" ""
-  ensure_env_var "NACOS_PASSWORD" "basiclab@iot78475418754"
+  # update_nacos_password 只改内置账号 nacos 的口令，用户名须与之对应（用户名不是凭据）
+  local nacos_user
+  nacos_user="$(read_env_var NACOS_USERNAME)"
+  if [[ -z "${nacos_user}" || "${nacos_user}" == "CHANGE_ME" ]]; then
+    set_env_var "NACOS_USERNAME" "nacos"
+  fi
+  ensure_generated_secret "NACOS_PASSWORD"
+  ensure_generated_secret "NACOS_AUTH_IDENTITY_KEY"
+  ensure_generated_secret "NACOS_AUTH_IDENTITY_VALUE"
+  ensure_generated_secret "NACOS_AUTH_TOKEN"
   ensure_env_var "MINIO_ENDPOINT" "MinIO:9000"
-  ensure_env_var "MINIO_SECRET_KEY" "basiclab@iot975248395"
-  ensure_env_var "REDIS_PASSWORD" "basiclab@iot975248395"
-  ensure_env_var "EMQX_DASHBOARD_PASSWORD" "basiclab@iot6874125784"
+  # 业务侧 MINIO_ACCESS_KEY / MINIO_SECRET_KEY 直接使用对象存储 root 凭据
+  ensure_generated_secret "MINIO_ROOT_USER"
+  ensure_generated_secret "MINIO_ROOT_PASSWORD"
+  set_env_var "MINIO_ACCESS_KEY" "$(read_env_var MINIO_ROOT_USER)"
+  set_env_var "MINIO_SECRET_KEY" "$(read_env_var MINIO_ROOT_PASSWORD)"
+  ensure_generated_secret "REDIS_PASSWORD"
+  ensure_generated_secret "EMQX_DASHBOARD_PASSWORD"
+  ensure_generated_secret "EMQX_NODE_COOKIE"
+  ensure_generated_secret "ZLM_SECRET"
+  ensure_generated_secret "GPUSTACK_BOOTSTRAP_PASSWORD"
   # 与本机架构对齐，避免 compose 默认 NACOS_PLATFORM=linux/amd64 在 Apple Silicon 上走 QEMU
   if [ -n "${NACOS_PLATFORM:-}" ]; then
     if grep -q "^NACOS_PLATFORM=" "${ENV_FILE}" 2>/dev/null; then
@@ -519,8 +574,12 @@ ensure_minio_buckets() {
     return 1
   fi
 
-  local access_key="${MINIO_ACCESS_KEY:-minioadmin}"
-  local secret_key="${MINIO_SECRET_KEY:-basiclab@iot975248395}"
+  local access_key="${MINIO_ACCESS_KEY:-$(read_env_var MINIO_ACCESS_KEY)}"
+  local secret_key="${MINIO_SECRET_KEY:-$(read_env_var MINIO_SECRET_KEY)}"
+  if [[ -z "${access_key}" || -z "${secret_key}" ]]; then
+    err "MINIO_ACCESS_KEY / MINIO_SECRET_KEY 未配置（${ENV_FILE}），跳过存储桶初始化"
+    return 1
+  fi
   local failed=0
   local bucket
 
@@ -554,7 +613,11 @@ update_nacos_password() {
   local nacos_server="http://localhost:8848"
   local default_username="nacos"
   local default_password="nacos"
-  local new_password="${NACOS_PASSWORD:-basiclab@iot78475418754}"
+  local new_password="${NACOS_PASSWORD:-$(read_env_var NACOS_PASSWORD)}"
+  if [[ -z "${new_password}" || "${new_password}" == "CHANGE_ME" ]]; then
+    err "NACOS_PASSWORD 未配置（${ENV_FILE}），跳过 Nacos 密码修改"
+    return 1
+  fi
 
   info "检测 Nacos API 是否就绪..."
   if ! wait_for_health 8848 "/nacos/actuator/health"; then

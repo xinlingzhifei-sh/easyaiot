@@ -56,7 +56,6 @@ spring:
 #    host: 192.168.1.65
 #    port: 6379
 #    database: 0
-#    password: iot@6328214881
 
 --- #################### MQ 消息队列相关配置 ####################
 
@@ -201,7 +200,6 @@ media:
   #  hook-ip: 10.0.0.87
   # [必选选] zlm服务器的hook.admin_params=secret
   secret: ${ZLM_SECRET}
-  #  secret: AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输

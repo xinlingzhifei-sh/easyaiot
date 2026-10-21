@@ -6,13 +6,20 @@
 set -euo pipefail
 
 endpoint="${S3_ENDPOINT:-${RUSTFS_ENDPOINT:-127.0.0.1:9000}}"
-access_key="${S3_ACCESS_KEY:-${RUSTFS_ACCESS_KEY:-minioadmin}}"
-secret_key="${S3_SECRET_KEY:-${RUSTFS_SECRET_KEY:-basiclab@iot975248395}}"
+access_key="${S3_ACCESS_KEY:-${RUSTFS_ACCESS_KEY:-}}"
+secret_key="${S3_SECRET_KEY:-${RUSTFS_SECRET_KEY:-}}"
 secure="${S3_SECURE:-${RUSTFS_SECURE:-false}}"
 mc_image="${MC_IMAGE:-minio/mc:latest}"
 scheme="http"
 [[ "$secure" == "true" ]] && scheme="https"
 [[ "$endpoint" == http://* || "$endpoint" == https://* ]] || endpoint="${scheme}://${endpoint}"
+
+# Credentials have no built-in default; use the object storage root credentials
+# from .scripts/docker/.env.docker (MINIO_ROOT_USER / MINIO_ROOT_PASSWORD).
+if [[ -z "$access_key" || -z "$secret_key" ]]; then
+    echo "S3_ACCESS_KEY/S3_SECRET_KEY (or RUSTFS_ACCESS_KEY/RUSTFS_SECRET_KEY) must be set." >&2
+    exit 2
+fi
 
 suffix="$(date +%s)-$$"
 bucket="easyaiot-rustfs-smoke-${suffix}"

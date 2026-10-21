@@ -60,7 +60,7 @@ class ModelService:
     def _get_minio_config_info():
         """获取MinIO配置信息（用于诊断，不包含敏感信息）"""
         minio_endpoint = (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', 'MinIO:9000'))
-        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', 'minioadmin'))
+        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', ''))
         secure = (os.getenv('S3_SECURE') or os.getenv('MINIO_SECURE', 'false')).lower() == 'true'
         # 只显示访问密钥的前4个字符，用于诊断
         access_key_display = access_key[:4] + '***' if len(access_key) > 4 else '***'
@@ -115,7 +115,7 @@ class ModelService:
     def _get_minio_config_info():
         """获取MinIO配置信息（用于诊断，不包含敏感信息）"""
         minio_endpoint = (os.getenv('S3_ENDPOINT') or os.getenv('MINIO_ENDPOINT', 'MinIO:9000'))
-        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', 'minioadmin'))
+        access_key = (os.getenv('S3_ACCESS_KEY') or os.getenv('MINIO_ACCESS_KEY', ''))
         secure = (os.getenv('S3_SECURE') or os.getenv('MINIO_SECURE', 'false')).lower() == 'true'
         # 只显示访问密钥的前4个字符，用于诊断
         access_key_display = access_key[:4] + '***' if len(access_key) > 4 else '***'

@@ -352,14 +352,14 @@ http://localhost:8848/nacos
 - Version : Dernière version
 - Port API : 9000
 - Port console : 9001
-- Nom d'utilisateur : minioadmin
+- Nom d'utilisateur : <MINIO_ROOT_USER>
 - Mot de passe : `<REDIS_OR_MINIO_PASSWORD>`
 
 #### Commande de démarrage
 ```powershell
 cd F:\EASYLOT\rustfs
-$env:RUSTFS_ACCESS_KEY="minioadmin"
-$env:RUSTFS_SECRET_KEY="basiclab@iot975248395"
+$env:RUSTFS_ACCESS_KEY="<MINIO_ROOT_USER>"
+$env:RUSTFS_SECRET_KEY="<MINIO_ROOT_PASSWORD>"
 $env:RUSTFS_ADDRESS="0.0.0.0:9000"
 $env:RUSTFS_CONSOLE_ADDRESS="0.0.0.0:9001"
 .\rustfs.exe data
@@ -555,7 +555,7 @@ NACOS_PASSWORD=<NACOS_PASSWORD>
 
 # RustFS
 MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
+MINIO_ACCESS_KEY=<MINIO_ROOT_USER>
 MINIO_SECRET_KEY=<REDIS_OR_MINIO_PASSWORD>
 
 # Chemin FFmpeg (Windows doit configurer le chemin complet)
@@ -957,7 +957,7 @@ npm run dev
 | PostgreSQL | postgres | <POSTGRES_PASSWORD> |
 | Redis | - | <REDIS_OR_MINIO_PASSWORD> |
 | Nacos | nacos | <NACOS_PASSWORD> |
-| MinIO | minioadmin | <REDIS_OR_MINIO_PASSWORD> |
+| MinIO | <MINIO_ROOT_USER> | <REDIS_OR_MINIO_PASSWORD> |
 | TDengine | root | taosdata |
 | Frontend WEB | admin | admin123 |
 | Caméra de test | admin | sr336699 |

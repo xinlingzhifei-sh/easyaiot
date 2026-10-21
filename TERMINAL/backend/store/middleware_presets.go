@@ -22,6 +22,10 @@ import (
 // on the host). The web/server deployment inside Docker sets
 // EASYAIOT_MIDDLEWARE_HOST (host.docker.internal) via docker-compose.yml;
 // per-service overrides (EASYAIOT_<SERVICE>_HOST) win over the global one.
+//
+// Credentials are never baked into the roster: they come from
+// EASYAIOT_<SERVICE>_USER / EASYAIOT_<SERVICE>_PASSWORD. When unset the preset
+// is seeded without a password and the user fills it in on first connect.
 
 const (
 	// MiddlewarePresetsVersion bumps when the built-in roster changes: the
@@ -200,6 +204,15 @@ func middlewareHost(service string) string {
 	return "localhost"
 }
 
+// middlewareCredential reads EASYAIOT_<SERVICE>_<FIELD> (USER / PASSWORD);
+// fallback applies only to non-secret fields such as the default username.
+func middlewareCredential(service, field, fallback string) string {
+	if v := strings.TrimSpace(os.Getenv("EASYAIOT_" + service + "_" + field)); v != "" {
+		return v
+	}
+	return fallback
+}
+
 // middlewareURL builds an http URL for a dashboard preset. An override that
 // already carries a scheme is treated as a complete base URL (its own port
 // wins); a bare host gets the service's default port. The service's path
@@ -251,25 +264,25 @@ func MiddlewarePresets() []session.ConnectionConfig {
 		// ── In-app interactive clients ──
 		preset("postgres", "PostgreSQL", "yFeiEye 主业务 PostgreSQL · 一条连接浏览全部库（iot-device20 / iot-node20 / iot-visualize20 / iot-flow20 / iot-message20 / iot-gb2818120 / iot-ai20 / iot-video20 / iot-transform20 / ruoyi-vue-pro20），默认打开 iot-device20",
 			"database", middlewareHost("POSTGRES"), 5432, func(c *session.ConnectionConfig) {
-				c.User = "postgres"
-				c.Password = "iot45722414822"
+				c.User = middlewareCredential("POSTGRES", "USER", "postgres")
+				c.Password = middlewareCredential("POSTGRES", "PASSWORD", "")
 				c.DBType = "postgres"
 				c.DBName = "iot-device20"
 			}),
 		preset("mysql", "MySQL", "yFeiEye 辅助 MySQL（.scripts/mysql）",
 			"database", middlewareHost("MYSQL"), 3306, func(c *session.ConnectionConfig) {
-				c.User = "root"
-				c.Password = "iot45722414822"
+				c.User = middlewareCredential("MYSQL", "USER", "root")
+				c.Password = middlewareCredential("MYSQL", "PASSWORD", "")
 				c.DBType = "mysql"
 			}),
 		preset("redis", "Redis", "yFeiEye 缓存 / 会话 · db0",
 			"redis", middlewareHost("REDIS"), 6379, func(c *session.ConnectionConfig) {
-				c.Password = "basiclab@iot975248395"
+				c.Password = middlewareCredential("REDIS", "PASSWORD", "")
 			}),
 		preset("rustfs-s3", "RustFS (S3)", "S3 兼容对象存储 · 桶: snap-space / dataset / iot / sam-models · 控制台 :9001",
 			"s3", s3Endpoint("RUSTFS", 9000), 9000, func(c *session.ConnectionConfig) {
-				c.User = "minioadmin"
-				c.Password = "basiclab@iot975248395"
+				c.User = middlewareCredential("RUSTFS", "USER", "")
+				c.Password = middlewareCredential("RUSTFS", "PASSWORD", "")
 				c.S3Region = "us-east-1"
 				c.S3URLStyle = "path"
 			}),
@@ -278,7 +291,7 @@ func MiddlewarePresets() []session.ConnectionConfig {
 				c.ContainerTransport = "local"
 				c.ContainerRuntime = "docker"
 			}),
-		preset("tdengine", "TDengine", "时序库 iot_device · root/taosdata · 打开即进入容器内 taos shell",
+		preset("tdengine", "TDengine", "时序库 iot_device · 账号见 TDENGINE_USER / TDENGINE_PASSWORD · 打开即进入容器内 taos shell",
 			"local", "localhost", 0, func(c *session.ConnectionConfig) {
 				c.PostLoginScript = "docker exec -it tdengine-server taos"
 			}),
@@ -288,17 +301,17 @@ func MiddlewarePresets() []session.ConnectionConfig {
 			}),
 
 		// ── Web dashboards (double-click opens the system browser) ──
-		preset("nacos", "Nacos Console", "注册/配置中心 · nacos / basiclab@iot78475418754 · 命名空间 public",
+		preset("nacos", "Nacos Console", "注册/配置中心 · 账号见中间件 .env.docker 的 NACOS_USERNAME / NACOS_PASSWORD · 命名空间 public",
 			"url", middlewareURL("NACOS", 8848, "/nacos"), 8848, nil),
-		preset("emqx", "EMQX Dashboard", "MQTT Broker · 管理台 admin / basiclab@iot6874125784 · MQTT 客户端 emqx / 123456 @ :1883",
+		preset("emqx", "EMQX Dashboard", "MQTT Broker · 管理台 admin / EMQX_DASHBOARD_PASSWORD · MQTT 客户端 @ :1883",
 			"url", middlewareURL("EMQX", 18083, ""), 18083, nil),
-		preset("rustfs-console", "RustFS Console", "对象存储控制台 · minioadmin / basiclab@iot975248395",
+		preset("rustfs-console", "RustFS Console", "对象存储控制台 · MINIO_ROOT_USER / MINIO_ROOT_PASSWORD",
 			"url", middlewareURL("RUSTFS", 9001, ""), 9001, nil),
 		preset("nodered", "Node-RED", "规则流引擎 · http 无需登录",
 			"url", middlewareURL("NODERED", 1880, ""), 1880, nil),
-		preset("fuxa", "FUXA SCADA", "Web SCADA 组态 · admin / 123456",
+		preset("fuxa", "FUXA SCADA", "Web SCADA 组态 · 账号见 IOT_FUXA_USERNAME / IOT_FUXA_PASSWORD",
 			"url", middlewareURL("FUXA", 1881, ""), 1881, nil),
-		preset("zlmediakit", "ZLMediaKit", "GB28181 流媒体 · API secret: AdJQu9CMnwZvCc139s8lF0F9dhk6sNXG",
+		preset("zlmediakit", "ZLMediaKit", "GB28181 流媒体 · API secret 见 ZLM_SECRET",
 			"url", middlewareURL("ZLMEDIAKIT", 6080, ""), 6080, nil),
 		preset("srs", "SRS Streaming", "RTMP/WebRTC 流媒体 · RTMP :1935 · HTTP-FLV/HLS :8080 · API :1985 · WebRTC :8000/udp",
 			"url", middlewareURL("SRS", 8080, ""), 8080, nil),

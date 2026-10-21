@@ -75,6 +75,35 @@ post_compose() {
   $COMPOSE_CMD "${files[@]}" "$@"
 }
 
+# 暖库连接串与 Nacos 凭据从中间件 .env.docker 同步（见 deploy_profile.sh read_middleware_secret），
+# 不在脚本或 env.example 中保留默认口令；仍是 CHANGE_ME 占位且读不到中间件凭据时直接失败。
+sync_post_middleware_credentials() {
+  local f db_url desktop_url key value
+  for f in "${SCRIPT_DIR}/.env.docker" "${SCRIPT_DIR}/.env"; do
+    # 占位符或安装脚本管理的本机连接串才改写；用户自定义地址或留空（不连暖库）保持不变
+    if grep -Eq '^DATABASE_URL=.*CHANGE_ME' "$f" \
+      || grep -Eq '^DATABASE_URL=postgresql://[^@]*@localhost:15432/iot-video20([?]|$)' "$f"; then
+      if [ -z "${db_url:-}" ]; then
+        db_url="$(build_middleware_postgres_url localhost 15432 iot-video20 '?sslmode=disable')" \
+          || { print_error "无法生成 POST DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+      fi
+      _set_env_docker_kv "$f" DATABASE_URL "$db_url"
+    fi
+    for key in NACOS_USERNAME NACOS_PASSWORD; do
+      if grep -Eq "^${key}=(CHANGE_ME)?$" "$f"; then
+        value="$(read_middleware_secret "$key")" || { print_error "POST 缺少 ${key}"; exit 1; }
+        _set_env_docker_kv "$f" "$key" "$value"
+      fi
+    done
+  done
+  # 桌面端 bridge 网络：docker-compose.desktop.yaml 从 .env 取 DATABASE_URL，经中间件容器名访问
+  if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+    desktop_url="$(build_middleware_postgres_url postgres-server 5432 iot-video20 '?sslmode=disable')" \
+      || { print_error "无法生成 POST DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+    _set_env_docker_kv "${SCRIPT_DIR}/.env" DATABASE_URL "$desktop_url"
+  fi
+}
+
 ensure_env() {
   if [ ! -f "${SCRIPT_DIR}/.env.docker" ]; then
     cp "${SCRIPT_DIR}/env.example" "${SCRIPT_DIR}/.env.docker"
@@ -86,6 +115,7 @@ ensure_env() {
     cp "${SCRIPT_DIR}/env.example" "${SCRIPT_DIR}/.env"
     print_info "已生成 .env"
   fi
+  sync_post_middleware_credentials
   mkdir -p "${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}/alert_images" 2>/dev/null || true
   ensure_deploy_profile 2>/dev/null || true
 }

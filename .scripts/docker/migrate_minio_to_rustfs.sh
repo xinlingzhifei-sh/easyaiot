@@ -6,10 +6,10 @@
 set -euo pipefail
 
 SOURCE_ENDPOINT="${MINIO_SOURCE_ENDPOINT:-http://127.0.0.1:19000}"
-SOURCE_ACCESS_KEY="${MINIO_SOURCE_ACCESS_KEY:-minioadmin}"
+SOURCE_ACCESS_KEY="${MINIO_SOURCE_ACCESS_KEY:-}"
 SOURCE_SECRET_KEY="${MINIO_SOURCE_SECRET_KEY:-}"
 DEST_ENDPOINT="${RUSTFS_DEST_ENDPOINT:-http://127.0.0.1:9000}"
-DEST_ACCESS_KEY="${RUSTFS_ACCESS_KEY:-minioadmin}"
+DEST_ACCESS_KEY="${RUSTFS_ACCESS_KEY:-}"
 DEST_SECRET_KEY="${RUSTFS_SECRET_KEY:-}"
 MC_IMAGE="${MC_IMAGE:-minio/mc:latest}"
 MODE="sync"
@@ -19,14 +19,14 @@ usage() {
 Usage: migrate_minio_to_rustfs.sh [--dry-run|--watch|--verify]
 
 Required environment variables:
+  MINIO_SOURCE_ACCESS_KEY   Source MinIO access key
   MINIO_SOURCE_SECRET_KEY   Source MinIO secret key
+  RUSTFS_ACCESS_KEY        Destination RustFS access key
   RUSTFS_SECRET_KEY        Destination RustFS secret key
 
 Optional environment variables:
   MINIO_SOURCE_ENDPOINT    Default: http://127.0.0.1:19000
-  MINIO_SOURCE_ACCESS_KEY  Default: minioadmin
   RUSTFS_DEST_ENDPOINT     Default: http://127.0.0.1:9000
-  RUSTFS_ACCESS_KEY        Default: minioadmin
   MC_IMAGE                 Default: minio/mc:latest
 
 Modes:
@@ -45,8 +45,8 @@ case "${1:-}" in
     *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
 esac
 
-if [[ -z "$SOURCE_SECRET_KEY" || -z "$DEST_SECRET_KEY" ]]; then
-    echo "MINIO_SOURCE_SECRET_KEY and RUSTFS_SECRET_KEY must be set." >&2
+if [[ -z "$SOURCE_ACCESS_KEY" || -z "$SOURCE_SECRET_KEY" || -z "$DEST_ACCESS_KEY" || -z "$DEST_SECRET_KEY" ]]; then
+    echo "MINIO_SOURCE_ACCESS_KEY, MINIO_SOURCE_SECRET_KEY, RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY must be set." >&2
     exit 2
 fi
 

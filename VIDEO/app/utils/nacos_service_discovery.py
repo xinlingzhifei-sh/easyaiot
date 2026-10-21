@@ -17,6 +17,11 @@ def get_nacos_client():
     global _nacos_client
     if _nacos_client is not None:
         return _nacos_client
+    password = os.getenv('NACOS_PASSWORD') or ''
+    if not password or password == 'CHANGE_ME':
+        # 不回退到内置口令：未配置时服务发现不可用，并明确记录原因
+        logger.error('NACOS_PASSWORD 未配置，Nacos 服务发现不可用')
+        return None
     try:
         from nacos import NacosClient
 
@@ -24,7 +29,7 @@ def get_nacos_client():
             server_addresses=os.getenv('NACOS_SERVER', 'localhost:8848'),
             namespace=os.getenv('NACOS_NAMESPACE', ''),
             username=os.getenv('NACOS_USERNAME', 'nacos'),
-            password=os.getenv('NACOS_PASSWORD', 'basiclab@iot78475418754'),
+            password=password,
         )
         return _nacos_client
     except Exception as exc:

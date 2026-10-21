@@ -792,8 +792,19 @@ create_directories() {
     print_success "目录创建完成"
 }
 
+# 用中间件 .env.docker 的 POSTGRES_PASSWORD 拼 AI 库连接串（不在脚本里写死口令）；读不到则安装失败
+ai_database_url() {
+    build_middleware_postgres_url "$1" "$2" iot-ai20
+}
+
 # 创建 .env.docker 文件（用于Docker部署）
 create_env_file() {
+    local db_url
+    if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
+        db_url="$(ai_database_url postgres-server 5432)" || { print_error "无法生成 DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+    else
+        db_url="$(ai_database_url localhost 15432)" || { print_error "无法生成 DATABASE_URL，请先配置中间件 POSTGRES_PASSWORD"; exit 1; }
+    fi
     if [ ! -f .env.docker ]; then
         print_info ".env.docker 文件不存在，正在创建..."
         if [ -f env.example ]; then
@@ -805,13 +816,13 @@ create_env_file() {
             if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
                 # 桌面端为 bridge 网络，localhost 指向容器自身；run.py 以 .env 优先，
                 # 必须写与 docker-compose.desktop.yaml 一致的地址，否则 compose 里的覆盖不生效
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-ai20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 _set_env_docker_kv .env.docker NACOS_SERVER "host.docker.internal:8848"
                 _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
                 _set_env_docker_kv .env.docker JAVA_BACKEND_URL "http://iot-system:48099"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
             else
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-ai20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
             fi
@@ -827,7 +838,7 @@ create_env_file() {
         print_info ".env.docker 文件已存在"
         if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
             print_info "桌面端部署：使用容器网络中间件地址（postgres-server / iot-system）"
-            _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-ai20"
+            _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
             _set_env_docker_kv .env.docker JAVA_BACKEND_URL "http://iot-system:48099"
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
             # 早期桌面端新装会写成 localhost:8848，容器内连不上；与 docker-compose.desktop.yaml 对齐，自定义地址保留
@@ -845,8 +856,12 @@ create_env_file() {
 
             # 检查并更新数据库连接（如果使用Docker服务名，改为localhost，因为使用host网络模式）
             if grep -q "DATABASE_URL=.*PostgresSQL" .env.docker || grep -q "DATABASE_URL=.*postgres-server" .env.docker; then
-                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-ai20"
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
                 print_info "已更新数据库连接为 localhost:15432（host网络模式）"
+            # 安装脚本管理的本机连接串：口令随中间件 POSTGRES_PASSWORD 同步，避免与中间件不一致
+            elif grep -Eq '^DATABASE_URL=postgresql://[^@]*@localhost:15432/iot-ai20([?]|$)' .env.docker && ! grep -qxF "DATABASE_URL=$db_url" .env.docker; then
+                _set_env_docker_kv .env.docker DATABASE_URL "$db_url"
+                print_info "已按中间件 POSTGRES_PASSWORD 同步 DATABASE_URL"
             fi
 
             # 检查并更新Nacos配置（如果使用Docker服务名或IP地址，改为localhost，因为使用host网络模式）

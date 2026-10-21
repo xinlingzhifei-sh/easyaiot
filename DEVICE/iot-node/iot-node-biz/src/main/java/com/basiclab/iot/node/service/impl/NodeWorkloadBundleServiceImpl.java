@@ -102,7 +102,8 @@ public class NodeWorkloadBundleServiceImpl implements NodeWorkloadBundleService 
     @Value("${easyaiot.transform.postgres-username:postgres}")
     private String transformPostgresUsername;
 
-    @Value("${easyaiot.transform.postgres-password:iot45722414822}")
+    /** 未单独配置时沿用 iot-node 自身的 POSTGRES_PASSWORD；两者都缺失则启动失败，不回退到默认口令 */
+    @Value("${easyaiot.transform.postgres-password:${POSTGRES_PASSWORD}}")
     private String transformPostgresPassword;
 
     @Value("${easyaiot.transform.heartbeat-timeout-sec:120}")

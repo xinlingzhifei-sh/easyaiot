@@ -11,19 +11,19 @@ spring:
         master:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/iot-flow20?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&createDatabaseIfNotExist=true&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull&stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
         # 只读访问 system 库：候选人策略（角色→用户）无 RPC 可用，直查 system_user_role
         system:
           driver-class-name: org.postgresql.Driver
           url: jdbc:postgresql://localhost:5432/ruoyi-vue-pro20?stringtype=unspecified
-          username: postgres
-          password: iot45722414822
+          username: ${POSTGRES_USER:postgres}
+          password: ${POSTGRES_PASSWORD}
   redis:
     host: localhost
     port: 6379
     database: 0
-    password: basiclab@iot975248395
+    password: ${REDIS_PASSWORD}
 
 --- #################### Kafka 配置（告警路由事件） ####################
 

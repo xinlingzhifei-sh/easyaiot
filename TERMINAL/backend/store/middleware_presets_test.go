@@ -123,6 +123,9 @@ func TestEnsureMiddlewarePresetsRefreshesStaleRosterOnVersionBump(t *testing.T) 
 	if MiddlewarePresetsVersion <= 1 {
 		t.Fatal("test requires MiddlewarePresetsVersion bumped past the password-less v1 roster")
 	}
+	// The roster carries no built-in credentials; deployments inject them via env.
+	t.Setenv("EASYAIOT_RUSTFS_USER", "rustfs-user")
+	t.Setenv("EASYAIOT_RUSTFS_PASSWORD", "rustfs-secret-from-env")
 	cs, dir := newTestConnectionStore(t)
 
 	gid := MiddlewarePresetGroupID
@@ -166,8 +169,8 @@ func TestEnsureMiddlewarePresetsRefreshesStaleRosterOnVersionBump(t *testing.T) 
 	if !ok {
 		t.Fatal("stale preset dropped by refresh")
 	}
-	if healed.Password == "" {
-		t.Error("stale preset still has no password after roster refresh")
+	if healed.Password != "rustfs-secret-from-env" || healed.User != "rustfs-user" {
+		t.Errorf("stale preset credentials = %q / %q, want values from env", healed.User, healed.Password)
 	}
 	if healed.S3Region != "us-east-1" {
 		t.Errorf("refreshed preset s3Region = %q, want roster value", healed.S3Region)

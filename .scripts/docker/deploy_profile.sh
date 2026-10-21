@@ -545,13 +545,61 @@ _set_env_docker_kv() {
     local file="$1" key="$2" value="$3"
     [ -f "$file" ] || return 0
     if grep -q "^${key}=" "$file" 2>/dev/null; then
-        local tmp="${file}.tmp.$$"
-        sed "s|^${key}=.*|${key}=${value}|" "$file" > "$tmp" && mv "$tmp" "$file"
+        local tmp="${file}.tmp.$$" escaped
+        # 转义 sed 替换串中的 \ | &，口令等值里出现这些字符时也能原样写入
+        escaped="$(printf '%s' "$value" | sed -e 's/[\\|&]/\\&/g')"
+        sed "s|^${key}=.*|${key}=${escaped}|" "$file" > "$tmp" && mv "$tmp" "$file"
     else
         # 确保追加前文件以换行结尾，避免与最后一行粘连
         [ -n "$(tail -c1 "$file" 2>/dev/null || true)" ] && echo "" >> "$file"
         echo "${key}=${value}" >> "$file"
     fi
+}
+
+# 中间件凭据的单一来源：与 install_middleware_linux.sh / DEVICE/install_linux.sh 的
+# --env-file 是同一份文件（默认 .scripts/docker/.env.docker，可用 YFEIEYE_MIDDLEWARE_ENV_FILE 覆盖）
+middleware_env_file() {
+    local root="${1:-$(_deploy_profile_repo_root)}"
+    printf '%s' "${YFEIEYE_MIDDLEWARE_ENV_FILE:-${root}/.scripts/docker/.env.docker}"
+}
+
+# 读取中间件凭据：进程环境变量优先（与 docker compose 变量替换优先级一致），否则读中间件 .env.docker。
+# 不执行文件内容；读不到或仍是 CHANGE_ME 时返回 1 并在 stderr 说明，绝不回退到默认口令。
+read_middleware_secret() {
+    local key="$1" root="${2:-}" env_file value
+    value="${!key:-}"
+    env_file="$(middleware_env_file "$root")"
+    if [ -z "$value" ] && [ -f "$env_file" ]; then
+        value="$(sed -n "s/^[[:space:]]*${key}=//p" "$env_file" | tail -n 1 | tr -d '\r')"
+        value="${value#\"}"; value="${value%\"}"
+    fi
+    if [ -z "$value" ] || [ "$value" = "CHANGE_ME" ]; then
+        echo "[ERROR] 中间件凭据 ${key} 未配置：请在 ${env_file} 中设置（或导出同名环境变量），须与中间件实际使用的口令一致" >&2
+        return 1
+    fi
+    printf '%s' "$value"
+}
+
+# 对 URL userinfo 做百分号编码（口令可能含 @ : / 等字符）；psycopg2 / SQLAlchemy / Go pgx 均会解码
+_urlencode_userinfo() {
+    local LC_ALL=C s="$1" out="" c i
+    for ((i = 0; i < ${#s}; i++)); do
+        c="${s:i:1}"
+        case "$c" in
+            [A-Za-z0-9._~-]) out+="$c" ;;
+            *) out+="$(printf '%%%02X' "'$c")" ;;
+        esac
+    done
+    printf '%s' "$out"
+}
+
+# 用中间件 POSTGRES_USER / POSTGRES_PASSWORD 拼 PostgreSQL 连接串：host port db [query 后缀，如 ?sslmode=disable]
+build_middleware_postgres_url() {
+    local host="$1" port="$2" db="$3" suffix="${4:-}" user password
+    password="$(read_middleware_secret POSTGRES_PASSWORD)" || return 1
+    user="$(read_middleware_secret POSTGRES_USER 2>/dev/null || echo postgres)"
+    printf 'postgresql://%s:%s@%s:%s/%s%s' \
+        "$(_urlencode_userinfo "$user")" "$(_urlencode_userinfo "$password")" "$host" "$port" "$db" "$suffix"
 }
 
 # WEB .env：KEY = value（Vite 格式，允许等号两侧空格）
@@ -658,7 +706,9 @@ apply_device_deploy_env() {
 # TRANSFORM：按形态写入 .env.docker（供运行脚本统一读取）
 apply_transform_deploy_env() {
     local root="${1:-$(_deploy_profile_repo_root)}"
+    local strict="${2:-}"
     local env_file="${root}/TRANSFORM/.env.docker"
+    local key value missing=0
     [ -d "${root}/TRANSFORM" ] || return 0
     mkdir -p "$(dirname "$env_file")"
     touch "$env_file"
@@ -668,13 +718,30 @@ apply_transform_deploy_env() {
     _set_env_docker_kv "$env_file" TRANSFORM_ROLE "full"
     _set_env_docker_kv "$env_file" TRANSFORM_BACKUP_DIR "/opt/easyaiot/TRANSFORM/data/transform-backup"
     _set_env_docker_kv "$env_file" NACOS_ADDR "Nacos:8848"
-    _set_env_docker_kv "$env_file" NACOS_USERNAME "nacos"
-    _set_env_docker_kv "$env_file" NACOS_PASSWORD "basiclab@iot78475418754"
     _set_env_docker_kv "$env_file" KAFKA_BOOTSTRAP "Kafka:9092"
     _set_env_docker_kv "$env_file" POSTGRES_URL "jdbc:postgresql://PostgresSQL:5432/iot-transform20"
-    _set_env_docker_kv "$env_file" POSTGRES_USERNAME "postgres"
-    _set_env_docker_kv "$env_file" POSTGRES_PASSWORD "iot45722414822"
     _set_env_docker_kv "$env_file" SERVER_PORT "48096"
+    # 凭据从中间件 .env.docker 同步（TRANSFORM 用 POSTGRES_USERNAME，中间件用 POSTGRES_USER）
+    value="$(read_middleware_secret POSTGRES_USER "$root" 2>/dev/null || echo postgres)"
+    _set_env_docker_kv "$env_file" POSTGRES_USERNAME "$value"
+    for key in NACOS_USERNAME NACOS_PASSWORD POSTGRES_PASSWORD; do
+        if value="$(read_middleware_secret "$key" "$root" 2>/dev/null)"; then
+            _set_env_docker_kv "$env_file" "$key" "$value"
+        else
+            missing=1
+        fi
+    done
+    [ "$missing" = "0" ] && return 0
+    # 形态同步（sync_deploy_profile_to_modules）只告警，不阻断其它模块；
+    # TRANSFORM/install_linux.sh 传 --strict，缺凭据直接失败，不写入任何默认口令
+    if [ "$strict" = "--strict" ]; then
+        echo "[ERROR] TRANSFORM 缺少中间件凭据（NACOS_USERNAME / NACOS_PASSWORD / POSTGRES_PASSWORD），请在 $(middleware_env_file "$root") 中配置" >&2
+        return 1
+    fi
+    if module_enabled_for_deploy_profile TRANSFORM; then
+        echo "[WARNING] TRANSFORM 中间件凭据不完整，未同步到 ${env_file}；安装/启动 TRANSFORM 时会报错" >&2
+    fi
+    return 0
 }
 
 # 若 WEB 镜像构建时的形态与当前不一致，提示需 rebuild（前端 VITE_GLOB_DEPLOY_PROFILE 编译进镜像）

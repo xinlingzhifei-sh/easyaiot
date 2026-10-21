@@ -1,4 +1,4 @@
-/** GPUStack 控制台地址与默认登录信息（与 .scripts/docker 部署配置一致，可通过环境变量覆盖） */
+/** GPUStack 控制台地址与登录信息（与 .scripts/docker 部署配置一致，可通过环境变量覆盖） */
 
 const trimEnv = (value: string | undefined) => (value ?? '').trim()
 
@@ -42,5 +42,5 @@ export function getGpuStackConsoleUrl(): string {
 export const GPUSTACK_DEFAULT_USERNAME =
   trimEnv(import.meta.env.VITE_GPUSTACK_USERNAME) || 'admin'
 
-export const GPUSTACK_DEFAULT_PASSWORD =
-  trimEnv(import.meta.env.VITE_GPUSTACK_PASSWORD) || 'basiclab@iotp4JWmQSvzdh0z4mF'
+/** 不内置默认口令：未配置 VITE_GPUSTACK_PASSWORD 时为空，提示条不展示密码 */
+export const GPUSTACK_DEFAULT_PASSWORD = trimEnv(import.meta.env.VITE_GPUSTACK_PASSWORD)

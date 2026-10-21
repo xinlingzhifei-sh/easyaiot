@@ -9,6 +9,6 @@ spring:
           driver-class-name: org.postgresql.Driver
           url: ${POSTGRES_URL:jdbc:postgresql://127.0.0.1:5432/iot-transform20}
           username: ${POSTGRES_USERNAME:postgres}
-          password: ${POSTGRES_PASSWORD:iot45722414822}
+          password: ${POSTGRES_PASSWORD}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:127.0.0.1:9092}

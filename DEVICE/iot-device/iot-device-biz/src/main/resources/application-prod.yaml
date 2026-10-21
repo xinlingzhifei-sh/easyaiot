@@ -205,7 +205,6 @@ media:
   #hook-ip: 192.168.31.65
   #hook-ip: 127.0.0.1
   # [必选选] zlm服务器的hook.admin_params=secret
-  #secret: TWSYFgYJOQWB4ftgeYut8DW4wbs7pQnj
   secret: ${ZLM_SECRET}
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:

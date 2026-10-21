@@ -19,7 +19,11 @@ fi
 export KAFKA_BOOTSTRAP="${KAFKA_BOOTSTRAP:-127.0.0.1:9092}"
 export POSTGRES_URL="${POSTGRES_URL:-jdbc:postgresql://127.0.0.1:5432/iot-transform20}"
 export POSTGRES_USERNAME="${POSTGRES_USERNAME:-postgres}"
-export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-iot45722414822}"
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置（与中间件 .scripts/docker/.env.docker 一致）}"
+if [[ "$POSTGRES_PASSWORD" == "CHANGE_ME" ]]; then
+  echo "POSTGRES_PASSWORD 仍是 env.example 占位符 CHANGE_ME，请改为中间件实际口令" >&2
+  exit 1
+fi
 export TRANSFORM_IMAGE="${TRANSFORM_IMAGE:-easyaiot/transform-runtime:1.0.0}"
 export TRANSFORM_NODE_ID="${TRANSFORM_NODE_ID:-}"
 export TRANSFORM_ROLE="${TRANSFORM_ROLE:-full}"
