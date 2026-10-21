@@ -135,9 +135,20 @@ do_build() {
     platform_opts="--platform ${DOCKER_PLATFORM}"
     print_info "构建目标平台: ${DOCKER_PLATFORM}"
   fi
+  # 运行时基础镜像：显式指定优先；否则 gcr.io 不可达（国内常见）时改用 DaoCloud 的 gcr 镜像站
+  local runtime_image="${POST_RUNTIME_IMAGE:-}"
+  if [ -z "$runtime_image" ]; then
+    runtime_image="gcr.io/distroless/static-debian12:nonroot"
+    # registry 根路径可达时返回 200 或 401（未认证）；超时/拒绝连接为 000
+    if ! curl -s -o /dev/null --max-time 8 -w '%{http_code}' https://gcr.io/v2/ 2>/dev/null | grep -qE '^(200|401)$'; then
+      runtime_image="gcr.m.daocloud.io/distroless/static-debian12:nonroot"
+      print_info "gcr.io 不可达，运行时基础镜像改用 ${runtime_image}（可用 POST_RUNTIME_IMAGE 覆盖）"
+    fi
+  fi
   print_info "构建镜像 ${POST_IMAGE} ..."
   # shellcheck disable=SC2086
-  docker build ${platform_opts} -t "${POST_IMAGE}" -f "${SCRIPT_DIR}/Dockerfile" "${SCRIPT_DIR}"
+  docker build ${platform_opts} --build-arg RUNTIME_IMAGE="${runtime_image}" \
+    -t "${POST_IMAGE}" -f "${SCRIPT_DIR}/Dockerfile" "${SCRIPT_DIR}"
   # 兼容设计文档标签
   docker tag "${POST_IMAGE}" "easyaiot/post:1.9.0" 2>/dev/null || true
   print_success "镜像构建完成: ${POST_IMAGE}"
