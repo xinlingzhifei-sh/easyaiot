@@ -613,8 +613,11 @@ _env_file_value() {
 # 把中间件凭据同步进 AI / VIDEO 等业务模块的 .env.docker（compose 以 ${VAR:?} 必填，缺了起不来）：
 # - REDIS_PASSWORD / NACOS_USERNAME / NACOS_PASSWORD 必须与中间件一致，每次覆盖；
 # - MINIO_ACCESS_KEY / MINIO_SECRET_KEY 仅在为空或 CHANGE_ME 时填入（保留对接外部 S3 的自定义值）；
-# - IOT_SINK_POST_PROCESS_TOKEN / IOT_MESSAGE_INTERNAL_TOKEN（VIDEO 调 iot-sink / iot-message 用）
-#   仅当模块模板里有该键时同步，须与 DEVICE 侧一致；
+# - IOT_SINK_POST_PROCESS_TOKEN / IOT_MESSAGE_INTERNAL_TOKEN（VIDEO 调 iot-sink / iot-message 用）、
+#   YFEIEYE_SRS_HOOK_TOKEN（SRS 回调 VIDEO 的共享令牌，VIDEO 生产校验要求 ≥32 字节）、
+#   IOT_RPC_INTERNAL_TOKEN（与 DEVICE 内部 RPC 一致）：仅当模块模板里有该键时同步。
+#   apply_device_deploy_env / apply_python_service_deploy_env 只从 .scripts/docker/.env、DEVICE/.env
+#   等处回退读取，全新安装时这些文件都没有该值，所以这里以中间件 .env.docker 为准；
 # - SECRET_KEY 为空或 CHANGE_ME 时为本模块生成随机值并持久化（不回显）；
 # - STREAM_TICKET_SECRET（VIDEO 流地址签名，WEB nginx 从 VIDEO/.env.docker 读取，至少 32 字节）
 #   仅当模块模板里有该键或模块为 VIDEO 时，为空则生成。
@@ -629,7 +632,7 @@ sync_middleware_credentials_to_module_env() {
             missing=1
         fi
     done
-    for key in IOT_SINK_POST_PROCESS_TOKEN IOT_MESSAGE_INTERNAL_TOKEN; do
+    for key in IOT_SINK_POST_PROCESS_TOKEN IOT_MESSAGE_INTERNAL_TOKEN YFEIEYE_SRS_HOOK_TOKEN IOT_RPC_INTERNAL_TOKEN; do
         grep -q "^${key}=" "$env_file" 2>/dev/null || continue
         if value="$(read_middleware_secret "$key" "$root")"; then
             _set_env_docker_kv "$env_file" "$key" "$value"
