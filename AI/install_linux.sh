@@ -884,6 +884,12 @@ create_env_file() {
         fi
     fi
 
+    # Redis / Nacos / MinIO 凭据与 SECRET_KEY（compose 中为必填）
+    if ! sync_middleware_credentials_to_module_env .env.docker "${YFEIEYE_ROOT}"; then
+        print_error "中间件凭据不完整，无法写入 AI .env.docker（见上方提示）"
+        exit 1
+    fi
+
     ensure_deploy_profile
     apply_python_service_deploy_env "${YFEIEYE_ROOT}"
     if is_mini_deploy_profile; then

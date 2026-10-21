@@ -602,6 +602,46 @@ build_middleware_postgres_url() {
         "$(_urlencode_userinfo "$user")" "$(_urlencode_userinfo "$password")" "$host" "$port" "$db" "$suffix"
 }
 
+_random_hex() {
+    od -An -N"${1:-32}" -tx1 /dev/urandom | tr -d ' \n'
+}
+
+_env_file_value() {
+    sed -n "s/^${2}=//p" "$1" 2>/dev/null | tail -n 1 | tr -d '\r'
+}
+
+# 把中间件凭据同步进 AI / VIDEO 等业务模块的 .env.docker（compose 以 ${VAR:?} 必填，缺了起不来）：
+# - REDIS_PASSWORD / NACOS_USERNAME / NACOS_PASSWORD 必须与中间件一致，每次覆盖；
+# - MINIO_ACCESS_KEY / MINIO_SECRET_KEY 仅在为空或 CHANGE_ME 时填入（保留对接外部 S3 的自定义值）；
+# - SECRET_KEY 为空或 CHANGE_ME 时为本模块生成随机值并持久化（不回显）。
+# 任一中间件凭据缺失返回 1（read_middleware_secret 已在 stderr 说明缺哪个）。
+sync_middleware_credentials_to_module_env() {
+    local env_file="$1" root="${2:-}" key value current missing=0
+    [ -f "$env_file" ] || return 0
+    for key in REDIS_PASSWORD NACOS_USERNAME NACOS_PASSWORD; do
+        if value="$(read_middleware_secret "$key" "$root")"; then
+            _set_env_docker_kv "$env_file" "$key" "$value"
+        else
+            missing=1
+        fi
+    done
+    for key in MINIO_ACCESS_KEY MINIO_SECRET_KEY; do
+        current="$(_env_file_value "$env_file" "$key")"
+        if [ -z "$current" ] || [ "$current" = "CHANGE_ME" ]; then
+            if value="$(read_middleware_secret "$key" "$root")"; then
+                _set_env_docker_kv "$env_file" "$key" "$value"
+            else
+                missing=1
+            fi
+        fi
+    done
+    current="$(_env_file_value "$env_file" SECRET_KEY)"
+    if [ -z "$current" ] || [ "$current" = "CHANGE_ME" ]; then
+        _set_env_docker_kv "$env_file" SECRET_KEY "$(_random_hex 32)"
+    fi
+    return "$missing"
+}
+
 # WEB .env：KEY = value（Vite 格式，允许等号两侧空格）
 _set_web_env_kv() {
     local file="$1" key="$2" value="$3"
