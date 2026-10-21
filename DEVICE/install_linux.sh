@@ -216,7 +216,7 @@ prepare_platform_host_env() {
 
 # compose 文件中定义的服务数量（用于启动前提示）
 compose_service_count() {
-    $DOCKER_COMPOSE -f "$COMPOSE_FILE" config --services 2>/dev/null | wc -l | tr -d '[:space:]'
+    device_compose config --services 2>/dev/null | wc -l | tr -d '[:space:]'
 }
 
 # 清理 compose recreate 被中断后遗留的「改名孤儿容器」（形如 <12位hex>_iot-xxx）。
@@ -1236,11 +1236,11 @@ build_and_start() {
     fi
     print_success "当前工作目录: $(pwd)"
     
-    # 验证 Docker Compose 可以读取配置文件
+    # 验证 Docker Compose 可以读取配置文件（与实际启动一致，带中间件 .env.docker；口令均为 ${VAR:?} 必填）
     print_info "验证 Docker Compose 可以读取配置文件..."
     local compose_test_output
     set +e  # 暂时关闭错误退出，以便捕获退出码
-    compose_test_output=$($DOCKER_COMPOSE -f "$COMPOSE_FILE" config 2>&1)
+    compose_test_output=$(device_compose config -q 2>&1)
     local compose_test_exit=$?
     set -e  # 重新开启错误退出
     
