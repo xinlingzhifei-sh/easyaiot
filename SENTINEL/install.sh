@@ -22,6 +22,26 @@ PYTHON="${PYTHON:-python3}"
 if command -v "$PYTHON" >/dev/null 2>&1; then
   PYTHON="$(command -v "$PYTHON")"
 fi
+# 源码目录 -> 安装目录的同步清单（tests/test_agent_install_manifest.py 按入口脚本的导入闭包校验）
+AGENT_SOURCE_FILES=(
+  run_sentinel.py
+  run_agent.py
+  agent_server.py
+  agent_commands.py
+  camera_access.py
+  env_security.py
+  media_manager.py
+  mqtt_manager.py
+  workload_manager.py
+  stream_forward_executor.py
+  requirements.txt
+  agent.env.example
+  install.sh
+)
+AGENT_SOURCE_DIRS=(
+  sentinel
+  registry
+)
 
 usage() {
   cat <<EOF
@@ -132,21 +152,16 @@ sync_agent_sources() {
     return 0
   fi
   echo "==> 同步 Agent 源码: ${resolved_script_dir} -> ${resolved_install_dir}"
-  sudo cp "$resolved_script_dir/run_agent.py" "$resolved_script_dir/agent_server.py" \
-    "$resolved_script_dir/env_security.py" \
-    "$resolved_script_dir/media_manager.py" "$resolved_script_dir/mqtt_manager.py" \
-    "$resolved_script_dir/workload_manager.py" "$resolved_script_dir/agent_commands.py" \
-    "$resolved_script_dir/stream_forward_executor.py" \
-    "$resolved_script_dir/requirements.txt" "$resolved_script_dir/agent.env.example" \
-    "$resolved_script_dir/install.sh" "$resolved_install_dir/"
-  if [ -d "$SCRIPT_DIR/sentinel" ]; then
-    sudo rm -rf "$resolved_install_dir/sentinel"
-    sudo cp -a "$SCRIPT_DIR/sentinel" "$resolved_install_dir/"
-  fi
-  if [ -d "$SCRIPT_DIR/registry" ]; then
-    sudo rm -rf "$resolved_install_dir/registry"
-    sudo cp -a "$SCRIPT_DIR/registry" "$resolved_install_dir/"
-  fi
+  local f d
+  for f in "${AGENT_SOURCE_FILES[@]}"; do
+    sudo cp "$resolved_script_dir/$f" "$resolved_install_dir/"
+  done
+  for d in "${AGENT_SOURCE_DIRS[@]}"; do
+    if [ -d "$resolved_script_dir/$d" ]; then
+      sudo rm -rf "$resolved_install_dir/$d"
+      sudo cp -a "$resolved_script_dir/$d" "$resolved_install_dir/"
+    fi
+  done
   sudo chmod +x "$resolved_install_dir/install.sh"
   if [ -d "$SCRIPT_DIR/pip-wheels" ]; then
     sudo rm -rf "$resolved_install_dir/pip-wheels"

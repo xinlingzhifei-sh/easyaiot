@@ -20,6 +20,15 @@ CONTROL_PLANE_DEPLOY_UTIL = (
 ENTRY_POINTS = ("run_sentinel.py", "run_agent.py")
 # iot-node 按目录整体上传的包
 SYNCED_DIRECTORIES = ("sentinel", "registry")
+# 包在运行时按路径读取、不经 import 的数据目录（sentinel/registry_loader.py 读取 ../registry/*.yaml）
+PACKAGE_DATA_DIRECTORIES = {"sentinel": ("registry",)}
+
+
+def _bash_array(source: str, name: str):
+    block = re.search(rf"^{name}=\((.*?)^\)", source, re.S | re.M)
+    if block is None:
+        return None
+    return {line.strip() for line in block.group(1).splitlines() if line.strip() and not line.strip().startswith("#")}
 
 
 def _imported_top_level_modules(path: Path):
@@ -32,8 +41,8 @@ def _imported_top_level_modules(path: Path):
             yield node.module.split(".")[0]
 
 
-def _local_import_closure():
-    """从入口脚本出发，收集 SENTINEL 根目录下被（直接或间接）导入的本地模块文件，含函数内的延迟导入。"""
+def _local_import_closure_with_directories():
+    """从入口脚本出发，返回（被直接或间接导入的 SENTINEL 根目录模块文件, 需整体同步的目录），含函数内的延迟导入。"""
     required = set(ENTRY_POINTS)
     scanned_packages = set()
     pending = [ROOT / name for name in ENTRY_POINTS]
@@ -46,7 +55,15 @@ def _local_import_closure():
             elif module in SYNCED_DIRECTORIES and (ROOT / module).is_dir() and module not in scanned_packages:
                 scanned_packages.add(module)
                 pending.extend((ROOT / module).rglob("*.py"))
-    return required
+    directories = set(scanned_packages)
+    for package in scanned_packages:
+        directories.update(PACKAGE_DATA_DIRECTORIES.get(package, ()))
+    return required, directories
+
+
+def _local_import_closure():
+    """从入口脚本出发，收集 SENTINEL 根目录下被（直接或间接）导入的本地模块文件，含函数内的延迟导入。"""
+    return _local_import_closure_with_directories()[0]
 
 
 class AgentInstallManifestTest(unittest.TestCase):
@@ -75,24 +92,37 @@ class AgentInstallManifestTest(unittest.TestCase):
         self.assertIn('validate_agent_env "$resolved_install_dir/agent.env"', source)
         self.assertLess(source.index('validate_agent_env "$resolved_install_dir/agent.env"'), source.index("cat <<UNIT"))
 
+    def test_install_script_syncs_every_imported_module(self):
+        # 从源码目录手工执行 install.sh install/update 时，只有 AGENT_SOURCE_FILES / AGENT_SOURCE_DIRS 会进入安装目录
+        source = INSTALL_SCRIPT.read_text(encoding="utf-8")
+        files = _bash_array(source, "AGENT_SOURCE_FILES")
+        directories = _bash_array(source, "AGENT_SOURCE_DIRS")
+        self.assertIsNotNone(files, "install.sh 中未找到 AGENT_SOURCE_FILES")
+        self.assertIsNotNone(directories, "install.sh 中未找到 AGENT_SOURCE_DIRS")
+        required_files, required_directories = _local_import_closure_with_directories()
+
+        self.assertIn("camera_access.py", required_files)
+        self.assertEqual(set(), required_files - files)
+        self.assertEqual(set(), required_directories - directories)
+        self.assertIn('for f in "${AGENT_SOURCE_FILES[@]}"', source)
+        self.assertIn('for d in "${AGENT_SOURCE_DIRS[@]}"', source)
+
     def test_platform_agent_refresh_syncs_complete_runtime_manifest(self):
-        required_runtime_files = (
-            "run_agent.py",
-            "agent_server.py",
-            "env_security.py",
-            "media_manager.py",
-            "mqtt_manager.py",
-            "workload_manager.py",
-            "agent_commands.py",
-            "stream_forward_executor.py",
-        )
+        required_files, required_directories = _local_import_closure_with_directories()
+        self.assertIn("sentinel", required_directories)
 
         for script in PLATFORM_AGENT_SCRIPTS:
             with self.subTest(script=script.name):
                 source = script.read_text(encoding="utf-8")
-                for runtime_file in required_runtime_files:
-                    self.assertIn(runtime_file, source)
-                self.assertIn('for f in "${AGENT_RUNTIME_FILES[@]}"', source)
+                files = _bash_array(source, "AGENT_RUNTIME_FILES")
+                directories = _bash_array(source, "AGENT_RUNTIME_DIRS")
+                self.assertIsNotNone(files, "未找到 AGENT_RUNTIME_FILES")
+                self.assertIsNotNone(directories, "未找到 AGENT_RUNTIME_DIRS")
+                self.assertEqual(set(), required_files - files)
+                self.assertEqual(set(), required_directories - directories)
+                # 同步与过期判断都必须遍历同一份清单（含目录下的文件）
+                self.assertEqual(source.count("done < <(agent_runtime_manifest)"), 2)
+                self.assertIn('for d in "${AGENT_RUNTIME_DIRS[@]}"', source)
 
     def test_control_plane_ssh_deploy_uploads_every_imported_module(self):
         # iot-node 经 SSH 只上传 SYNC_RELATIVE_FILES 与 sentinel/、registry/，并在安装目录原地执行 install.sh，

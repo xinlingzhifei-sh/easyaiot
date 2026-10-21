@@ -30,15 +30,23 @@ PYTHON="${EASYAIOT_AGENT_LOCAL_PYTHON:-python3}"
 AGENT_BOOTSTRAP_WAIT_SECONDS="${AGENT_BOOTSTRAP_WAIT_SECONDS:-180}"
 AGENT_BOOTSTRAP_RETRY_INTERVAL="${AGENT_BOOTSTRAP_RETRY_INTERVAL:-3}"
 PLATFORM_AGENT_BOOTSTRAP_TOKEN="${EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN:-${PLATFORM_AGENT_BOOTSTRAP_TOKEN:-}}"
+# 源码目录 -> 安装目录的同步清单（SENTINEL/tests/test_agent_install_manifest.py 按入口脚本的导入闭包校验）
 AGENT_RUNTIME_FILES=(
+  run_sentinel.py
   run_agent.py
   agent_server.py
+  agent_commands.py
+  camera_access.py
   env_security.py
   media_manager.py
   mqtt_manager.py
   workload_manager.py
-  agent_commands.py
   stream_forward_executor.py
+)
+# 按目录整体同步：sentinel/ 为探测包，registry/ 为其加载的 YAML 注册表
+AGENT_RUNTIME_DIRS=(
+  sentinel
+  registry
 )
 
 is_port_listening() {
@@ -254,35 +262,49 @@ stop_running_agent() {
   fi
 }
 
+# 逐行输出需同步的相对路径：AGENT_RUNTIME_FILES 加上 AGENT_RUNTIME_DIRS 下的文件
+agent_runtime_manifest() {
+  local f d
+  for f in "${AGENT_RUNTIME_FILES[@]}"; do
+    echo "$f"
+  done
+  for d in "${AGENT_RUNTIME_DIRS[@]}"; do
+    [[ -d "${SOURCE_DIR}/${d}" ]] || continue
+    (cd "$SOURCE_DIR" && find "$d" -type f ! -path '*/__pycache__/*' ! -name '*.pyc' | LC_ALL=C sort)
+  done
+}
+
 sync_agent_runtime_files() {
   local work_dir="$1"
   if [[ "$work_dir" != "$INSTALL_DIR" || ! -d "$SOURCE_DIR" ]]; then
     return 0
   fi
-  local f
-  for f in "${AGENT_RUNTIME_FILES[@]}"; do
+  local f target_dir
+  while IFS= read -r f; do
     if [[ ! -f "${SOURCE_DIR}/${f}" ]]; then
       continue
     fi
     if [[ -f "${INSTALL_DIR}/${f}" ]] && cmp -s "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}"; then
       continue
     fi
+    target_dir="$(dirname "${INSTALL_DIR}/${f}")"
+    mkdir -p "$target_dir" 2>/dev/null || sudo mkdir -p "$target_dir" 2>/dev/null || true
     if cp "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}" 2>/dev/null \
       || sudo cp "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}" 2>/dev/null; then
       echo "[platform-agent] 已同步 ${f} -> ${INSTALL_DIR}/" >&2
     fi
-  done
+  done < <(agent_runtime_manifest)
 }
 
 agent_code_stale() {
   local f
-  for f in "${AGENT_RUNTIME_FILES[@]}"; do
+  while IFS= read -r f; do
     [[ -f "${SOURCE_DIR}/${f}" ]] || continue
     if [[ ! -f "${INSTALL_DIR}/${f}" ]] \
       || ! cmp -s "${SOURCE_DIR}/${f}" "${INSTALL_DIR}/${f}"; then
       return 0
     fi
-  done
+  done < <(agent_runtime_manifest)
   return 1
 }
 
