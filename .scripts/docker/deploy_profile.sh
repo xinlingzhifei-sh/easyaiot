@@ -646,6 +646,19 @@ sync_middleware_credentials_to_module_env() {
             _set_env_docker_kv "$env_file" STREAM_TICKET_SECRET "$(_random_hex 32)"
         fi
     fi
+    # VIDEO 录像导出清单签名：生产环境要求 ≥32 字节的 HMAC 密钥与显式 key id（未配置密钥环时）
+    if [ "$module" = "VIDEO" ]; then
+        current="$(_env_file_value "$env_file" YFEIEYE_RECORD_EXPORT_HMAC_KEYS)"
+        if [ -z "$current" ]; then
+            current="$(_env_file_value "$env_file" YFEIEYE_RECORD_EXPORT_HMAC_SECRET)"
+            if [ "${#current}" -lt 32 ] || [ "$current" = "CHANGE_ME" ]; then
+                _set_env_docker_kv "$env_file" YFEIEYE_RECORD_EXPORT_HMAC_SECRET "$(_random_hex 32)"
+            fi
+            if [ -z "$(_env_file_value "$env_file" YFEIEYE_RECORD_EXPORT_KEY_ID)" ]; then
+                _set_env_docker_kv "$env_file" YFEIEYE_RECORD_EXPORT_KEY_ID "record-export-$(date +%Y%m%d)"
+            fi
+        fi
+    fi
     for key in MINIO_ACCESS_KEY MINIO_SECRET_KEY; do
         current="$(_env_file_value "$env_file" "$key")"
         if [ -z "$current" ] || [ "$current" = "CHANGE_ME" ]; then
