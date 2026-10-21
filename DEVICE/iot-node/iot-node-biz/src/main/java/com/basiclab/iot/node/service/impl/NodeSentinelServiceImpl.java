@@ -17,6 +17,7 @@ import com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.framework.SentinelCapabilityRegistry;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.NodeSentinelRemediatorService;
 import com.basiclab.iot.node.service.NodeSentinelService;
 import com.basiclab.iot.node.util.NodeFunctions;
@@ -211,7 +212,7 @@ public class NodeSentinelServiceImpl implements NodeSentinelService {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
         if (StrUtil.isNotBlank(reqVO.getAgentToken())
-                && !reqVO.getAgentToken().equals(node.getAgentToken())) {
+                && !NodeTokenVerifier.matches(node.getAgentToken(), reqVO.getAgentToken())) {
             throw exception(com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID);
         }
         Map<String, Object> result = new HashMap<>();

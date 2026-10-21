@@ -28,7 +28,17 @@ public class SecurityConfiguration {
                                 "/node/edge/runtime-config",
                                 "/node/agent/register",
                                 "/node/agent/heartbeat",
-                                "/node/control-plane/peer/register").permitAll();
+                                "/node/control-plane/peer/register").permitAll()
+                        // Agent 出站指令通道：业务层强制校验 nodeId + agentToken（enqueue 仍只对管理后台开放）。
+                        .antMatchers(HttpMethod.POST,
+                                "/node/agent/commands/poll",
+                                "/node/agent/commands/*/ack",
+                                "/node/agent/commands/*/heartbeat",
+                                "/node/agent/commands/*/result").permitAll()
+                        // Sentinel 自愈：未登录管理后台时 Controller 要求携带 Agent Token，业务层按节点校验。
+                        .antMatchers(HttpMethod.POST,
+                                "/node/sentinel/remediate",
+                                "/node/sentinel/remediate-report").permitAll();
                 // Druid 监控
                 registry.antMatchers("/druid/**").access("@ss.isAdminUser()");
                 // Spring Boot Actuator 的安全配置

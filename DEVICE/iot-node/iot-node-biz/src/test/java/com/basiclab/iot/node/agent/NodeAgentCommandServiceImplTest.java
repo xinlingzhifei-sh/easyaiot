@@ -1,5 +1,6 @@
 package com.basiclab.iot.node.agent;
 
+import com.basiclab.iot.common.exception.ServiceException;
 import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
 import com.basiclab.iot.node.dal.dataobject.NodeAgentCommandDO;
 import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
@@ -9,9 +10,11 @@ import com.basiclab.iot.node.domain.vo.NodeAgentCommandEnqueueReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.impl.NodeAgentCommandServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
@@ -21,9 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 class NodeAgentCommandServiceImplTest {
 
@@ -180,6 +187,33 @@ class NodeAgentCommandServiceImplTest {
         assertEquals("{\"pid\":1234}", command.getResultJson());
         assertNotNull(command.getFinishedAt());
         assertEquals(command, fakeCommandMapper.updated.get(0));
+    }
+
+    @Test
+    void pollRejectsMissingOrWrongAgentToken() {
+        for (String token : new String[]{null, "", " ", "agent-token-x", "AGENT-TOKEN"}) {
+            NodeAgentCommandPollReqVO reqVO = new NodeAgentCommandPollReqVO();
+            reqVO.setNodeId(NODE_ID);
+            reqVO.setAgentToken(token);
+
+            ServiceException ex = assertThrows(ServiceException.class, () -> service.poll(reqVO),
+                    "token=" + token);
+            assertEquals(AGENT_TOKEN_INVALID.getCode(), ex.getCode());
+        }
+        assertTrue(fakeCommandMapper.updated.isEmpty());
+    }
+
+    @Test
+    void agentTokenIsComparedWithConstantTimeVerifier() {
+        NodeAgentCommandPollReqVO reqVO = new NodeAgentCommandPollReqVO();
+        reqVO.setNodeId(NODE_ID);
+        reqVO.setAgentToken(AGENT_TOKEN);
+
+        try (MockedStatic<NodeTokenVerifier> verifier = mockStatic(NodeTokenVerifier.class, CALLS_REAL_METHODS)) {
+            service.poll(reqVO);
+
+            verifier.verify(() -> NodeTokenVerifier.matches(AGENT_TOKEN, AGENT_TOKEN));
+        }
     }
 
     private NodeAgentCommandDO command(Long id, String status) {

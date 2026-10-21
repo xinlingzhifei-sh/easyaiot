@@ -1,6 +1,5 @@
 package com.basiclab.iot.node.service.impl;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.basiclab.iot.common.domain.PageResult;
 import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
@@ -19,6 +18,7 @@ import com.basiclab.iot.node.domain.vo.EdgeRuntimeConfigRespVO;
 import com.basiclab.iot.node.enums.NodeFunctionEnum;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.util.NodeFunctions;
+import com.basiclab.iot.node.security.NodeTokenGenerator;
 import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.EdgeNodeService;
@@ -331,7 +331,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
                 .maxTaskCount(reqVO.getMaxTaskCount() != null && reqVO.getMaxTaskCount() > 0
                         ? reqVO.getMaxTaskCount() : 1)
                 .weight(80)
-                .agentToken(IdUtil.fastSimpleUUID())
+                .agentToken(NodeTokenGenerator.newAgentToken())
                 .remark("EDGE auto-enroll")
                 .lastHeartbeatAt(LocalDateTime.now())
                 .build();

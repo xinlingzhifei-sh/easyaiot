@@ -1,7 +1,9 @@
 package com.basiclab.iot.node.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.basiclab.iot.common.core.aop.TenantIgnore;
 import com.basiclab.iot.common.domain.CommonResult;
+import com.basiclab.iot.common.service.SecurityFrameworkService;
 import com.basiclab.iot.node.domain.vo.NodeSentinelProbeReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRespVO;
@@ -18,6 +20,8 @@ import javax.validation.Valid;
 import java.util.Map;
 
 import static com.basiclab.iot.common.domain.CommonResult.success;
+import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
+import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 
 @Tag(name = "管理后台 - 节点 Sentinel")
 @RestController
@@ -25,8 +29,12 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 @Validated
 public class NodeSentinelController {
 
+    private static final String AGENT_TOKEN_HEADER = "X-Agent-Token";
+
     @Resource
     private NodeSentinelService nodeSentinelService;
+    @Resource
+    private SecurityFrameworkService securityFrameworkService;
 
     @GetMapping("/get")
     @Operation(summary = "获取节点 Sentinel 快照（组件 + 可调度能力）")
@@ -66,12 +74,7 @@ public class NodeSentinelController {
     public CommonResult<Map<String, Object>> remediate(
             @Valid @RequestBody NodeSentinelRemediateReqVO reqVO,
             HttpServletRequest request) {
-        if (reqVO.getAgentToken() == null || reqVO.getAgentToken().isBlank()) {
-            String headerToken = request.getHeader("X-Agent-Token");
-            if (headerToken != null && !headerToken.isBlank()) {
-                reqVO.setAgentToken(headerToken);
-            }
-        }
+        reqVO.setAgentToken(requireAgentTokenUnlessAdmin(reqVO.getAgentToken(), request));
         return success(nodeSentinelService.remediate(reqVO));
     }
 
@@ -81,12 +84,7 @@ public class NodeSentinelController {
     public CommonResult<Map<String, Object>> remediateReport(
             @Valid @RequestBody com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReportReqVO reqVO,
             HttpServletRequest request) {
-        if (reqVO.getAgentToken() == null || reqVO.getAgentToken().isBlank()) {
-            String headerToken = request.getHeader("X-Agent-Token");
-            if (headerToken != null && !headerToken.isBlank()) {
-                reqVO.setAgentToken(headerToken);
-            }
-        }
+        reqVO.setAgentToken(requireAgentTokenUnlessAdmin(reqVO.getAgentToken(), request));
         return success(nodeSentinelService.reportRemediation(reqVO));
     }
 
@@ -96,5 +94,20 @@ public class NodeSentinelController {
     public CommonResult<java.util.List<com.basiclab.iot.node.domain.vo.NodeSentinelRemediateLogRespVO>> remediateLogs(
             @RequestParam("nodeId") Long nodeId) {
         return success(nodeSentinelService.listRemediateLogs(nodeId));
+    }
+
+    /**
+     * 自愈接口对 Agent 免登录放行：请求体未带 token 时取 X-Agent-Token 请求头；
+     * 未登录管理后台的调用方必须带 token，token 值由业务层按节点校验。
+     */
+    private String requireAgentTokenUnlessAdmin(String bodyToken, HttpServletRequest request) {
+        String token = StrUtil.isNotBlank(bodyToken) ? bodyToken : request.getHeader(AGENT_TOKEN_HEADER);
+        if (StrUtil.isBlank(token)) {
+            if (!securityFrameworkService.isAdminUser()) {
+                throw exception(AGENT_TOKEN_INVALID);
+            }
+            return null;
+        }
+        return token;
     }
 }

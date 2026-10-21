@@ -1,6 +1,5 @@
 package com.basiclab.iot.node.service.impl;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.basiclab.iot.common.core.query.LambdaQueryWrapperX;
 import com.basiclab.iot.common.domain.PageResult;
@@ -25,6 +24,7 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendRespVO;
 import com.basiclab.iot.node.domain.vo.PlatformAgentBootstrapRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendSeriesRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
+import com.basiclab.iot.node.security.NodeTokenGenerator;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ComputeNodeService;
 import com.basiclab.iot.node.service.NodeMediaService;
@@ -148,7 +148,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             caps.putAll(createReqVO.getCapabilities());
         }
         node.setCapabilities(caps);
-        node.setAgentToken(IdUtil.fastSimpleUUID());
+        node.setAgentToken(NodeTokenGenerator.newAgentToken());
         ensurePlatformNode();
         ComputeNodeDO platformNode = computeNodeMapper.selectPlatformNode();
         if (platformNode != null) {
@@ -445,7 +445,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         Map<String, Boolean> caps = NodeFunctions.capabilities(NodeFunctions.PLATFORM_DEFAULT);
         caps.put(PLATFORM_CAPABILITY_KEY, true);
         node.setCapabilities(caps);
-        node.setAgentToken(IdUtil.fastSimpleUUID());
+        node.setAgentToken(NodeTokenGenerator.newAgentToken());
         node.setRemark("平台控制面宿主机，自动纳管");
         applyPlatformRecordingStorage(node);
         computeNodeMapper.insert(node);
@@ -524,7 +524,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         if (isPlatformNode(node)) {
             throw exception(COMPUTE_NODE_PLATFORM_UPDATE_FORBIDDEN);
         }
-        String token = IdUtil.fastSimpleUUID();
+        String token = NodeTokenGenerator.newAgentToken();
         node.setAgentToken(token);
         computeNodeMapper.updateById(node);
         return token;
@@ -1586,53 +1586,19 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         } catch (Exception e) {
             return false;
         }
-        if (!hasAgentBootstrapWheel(wheelsDir, "pip")
-                || !hasAgentBootstrapWheel(wheelsDir, "setuptools")
-                || !hasAgentBootstrapWheel(wheelsDir, "wheel")) {
-            return false;
-        }
         if (!new File(bundleRoot, AgentDeployUtil.GET_PIP_SCRIPT).isFile()) {
             return false;
         }
-        if (isPythonVersionBelow(targetPython, "3.10")) {
-            return hasAgentBootstrapWheel(wheelsDir, "importlib_metadata")
-                    && hasAgentBootstrapWheel(wheelsDir, "zipp");
-        }
-        return hasAgentBootstrapWheel(wheelsDir, "requests")
-                && hasAgentBootstrapWheel(wheelsDir, "psutil")
-                && hasAgentBootstrapWheel(wheelsDir, "flask")
-                && hasAgentBootstrapWheel(wheelsDir, "minio");
-    }
-
-    private boolean hasAgentBootstrapWheel(File wheelsDir, String prefix) {
-        String lowerPrefix = prefix.toLowerCase(Locale.ROOT);
-        File[] wheels = listPipWheelFiles(wheelsDir);
+        List<String> wheelNames = new ArrayList<>(wheels.length);
         for (File wheel : wheels) {
-            if (wheel.getName().toLowerCase(Locale.ROOT).startsWith(lowerPrefix)) {
-                return true;
-            }
+            wheelNames.add(wheel.getName());
         }
-        return false;
-    }
-
-    private boolean isPythonVersionBelow(String version, String threshold) {
-        int[] current = parsePythonVersion(version);
-        int[] baseline = parsePythonVersion(threshold);
-        if (current == null || baseline == null) {
+        List<String> missing = AgentDeployUtil.findMissingAgentWheels(wheelNames, targetPython);
+        if (!missing.isEmpty()) {
+            log.info("Agent 离线 pip 包不完整 dir={} 缺少={}", wheelsDir.getAbsolutePath(), missing);
             return false;
         }
-        if (current[0] != baseline[0]) {
-            return current[0] < baseline[0];
-        }
-        return current[1] < baseline[1];
-    }
-
-    private int[] parsePythonVersion(String version) {
-        if (version == null || !version.matches("3\\.\\d+")) {
-            return null;
-        }
-        String[] parts = version.split("\\.");
-        return new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])};
+        return true;
     }
 
     private File[] listPipWheelFiles(File wheelsDir) {

@@ -10,6 +10,7 @@ import com.basiclab.iot.node.domain.vo.NodeWorkloadBundleBatchRespVO;
 import com.basiclab.iot.node.domain.vo.NodeWorkloadBundleNodeResultVO;
 import com.basiclab.iot.node.enums.WorkloadBundleTypeEnum;
 import com.basiclab.iot.node.framework.SentinelCapabilityRegistry;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.NodeFfmpegDeployService;
 import com.basiclab.iot.node.service.NodeMediaService;
 import com.basiclab.iot.node.service.NodeRuntimeCppDeployService;
@@ -61,7 +62,7 @@ public class NodeSentinelRemediatorServiceImpl implements NodeSentinelRemediator
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
         if (StrUtil.isNotBlank(reqVO.getAgentToken())
-                && !reqVO.getAgentToken().equals(node.getAgentToken())) {
+                && !NodeTokenVerifier.matches(node.getAgentToken(), reqVO.getAgentToken())) {
             throw exception(AGENT_TOKEN_INVALID);
         }
 

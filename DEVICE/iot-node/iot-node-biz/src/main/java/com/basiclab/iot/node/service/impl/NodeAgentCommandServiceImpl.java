@@ -11,6 +11,7 @@ import com.basiclab.iot.node.domain.vo.NodeAgentCommandEnqueueReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
+import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.NodeAgentCommandService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -163,7 +164,7 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
         }
-        if (StrUtil.isBlank(agentToken) || !agentToken.equals(node.getAgentToken())) {
+        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
             throw exception(AGENT_TOKEN_INVALID);
         }
         return node;
