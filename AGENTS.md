@@ -254,5 +254,4 @@ python -m edge run                 # 常驻，订阅 mqtt/iot-algo-task-cmd 任�
 ## 8. 已知的文档与配置不一致（待修，勿据此改代码）
 
 - EDGE 与 RUNTIME 的关系未定（见第 1 节）。
-- `DEVICE/docker-compose.yml` 中 iot-node 的 Agent 源码卷挂载仍是迁移前的旧目录名，而 iot-node 代码按 `/opt/easyaiot/SENTINEL` 查找 Agent 源码。
 - 对象存储：README、部署文档与 `.scripts/docker/RUSTFS_MIGRATION.md` 写 RustFS，但中间件 compose 仍是 `minio/minio` 镜像、服务名 `MinIO`。容器内访问对象存储一律用服务名 `MinIO`（DEVICE compose、VIDEO/AI 的 env 模板与桌面端安装脚本已按此对齐；上游换成 RustFS 镜像时也保留了 `MinIO` 网络别名），不要写 `RustFS` 主机名。

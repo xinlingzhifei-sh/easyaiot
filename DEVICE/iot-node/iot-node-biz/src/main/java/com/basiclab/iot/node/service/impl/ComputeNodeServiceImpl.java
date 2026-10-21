@@ -1526,7 +1526,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         if (exportScript == null) {
             return runDeployStep("准备离线 pip 包", "failed",
                     "缺少离线 pip 包且未找到 export_pip_wheels.sh；"
-                            + "请配置 EASYAIOT_AGENT_SOURCE_PATH 指向含 NODE 源码的目录，"
+                            + "请配置 EASYAIOT_AGENT_SOURCE_PATH 指向含 SENTINEL 源码的目录，"
                             + "或在平台执行: bash SENTINEL/export_pip_wheels.sh");
         }
 

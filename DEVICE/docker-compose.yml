@@ -299,8 +299,9 @@ services:
       - MEDIA_INTERNAL_TOKEN=${MEDIA_INTERNAL_TOKEN:-}
     volumes:
       - ${YFEIEYE_DEVICE_STATE_ROOT:-/opt/yfeieye-source/shared/device}/node-logs:/root/logs/
-      # Agent 源码目录（含 run_agent.py、install.sh 等，供控制面远程部署 Agent 使用）
-      - ../NODE:/opt/easyaiot/NODE
+      # Sentinel Agent 源码目录（含 run_sentinel.py、install.sh、export_pip_wheels.sh，供控制面远程部署 Agent）；
+      # 目标路径须与 ComputeNodeServiceImpl.listAgentSourceCandidates 的 /opt/easyaiot/SENTINEL 一致
+      - ../SENTINEL:/opt/easyaiot/SENTINEL
       - ../VIDEO:/opt/easyaiot/VIDEO
       # NFS 共享媒体根（控制面本机文件浏览与宿主机一致）
       - ${EASYAIOT_MEDIA_ROOT:-/mnt/easyaiot-media}:/mnt/easyaiot-media:rw
