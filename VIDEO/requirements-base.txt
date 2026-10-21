@@ -2,6 +2,9 @@
 setuptools<81
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
+# SQLAlchemy 2.1 把 postgresql:// 的默认驱动改成 psycopg（v3），本模块只装 psycopg2-binary，
+# 且同一 DATABASE_URL 还直接传给 psycopg2.connect()，故锁 2.0.x 而不改 URL 写法
+SQLAlchemy>=2.0,<2.1
 Flask-CORS>=3.0.0
 # 生产 HTTP 服务器（run.py --server=waitress，单进程多线程），纯 Python
 waitress==3.0.2

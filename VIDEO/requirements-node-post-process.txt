@@ -1,6 +1,8 @@
 # AI 后处理集群计算节点离线运行时（无外网，由 export_node_pip_wheels.sh 打包）
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
+# SQLAlchemy 2.1 把 postgresql:// 的默认驱动改成 psycopg（v3），本节点运行时只装 psycopg2-binary，故锁 2.0.x
+SQLAlchemy>=2.0,<2.1
 python-dotenv==1.0.0
 requests>=2.31.0
 psycopg2-binary==2.9.9
