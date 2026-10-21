@@ -39,7 +39,8 @@ class AgentDeployUtilTest {
 
     private static final Pattern FROM_IMPORT = Pattern.compile("^\\s*from\\s+([A-Za-z_][\\w.]*)\\s+import\\b");
     private static final Pattern PLAIN_IMPORT = Pattern.compile("^\\s*import\\s+([A-Za-z_][\\w.]*(?:\\s*,\\s*[A-Za-z_][\\w.]*)*)");
-    private static final Pattern INSTALL_SH_SYNCED_FILE = Pattern.compile("\\$resolved_script_dir/([\\w.-]+)\"");
+    /** install.sh 顶部的同步清单数组：AGENT_SOURCE_FILES=( ... )。 */
+    private static final Pattern INSTALL_SH_SOURCE_FILES = Pattern.compile("(?m)^AGENT_SOURCE_FILES=\\(([^)]*)\\)");
 
     @Test
     void syncedFilesCoverEveryLocalModuleTheAgentImports() throws IOException {
@@ -58,16 +59,18 @@ class AgentDeployUtilTest {
     void syncedFilesCoverEverythingInstallShCopies() throws IOException {
         Path sentinel = locateSentinelSource();
         String installSh = Files.readString(sentinel.resolve("install.sh"), StandardCharsets.UTF_8);
-        int start = installSh.indexOf("sync_agent_sources() {");
-        assertTrue(start >= 0, "install.sh 中未找到 sync_agent_sources()");
-        String body = installSh.substring(start, installSh.indexOf("\n}\n", start));
+        // sync_agent_sources() 遍历 AGENT_SOURCE_FILES 逐个拷贝（目录另由 AGENT_SOURCE_DIRS 整体同步）
+        Matcher matcher = INSTALL_SH_SOURCE_FILES.matcher(installSh);
+        assertTrue(matcher.find(), "install.sh 中未找到 AGENT_SOURCE_FILES 数组");
 
         Set<String> copied = new TreeSet<>();
-        Matcher matcher = INSTALL_SH_SYNCED_FILE.matcher(body);
-        while (matcher.find()) {
-            copied.add(matcher.group(1));
+        for (String line : matcher.group(1).split("\\R")) {
+            String entry = line.replaceAll("#.*", "").trim();
+            if (!entry.isEmpty()) {
+                copied.add(entry);
+            }
         }
-        assertFalse(copied.isEmpty(), "install.sh sync_agent_sources() 文件清单解析为空");
+        assertFalse(copied.isEmpty(), "install.sh AGENT_SOURCE_FILES 文件清单解析为空");
 
         Set<String> missing = new TreeSet<>(copied);
         missing.removeAll(Set.of(AgentDeployUtil.SYNC_RELATIVE_FILES));
