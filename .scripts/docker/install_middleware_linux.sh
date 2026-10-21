@@ -4928,7 +4928,13 @@ init_minio() {
     print_section "初始化 MinIO 存储桶和数据"
 
     local init_result=0
-    if bash "${SCRIPT_DIR}/upload_minio_data.sh" --non-interactive --force-mc; then
+    # upload_minio_data.sh 只认环境变量，凭据从中间件 .env.docker 读取（进程环境变量优先）
+    local minio_access="${MINIO_ACCESS_KEY:-$(read_middleware_env_value MINIO_ACCESS_KEY)}"
+    local minio_secret="${MINIO_SECRET_KEY:-$(read_middleware_env_value MINIO_SECRET_KEY)}"
+    [ -n "$minio_access" ] || minio_access="$(read_middleware_env_value MINIO_ROOT_USER)"
+    [ -n "$minio_secret" ] || minio_secret="$(read_middleware_env_value MINIO_ROOT_PASSWORD)"
+    if MINIO_ACCESS_KEY="$minio_access" MINIO_SECRET_KEY="$minio_secret" \
+        bash "${SCRIPT_DIR}/upload_minio_data.sh" --non-interactive --force-mc; then
         print_success "MinIO 初始化完成（Docker mc）！"
         init_result=0
     else
@@ -5397,7 +5403,8 @@ collect_skippable_optional_services() {
     for svc in "${OPTIONAL_MIDDLEWARE_SERVICES[@]}"; do
         img="$(_get_service_image_from_compose "$svc")"
         if [ -n "$img" ] && ! docker image inspect "$img" &>/dev/null; then
-            print_warning "可选服务 $svc 镜像不可用 ($img)，将跳过启动"
+            # 本函数的 stdout 是给调用方 read -a 的服务列表，提示必须走 stderr，否则会被当成服务名
+            print_warning "可选服务 $svc 镜像不可用 ($img)，将跳过启动" >&2
             skip_services+=("$svc")
         fi
     done
