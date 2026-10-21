@@ -5,7 +5,8 @@
 python-dotenv>=1.0.0
 
 # SQLAlchemy 数据库操作库
-sqlalchemy>=2.0.0
+# SQLAlchemy 2.1 把 postgresql:// 的默认驱动改成 psycopg（v3），这里只装 psycopg2-binary，故锁 2.0.x
+sqlalchemy>=2.0.0,<2.1
 
 # PostgreSQL 数据库驱动
 psycopg2-binary>=2.9.0
