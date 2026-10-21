@@ -802,12 +802,17 @@ create_env_file() {
 
             # 自动配置中间件连接信息（临时文件写回，兼容 macOS BSD sed）
             print_info "自动配置中间件连接信息..."
-            _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-ai20"
-            _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
             if [ -n "${EASYAIOT_DESKTOP_OS:-}" ] || [ "${EASYAIOT_COMPOSE_DESKTOP:-0}" = "1" ]; then
-                # 桌面端为 bridge 网络，localhost 不通，改用中间件服务名 MinIO
+                # 桌面端为 bridge 网络，localhost 指向容器自身；run.py 以 .env 优先，
+                # 必须写与 docker-compose.desktop.yaml 一致的地址，否则 compose 里的覆盖不生效
+                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-ai20"
+                _set_env_docker_kv .env.docker NACOS_SERVER "host.docker.internal:8848"
+                _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+                _set_env_docker_kv .env.docker JAVA_BACKEND_URL "http://iot-system:48099"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
             else
+                _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@localhost:15432/iot-ai20"
+                _set_env_docker_kv .env.docker NACOS_SERVER "localhost:8848"
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "localhost:9000"
             fi
             _set_env_docker_kv .env.docker NACOS_NAMESPACE ""
@@ -825,6 +830,11 @@ create_env_file() {
             _set_env_docker_kv .env.docker DATABASE_URL "postgresql://postgres:iot45722414822@postgres-server:5432/iot-ai20"
             _set_env_docker_kv .env.docker JAVA_BACKEND_URL "http://iot-system:48099"
             _set_env_docker_kv .env.docker REDIS_HOST "redis-server"
+            # 早期桌面端新装会写成 localhost:8848，容器内连不上；与 docker-compose.desktop.yaml 对齐，自定义地址保留
+            if grep -Eq '^NACOS_SERVER=(localhost|127\.0\.0\.1)?(:|$)' .env.docker; then
+                _set_env_docker_kv .env.docker NACOS_SERVER "host.docker.internal:8848"
+                print_info "已更新Nacos连接为 host.docker.internal:8848（容器网络模式）"
+            fi
             # bridge 网络里 localhost / RustFS 都解析不到，改用中间件服务名 MinIO；自定义的其他地址保留
             if grep -Eq '^MINIO_ENDPOINT=(localhost|127\.0\.0\.1|RustFS)?(:|$)' .env.docker; then
                 _set_env_docker_kv .env.docker MINIO_ENDPOINT "MinIO:9000"
