@@ -18,6 +18,17 @@ public interface NodeAgentCommandMapper extends BaseMapperX<NodeAgentCommandDO> 
                 .in(NodeAgentCommandDO::getStatus, List.of("pending", "leased", "running")));
     }
 
+    /**
+     * 按 commandKey 查最近一条指令（含已结束的），nodeId 为空时不按节点过滤。
+     */
+    default NodeAgentCommandDO selectLatestByCommandKey(String commandKey, Long nodeId) {
+        return selectOne(new LambdaQueryWrapperX<NodeAgentCommandDO>()
+                .eq(NodeAgentCommandDO::getCommandKey, commandKey)
+                .eqIfPresent(NodeAgentCommandDO::getNodeId, nodeId)
+                .orderByDesc(NodeAgentCommandDO::getId)
+                .last("LIMIT 1"));
+    }
+
     default List<NodeAgentCommandDO> selectPollable(Long nodeId, LocalDateTime now, int limit) {
         return selectList(new LambdaQueryWrapperX<NodeAgentCommandDO>()
                 .eq(NodeAgentCommandDO::getNodeId, nodeId)

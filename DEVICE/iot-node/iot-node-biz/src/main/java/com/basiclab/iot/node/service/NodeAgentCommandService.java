@@ -12,6 +12,11 @@ public interface NodeAgentCommandService {
 
     NodeAgentCommandRespVO enqueue(NodeAgentCommandEnqueueReqVO reqVO);
 
+    /**
+     * 查询 commandKey 最近一条指令（不限状态），没有则返回 null。
+     */
+    NodeAgentCommandRespVO getLatestByCommandKey(String commandKey, Long nodeId);
+
     List<NodeAgentCommandRespVO> poll(NodeAgentCommandPollReqVO reqVO);
 
     void ack(Long commandId, NodeAgentCommandAckReqVO reqVO);

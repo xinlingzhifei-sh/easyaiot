@@ -77,6 +77,12 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     }
 
     @Override
+    public NodeAgentCommandRespVO getLatestByCommandKey(String commandKey, Long nodeId) {
+        NodeAgentCommandDO command = nodeAgentCommandMapper.selectLatestByCommandKey(commandKey, nodeId);
+        return command != null ? toRespVO(command) : null;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public List<NodeAgentCommandRespVO> poll(NodeAgentCommandPollReqVO reqVO) {
         validateAgent(reqVO.getNodeId(), reqVO.getAgentToken());
@@ -184,17 +190,24 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
         respVO.setNodeId(command.getNodeId());
         respVO.setCommandType(command.getCommandType());
         respVO.setCommandKey(command.getCommandKey());
-        respVO.setPayload(parsePayload(command.getPayloadJson()));
+        respVO.setPayload(parseJsonObject(command.getPayloadJson()));
         respVO.setStatus(command.getStatus());
         respVO.setAttemptCount(command.getAttemptCount());
+        respVO.setLeaseUntil(command.getLeaseUntil());
+        respVO.setLastError(command.getLastError());
+        respVO.setResult(parseJsonObject(command.getResultJson()));
+        respVO.setAckedAt(command.getAckedAt());
+        respVO.setFinishedAt(command.getFinishedAt());
+        respVO.setCreateTime(command.getCreateTime());
+        respVO.setUpdateTime(command.getUpdateTime());
         return respVO;
     }
 
-    private Map<String, Object> parsePayload(String payloadJson) {
-        if (StrUtil.isBlank(payloadJson)) {
+    private Map<String, Object> parseJsonObject(String json) {
+        if (StrUtil.isBlank(json)) {
             return Collections.emptyMap();
         }
-        return new LinkedHashMap<>(JSONUtil.parseObj(payloadJson));
+        return new LinkedHashMap<>(JSONUtil.parseObj(json));
     }
 
     private Map<String, Object> nullToEmpty(Map<String, Object> value) {

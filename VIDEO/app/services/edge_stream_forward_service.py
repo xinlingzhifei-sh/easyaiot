@@ -15,6 +15,12 @@ FAILED_COMMAND_STATUSES = {"failed", "error", "timeout", "cancelled", "canceled"
 def _parse_command_time(value: Any) -> datetime | None:
     if isinstance(value, datetime):
         return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    # iot-node 的 LocalDateTime 统一序列化为毫秒时间戳
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        try:
+            return datetime.fromtimestamp(value / 1000, tz=timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            return None
     text = str(value or "").strip()
     if not text:
         return None
@@ -33,7 +39,7 @@ def _coerce_now(value: Any) -> datetime:
 
 
 def _command_attempt(command: Dict[str, Any]) -> int:
-    for key in ("attempt", "attempts", "retryCount"):
+    for key in ("attemptCount", "attempt", "attempts", "retryCount"):
         try:
             value = command.get(key)
             if value not in (None, ""):
@@ -44,13 +50,19 @@ def _command_attempt(command: Dict[str, Any]) -> int:
 
 
 def _is_command_stale(command: Dict[str, Any], *, now: datetime, timeout_seconds: int) -> bool:
-    lease_expires_at = _parse_command_time(command.get("leaseExpiresAt") or command.get("lease_expires_at"))
+    lease_expires_at = _parse_command_time(
+        command.get("leaseUntil")
+        or command.get("leaseExpiresAt")
+        or command.get("lease_expires_at")
+    )
     if lease_expires_at is not None and lease_expires_at <= now:
         return True
 
     updated_at = _parse_command_time(
-        command.get("updatedAt")
+        command.get("updateTime")
+        or command.get("updatedAt")
         or command.get("updated_at")
+        or command.get("createTime")
         or command.get("createdAt")
         or command.get("created_at")
     )
@@ -139,7 +151,7 @@ def reconcile_edge_rtsp_forward_command(
     max_attempts: int = 3,
 ) -> Dict[str, Any]:
     command_key = f"stream_forward:{device_id}"
-    command = get_agent_command_by_key(command_key)
+    command = get_agent_command_by_key(command_key, node_id=int(edge_node_id))
     if not command:
         result = ensure_edge_rtsp_forward(device_id, edge_node_id=edge_node_id, transport=transport)
         return {"action": "queued", **result}
@@ -168,7 +180,12 @@ def reconcile_edge_rtsp_forward_command(
             protocol="edge_agent",
             state="error",
             reason_code="edge_command_failed",
-            reason_message=str(command.get("error") or command.get("message") or "Edge Agent command failed"),
+            reason_message=str(
+                command.get("lastError")
+                or command.get("error")
+                or command.get("message")
+                or "Edge Agent command failed"
+            ),
             source_event="stream_forward.deploy.result",
             stream_id=f"live/{device_id}",
             node_id=int(edge_node_id),

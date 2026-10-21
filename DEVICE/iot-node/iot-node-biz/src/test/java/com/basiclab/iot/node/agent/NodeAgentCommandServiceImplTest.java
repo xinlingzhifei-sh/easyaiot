@@ -27,6 +27,7 @@ import java.util.Map;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -78,6 +79,37 @@ class NodeAgentCommandServiceImplTest {
         assertEquals(0, command.getAttemptCount());
         assertEquals("{\"sourceUrl\":\"rtsp://192.168.1.10/live\"}", command.getPayloadJson());
         assertEquals("pending", respVO.getStatus());
+    }
+
+    @Test
+    void getLatestByCommandKeyReturnsFinishedCommandWithLifecycleFields() {
+        NodeAgentCommandDO command = command(100L, "failed");
+        command.setCommandKey("stream_forward:cam-001");
+        command.setAttemptCount(3);
+        command.setLastError("agent_command_retry_exhausted");
+        command.setResultJson("{\"pid\":1234}");
+        LocalDateTime finishedAt = LocalDateTime.of(2026, 10, 21, 10, 0);
+        command.setFinishedAt(finishedAt);
+        command.setUpdateTime(finishedAt);
+        fakeCommandMapper.latest = command;
+
+        NodeAgentCommandRespVO respVO = service.getLatestByCommandKey("stream_forward:cam-001", NODE_ID);
+
+        assertEquals(List.of("stream_forward:cam-001", NODE_ID), fakeCommandMapper.latestArgs);
+        assertEquals(100L, respVO.getId());
+        assertEquals("failed", respVO.getStatus());
+        assertEquals(3, respVO.getAttemptCount());
+        assertEquals("agent_command_retry_exhausted", respVO.getLastError());
+        assertEquals(Map.of("pid", 1234), respVO.getResult());
+        assertEquals(finishedAt, respVO.getFinishedAt());
+        assertEquals(finishedAt, respVO.getUpdateTime());
+        assertTrue(fakeCommandMapper.updated.isEmpty());
+    }
+
+    @Test
+    void getLatestByCommandKeyReturnsNullWhenCommandKeyIsUnknown() {
+        assertNull(service.getLatestByCommandKey("stream_forward:missing", null));
+        assertEquals(java.util.Arrays.asList("stream_forward:missing", null), fakeCommandMapper.latestArgs);
     }
 
     @Test
@@ -246,10 +278,15 @@ class NodeAgentCommandServiceImplTest {
         private final List<NodeAgentCommandDO> updated = new ArrayList<>();
         private List<NodeAgentCommandDO> pollable = List.of();
         private List<NodeAgentCommandDO> timedOutRunning = List.of();
+        private NodeAgentCommandDO latest;
+        private List<Object> latestArgs;
 
         @Override
         public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] args) {
             switch (method.getName()) {
+                case "selectLatestByCommandKey":
+                    latestArgs = java.util.Arrays.asList(args);
+                    return latest;
                 case "selectActiveByCommandKey":
                     return inserted.stream()
                             .filter(command -> args[0].equals(command.getNodeId())

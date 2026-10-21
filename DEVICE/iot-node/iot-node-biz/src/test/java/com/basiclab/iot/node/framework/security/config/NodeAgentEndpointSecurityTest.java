@@ -18,6 +18,7 @@ import com.basiclab.iot.node.controller.NodeAgentController;
 import com.basiclab.iot.node.controller.NodeSentinelController;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandAckReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
+import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReportReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReqVO;
@@ -219,6 +220,45 @@ class NodeAgentEndpointSecurityTest {
                 .andExpect(jsonPath("$.code").value(UNAUTHORIZED));
 
         verify(nodeAgentCommandService, never()).enqueue(any());
+    }
+
+    @Test
+    void commandLookupByKeyRequiresAdminLogin() throws Exception {
+        mockMvc.perform(get("/node/agent/commands/by-key").param("commandKey", "stream_forward:cam-001")
+                        .header("X-Agent-Token", AGENT_TOKEN))
+                .andExpect(jsonPath("$.code").value(UNAUTHORIZED));
+
+        verify(nodeAgentCommandService, never()).getLatestByCommandKey(any(), any());
+    }
+
+    @Test
+    void adminCanLookUpLatestCommandByKey() throws Exception {
+        NodeAgentCommandRespVO command = new NodeAgentCommandRespVO();
+        command.setId(101L);
+        command.setNodeId(NODE_ID);
+        command.setCommandKey("stream_forward:cam-001");
+        command.setStatus("succeeded");
+        command.setAttemptCount(1);
+        when(nodeAgentCommandService.getLatestByCommandKey("stream_forward:cam-001", NODE_ID)).thenReturn(command);
+
+        mockMvc.perform(get("/node/agent/commands/by-key")
+                        .param("commandKey", "stream_forward:cam-001")
+                        .param("nodeId", String.valueOf(NODE_ID))
+                        .header("Authorization", "Bearer " + ADMIN_ACCESS_TOKEN))
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.id").value(101))
+                .andExpect(jsonPath("$.data.status").value("succeeded"))
+                .andExpect(jsonPath("$.data.attemptCount").value(1));
+    }
+
+    @Test
+    void adminLookupOfUnknownCommandKeyReturnsEmptyData() throws Exception {
+        mockMvc.perform(get("/node/agent/commands/by-key").param("commandKey", "stream_forward:missing")
+                        .header("Authorization", "Bearer " + ADMIN_ACCESS_TOKEN))
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(nodeAgentCommandService).getLatestByCommandKey("stream_forward:missing", null);
     }
 
     @Test

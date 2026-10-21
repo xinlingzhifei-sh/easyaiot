@@ -93,9 +93,13 @@ def enqueue_agent_command(
     return data.get('data') or {}
 
 
-def get_agent_command_by_key(command_key: str) -> Dict[str, Any]:
+def get_agent_command_by_key(command_key: str, node_id: Optional[int] = None) -> Dict[str, Any]:
+    """查询 commandKey 最近一条指令（含已结束的）；传 node_id 时只看该节点，没有则返回空 dict。"""
     url = f'{AGENT_COMMAND_API_BASE}/by-key'
-    resp = requests.get(url, params={'commandKey': command_key}, headers=_headers(), timeout=REQUEST_TIMEOUT)
+    params: Dict[str, Any] = {'commandKey': command_key}
+    if node_id is not None:
+        params['nodeId'] = int(node_id)
+    resp = requests.get(url, params=params, headers=_headers(), timeout=REQUEST_TIMEOUT)
     resp.raise_for_status()
     data = resp.json()
     if data.get('code') != 0:

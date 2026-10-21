@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 import static com.basiclab.iot.common.domain.CommonResult.success;
@@ -34,6 +35,14 @@ public class NodeAgentCommandController {
     @Operation(summary = "Enqueue an Agent command")
     public CommonResult<NodeAgentCommandRespVO> enqueue(@Valid @RequestBody NodeAgentCommandEnqueueReqVO reqVO) {
         return success(nodeAgentCommandService.enqueue(reqVO));
+    }
+
+    @GetMapping("/by-key")
+    @Operation(summary = "Get the latest Agent command by command key (any status)")
+    public CommonResult<NodeAgentCommandRespVO> getByCommandKey(
+            @RequestParam("commandKey") @NotBlank String commandKey,
+            @RequestParam(value = "nodeId", required = false) Long nodeId) {
+        return success(nodeAgentCommandService.getLatestByCommandKey(commandKey, nodeId));
     }
 
     @PostMapping("/poll")
