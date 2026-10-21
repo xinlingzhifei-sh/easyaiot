@@ -1,7 +1,10 @@
 # BuildKit 内置前端，支持 RUN --mount
 # 使用PyTorch官方镜像作为基础镜像（与AI服务保持一致）
 # pip 缓存：.build-cache/video/（--build-context pip-cache / pip-wheels）
-FROM pytorch/pytorch:2.9.0-cuda12.8-cudnn9-devel AS base
+# 默认 runtime（与 AI 一致）：编译 sdist 所需 gcc/g++/make 由下方 apt 安装，不依赖 devel 里的 CUDA 工具链；
+# devel 镜像多出十几 GB，国内镜像站拉取易中断。需要时用 --build-arg BASE_IMAGE= 覆盖
+ARG BASE_IMAGE=pytorch/pytorch:2.9.0-cuda12.8-cudnn9-runtime
+FROM ${BASE_IMAGE} AS base
 
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1 \
