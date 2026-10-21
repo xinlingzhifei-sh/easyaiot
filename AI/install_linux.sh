@@ -885,7 +885,7 @@ create_env_file() {
     fi
 
     # Redis / Nacos / MinIO 凭据与 SECRET_KEY（compose 中为必填）
-    if ! sync_middleware_credentials_to_module_env .env.docker "${YFEIEYE_ROOT}"; then
+    if ! sync_middleware_credentials_to_module_env .env.docker "${YFEIEYE_ROOT}" AI; then
         print_error "中间件凭据不完整，无法写入 AI .env.docker（见上方提示）"
         exit 1
     fi

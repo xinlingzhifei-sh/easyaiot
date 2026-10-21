@@ -613,10 +613,14 @@ _env_file_value() {
 # 把中间件凭据同步进 AI / VIDEO 等业务模块的 .env.docker（compose 以 ${VAR:?} 必填，缺了起不来）：
 # - REDIS_PASSWORD / NACOS_USERNAME / NACOS_PASSWORD 必须与中间件一致，每次覆盖；
 # - MINIO_ACCESS_KEY / MINIO_SECRET_KEY 仅在为空或 CHANGE_ME 时填入（保留对接外部 S3 的自定义值）；
-# - SECRET_KEY 为空或 CHANGE_ME 时为本模块生成随机值并持久化（不回显）。
+# - IOT_SINK_POST_PROCESS_TOKEN / IOT_MESSAGE_INTERNAL_TOKEN（VIDEO 调 iot-sink / iot-message 用）
+#   仅当模块模板里有该键时同步，须与 DEVICE 侧一致；
+# - SECRET_KEY 为空或 CHANGE_ME 时为本模块生成随机值并持久化（不回显）；
+# - STREAM_TICKET_SECRET（VIDEO 流地址签名，WEB nginx 从 VIDEO/.env.docker 读取，至少 32 字节）
+#   仅当模块模板里有该键或模块为 VIDEO 时，为空则生成。
 # 任一中间件凭据缺失返回 1（read_middleware_secret 已在 stderr 说明缺哪个）。
 sync_middleware_credentials_to_module_env() {
-    local env_file="$1" root="${2:-}" key value current missing=0
+    local env_file="$1" root="${2:-}" module="${3:-}" key value current missing=0
     [ -f "$env_file" ] || return 0
     for key in REDIS_PASSWORD NACOS_USERNAME NACOS_PASSWORD; do
         if value="$(read_middleware_secret "$key" "$root")"; then
@@ -625,6 +629,20 @@ sync_middleware_credentials_to_module_env() {
             missing=1
         fi
     done
+    for key in IOT_SINK_POST_PROCESS_TOKEN IOT_MESSAGE_INTERNAL_TOKEN; do
+        grep -q "^${key}=" "$env_file" 2>/dev/null || continue
+        if value="$(read_middleware_secret "$key" "$root")"; then
+            _set_env_docker_kv "$env_file" "$key" "$value"
+        else
+            missing=1
+        fi
+    done
+    if [ "$module" = "VIDEO" ] || grep -q '^STREAM_TICKET_SECRET=' "$env_file" 2>/dev/null; then
+        current="$(_env_file_value "$env_file" STREAM_TICKET_SECRET)"
+        if [ "${#current}" -lt 32 ] || [ "$current" = "CHANGE_ME" ]; then
+            _set_env_docker_kv "$env_file" STREAM_TICKET_SECRET "$(_random_hex 32)"
+        fi
+    fi
     for key in MINIO_ACCESS_KEY MINIO_SECRET_KEY; do
         current="$(_env_file_value "$env_file" "$key")"
         if [ -z "$current" ] || [ "$current" = "CHANGE_ME" ]; then
