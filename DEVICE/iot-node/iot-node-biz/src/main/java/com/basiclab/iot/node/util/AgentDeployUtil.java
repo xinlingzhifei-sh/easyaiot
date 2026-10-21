@@ -49,6 +49,11 @@ public final class AgentDeployUtil {
             "requests", "psutil", "flask", "minio", "waitress", "pip", "setuptools", "wheel");
     /** Python 3.9 额外依赖（requirements-py39-extras.txt）。 */
     private static final List<String> PY39_EXTRA_AGENT_WHEELS = List.of("importlib_metadata", "zipp");
+    /**
+     * 离线包缺这些包时仍可部署：install.sh 会跳过它们安装其余依赖，Agent 回退到 Flask 开发服务器。
+     * 仅在离线包刷新失败时作为降级使用。
+     */
+    private static final List<String> DEGRADABLE_AGENT_WHEELS = List.of("waitress");
 
     private AgentDeployUtil() {
     }
@@ -72,6 +77,13 @@ public final class AgentDeployUtil {
             }
         }
         return missing;
+    }
+
+    /**
+     * 缺失的包是否全部可降级（且确有缺失）：此时旧离线包仍能完成部署。
+     */
+    public static boolean isDegradableAgentWheelGap(List<String> missingWheels) {
+        return !missingWheels.isEmpty() && DEGRADABLE_AGENT_WHEELS.containsAll(missingWheels);
     }
 
     private static boolean isPythonBelow310(String version) {

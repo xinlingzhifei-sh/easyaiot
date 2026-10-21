@@ -1524,7 +1524,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
 
         File exportScript = resolveAgentExportScript();
         if (exportScript == null) {
-            return runDeployStep("准备离线 pip 包", "failed",
+            return failOrReuseStaleAgentPipBundle(pipBundle, targetPython,
                     "缺少离线 pip 包且未找到 export_pip_wheels.sh；"
                             + "请配置 EASYAIOT_AGENT_SOURCE_PATH 指向含 SENTINEL 源码的目录，"
                             + "或在平台执行: bash SENTINEL/export_pip_wheels.sh");
@@ -1538,7 +1538,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             String exportOutput = runExportPipWheelsScript(exportScript, targetPython, wheelsDir);
             File[] wheels = listPipWheelFiles(wheelsDir);
             if (wheels.length == 0) {
-                return runDeployStep("准备离线 pip 包", "failed",
+                return failOrReuseStaleAgentPipBundle(pipBundle, targetPython,
                         "export_pip_wheels.sh 执行后仍未生成 wheel 包\n"
                                 + trimDeployOutput(exportOutput, 4000));
             }
@@ -1559,10 +1559,43 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             return runDeployStep("准备离线 pip 包", "success", output);
         } catch (Exception e) {
             log.error("本机导出 Agent pip wheel 失败 wheelsDir={}", wheelsDir.getAbsolutePath(), e);
-            return runDeployStep("准备离线 pip 包", "failed",
+            return failOrReuseStaleAgentPipBundle(pipBundle, targetPython,
                     "本机下载 pip 包失败: " + e.getMessage()
                             + "\n请确认平台服务器已安装 pip，或设置 PYTHON 指向带 pip 的解释器");
         }
+    }
+
+    /**
+     * 离线包刷新失败（例如控制面无法联网）时的降级：本机已有的旧离线包只缺可降级的包（waitress）时，
+     * 沿用旧包继续部署并告警；否则按失败返回。
+     */
+    private NodeMediaRemoteDeployRespVO.DeployStep failOrReuseStaleAgentPipBundle(
+            AgentPipBundle pipBundle, String targetPython, String failureOutput) {
+        List<AgentPipBundle> candidates = new ArrayList<>();
+        if (pipBundle.bundleRoot != null && pipBundle.wheelsDir != null) {
+            candidates.add(new AgentPipBundle(pipBundle.bundleRoot, pipBundle.wheelsDir,
+                    new File(pipBundle.bundleRoot, AgentDeployUtil.GET_PIP_SCRIPT)));
+        }
+        for (String path : listAgentSourceCandidates()) {
+            candidates.add(new AgentPipBundle(path, new File(path, AgentDeployUtil.PIP_WHEELS_DIR),
+                    new File(path, AgentDeployUtil.GET_PIP_SCRIPT)));
+        }
+        for (AgentPipBundle candidate : candidates) {
+            List<String> missing = findAgentPipBundleGaps(candidate.bundleRoot, targetPython, candidate.wheelsDir);
+            if (missing == null || !AgentDeployUtil.isDegradableAgentWheelGap(missing)) {
+                continue;
+            }
+            pipBundle.wheelsDir = candidate.wheelsDir;
+            pipBundle.getPipScript = candidate.getPipScript;
+            log.warn("Agent 离线 pip 包刷新失败，沿用旧离线包继续部署 dir={} 缺少={}",
+                    candidate.wheelsDir.getAbsolutePath(), missing);
+            return runDeployStep("准备离线 pip 包", "success",
+                    "警告：离线 pip 包刷新失败，沿用本机旧离线包继续部署（缺少 " + String.join(", ", missing)
+                            + "，节点 Agent 将回退到 Flask 开发服务器；平台恢复联网后重新部署即可补齐）\n目录: "
+                            + candidate.wheelsDir.getAbsolutePath()
+                            + "\n刷新失败原因: " + trimDeployOutput(failureOutput, 2000));
+        }
+        return runDeployStep("准备离线 pip 包", "failed", failureOutput);
     }
 
     private boolean isAgentPipWheelsReady(String bundleRoot, String targetPython) {
@@ -1570,35 +1603,45 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     }
 
     private boolean isAgentPipWheelsReady(String bundleRoot, String targetPython, File wheelsDir) {
-        File[] wheels = listPipWheelFiles(wheelsDir);
-        if (wheels.length == 0) {
+        List<String> missing = findAgentPipBundleGaps(bundleRoot, targetPython, wheelsDir);
+        if (missing == null) {
             return false;
         }
-        File marker = new File(wheelsDir, ".target-python");
-        if (!marker.isFile()) {
-            return false;
-        }
-        try {
-            String markerVersion = Files.readString(marker.toPath(), StandardCharsets.UTF_8).trim();
-            if (!markerVersion.equals(targetPython)) {
-                return false;
-            }
-        } catch (Exception e) {
-            return false;
-        }
-        if (!new File(bundleRoot, AgentDeployUtil.GET_PIP_SCRIPT).isFile()) {
-            return false;
-        }
-        List<String> wheelNames = new ArrayList<>(wheels.length);
-        for (File wheel : wheels) {
-            wheelNames.add(wheel.getName());
-        }
-        List<String> missing = AgentDeployUtil.findMissingAgentWheels(wheelNames, targetPython);
         if (!missing.isEmpty()) {
             log.info("Agent 离线 pip 包不完整 dir={} 缺少={}", wheelsDir.getAbsolutePath(), missing);
             return false;
         }
         return true;
+    }
+
+    /**
+     * 返回离线包缺失的 wheel；没有 wheel、目标 Python 不符或缺 get-pip.py 时返回 null（该目录不可用）。
+     */
+    private List<String> findAgentPipBundleGaps(String bundleRoot, String targetPython, File wheelsDir) {
+        File[] wheels = listPipWheelFiles(wheelsDir);
+        if (wheels.length == 0) {
+            return null;
+        }
+        File marker = new File(wheelsDir, ".target-python");
+        if (!marker.isFile()) {
+            return null;
+        }
+        try {
+            String markerVersion = Files.readString(marker.toPath(), StandardCharsets.UTF_8).trim();
+            if (!markerVersion.equals(targetPython)) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        if (!new File(bundleRoot, AgentDeployUtil.GET_PIP_SCRIPT).isFile()) {
+            return null;
+        }
+        List<String> wheelNames = new ArrayList<>(wheels.length);
+        for (File wheel : wheels) {
+            wheelNames.add(wheel.getName());
+        }
+        return AgentDeployUtil.findMissingAgentWheels(wheelNames, targetPython);
     }
 
     private File[] listPipWheelFiles(File wheelsDir) {
@@ -1650,7 +1693,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
                 "目标机未找到 python3。\n" + trimDeployOutput(out, 800));
     }
 
-    private String runExportPipWheelsScript(File exportScript, String targetPython, File wheelsDir)
+    /** 包级可见，供测试替换脚本执行。 */
+    String runExportPipWheelsScript(File exportScript, String targetPython, File wheelsDir)
             throws Exception {
         ProcessBuilder pb = new ProcessBuilder("bash", exportScript.getAbsolutePath());
         pb.directory(exportScript.getParentFile());

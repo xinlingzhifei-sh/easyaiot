@@ -108,6 +108,14 @@ class AgentDeployUtilTest {
     }
 
     @Test
+    void onlyMissingWaitressIsDegradable() {
+        assertTrue(AgentDeployUtil.isDegradableAgentWheelGap(List.of("waitress")));
+        assertFalse(AgentDeployUtil.isDegradableAgentWheelGap(List.of()));
+        assertFalse(AgentDeployUtil.isDegradableAgentWheelGap(List.of("waitress", "flask")));
+        assertFalse(AgentDeployUtil.isDegradableAgentWheelGap(List.of("pip")));
+    }
+
+    @Test
     void wheelCheckCoversExportScriptCompletenessCheck() throws IOException {
         Path sentinel = locateSentinelSource();
         String exportScript = Files.readString(sentinel.resolve("export_pip_wheels.sh"), StandardCharsets.UTF_8);

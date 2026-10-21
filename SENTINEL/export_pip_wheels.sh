@@ -42,11 +42,6 @@ fi
 mkdir -p "${WHEELS_DIR}"
 
 TARGET_MARKER="${WHEELS_DIR}/.target-python"
-if [[ -f "${TARGET_MARKER}" ]] && [[ "$(cat "${TARGET_MARKER}")" != "${TARGET_PYTHON}" ]]; then
-  old_ver="$(cat "${TARGET_MARKER}")"
-  print_step "Target Python changed (${old_ver} -> ${TARGET_PYTHON}), refreshing wheels..."
-  find "${WHEELS_DIR}" -maxdepth 1 -type f ! -name '.target-python' -delete 2>/dev/null || true
-fi
 
 target_python_major() {
   echo "${TARGET_PYTHON%%.*}"
@@ -65,15 +60,16 @@ needs_py39_extras() {
 }
 
 wheel_matches_pattern() {
-  local pattern="$1"
-  compgen -G "${WHEELS_DIR}/${pattern}" >/dev/null 2>&1 \
-    || compgen -G "${WHEELS_DIR}/${pattern,,}" >/dev/null 2>&1
+  local dir="$1" pattern="$2"
+  compgen -G "${dir}/${pattern}" >/dev/null 2>&1 \
+    || compgen -G "${dir}/${pattern,,}" >/dev/null 2>&1
 }
 
 verify_offline_install() {
+  local dir="$1"
   local py="python${TARGET_PYTHON}"
   if command -v "${py}" >/dev/null 2>&1 && "${py}" -m pip --version >/dev/null 2>&1; then
-    "${py}" -m pip install --dry-run --no-index --find-links "${WHEELS_DIR}" \
+    "${py}" -m pip install --dry-run --no-index --find-links "${dir}" \
       -r "${REQ_FILE}" --ignore-installed >/dev/null 2>&1
     return $?
   fi
@@ -81,31 +77,31 @@ verify_offline_install() {
   local pat count
   # waitress 为生产 WSGI 服务器：旧离线包缺它时判为不完整并刷新
   for pat in requests psutil Flask minio waitress pip setuptools wheel; do
-    if ! wheel_matches_pattern "${pat}*"; then
+    if ! wheel_matches_pattern "${dir}" "${pat}*"; then
       return 1
     fi
   done
   if needs_py39_extras; then
-    if ! wheel_matches_pattern "importlib_metadata*"; then
+    if ! wheel_matches_pattern "${dir}" "importlib_metadata*"; then
       return 1
     fi
-    if ! wheel_matches_pattern "zipp*"; then
+    if ! wheel_matches_pattern "${dir}" "zipp*"; then
       return 1
     fi
   fi
-  count="$(find "${WHEELS_DIR}" -maxdepth 1 -name '*.whl' | wc -l | tr -d ' ')"
+  count="$(find "${dir}" -maxdepth 1 -name '*.whl' | wc -l | tr -d ' ')"
   [[ "${count}" -ge 10 ]]
 }
 
 if compgen -G "${WHEELS_DIR}"/*.{whl,tar.gz,zip} >/dev/null 2>&1; then
   if [[ -f "${TARGET_MARKER}" ]] && [[ "$(cat "${TARGET_MARKER}")" == "${TARGET_PYTHON}" ]] \
-      && verify_offline_install; then
+      && verify_offline_install "${WHEELS_DIR}"; then
     count="$(find "${WHEELS_DIR}" -maxdepth 1 -type f \( -name '*.whl' -o -name '*.tar.gz' -o -name '*.zip' \) | wc -l | tr -d ' ')"
     print_ok "Offline wheels ready (${count} files, Python ${TARGET_PYTHON})"
     exit 0
   fi
+  # 旧 wheel 保留到新离线包下载并校验通过之后再替换：无法联网时部署方仍可沿用旧包
   print_step "Existing wheels incomplete or target mismatch, refreshing..."
-  find "${WHEELS_DIR}" -maxdepth 1 -type f ! -name '.target-python' -delete 2>/dev/null || true
 fi
 
 python_has_pip() {
@@ -148,15 +144,28 @@ print_ok "使用 ${PYTHON} ($(${PYTHON} --version 2>&1), pip $(${PYTHON} -m pip 
 FIND_LINKS="$(collect_build_cache_find_links)"
 print_step "Downloading wheels for Python ${TARGET_PYTHON} (${TARGET_PLATFORM})..."
 
+# 先下载到同级临时目录，校验通过后再替换 WHEELS_DIR；任何一步失败都保留原有 wheel。
+# 原有 wheel 作为 --find-links 参与解析，离线时仍可复用其中与目标 Python 匹配的包。
+STAGING_DIR="$(mktemp -d "${WHEELS_DIR%/}.staging.XXXXXX" 2>/dev/null || mktemp -d)"
+cleanup_staging() {
+  local status=$?
+  rm -rf "${STAGING_DIR}"
+  if [[ "${status}" -ne 0 ]]; then
+    print_err "离线包刷新失败，已保留原有 wheel: ${WHEELS_DIR}"
+  fi
+}
+trap cleanup_staging EXIT
+
 print_step "Downloading pip/setuptools/wheel for target offline bootstrap..."
 # shellcheck disable=SC2086
 "${PYTHON}" -m pip download pip setuptools wheel \
-  -d "${WHEELS_DIR}" \
+  -d "${STAGING_DIR}" \
   --python-version "${TARGET_PYTHON}" \
   --platform "${TARGET_PLATFORM}" \
   --only-binary=:all: \
   --timeout 120 \
   --retries 3 \
+  --find-links "${STAGING_DIR}" \
   --find-links "${WHEELS_DIR}" \
   ${FIND_LINKS} \
   -i "${PYPI_INDEX}"
@@ -182,12 +191,13 @@ print_step "Downloading agent dependencies..."
 # shellcheck disable=SC2086
 "${PYTHON}" -m pip download \
   -r "${REQ_FILE}" \
-  -d "${WHEELS_DIR}" \
+  -d "${STAGING_DIR}" \
   --python-version "${TARGET_PYTHON}" \
   --platform "${TARGET_PLATFORM}" \
   --only-binary=:all: \
   --timeout 120 \
   --retries 3 \
+  --find-links "${STAGING_DIR}" \
   --find-links "${WHEELS_DIR}" \
   ${FIND_LINKS} \
   -i "${PYPI_INDEX}"
@@ -197,22 +207,27 @@ if needs_py39_extras && [[ -f "${REQ_PY39_EXTRAS}" ]]; then
   # shellcheck disable=SC2086
   "${PYTHON}" -m pip download \
     -r "${REQ_PY39_EXTRAS}" \
-    -d "${WHEELS_DIR}" \
+    -d "${STAGING_DIR}" \
     --python-version "${TARGET_PYTHON}" \
     --platform "${TARGET_PLATFORM}" \
     --only-binary=:all: \
     --timeout 120 \
     --retries 3 \
+    --find-links "${STAGING_DIR}" \
     --find-links "${WHEELS_DIR}" \
     ${FIND_LINKS} \
     -i "${PYPI_INDEX}"
 fi
 
-if ! verify_offline_install; then
+if ! verify_offline_install "${STAGING_DIR}"; then
   print_err "Incomplete offline bundle for Python ${TARGET_PYTHON}"
   print_err "Ensure PyPI is reachable on the control plane and AGENT_TARGET_PYTHON matches node python3"
   exit 1
 fi
+
+print_step "Replacing offline wheels in ${WHEELS_DIR}..."
+find "${WHEELS_DIR}" -maxdepth 1 -type f ! -name '.target-python' -delete
+find "${STAGING_DIR}" -maxdepth 1 -type f -exec mv -f {} "${WHEELS_DIR}/" \;
 
 count="$(find "${WHEELS_DIR}" -maxdepth 1 -type f \( -name '*.whl' -o -name '*.tar.gz' -o -name '*.zip' \) | wc -l | tr -d ' ')"
 echo "${TARGET_PYTHON}" > "${TARGET_MARKER}"
