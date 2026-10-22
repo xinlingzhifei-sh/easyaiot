@@ -45,7 +45,7 @@ MINIO_ENDPOINT="${MINIO_ENDPOINT:-127.0.0.1:9000}"
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-}}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-}}"
 MINIO_MC_NETWORK="host"
-MC_IMAGE="minio/mc:latest"
+MC_IMAGE="minio/aistor/mc:latest"
 export MINIO_ENDPOINT MINIO_ACCESS_KEY MINIO_SECRET_KEY
 
 BUCKET_LIST=(
@@ -223,7 +223,7 @@ ensure_mc_image() {
     fi
     print_info "拉取 mc 客户端镜像 ${MC_IMAGE} ..."
     set +e
-    for img in "docker.m.daocloud.io/minio/mc:latest" "$MC_IMAGE"; do
+    for img in "quay.io/minio/aistor/mc:latest" "$MC_IMAGE"; do
         if DOCKER_CONTENT_TRUST=0 docker pull "$img"; then
             [ "$img" != "$MC_IMAGE" ] && docker tag "$img" "$MC_IMAGE" 2>/dev/null || true
             set -e
@@ -232,11 +232,11 @@ ensure_mc_image() {
         fi
     done
     set -e
-    print_error "无法拉取 minio/mc 镜像"
+    print_error "无法拉取 minio/aistor/mc 镜像"
     return 1
 }
 
-# 在容器内执行 mc（minio/mc 镜像无 shell，需挂载配置目录复用 alias）
+# 在容器内执行 mc（minio/aistor/mc 镜像无 shell，需挂载配置目录复用 alias）
 # 宿主机 9000 不通时走 easyaiot-network + rustfs-server:9000（与 resolve_minio_endpoint 一致）
 mc_docker_run() {
     local mc_config_dir="$1"

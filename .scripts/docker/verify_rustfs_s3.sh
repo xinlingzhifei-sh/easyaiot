@@ -9,7 +9,7 @@ endpoint="${S3_ENDPOINT:-${RUSTFS_ENDPOINT:-127.0.0.1:9000}}"
 access_key="${S3_ACCESS_KEY:-${RUSTFS_ACCESS_KEY:-}}"
 secret_key="${S3_SECRET_KEY:-${RUSTFS_SECRET_KEY:-}}"
 secure="${S3_SECURE:-${RUSTFS_SECURE:-false}}"
-mc_image="${MC_IMAGE:-minio/mc:latest}"
+mc_image="${MC_IMAGE:-minio/aistor/mc:latest}"
 scheme="http"
 [[ "$secure" == "true" ]] && scheme="https"
 [[ "$endpoint" == http://* || "$endpoint" == https://* ]] || endpoint="${scheme}://${endpoint}"
@@ -33,6 +33,22 @@ mc() {
         -v "${config_volume}:/root/.mc" \
         "$mc_image" "$@"
 }
+
+ensure_mc_image() {
+    docker image inspect "$mc_image" >/dev/null 2>&1 && return 0
+    # The aistor mc image is only published on quay.io; pulling the short name
+    # resolves against Docker Hub (and its mirrors), where the repo does not exist.
+    local img
+    for img in "quay.io/${mc_image#quay.io/}" "$mc_image"; do
+        if DOCKER_CONTENT_TRUST=0 docker pull "$img" >/dev/null 2>&1; then
+            [ "$img" != "$mc_image" ] && docker tag "$img" "$mc_image" >/dev/null 2>&1 || true
+            return 0
+        fi
+    done
+    echo "Unable to pull ${mc_image}" >&2
+    return 1
+}
+ensure_mc_image
 
 cleanup() {
     if [[ "$created_bucket" == "true" ]]; then

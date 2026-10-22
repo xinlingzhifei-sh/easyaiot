@@ -11,7 +11,7 @@ SOURCE_SECRET_KEY="${MINIO_SOURCE_SECRET_KEY:-}"
 DEST_ENDPOINT="${RUSTFS_DEST_ENDPOINT:-http://127.0.0.1:9000}"
 DEST_ACCESS_KEY="${RUSTFS_ACCESS_KEY:-}"
 DEST_SECRET_KEY="${RUSTFS_SECRET_KEY:-}"
-MC_IMAGE="${MC_IMAGE:-minio/mc:latest}"
+MC_IMAGE="${MC_IMAGE:-minio/aistor/mc:latest}"
 MODE="sync"
 
 usage() {
@@ -27,7 +27,7 @@ Required environment variables:
 Optional environment variables:
   MINIO_SOURCE_ENDPOINT    Default: http://127.0.0.1:19000
   RUSTFS_DEST_ENDPOINT     Default: http://127.0.0.1:9000
-  MC_IMAGE                 Default: minio/mc:latest
+  MC_IMAGE                 Default: minio/aistor/mc:latest
 
 Modes:
   --dry-run  Show the objects that would be copied
@@ -50,9 +50,24 @@ if [[ -z "$SOURCE_ACCESS_KEY" || -z "$SOURCE_SECRET_KEY" || -z "$DEST_ACCESS_KEY
     exit 2
 fi
 
+if ! docker image inspect "$MC_IMAGE" >/dev/null 2>&1; then
+    # The aistor mc image is only published on quay.io; pulling the short name
+    # resolves against Docker Hub (and its mirrors), where the repo does not exist.
+    for img in "quay.io/${MC_IMAGE#quay.io/}" "$MC_IMAGE"; do
+        if DOCKER_CONTENT_TRUST=0 docker pull "$img"; then
+            [ "$img" != "$MC_IMAGE" ] && docker tag "$img" "$MC_IMAGE" 2>/dev/null || true
+            break
+        fi
+    done
+    docker image inspect "$MC_IMAGE" >/dev/null 2>&1 || {
+        echo "Unable to pull ${MC_IMAGE}" >&2
+        exit 1
+    }
+fi
+
 config_dir="$(mktemp -d "${TMPDIR:-/tmp}/easyaiot-rustfs-migration.XXXXXX")"
 cleanup() {
-    # minio/mc runs as root and may create mode-0700 directories. Clean them
+    # minio/aistor/mc runs as root and may create mode-0700 directories. Clean them
     # through a short-lived container, then remove the now-empty host folder.
     docker run --rm -v "${config_dir}:/cleanup" alpine:3.22 \
         find /cleanup -mindepth 1 -depth -delete >/dev/null 2>&1 || true
