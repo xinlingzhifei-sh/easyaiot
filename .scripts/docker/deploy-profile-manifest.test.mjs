@@ -132,19 +132,25 @@ test('deployment consumers query generated policy instead of keeping profile mat
   assert.match(profileSource, /label=easyaiot\.idea\.managed=1/);
   assert.match(linuxSource, /deploy_profile_manifest_module_order/);
   assert.match(linuxSource, /deploy_feature_enabled_for_profile mqtt-demo/);
-  for (const source of [linuxSource, armSource, kylinSource, desktopSource]) {
+  // ARM / 麒麟入口是 install_linux.sh 的薄封装，模块清单、网络名与演示开关都只在 install_linux.sh 维护
+  for (const source of [armSource, kylinSource]) {
+    assert.match(source, /^source "\$\{SCRIPT_DIR\}\/install_linux\.sh"$/m);
+    assert.match(source, /^install_linux_main "\$@"$/m);
+    assert.doesNotMatch(source, /MODULES=\(|MODULE_NAMES|EASYAIOT_ENABLE_FLOW_DEMO|easyaiot-network|yfeieye-network/);
+  }
+  for (const source of [linuxSource, desktopSource]) {
     assert.match(source, /deploy_feature_enabled_for_profile flow-demo/);
     assert.doesNotMatch(source, /EASYAIOT_ENABLE_FLOW_DEMO:-1/);
   }
   assert.match(businessSource, /deploy_feature_enabled_for_profile mqtt-demo/);
   assert.match(businessSource, /deploy_feature_enabled_for_profile industrial-demo/);
   assert.doesNotMatch(businessSource, /EASYAIOT_ENABLE_(?:MQTT|INDUSTRIAL)_DEMO:-1/);
-  for (const source of [armSource, kylinSource, macSource]) {
+  for (const source of [macSource]) {
     assert.doesNotMatch(source, /total_count=\$\{#MODULES\[@\]\}/);
     assert.match(source, /total_count=\$\(_count_enabled_modules\)/);
   }
   assert.match(macSource, /up -d "\$\{device_targets\[@\]\}"/);
-  for (const source of [linuxSource, armSource, kylinSource, macSource, desktopSource, businessSource]) {
+  for (const source of [linuxSource, macSource, desktopSource, businessSource]) {
     assert.match(source, /deploy_profile_manifest_network_name/);
   }
   assert.match(middlewareLinuxSource, /compose_up_middleware --force-recreate "\$\{_skip_optional\[@\]\}"/);

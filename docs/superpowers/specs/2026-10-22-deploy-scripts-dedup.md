@@ -54,7 +54,7 @@
 | `INSTALL_ENTRY_NAME` | `install_linux.sh` | `install_linux_arm.sh` | `install_linux_kylin.sh` |
 | `INSTALL_PLATFORM_TAG` | 空 | ` (ARM架构)` | ` (麒麟系统)` |
 | `INSTALL_AI_VIDEO_SCRIPT` | `install_linux.sh` | `install_linux_arm.sh` | `install_linux_kylin.sh` |
-| `INSTALL_DOCKER_DNS_AUTO` | `0` | `0` | `1` |
+| `EASYAIOT_DOCKER_DNS_AUTO` | `0` | `0` | `1` |
 | `install_platform_preflight` | 空操作 | `detect_architecture` | `detect_architecture`（含麒麟识别） |
 | `install_platform_prepare_docker` | `configure_docker_mirror` | 同左 | DNS 修复 → 镜像源 → buildx |
 | `install_platform_describe` | 空操作 | 空操作 | 打印「系统类型: 麒麟系统」 |
