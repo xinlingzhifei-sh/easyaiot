@@ -735,22 +735,12 @@ check_docker_compose() {
 # Docker 镜像源（唯一允许的源，规整后用于比较与写入）
 DOCKER_MIRROR="https://docker.m.daocloud.io/"
 
-# 配置变更后按需重启 Docker（仅服务在运行时）
-# 容器 / 无 systemd 环境：静默跳过，避免 set -e 下 command not found 干扰日志
+# shellcheck source=docker_restart_guard.sh
+source "${SCRIPT_DIR}/docker_restart_guard.sh"
+
+# 配置变更后让 Docker 生效：有其它容器在跑且未开 live-restore 时只热加载，不重启
 restart_docker_if_active() {
-    if ! check_command systemctl; then
-        print_warning "未找到 systemctl，跳过重启 Docker（容器或非 systemd 环境）"
-        return 0
-    fi
-    if systemctl is-active --quiet docker 2>/dev/null; then
-        print_info "正在重启 Docker 服务以使配置生效..."
-        systemctl daemon-reload 2>/dev/null || true
-        if systemctl restart docker 2>/dev/null; then
-            print_success "Docker 服务已重启"
-        else
-            print_warning "Docker 重启失败，请稍后手动执行: sudo systemctl restart docker"
-        fi
-    fi
+    apply_docker_daemon_config "${1:-Docker 镜像源配置}" || true
 }
 
 # 配置 Docker 镜像源

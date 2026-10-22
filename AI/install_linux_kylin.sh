@@ -419,15 +419,14 @@ EOF
 EOF
     fi
     
-    # 重启 Docker 服务
-    print_info "重启 Docker 服务..."
-    sudo systemctl restart docker
-    
-    if [ $? -eq 0 ]; then
+    # 让 NVIDIA runtime 生效（runtimes 可热加载，有其它容器在跑时不重启 Docker）
+    # shellcheck source=../.scripts/docker/docker_restart_guard.sh
+    source "${YFEIEYE_ROOT}/.scripts/docker/docker_restart_guard.sh"
+    if apply_docker_daemon_config "NVIDIA runtime"; then
         print_success "NVIDIA Container Toolkit 安装完成"
         return 0
     else
-        print_error "重启 Docker 服务失败"
+        print_error "NVIDIA runtime 配置未能生效"
         return 1
     fi
 }

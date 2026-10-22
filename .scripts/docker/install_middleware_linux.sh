@@ -522,11 +522,9 @@ install_nvidia_container_toolkit() {
         return 1
     fi
     
-    # 第四步：重启 Docker
-    print_info "重启 Docker 服务以使配置生效..."
-    systemctl daemon-reload
-    if ! systemctl restart docker; then
-        print_error "重启 Docker 服务失败"
+    # 第四步：让 NVIDIA runtime 生效（runtimes 可热加载，有其它容器在跑时不重启）
+    if ! apply_docker_daemon_config "NVIDIA runtime"; then
+        print_error "NVIDIA runtime 配置未能生效"
         return 1
     fi
     
@@ -792,10 +790,6 @@ if want_dns and recommended_dns:
 # 检查并添加 NVIDIA runtime
 # 注意：即使没有 GPU，也保留 runtime 配置（如果 nvidia-container-toolkit 已安装）
 # 这样后续安装 GPU 后可以直接使用，不需要重新配置
-if "runtimes" not in config:
-    config["runtimes"] = {}
-    needs_update = True
-    changes.append("添加 runtimes 配置")
 
 # 检查 nvidia-container-toolkit 是否已安装
 nvidia_toolkit_installed = False
@@ -810,6 +804,8 @@ except:
 # 只有在 nvidia-container-toolkit 已安装或检测到 GPU 时才配置 runtime
 # 这样可以避免在没有工具包的情况下配置无效的 runtime
 if nvidia_toolkit_installed or has_gpu:
+    if not isinstance(config.get("runtimes"), dict):
+        config["runtimes"] = {}
     if "nvidia" not in config["runtimes"]:
         config["runtimes"]["nvidia"] = nvidia_runtime
         needs_update = True
@@ -889,15 +885,9 @@ EOF
     elif [ "$config_updated" = true ]; then
         print_success "Docker 配置已更新"
         
-        # 重启 Docker 服务使配置生效（容器/无 systemd 环境跳过）
+        # 让配置生效：有其它容器在跑且未开 live-restore 时只热加载（容器/无 systemd 环境跳过）
         if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet docker 2>/dev/null; then
-            print_info "正在重启 Docker 服务以使配置生效..."
-            systemctl daemon-reload 2>/dev/null || true
-            if systemctl restart docker 2>/dev/null; then
-                print_success "Docker 服务已重启"
-            else
-                print_warning "Docker 重启失败，请稍后手动执行: sudo systemctl restart docker"
-            fi
+            apply_docker_daemon_config "Docker 镜像源 / NVIDIA runtime" || true
         elif [ -f /.dockerenv ]; then
             print_warning "容器环境无法重启宿主机 Docker，daemon.json 变更需在宿主机手动 systemctl restart docker"
         fi

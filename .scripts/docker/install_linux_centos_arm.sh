@@ -464,12 +464,10 @@ PYEOF
         return 0
     fi
 
-    if [ "$need_restart" = true ] && systemctl is-active --quiet docker 2>/dev/null; then
-        print_info "重启 Docker 使镜像源生效..."
-        systemctl daemon-reload
-        systemctl restart docker
-        sleep 2
-        print_success "Docker 已重启"
+    if [ "$need_restart" = true ]; then
+        # shellcheck source=docker_restart_guard.sh
+        source "${SCRIPT_DIR}/docker_restart_guard.sh"
+        apply_docker_daemon_config "Docker 镜像源" || true
     fi
 }
 

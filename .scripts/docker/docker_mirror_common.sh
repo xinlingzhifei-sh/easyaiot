@@ -34,20 +34,12 @@ DOCKER_MIRROR_FALLBACKS="${DOCKER_MIRROR_FALLBACKS:-docker.m.daocloud.io,docker.
 # 国内公网 DNS；麒麟等系统 /etc/resolv.conf 常指向 ::1/127.0.0.53，Docker 内无法使用
 DOCKER_DNS="${DOCKER_DNS:-223.5.5.5,119.29.29.29}"
 
+# shellcheck source=docker_restart_guard.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/docker_restart_guard.sh"
+
+# 有其它容器在跑且未开 live-restore 时只热加载，见 docker_restart_guard.sh
 restart_docker_if_active() {
-    if ! check_command systemctl; then
-        print_warning "未找到 systemctl，跳过重启 Docker（容器或非 systemd 环境）"
-        return 0
-    fi
-    if systemctl is-active --quiet docker 2>/dev/null; then
-        print_info "正在重启 Docker 服务以使配置生效..."
-        systemctl daemon-reload 2>/dev/null || true
-        if systemctl restart docker 2>/dev/null; then
-            print_success "Docker 服务已重启"
-        else
-            print_warning "Docker 重启失败，请稍后手动执行: sudo systemctl restart docker"
-        fi
-    fi
+    apply_docker_daemon_config "${1:-Docker 镜像源/DNS 配置}" || true
 }
 
 # 宿主机 resolv.conf 是否指向 loopback（Docker 守护进程无法用此类 DNS）

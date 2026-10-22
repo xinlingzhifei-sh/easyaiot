@@ -349,13 +349,10 @@ PYEOF
 
     if [ "$config_updated" = true ]; then
         print_success "Docker 镜像源已更新为 ${DOCKER_MIRROR}"
-        set +e
-        systemctl daemon-reload
-        systemctl restart docker
-        set -e
-        sleep 2
-        docker info >/dev/null 2>&1 && print_success "Docker 服务已重启" || \
-            print_warning "Docker 重启后异常，将继续尝试直连拉取"
+        # shellcheck source=docker_restart_guard.sh
+        source "${SCRIPT_DIR}/docker_restart_guard.sh"
+        apply_docker_daemon_config "Docker 镜像源" ||
+            print_warning "镜像源暂未生效，将继续尝试直连拉取"
     fi
 }
 

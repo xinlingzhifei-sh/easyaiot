@@ -496,19 +496,12 @@ PYEOF
     fi
 
     if [ "$need_restart" = true ]; then
-        print_info "正在重启 Docker 使镜像源生效..."
-        set +e
-        systemctl daemon-reload
-        systemctl restart docker
-        local restart_rc=$?
-        set -e
-        sleep 2
-        if [ "$restart_rc" -ne 0 ] || ! docker info >/dev/null 2>&1; then
-            print_warning "Docker 重启异常，请检查: systemctl status docker"
+        # shellcheck source=docker_restart_guard.sh
+        source "${SCRIPT_DIR}/docker_restart_guard.sh"
+        if ! apply_docker_daemon_config "Docker 镜像源" || ! docker info >/dev/null 2>&1; then
             print_info "将继续尝试从国内镜像站直连拉取 postgres 镜像"
             return 0
         fi
-        print_success "Docker 服务已重启"
     fi
 
     show_docker_registry_mirrors

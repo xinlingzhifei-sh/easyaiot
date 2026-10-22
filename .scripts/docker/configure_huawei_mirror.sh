@@ -66,10 +66,7 @@ json.dump(cfg, open(path, "w"), indent=2, ensure_ascii=False)
 print("registry-mirrors =>", mirrors)
 PY
     print_success "已合并多镜像源（华为云优先 + 公共回退）"
-    if systemctl is-active --quiet docker 2>/dev/null; then
-        systemctl restart docker
-        print_success "Docker 已重启"
-    fi
+    apply_docker_daemon_config "华为云镜像源" || true
 fi
 
 echo ""
