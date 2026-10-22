@@ -36,6 +36,8 @@ YFEIEYE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 source "${YFEIEYE_ROOT}/.scripts/docker/init-build-cache-dirs.sh"
 # shellcheck source=../.scripts/docker/deploy_profile.sh
 source "${YFEIEYE_ROOT}/.scripts/docker/deploy_profile.sh"
+# shellcheck source=../.scripts/docker/host_firewall_common.sh
+source "${YFEIEYE_ROOT}/.scripts/docker/host_firewall_common.sh"
 
 # 打印带颜色的消息
 print_info() {
@@ -883,7 +885,8 @@ install_service() {
     sync_web_dist_from_image
     print_info "启动服务..."
     $COMPOSE_CMD up -d
-    
+    allow_docker_network_to_host_ports yfeieye-network
+
     print_success "服务安装完成！"
     print_info "等待服务启动..."
     sleep 3
@@ -928,6 +931,7 @@ start_service() {
 
     sync_web_dist_from_image
     $COMPOSE_CMD up -d --remove-orphans
+    allow_docker_network_to_host_ports yfeieye-network
     print_success "服务已启动"
     check_status
 }
