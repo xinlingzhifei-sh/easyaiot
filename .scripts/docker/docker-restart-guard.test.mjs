@@ -71,6 +71,7 @@ test('installers do not call systemctl restart docker directly', () => {
     '.scripts/docker/install_linux_centos.sh',
     '.scripts/docker/install_linux_centos_arm.sh',
     '.scripts/docker/install_linux_openeuler.sh',
+    '.scripts/docker/install_el_common.sh',
     '.scripts/docker/install_middleware_linux.sh',
     '.scripts/docker/start_fuxa_centos7.sh',
     '.scripts/docker/start_minio_centos7.sh',
