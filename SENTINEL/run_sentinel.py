@@ -40,6 +40,12 @@ HEARTBEAT_INTERVAL = int(os.environ.get('HEARTBEAT_INTERVAL', '10'))
 COMMAND_POLL_ENABLED = os.environ.get('COMMAND_POLL_ENABLED', 'true').lower() in ('1', 'true', 'yes', 'on')
 COMMAND_POLL_INTERVAL = float(os.environ.get('COMMAND_POLL_INTERVAL', '3'))
 COMMAND_POLL_MAX_COMMANDS = int(os.environ.get('COMMAND_POLL_MAX_COMMANDS', '5'))
+# 同时执行的指令数（网段扫描单次可达 330s，串行会挡住部署与令牌轮换）
+COMMAND_MAX_CONCURRENCY = int(os.environ.get('COMMAND_MAX_CONCURRENCY', '4'))
+COMMAND_LEASE_RENEW_SECONDS = float(os.environ.get('COMMAND_LEASE_RENEW_SECONDS', '10'))
+# false 时不监听 9100：控制面经指令轮询通道下发全部指令（需控制面支持，旧控制面请保持 true）
+AGENT_INBOUND_ENABLED = os.environ.get('AGENT_INBOUND_ENABLED', 'true').strip().lower() not in (
+    '0', 'false', 'no', 'off')
 AGENT_VERSION = '1.0.0'
 AGENT_ENV_FILE = os.environ.get('AGENT_ENV_FILE', '')
 BOOTSTRAP_WAIT_SECONDS = int(os.environ.get('BOOTSTRAP_WAIT_SECONDS', '180'))
@@ -439,17 +445,22 @@ def _wait_for_control_plane() -> None:
 
 
 def build_command_executors():
+    from agent_server import build_route_executors
+
+    # 9100 上的入站功能全部可经指令队列调用（只出站模式依赖它）
+    executors = build_route_executors()
     try:
         from stream_forward_executor import StreamForwardExecutor
     except ImportError as exc:
         logger.warning('stream forward executor unavailable: %s', exc)
-        return {}
+        return executors
 
     stream_forward_executor = StreamForwardExecutor()
-    return {
+    executors.update({
         'stream_forward.deploy': stream_forward_executor.deploy,
         'stream_forward.stop': stream_forward_executor.stop,
-    }
+    })
+    return executors
 
 
 def command_capabilities(executors) -> Dict[str, bool]:
@@ -458,6 +469,8 @@ def command_capabilities(executors) -> Dict[str, bool]:
 
     capabilities = {command_type: True for command_type in executors}
     capabilities[TOKEN_ROTATE_COMMAND] = True
+    # 控制面只在 inbound=false 时把 9100 调用改走队列；旧控制面忽略该字段
+    capabilities['inbound'] = AGENT_INBOUND_ENABLED
     return capabilities
 
 
@@ -474,7 +487,13 @@ def start_command_loop():
         credentials=agent_credentials,
     )
     command_client.session.verify = control_plane_tls_verify()
-    command_runner = AgentCommandRunner(command_client, executors, token_rotator=TokenRotator(agent_credentials))
+    command_runner = AgentCommandRunner(
+        command_client,
+        executors,
+        token_rotator=TokenRotator(agent_credentials),
+        max_workers=COMMAND_MAX_CONCURRENCY,
+        lease_renew_seconds=COMMAND_LEASE_RENEW_SECONDS,
+    )
     thread = threading.Thread(
         target=command_runner.run_forever,
         args=(COMMAND_POLL_INTERVAL,),
@@ -496,12 +515,20 @@ def main():
         logger.error('请设置环境变量 NODE_ID 和 AGENT_TOKEN')
         sys.exit(1)
 
+    if not AGENT_INBOUND_ENABLED and not COMMAND_POLL_ENABLED:
+        logger.error('AGENT_INBOUND_ENABLED=false 时必须开启 COMMAND_POLL_ENABLED，否则控制面无法下发任何指令')
+        sys.exit(1)
+
     from agent_server import run_server  # noqa: F401 - 先加载 HTTP 服务与 workload manager
 
     threading.Thread(target=heartbeat_loop, daemon=True).start()
-    if COMMAND_POLL_ENABLED:
-        start_command_loop()
-    run_server()
+    command_thread = start_command_loop() if COMMAND_POLL_ENABLED else None
+    if AGENT_INBOUND_ENABLED:
+        run_server()
+        return
+    logger.info('AGENT_INBOUND_ENABLED=false：不监听 %s 端口，全部指令经控制面轮询通道下发',
+                os.environ.get('AGENT_LISTEN_PORT', '9100'))
+    command_thread.join()
 
 
 if __name__ == '__main__':

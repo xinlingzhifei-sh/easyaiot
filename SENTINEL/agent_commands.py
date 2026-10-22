@@ -4,6 +4,7 @@ import re
 import tempfile
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
@@ -312,13 +313,30 @@ class AgentCommandRunner:
         client: AgentCommandClient,
         executors: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]],
         token_rotator: Optional[TokenRotator] = None,
+        max_workers: int = 1,
+        lease_renew_seconds: float = 10,
     ):
         self.client = client
         self.executors = executors
         self.token_rotator = token_rotator
+        self.max_workers = max(1, int(max_workers))
+        self.lease_renew_seconds = lease_renew_seconds
+        self._pool = ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="agent-command") \
+            if self.max_workers > 1 else None
+        self._lock = threading.Lock()
+        self._in_flight = 0
+        self._idle = threading.Condition(self._lock)
 
     def run_once(self) -> int:
-        commands = self.client.poll()
+        """拉取并处理一批指令。单线程模式下同步执行完；并发模式下提交到线程池，只拉取空闲槽位数量的指令。"""
+        if self._pool is None:
+            commands = self.client.poll()
+        else:
+            with self._lock:
+                free = self.max_workers - self._in_flight
+            if free <= 0:
+                return 0
+            commands = self.client.poll(max_commands=min(free, self.client.max_commands))
         for command in commands:
             command_id = int(command["id"])
             command_type = command["commandType"]
@@ -326,6 +344,7 @@ class AgentCommandRunner:
             self.client.ack(command_id)
 
             if command_type == TOKEN_ROTATE_COMMAND and self.token_rotator is not None:
+                # 改的是指令通道自己的凭据，在拉取线程里串行处理
                 self._rotate_token(command_id, payload)
                 continue
 
@@ -339,13 +358,55 @@ class AgentCommandRunner:
                 )
                 continue
 
+            if self._pool is None:
+                self._execute(command_id, command_type, executor, payload)
+            else:
+                with self._lock:
+                    self._in_flight += 1
+                self._pool.submit(self._execute_and_release, command_id, command_type, executor, payload)
+        return len(commands)
+
+    def wait_idle(self, timeout: Optional[float] = None) -> bool:
+        with self._idle:
+            return self._idle.wait_for(lambda: self._in_flight == 0, timeout)
+
+    def _execute_and_release(self, command_id, command_type, executor, payload) -> None:
+        try:
+            self._execute(command_id, command_type, executor, payload)
+        finally:
+            with self._idle:
+                self._in_flight -= 1
+                self._idle.notify_all()
+
+    def _execute(self, command_id, command_type, executor, payload) -> None:
+        # 部署（60–120s）、网段扫描（330s）远超 30s 租约：执行期间定期续租，避免被控制面判为超时
+        done = threading.Event()
+        renewer = threading.Thread(target=self._renew_lease, args=(command_id, done), daemon=True)
+        renewer.start()
+        try:
             try:
                 result = executor(payload)
-                self.client.report_result(command_id, "succeeded", result, None)
             except Exception as exc:
                 logger.exception("command failed id=%s type=%s", command_id, command_type)
-                self.client.report_result(command_id, "failed", {}, str(exc))
-        return len(commands)
+                self._report_quietly(command_id, "failed", {}, str(exc))
+                return
+            self._report_quietly(command_id, "succeeded", result, None)
+        finally:
+            done.set()
+
+    def _renew_lease(self, command_id: int, done: threading.Event) -> None:
+        while not done.wait(self.lease_renew_seconds):
+            try:
+                self.client.heartbeat(command_id)
+            except Exception as exc:
+                logger.warning("command lease renewal failed id=%s: %s", command_id, exc)
+
+    def _report_quietly(self, command_id, status, result, error) -> None:
+        try:
+            self.client.report_result(command_id, status, result, error)
+        except Exception as exc:
+            # 上报失败时租约到期后控制面会重新投递或判超时，这里只记录
+            logger.warning("command result report failed id=%s: %s", command_id, exc)
 
     def _rotate_token(self, command_id: int, payload: Dict[str, Any]) -> None:
         generation = payload.get("generation")
