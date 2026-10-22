@@ -1,0 +1,16 @@
+{
+  "_expect": {"idempotency_key": "fixture-flat-hook", "snapshot": false},
+  "object": "person",
+  "event": "区域入侵",
+  "device_id": "camera-a",
+  "device_name": "CH1",
+  "task_id": 101,
+  "task_name": "区域入侵",
+  "task_type": "realtime",
+  "time": "2026-08-27 18:00:00",
+  "image_path": "/data/alert/camera-a/frame.jpg",
+  "region": "door",
+  "information": "{\"detections\": []}",
+  "correlation_id": "fixture-flat-hook",
+  "event_id": "fixture-event-ignored"
+}

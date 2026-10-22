@@ -1,0 +1,11 @@
+{
+  "_expect": {"idempotency_key": "fixture-event-only", "snapshot": false},
+  "object": "helmet",
+  "event": "未戴安全帽",
+  "device_id": "camera-c",
+  "task_id": 303,
+  "task_type": "realtime",
+  "time": "2026-08-27 18:00:02",
+  "image_path": "/data/alert/camera-c/frame.jpg",
+  "event_id": "  fixture-event-only  "
+}

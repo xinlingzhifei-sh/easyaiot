@@ -16,6 +16,12 @@ from flask import current_app
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from models import db, AlgorithmTask, AlgorithmTaskNotificationState, Device
+from app.utils.alert_ingress_contract import (
+    apply_alert_identity_fields,
+    ensure_alert_idempotency_key,
+    resolve_alert_idempotency_key,
+    validate_alert_ingress,
+)
 from app.utils.algorithm_task_identity import (
     AmbiguousAlgorithmTaskError,
     build_alert_suppression_key,
@@ -538,11 +544,7 @@ def _build_minimal_alert_kafka_message(
         'shouldNotify': False,
         'timestamp': _shanghai_message_timestamp(),
     }
-    correlation_id = alert_data.get('correlation_id') or alert_data.get('correlationId')
-    if correlation_id:
-        message['correlationId'] = correlation_id
-    message['schemaVersion'] = alert_data.get('schema_version') or alert_data.get('schemaVersion') or 1
-    message['eventId'] = alert_data.get('event_id') or alert_data.get('eventId') or correlation_id
+    apply_alert_identity_fields(message, alert_data)
     message['modelIds'] = sorted(_normalize_event_model_ids(alert_data))
     message['detections'] = alert_data.get('detections') or []
     return message
@@ -1177,6 +1179,16 @@ def process_alert_hook(alert_data: Dict) -> Dict:
         if alert_data.get('face_feed_only') or alert_data.get('plate_feed_only'):
             return _process_runtime_feed_only_alert(alert_data)
 
+        # 告警入站契约：拦截落库必然失败的输入；缺幂等键时在此补齐，
+        # 使 Kafka 消息与 Kafka 失败后的直连兜底共用同一 correlation_id（由唯一索引去重）。
+        contract_problems = validate_alert_ingress(alert_data)
+        if contract_problems:
+            logger.warning('拒绝不符合告警入站契约的告警: device_id=%s problems=%s',
+                           device_id, contract_problems)
+            return {'status': 'rejected', 'reason': 'invalid_alert_contract',
+                    'error': ','.join(contract_problems)}
+        ensure_alert_idempotency_key(alert_data)
+
         use_direct_persist = _should_use_direct_alert_persist()
 
         alert_event_task = None
@@ -1378,10 +1390,7 @@ def process_alert_hook(alert_data: Dict) -> Dict:
                             _mark_task_notification_sent(
                                 notification_config,
                                 device_id,
-                                alert_data.get('event_id')
-                                or alert_data.get('eventId')
-                                or alert_data.get('correlation_id')
-                                or alert_data.get('correlationId'),
+                                resolve_alert_idempotency_key(alert_data),
                                 alert_data.get('task_type', 'realtime'),
                             )
                         return {
@@ -1691,11 +1700,7 @@ def _build_notification_message_for_kafka(alert_data: Dict, notification_config:
         'shouldNotify': should_notify,  # 是否需要发送通知
         'timestamp': _shanghai_message_timestamp(),
     }
-    correlation_id = alert_data.get('correlation_id') or alert_data.get('correlationId')
-    if correlation_id:
-        message['correlationId'] = correlation_id
-    message['schemaVersion'] = alert_data.get('schema_version') or alert_data.get('schemaVersion') or 1
-    message['eventId'] = alert_data.get('event_id') or alert_data.get('eventId') or correlation_id
+    apply_alert_identity_fields(message, alert_data)
     message['modelIds'] = sorted(_normalize_event_model_ids(alert_data))
     message['detections'] = alert_data.get('detections') or []
     

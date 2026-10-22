@@ -1,0 +1,11 @@
+{
+  "_expect": {"idempotency_key": null, "snapshot": false},
+  "object": "smoke",
+  "event": "烟雾",
+  "device_id": "camera-d",
+  "task_id": 404,
+  "task_type": "realtime",
+  "time": "2026-08-27 18:00:03",
+  "image_path": "/data/alert/camera-d/frame.jpg",
+  "correlation_id": "   "
+}
