@@ -524,6 +524,8 @@ fix_line_endings() {
 execute_module_command() {
     local module=$1
     local command=$2
+    # 已拆为独立仓库的模块：目录缺失时先按 externalModules 检出
+    ensure_external_module_checkout "$module" "$command" "$PROJECT_ROOT" || return 1
     local module_name=$(get_module_name "$module")
     
     if [ ! -d "$PROJECT_ROOT/$module" ]; then

@@ -12,7 +12,7 @@
 
 - 提交 spec 与本计划。
 
-## 阶段 2：外部模块机制，模块目录仍在（提交 2）
+## 阶段 2：外部模块机制与调用点，模块目录仍在（提交 2）
 
 - `deploy-profiles.json` 增 `externalModules`（五个模块的仓库地址、`ref: main`）。
 - `generate-deploy-profiles.mjs`：校验并生成 `deploy_profile_manifest_external_modules` / `_external_module_repository` / `_external_module_ref`；重新生成。
@@ -20,13 +20,13 @@
 - 新增 `.scripts/docker/external-modules.test.mjs`：本地裸仓库做远端，覆盖非外部模块、只读命令不拉取、已存在目录、克隆、`update` 快进、归档、`FETCH=0`、克隆失败不留半成品。
 - 验证：`node --test .scripts/docker/*.test.mjs`（服务器）。
 
-## 阶段 3：调用点（提交 3）
+## 阶段 3：调用点（与阶段 2 同一提交：契约测试同时断言机制与调用点）
 
 - `install_linux.sh` / `install_linux_arm.sh` / `install_linux_kylin.sh` / `install_mac.sh` / `install_desktop_common.sh` 的 `execute_module_command`，`install_business_linux.sh` 的 `execute_module`，三个 `run_site_module`，`runtime_image.sh` 的 `build_module_with_install_script`：开头一行 `ensure_external_module_checkout`。
 - `verify_update_chain.sh`：外部模块未检出时跳过而非判失败。
 - 契约测试断言各调用点存在。
 
-## 阶段 4：删除目录（提交 4）
+## 阶段 4：删除目录（提交 3）
 
 - `git rm -r TERMINAL HARNESS IDEA SITE TWIN`。
 - `.gitignore`：删五个模块的细则，改为忽略 `/TERMINAL/ /HARNESS/ /IDEA/ /SITE/ /TWIN/`；`.gitattributes`、`.dockerignore` 删对应规则。
@@ -34,7 +34,7 @@
 - `WEB/docker-compose.yaml` SITE 挂载注释；PR 模板去掉 IDEA / SITE 勾选项。
 - 验证：`.scripts` `node --test`；WEB `tests/*.test.ts`（tsx）与 `pnpm type:check`（服务器）。
 
-## 阶段 5：文档（提交 5）
+## 阶段 5：文档（提交 4）
 
 - `AGENTS.md` 第 1 节模块三、第 2 节目录、第 3 节命令；6 份 README 的模块介绍加"独立仓库"说明；`.scripts/docker/Readme.md`。
 - `_sync_readme_updates.py` 是一次性的赞助者表同步脚本（硬编码 `/projects/new/easyaiot`），不适用，6 份 README 手工同步。

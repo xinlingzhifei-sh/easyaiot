@@ -27,6 +27,13 @@
     "TWIN": "EASYAIOT_ENABLE_TWIN",
     "PANEL": "EASYAIOT_ENABLE_PANEL"
   },
+  "externalModules": {
+    "HARNESS": { "repository": "https://github.com/xinlingzhifei-sh/yfeieye-harness.git", "ref": "main" },
+    "IDEA": { "repository": "https://github.com/xinlingzhifei-sh/yfeieye-idea.git", "ref": "main" },
+    "TERMINAL": { "repository": "https://github.com/xinlingzhifei-sh/yfeieye-terminal.git", "ref": "main" },
+    "TWIN": { "repository": "https://github.com/xinlingzhifei-sh/yfeieye-twin.git", "ref": "main" },
+    "SITE": { "repository": "https://github.com/xinlingzhifei-sh/yfeieye-site.git", "ref": "main" }
+  },
   "featureOrder": ["mqtt-demo", "industrial-demo", "flow-demo"],
   "featureEnvironmentOverrides": {
     "mqtt-demo": "EASYAIOT_ENABLE_MQTT_DEMO",

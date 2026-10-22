@@ -650,6 +650,7 @@ tag_and_push() {
 # 跨架构：docker build --platform <target> 仅 COPY 产物 + 拉取目标架构 base image
 build_module_with_install_script() {
     local module_dir="$1" local_name="$2" local_ref="$3" target_arch="${4:-$CURRENT_ARCH}"
+    ensure_external_module_checkout "$module_dir" build "$PROJECT_ROOT" || return 1
     local module_path="${PROJECT_ROOT}/${module_dir}"
     [ -d "$module_path" ] || { print_error "模块目录不存在: ${module_path}"; return 1; }
 

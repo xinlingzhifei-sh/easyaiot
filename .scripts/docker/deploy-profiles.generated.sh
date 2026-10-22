@@ -122,6 +122,32 @@ deploy_profile_manifest_module_override_env() {
     esac
 }
 
+deploy_profile_manifest_external_modules() {
+    printf '%s\n' "HARNESS" "IDEA" "TERMINAL" "TWIN" "SITE"
+}
+
+deploy_profile_manifest_external_module_repository() {
+    case "${1:-}" in
+        HARNESS) echo "https://github.com/xinlingzhifei-sh/yfeieye-harness.git" ;;
+        IDEA) echo "https://github.com/xinlingzhifei-sh/yfeieye-idea.git" ;;
+        TERMINAL) echo "https://github.com/xinlingzhifei-sh/yfeieye-terminal.git" ;;
+        TWIN) echo "https://github.com/xinlingzhifei-sh/yfeieye-twin.git" ;;
+        SITE) echo "https://github.com/xinlingzhifei-sh/yfeieye-site.git" ;;
+        *) echo "" ;;
+    esac
+}
+
+deploy_profile_manifest_external_module_ref() {
+    case "${1:-}" in
+        HARNESS) echo "main" ;;
+        IDEA) echo "main" ;;
+        TERMINAL) echo "main" ;;
+        TWIN) echo "main" ;;
+        SITE) echo "main" ;;
+        *) echo "" ;;
+    esac
+}
+
 deploy_profile_manifest_feature_enabled() {
     local profile item
     profile="$(deploy_profile_manifest_normalize "${1:-}")"

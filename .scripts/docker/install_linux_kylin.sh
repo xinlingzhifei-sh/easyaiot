@@ -779,6 +779,8 @@ module_install_script() {
 execute_module_command() {
     local module=$1
     local command=$2
+    # 已拆为独立仓库的模块：目录缺失时先按 externalModules 检出
+    ensure_external_module_checkout "$module" "$command" "$PROJECT_ROOT" || return 1
     local module_name=${MODULE_NAMES[$module]}
     local install_file
     install_file=$(module_install_script "$module")
@@ -1799,6 +1801,7 @@ run_runtime_integrated() { run_edge_integrated_install "$@"; }
 # 官方网站 SITE：委托 SITE/install_linux.sh
 run_site_module() {
     local site_cmd="${1:-install}"
+    ensure_external_module_checkout SITE "$site_cmd" "$PROJECT_ROOT" || return 1
     local site_dir="${PROJECT_ROOT}/SITE"
     local site_script="${site_dir}/install_linux.sh"
 
