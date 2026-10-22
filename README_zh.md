@@ -610,6 +610,8 @@ yFeiEye积极响应本土化战略，全面支持本土化硬件和操作系统�
 ## 🧩 项目结构
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+> **独立仓库**：TWIN、IDEA、HARNESS、SITE、TERMINAL 自 2026-10-22 起拆为独立仓库维护（保留提交历史），安装脚本按 `.scripts/docker/deploy-profiles.json` 的 `externalModules` 按需检出到平台根目录，详见 `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`。
+
 yFeiEye 由 WEB、APP、DEVICE、EDGE、NODE, SENTINEL、VIDEO、RTC、AI、RUNTIME、POST、VISUALIZE、TWIN、TRANSFORM、PANEL、IDEA、HARNESS、SITE、TERMINAL 等核心模块组成，并配套 COMPILE 多平台打包交付能力：
 </p>
 

@@ -43,8 +43,17 @@ bash .scripts/docker/install_linux_openeuler.sh build-runtime-cpp openeuler22
 bash .scripts/docker/install_linux_kylin.sh build-runtime-cpp kylin10   # 需 RUNTIME_KYLIN10_ARM64_IMAGE
 ```
 
-一键安装顺序：`IDEA`（:9300，全形态优先；失败则中止）→ 中间件 → DEVICE/AI/RTC/VIDEO/WEB… → PANEL。
-可用 `EASYAIOT_ENABLE_IDEA=0` 临时跳过 IDEA。
+一键安装顺序：中间件 → DEVICE/AI/RTC/VIDEO/WEB… → PANEL；HARNESS / IDEA / TERMINAL / TWIN 默认关闭，用 `EASYAIOT_ENABLE_<模块>=1` 显式开启。
+
+外部模块：HARNESS、IDEA、TERMINAL、TWIN、SITE 已拆为独立仓库（`deploy-profiles.json` 的 `externalModules`）。
+开启后执行 install / update / build / start 时，`external_modules.sh` 会把仓库检出到平台根目录下的同名目录：
+
+```bash
+EASYAIOT_ENABLE_HARNESS=1 bash .scripts/docker/install_linux.sh install HARNESS   # 自动 git clone
+YFEIEYE_HARNESS_REPO=/srv/git/yfeieye-harness.git YFEIEYE_HARNESS_REF=v1.0.0 ...   # 改仓库 / 钉版本
+YFEIEYE_SITE_ARCHIVE=/data/yfeieye-site-1.0.0.tar.gz bash .scripts/docker/install_linux.sh site install  # 离线 release 包
+YFEIEYE_EXTERNAL_MODULES_FETCH=0 ...                                               # 禁止联网，只用已放好的目录
+```
 
 单独中间件（CentOS 7.9）：`start_postgresql_centos7.sh` / `start_rustfs_centos7.sh` / `start_nodered_centos7.sh` / `start_fuxa_centos7.sh`
 

@@ -565,6 +565,8 @@ yFeiEye actively responds to localization strategies, providing comprehensive su
 ## 🧩 Project Structure
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+> **Independent repositories:** since 2026-10-22, TWIN, IDEA, HARNESS, SITE, and TERMINAL are maintained in their own repositories (commit history preserved). The install scripts fetch them into the platform root on demand according to `externalModules` in `.scripts/docker/deploy-profiles.json`; see `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`.
+
 yFeiEye comprises core modules including WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, and TERMINAL, plus COMPILE multi-platform packaging and delivery:
 </p>
 

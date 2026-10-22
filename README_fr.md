@@ -548,6 +548,8 @@ yFeiEye répond activement à la stratégie de localisation, prenant pleinement 
 ## 🧩 Structure du projet
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+> **Dépôts indépendants :** depuis le 2026-10-22, TWIN, IDEA, HARNESS, SITE et TERMINAL sont maintenus dans leurs propres dépôts (historique des commits conservé). Les scripts d'installation les récupèrent à la demande à la racine de la plateforme selon `externalModules` dans `.scripts/docker/deploy-profiles.json` ; voir `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`.
+
 yFeiEye comprend notamment WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE et TERMINAL, avec COMPILE pour le packaging et la livraison multiplateformes :
 </p>
 
