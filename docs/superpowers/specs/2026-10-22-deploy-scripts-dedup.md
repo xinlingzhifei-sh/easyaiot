@@ -87,7 +87,7 @@
 | ZLMediaKit | `zlmediakit/zlmediakit:master` | `zlmediakit/zlmediakit@sha256:ddc5127d4fab7be622b34148ac8869ca6310298acd33440f1236e771a3c5ceee` | 上游 Docker Hub 只有 `master` / `feature-*` 分支标签、没有发布标签，只能锁 digest；该 digest 是 2026-10-12 的 `master` 多架构索引（amd64 + arm64），也是测试服务器上已部署镜像的 RepoDigest |
 | Node-RED | `nodered/node-red:latest` | `nodered/node-red:5.0.9` | 2026-10-22 时 `latest` 即 5.0.9（Node 24），测试服务器上的镜像同为 v5.0.9；锁到当天值，新装行为不变 |
 
-涉及位置：`.scripts/docker/docker-compose.yml`、`.scripts/media-cluster/{docker-compose.media-node.yml,install_media_stack.sh,export_media_images.sh}`、`start_nodered_centos7.sh` 默认值、`DEVICE/iot-node/.../NodeMediaServiceImpl.java`（iot-node 往节点下发媒体栈时的镜像常量，一行改动）。
+涉及位置：`.scripts/docker/docker-compose.yml`、`start_nodered_centos7.sh` 默认值、`.scripts/media-cluster/export_media_images.sh`。媒体节点离线流程（`export_media_images.sh` → `docker save/load` → `install_media_stack.sh`，以及 iot-node `NodeMediaServiceImpl` 的 `docker image inspect zlmediakit/zlmediakit:master` 检查）依赖本地标签名，而 `docker save` 不保留 digest 引用，因此这一路保留本地名 `:master`，只把导出时的拉取改为按同一 digest 拉取后打本地标签；`NodeMediaServiceImpl.java` 与 `docker-compose.media-node.yml` 不改。
 
 国内源可用性：digest 拉取走 registry-mirrors 与 `docker.m.daocloud.io/<repo>@sha256:` 直连均可用（DaoCloud 按 digest 代理）。`docker_pull_with_mirror_fallback` 的「直连后 `docker tag` 回原名」对 digest 引用不成立（不能给 digest 打标签），因此对含 `@sha256:` 的引用改为：直连拉取成功即视为成功，并提示 compose 将按 digest 复用本地镜像。
 
@@ -129,7 +129,7 @@
 1. **arm / kylin 获得新流程**（第 4 节 1–7）。这是「薄封装」的必然结果，也是把陈旧分叉补齐；但无法在真实 ARM / 麒麟机器上做整体部署验证（按要求只跑单测）。如果主会话倾向零行为变化，可只合入 3.2–3.5 与 EL / CentOS 7 部分，arm / kylin 单独再议。
 2. **Node-RED 5.x**：锁到 5.0.9 等于确认「今天的 latest」；若后续发现种子流程与 5.x 不兼容，可改锁 4.1.17（最后一个 4.x）。
 3. **ZLMediaKit digest**：上游 `master` 是滚动构建，锁定后不再自动获得修复，升级需手工改 digest（`docker-compose.yml` 注释里写明了查询方法）。
-4. 修改了其它会话可能涉及的文件：`DEVICE/iot-node/.../NodeMediaServiceImpl.java`（一行常量）、`deploy-profiles.json` + 生成物（新增 `moduleRuntime` 键，不动已有键）、`docker_mirror_common.sh`（新增开关，默认值保持原行为）。
+4. 修改了其它会话可能涉及的文件：`deploy-profiles.json` + 生成物（新增 `moduleRuntime` 键，不动已有键）、`docker_mirror_common.sh`（新增开关，默认值保持原行为）。
 
 ## 6. 验证
 

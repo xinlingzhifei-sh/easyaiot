@@ -59,8 +59,8 @@ NODERED_PUBLIC_DIR="${SCRIPT_DIR}/../node-red/public"
 SEED_SCRIPT="${SCRIPT_DIR}/../node-red/seed_nodered_demo.sh"
 # 记录外部环境是否已指定（优先于 compose / 默认值）
 [ -n "${NODERED_IMAGE+x}" ] && _NODERED_IMAGE_FROM_ENV=1 || _NODERED_IMAGE_FROM_ENV=
-NODERED_IMAGE="${NODERED_IMAGE:-nodered/node-red:latest}"
-NODERED_IMAGE_ALIAS="${NODERED_IMAGE_ALIAS:-nodered/node-red:latest}"
+NODERED_IMAGE="${NODERED_IMAGE:-nodered/node-red:5.0.9}"
+NODERED_IMAGE_ALIAS="${NODERED_IMAGE_ALIAS:-nodered/node-red:5.0.9}"
 DOCKER_MIRROR="${DOCKER_MIRROR:-https://docker.1panel.live/}"
 
 FORCE_OS_CHECK=false
@@ -109,7 +109,7 @@ CentOS 7.9 单独部署 Node-RED（流程编排 / 低代码 · yFeiEye）
   --seed-only         仅恢复演示规则链（容器已运行时用；数据被改删后推荐）
 
 环境变量:
-  NODERED_IMAGE       覆盖镜像（默认 nodered/node-red:latest）
+  NODERED_IMAGE       覆盖镜像（默认与 docker-compose.yml 一致：nodered/node-red:5.0.9）
   DOCKER_MIRROR       镜像加速器地址
   NODERED_URL         --seed/--seed-only 时覆盖导入地址（默认 http://127.0.0.1:1880）
 
