@@ -78,6 +78,7 @@ test('installers do not call systemctl restart docker directly', () => {
     '.scripts/docker/start_nodered_centos7.sh',
     '.scripts/docker/start_postgresql_centos7.sh',
     '.scripts/docker/start_rustfs_centos7.sh',
+    '.scripts/docker/start_centos7_common.sh',
     'AI/install_linux.sh',
     'AI/install_linux_kylin.sh',
   ];
