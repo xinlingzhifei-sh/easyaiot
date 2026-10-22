@@ -27,6 +27,7 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendSeriesRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ComputeNodeService;
+import com.basiclab.iot.node.service.NodeAgentCommandService;
 import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeMediaService;
 import com.basiclab.iot.node.util.AgentDeployUtil;
@@ -104,6 +105,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     private ObjectMapper objectMapper;
     @Resource
     private NodeAgentCredentialService nodeAgentCredentialService;
+    @Resource
+    private NodeAgentCommandService nodeAgentCommandService;
 
     @Value("${easyaiot.agent.source-path:}")
     private String agentSourcePath;
@@ -532,7 +535,18 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         if (isPlatformNode(node)) {
             throw exception(COMPUTE_NODE_PLATFORM_UPDATE_FORBIDDEN);
         }
-        return nodeAgentCredentialService.rotate(node, immediate);
+        NodeAgentTokenRotateRespVO resp = nodeAgentCredentialService.rotate(node, immediate);
+        // immediate 时旧令牌已失效，Agent 拉不到推送；旧版 Agent 不声明该能力，需重新部署
+        if (!immediate && supportsTokenPush(node)) {
+            nodeAgentCommandService.enqueueTokenRotation(node.getId(), resp.getGeneration());
+            resp.setPushed(true);
+        }
+        return resp;
+    }
+
+    private static boolean supportsTokenPush(ComputeNodeDO node) {
+        return node.getAgentFeatures() != null
+                && Boolean.TRUE.equals(node.getAgentFeatures().get(NodeAgentCommandServiceImpl.COMMAND_TOKEN_ROTATE));
     }
 
     @Override

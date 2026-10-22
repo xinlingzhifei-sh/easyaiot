@@ -22,6 +22,8 @@ for _p in (_repo_root, _lib_root):
 import psutil
 import requests
 
+from agent_commands import credentials as agent_credentials
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -63,32 +65,25 @@ def bootstrap_url() -> str:
     return f'{base}/platform-agent-bootstrap'
 
 
+def _on_agent_token_rotated(new_token: str) -> None:
+    global AGENT_TOKEN
+    AGENT_TOKEN = new_token
+
+
+agent_credentials.add_listener(_on_agent_token_rotated)
+
+
 def persist_credentials() -> None:
-    env_path = AGENT_ENV_FILE
+    from agent_commands import resolve_agent_env_file, update_env_file
+
+    env_path = resolve_agent_env_file()
     if not env_path:
-        for candidate in (
-            '/opt/easyaiot/sentinel-agent/agent.env',
-            '/opt/easyaiot/node-agent/agent.env',
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent.env'),
-        ):
-            if os.path.isfile(candidate):
-                env_path = candidate
-                break
-    if not env_path or not os.path.isfile(env_path):
         return
     try:
-        with open(env_path, encoding='utf-8') as f:
-            lines = f.readlines()
-        with open(env_path, 'w', encoding='utf-8') as f:
-            for line in lines:
-                if line.startswith('NODE_ID='):
-                    f.write(f'NODE_ID={NODE_ID}\n')
-                elif line.startswith('AGENT_TOKEN='):
-                    f.write(f'AGENT_TOKEN={AGENT_TOKEN}\n')
-                else:
-                    f.write(line)
+        # 原子替换：旧实现截断后逐行写，中途失败会留下半个 agent.env
+        update_env_file(env_path, {'NODE_ID': str(NODE_ID), 'AGENT_TOKEN': AGENT_TOKEN})
         logger.info('已同步凭据至 %s', env_path)
-    except OSError as e:
+    except (OSError, ValueError) as e:
         logger.debug('无法持久化 agent.env: %s', e)
 
 
@@ -128,7 +123,8 @@ def try_refresh_credentials(*, allow_node_id_change: bool = False) -> bool:
         if NODE_ID and NODE_ID != new_id:
             logger.info('bootstrap 同步 nodeId %s -> %s', NODE_ID, new_id)
         NODE_ID = new_id
-        AGENT_TOKEN = new_token
+        agent_credentials.node_id = new_id
+        agent_credentials.replace_token(new_token)
         logger.info('已从 bootstrap 刷新凭据 nodeId=%s', NODE_ID)
         persist_credentials()
         return True
@@ -454,16 +450,28 @@ def build_command_executors():
     }
 
 
-def start_command_loop():
-    from agent_commands import AgentCommandClient, AgentCommandRunner
+def command_capabilities(executors) -> Dict[str, bool]:
+    """poll 时声明的能力：控制面据此决定是否推送令牌、哪些指令可以走队列。"""
+    from agent_commands import TOKEN_ROTATE_COMMAND
 
+    capabilities = {command_type: True for command_type in executors}
+    capabilities[TOKEN_ROTATE_COMMAND] = True
+    return capabilities
+
+
+def start_command_loop():
+    from agent_commands import AgentCommandClient, AgentCommandRunner, TokenRotator
+
+    executors = build_command_executors()
     command_client = AgentCommandClient(
         CONTROL_PLANE_URL,
         NODE_ID,
         AGENT_TOKEN,
         max_commands=COMMAND_POLL_MAX_COMMANDS,
+        capabilities=command_capabilities(executors),
+        credentials=agent_credentials,
     )
-    command_runner = AgentCommandRunner(command_client, build_command_executors())
+    command_runner = AgentCommandRunner(command_client, executors, token_rotator=TokenRotator(agent_credentials))
     thread = threading.Thread(
         target=command_runner.run_forever,
         args=(COMMAND_POLL_INTERVAL,),

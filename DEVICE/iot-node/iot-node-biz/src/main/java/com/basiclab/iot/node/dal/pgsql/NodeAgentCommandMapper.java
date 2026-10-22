@@ -41,6 +41,13 @@ public interface NodeAgentCommandMapper extends BaseMapperX<NodeAgentCommandDO> 
                 .last("LIMIT " + Math.max(1, Math.min(limit, 20))));
     }
 
+    default List<NodeAgentCommandDO> selectPendingByType(Long nodeId, String commandType) {
+        return selectList(new LambdaQueryWrapperX<NodeAgentCommandDO>()
+                .eq(NodeAgentCommandDO::getNodeId, nodeId)
+                .eq(NodeAgentCommandDO::getCommandType, commandType)
+                .eq(NodeAgentCommandDO::getStatus, "pending"));
+    }
+
     default List<NodeAgentCommandDO> selectTimedOutRunning(LocalDateTime now, int limit) {
         return selectList(new LambdaQueryWrapperX<NodeAgentCommandDO>()
                 .eq(NodeAgentCommandDO::getStatus, "running")

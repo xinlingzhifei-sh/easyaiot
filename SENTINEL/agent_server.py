@@ -14,6 +14,7 @@ from typing import Deque, Dict, List, Optional, Tuple, Union
 
 from flask import Flask, jsonify, request
 
+from agent_commands import credentials as agent_credentials
 from workload_manager import WorkloadManager, find_available_port
 from media_manager import MediaStackManager
 from mqtt_manager import MqttStackManager
@@ -43,6 +44,16 @@ def _env_int(name: str, default: int) -> int:
 
 
 AGENT_TOKEN = os.environ.get('AGENT_TOKEN', '')
+
+
+def _on_agent_token_rotated(new_token: str) -> None:
+    """控制面经指令通道推送新令牌后，9100 的 X-Agent-Token 校验随之切换（比较逻辑不变）。"""
+    global AGENT_TOKEN
+    AGENT_TOKEN = new_token
+
+
+agent_credentials.add_listener(_on_agent_token_rotated)
+
 # 可写多个地址（逗号或空格分隔），如 "10.0.0.5,127.0.0.1"；iot-node 经 SSH 探测 127.0.0.1 健康检查，收紧时须保留回环地址
 AGENT_LISTEN_HOST = os.environ.get('AGENT_LISTEN_HOST', '0.0.0.0')
 AGENT_LISTEN_PORT = int(os.environ.get('AGENT_LISTEN_PORT', '9100'))
