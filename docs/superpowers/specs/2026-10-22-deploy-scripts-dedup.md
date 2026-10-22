@@ -1,6 +1,6 @@
 # 部署脚本去重设计（`.scripts/docker/`）
 
-> 状态：实施中（分支 `claude/deploy-scripts-dedup-aece42`）
+> 状态：已实施（分支 `claude/deploy-scripts-dedup-aece42`）（分支 `claude/deploy-scripts-dedup-aece42`）
 > 关联计划：`docs/superpowers/plans/2026-10-22-deploy-scripts-dedup.md`
 
 ## 1. 背景与现状
@@ -122,17 +122,36 @@
 10. `install_business_linux.sh` 的模块显示名改为 `install_linux.sh` 写法（如「AI 服务」→「AI服务」）。
 11. EL 系与 CentOS 7 启动器：各份文案统一为信息最全的版本。
 
+**CentOS 7 单服务启动器**
+
+12. `start_nodered_centos7.sh` / `start_fuxa_centos7.sh` 原先创建的网络名是 `easyaiot-network`，而 `docker-compose.yml` 声明的外部网络是 `yfeieye-network`；现统一取 `deploy-profiles.json` 的网络名（修正）。
+13. minio / rustfs / nodered / fuxa 的 Docker 升级流程改用 postgresql 版：升级后若版本仍过旧则返回失败（原来只检查 `docker info`）。
+14. postgresql 启动器的系统检查改用公共版：非 CentOS 时不再提前返回（仍只打印提示），firewalld 提示按端口生成。
+
 **无变化**：所有入口的命令行参数、子命令（除上面新增）、环境变量、交互菜单结构；EL 系专用选项；CentOS 7 启动器选项。
 
-## 5. 风险与取舍（需要主会话确认）
+## 5. 实施中发现、未在本轮修复的问题
+
+- `get_docker_server_version`（EL 系与 CentOS 7 启动器共用写法）的 awk 只认行首的 `Version:`，而 `docker version` 的服务端版本行是缩进的，所以实际总是退回 `docker -v`（客户端版本）。保持原行为，测试按实际行为编写。
+- `start_rustfs_centos7.sh` 操作的 compose 服务 `RustFS` / 容器 `rustfs-server` 在当前 `docker-compose.yml` 中不存在（对象存储服务名仍是 `MinIO`）。
+- `minio/aistor/mc:latest` 只存在于 quay.io，Docker Hub 拉不到（见 3.5）。
+- 秘钥卫生检查在基线上就有 1 条命中：`TERMINAL/backend/session/ssh_dial_test.go:17`（测试用私钥块），与本分支无关。
+
+## 6. 风险与取舍（需要主会话确认）
 
 1. **arm / kylin 获得新流程**（第 4 节 1–7）。这是「薄封装」的必然结果，也是把陈旧分叉补齐；但无法在真实 ARM / 麒麟机器上做整体部署验证（按要求只跑单测）。如果主会话倾向零行为变化，可只合入 3.2–3.5 与 EL / CentOS 7 部分，arm / kylin 单独再议。
 2. **Node-RED 5.x**：锁到 5.0.9 等于确认「今天的 latest」；若后续发现种子流程与 5.x 不兼容，可改锁 4.1.17（最后一个 4.x）。
 3. **ZLMediaKit digest**：上游 `master` 是滚动构建，锁定后不再自动获得修复，升级需手工改 digest（`docker-compose.yml` 注释里写明了查询方法）。
 4. 修改了其它会话可能涉及的文件：`deploy-profiles.json` + 生成物（新增 `moduleRuntime` 键，不动已有键）、`docker_mirror_common.sh`（新增开关，默认值保持原行为）。
 
-## 6. 验证
+## 7. 验证
 
 - `bash -n` 覆盖所有改动脚本。
 - `.scripts` 下全部 `node --test`（`find .scripts -name '*.test.mjs'`）在测试服务器临时容器内跑。
 - 新增测试：`install-linux-platform.test.mjs`（三个入口的平台契约，在临时目录副本里 source，桩掉 docker / uname）、`install-el-common.test.mjs`、`start-centos7-common.test.mjs`、`docker-mirror-common.test.mjs`（DNS 开关、digest 回退）、`image-pinning.test.mjs`（compose 与媒体栈不再出现浮动标签）。
+
+### 验证结果（2026-10-22，测试服务器临时容器 `python:3.11-bullseye` + Node 24.21，`--network none -m 2g`）
+
+- `bash -n`：`.scripts/docker/*.sh`、`.scripts/media-cluster/*.sh` 全部通过。
+- `node --test $(find .scripts -name '*.test.mjs')`：103/103 通过。
+- 行数（`*.sh`，基线 `8aa884e3c` → 本分支）：+1301 / −6494，净减 5193 行；其中新增公共库 `install_el_common.sh` 505 行、`start_centos7_common.sh` 464 行。
