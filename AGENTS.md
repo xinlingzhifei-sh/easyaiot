@@ -208,8 +208,8 @@ python -m edge run                 # 常驻，订阅 mqtt/iot-algo-task-cmd 任�
 
 **CI 现状**：根目录有两个 GitHub workflow。
 
-- `.github/workflows/pr-tests.yml`：在 `pull_request` 及推送 `main`/`dev` 时触发，按改动路径只跑对应模块的 job——DEVICE `mvn test`、VIDEO/AI `pytest tests`、WEB `pnpm type:check` + `tests/*.test.ts`、`.scripts` 下 `node --test`。目前不跳过任何已知失败测试；确需临时跳过时在对应步骤显式列出并注明原因。
-- `.github/workflows/compile-packaging.yml`：仅 `workflow_dispatch` 手动触发，用于调用 `COMPILE/build.sh` 打 Ubuntu deb、Windows exe（可选 NSIS 安装器、macOS dmg、CentOS el7/8/9 与 ARM、openEuler rpm）。APP、RUNTIME、SENTINEL、POST、TERMINAL 等模块尚未纳入 `pr-tests.yml`。`TERMINAL/.github/workflows/` 是上游项目带来的 workflow，嵌套在子目录中，GitHub 不会执行。各模块本地测试方式：
+- `.github/workflows/pr-tests.yml`：在 `pull_request` 及推送 `main`/`dev` 时触发，按改动路径只跑对应模块的 job——DEVICE `mvn test`、VIDEO/AI `pytest tests`、WEB `pnpm type:check` + `tests/*.test.ts`、`.scripts` 下 `node --test`（各模块 `install_linux*.sh` 与 `WEB/conf/nginx.conf` 改动也会触发）、SENTINEL `unittest`（Python 3.9 与 3.11）、POST `go vet` + `go test`。目前不跳过任何已知失败测试；确需临时跳过时在对应步骤显式列出并注明原因。
+- `.github/workflows/compile-packaging.yml`：仅 `workflow_dispatch` 手动触发，用于调用 `COMPILE/build.sh` 打 Ubuntu deb、Windows exe（可选 NSIS 安装器、macOS dmg、CentOS el7/8/9 与 ARM、openEuler rpm）。APP、RUNTIME、TERMINAL 等模块尚未纳入 `pr-tests.yml`。`TERMINAL/.github/workflows/` 是上游项目带来的 workflow，嵌套在子目录中，GitHub 不会执行。各模块本地测试方式：
 
 - **DEVICE**：JUnit 5 + spring-boot-starter-test + mockito-inline，基座模块 `iot-common-test`（H2 + jedis-mock），测试配置 `src/test/resources/application-unit-test.yaml`。命令：`cd DEVICE && mvn test`。
 - **AI / VIDEO**：`AI/tests/`、`VIDEO/tests/` 为可自动化单测（pytest 与 unittest 混用），运行 `python -m pytest AI/tests/` 或 `python -m unittest discover VIDEO/tests`。**模块根目录散落的 `test_*.py` 多为需要真实模型/服务的联调脚本，不要批量当单测跑**。

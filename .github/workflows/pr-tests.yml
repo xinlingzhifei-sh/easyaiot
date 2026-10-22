@@ -28,6 +28,8 @@ jobs:
       ai: ${{ steps.filter.outputs.ai }}
       web: ${{ steps.filter.outputs.web }}
       scripts: ${{ steps.filter.outputs.scripts }}
+      sentinel: ${{ steps.filter.outputs.sentinel }}
+      post: ${{ steps.filter.outputs.post }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,8 +52,17 @@ jobs:
             web:
               - 'WEB/**'
               - '.github/workflows/pr-tests.yml'
+            # .scripts/docker 的契约测试也会读各模块安装脚本
             scripts:
               - '.scripts/**'
+              - '*/install_linux*.sh'
+              - 'WEB/conf/nginx.conf'
+              - '.github/workflows/pr-tests.yml'
+            sentinel:
+              - 'SENTINEL/**'
+              - '.github/workflows/pr-tests.yml'
+            post:
+              - 'POST/**'
               - '.github/workflows/pr-tests.yml'
 
   device:
@@ -228,3 +239,63 @@ jobs:
         run: |
           mapfile -t files < <(find .scripts -name '*.test.mjs' -not -path '*/node_modules/*' | sort)
           node --test "${files[@]}"
+
+  sentinel:
+    name: SENTINEL (unittest, py${{ matrix.python }})
+    needs: changes
+    if: needs.changes.outputs.sentinel == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # 远程节点 Agent 需兼容 Python 3.9
+        python: ["3.9", "3.11"]
+    defaults:
+      run:
+        working-directory: SENTINEL
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: SENTINEL/requirements*.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          if [ "${{ matrix.python }}" = "3.9" ]; then python -m pip install -r requirements-py39-extras.txt; fi
+
+      # 测试直接 import agent_commands 等顶层模块，必须在 SENTINEL 目录下以 -t . 运行
+      - name: unittest
+        run: python -m unittest discover -s tests -t . -v
+
+  post:
+    name: POST (go test)
+    needs: changes
+    if: needs.changes.outputs.post == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: POST
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: POST/go.mod
+          cache-dependency-path: POST/go.sum
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./...
