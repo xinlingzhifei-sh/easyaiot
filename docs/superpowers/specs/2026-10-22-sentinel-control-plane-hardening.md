@@ -194,3 +194,31 @@
 4. **宽限期**：72 小时 / 确认后 5 分钟是否合适；令牌疑似泄露时应使用 `immediate=true`，WEB 目前没有入口。
 5. **轮换推送失败时控制面回滚到旧令牌**（3.1）：替代方案是保持新令牌、等待人工处理，但宽限期结束后节点会掉线。
 6. **控制面 HTTPS 的证书由谁签发**：本次只做 Agent 侧校验与 CA 分发；网关前的 TLS 终止归统一入口方案。
+
+## 9. 实施记录（2026-10-23）
+
+| 提交 | 内容 |
+|---|---|
+| 78f2fddf6 | 令牌哈希 + 密文存储、启动迁移、`node_agent_command` 补建表、`NodeAgentGateway`（HTTP） |
+| 1e3ccdedd | 轮换推送与宽限期、Agent 原子改写 `agent.env` 与回滚 |
+| e1a3382fe | 控制面 HTTPS 与自定义 CA |
+| ce67133bd | Agent 只出站：指令白名单、`AGENT_INBOUND_ENABLED`、线程池与续租 |
+| 80b3adb71 | 控制面队列传输、部署写入 `AGENT_INBOUND_ENABLED`、只出站时按心跳校验部署 |
+
+测试（测试服务器临时容器，只跑单元测试）：iot-node `mvn -pl iot-node/iot-node-biz -am test` 98 个全部通过；SENTINEL `python -m unittest discover -s tests -t .` 在 python:3.9-slim 与 python:3.11-bullseye 各 93 个通过（1 个 waitress 实网测试按原逻辑跳过）。
+
+与设计相比的落地细节：
+
+- Agent 应用新令牌后用新令牌对同一条指令再 `ack` 一次作为回连确认（3.2 第 3 步），控制面在这次请求里完成 pending 确认。
+- 只出站的执行器没有为每个接口重写业务代码，而是按白名单用 Flask `test_client` 在进程内调用原路由（6.1），因此令牌校验、来源白名单、扫描并发上限与 HTTP 路径完全一致。
+- SSH 部署写入的 `agent.env` 权限改为 600（原来随 umask，通常 644，含令牌）。
+
+已知限制 / 未做：
+
+- 节点详情页的"Agent 端口检查"（`checkAgentPortBySsh`）仍 curl `127.0.0.1:9100/health`，只出站节点上会显示失败；部署流程本身已改为看心跳。
+- WEB 仍调用 `reset-agent-token`（宽限期轮换），没有 `immediate` 入口，也不展示 `pushed`；新接口 `/node/rotate-agent-token` 待 WEB 接入。
+- `DEVICE/docker-compose.yml` 未透传 `EASYAIOT_NODE_AGENT_*`、`EASYAIOT_AGENT_CONTROL_PLANE_CA_FILE` 等新变量（部署脚本归"精简部署脚本"会话），当前全部取默认值，令牌密钥回退到 `MYBATIS_ENCRYPTOR_PASSWORD`。
+- 队列方式比 HTTP 多 0–3 秒轮询延迟；未实现长轮询。
+- 指令参数在同步调用结束时清空；若 iot-node 在等待期间崩溃，`payload_json` 会留在库里，需要后续加定期清理。
+- Agent 侧 `REQUESTS_CA_BUNDLE` / `CURL_CA_BUNDLE` 环境变量仍可替换 CA（requests 的既有行为），但不能关闭校验。
+- 以上全部未在真实环境端到端验证（网关 48080 → iot-node → Agent 轮询、真实 PostgreSQL 上的迁移）。
