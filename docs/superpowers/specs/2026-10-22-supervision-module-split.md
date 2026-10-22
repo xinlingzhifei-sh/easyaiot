@@ -146,6 +146,17 @@ supervision 对平台服务的两处依赖改成 supervision 自己定义的端�
 
 最终行数以实施结果为准，目标是没有超过 1500 行的类。组件依赖必须无环（实施时用脚本检查），只能经构造器注入。
 
+### 5.2.1 实施结果（与上表的差异）
+
+按调用图检查后做了以下调整，最终结构见 §10：
+
+- `listWorkbench` 被案件、规则、语义、报表、运维五个组件调用，放在 `ReviewWorkbench` 会与规则治理成环，因此和事件投影、查询匹配一起下沉到低层的 `ReviewItemQuery`。
+- 媒体访问拆成两层：`ReviewMediaScopeGuard`（按摄像头授权范围校验并审计，被工作台、录像覆盖、案件、导出共用）和 `ReviewMediaAccess`（对外的审计入口与回放签发）。
+- 证据导出 1694 行，再拆出 `ReviewEvidenceManifests`（清单生成/签名/校验）与 `ReviewVideoExportPlanner`（视频导出分段规划与溯源校验）。
+- AI 摘要从语义检索中分出为 `ReviewAiSummaryService`。
+- 原实现里有两处真实的相互递归，不是拆分引入的：案件时间线 → 录像覆盖 → 媒体范围校验 → 媒体访问审计 → 案件时间线；录像覆盖 → 案件时间线 → 录像覆盖。为保持行为不变，不改算法，由装配器 `AlertReviewComponents` 在全部组件创建后绑定这两条回边（`ReviewMediaScopeGuard → ReviewMediaAccess`、`ReviewRecordCoverage → ReviewCaseManagement`），其余依赖都经构造器注入。
+- 常量不单独成类：只被一个组件用的常量随组件走，多个组件共用的进 `AlertReviewValues`。
+
 ### 5.3 为什么用"门面 + 组件"而不是拆成多个 Spring Bean
 
 拆成多个 `@Service` 会改变：事务代理的位置（组件间调用会开始经过代理）、Bean 数量与注入关系、测试的构造方式（12 260 行的现有测试直接 `new SupervisionAlertReviewServiceImpl(...)`）。这些都是行为风险。门面 + 普通组件在行为上与原单类完全等价，后续若要把某个组件升格为 Bean（例如证据导出单独部署 worker），可以在新边界上逐个做。
@@ -184,3 +195,67 @@ supervision 对平台服务的两处依赖改成 supervision 自己定义的端�
 - 不升级 Spring Boot / 不做 javax→jakarta。
 - 不改 WEB、VIDEO。
 - 不修特征测试中发现的可疑行为。
+
+## 10. 实施结果（2026-10-22）
+
+### 10.1 模块图
+
+```
+DEVICE/
+├── iot-system/
+│   ├── iot-system-api            （平台 API；不再含 supervision 枚举）
+│   └── iot-system-biz            Spring Boot 可执行 jar（iot-system-biz.jar，端口 48099，部署不变）
+│       ├── 依赖 iot-supervision-biz
+│       ├── controller/admin/auth/AuthController            media-permission-check 仍在此，注入 ConfiguredReviewCameraPermissionResolver
+│       └── framework/supervision/                          宿主适配器
+│           ├── PermissionServiceReviewOperatorPermissionChecker   实现 ReviewOperatorPermissionChecker
+│           └── NotifyReviewRuntimeOutboxPublisher                 实现 ReviewRuntimeOutboxPublisher
+└── iot-supervision/
+    ├── iot-supervision-api       supervision 枚举（事件级别/状态、任务状态、关闭结果）
+    └── iot-supervision-biz       普通 jar；依赖 iot-supervision-api、iot-system-api、iot-common-*
+        ├── controller/admin/supervision、dal/{dataobject,pgsql}/supervision、job/supervision
+        ├── service/supervision/                    事件中心、任务、证据、复核门面与端口
+        │   └── alertreview/                        复核工作台组件（见 10.2）
+        └── resources/sql/migrations、schemas       26 个迁移 + 复核数据 JSON Schema
+```
+
+依赖方向：`iot-system-biz → iot-supervision-biz → {iot-supervision-api, iot-system-api, iot-common-*}`，无环。
+
+### 10.2 `SupervisionAlertReviewServiceImpl` 拆分后的行数
+
+| 类 | 行数 |
+|---|---|
+| `SupervisionAlertReviewServiceImpl`（门面，拆前 9605） | 496 |
+| `ReviewRuleGovernance` | 1132 |
+| `ReviewSemanticIntelligence` | 1083 |
+| `ReviewRuntimeOperations` | 1074 |
+| `AlertClueIngestion` | 880 |
+| `ReviewEvidenceExport` | 857 |
+| `ReviewWorkbench` | 700 |
+| `ReviewAiSummaryService` | 694 |
+| `ReviewVideoExportPlanner` | 542 |
+| `ReviewCaseManagement` | 521 |
+| `ReviewEvidenceManifests` | 457 |
+| `ReviewRecordCoverage` | 450 |
+| `ReviewEvidenceAudit` | 415 |
+| `AlertReviewValues`（共用静态工具） | 367 |
+| `ReviewOperationsReporting` | 343 |
+| `ReviewMediaScopeGuard` | 226 |
+| `ReviewItemQuery` | 175 |
+| `AlertReviewEventBridge` | 162 |
+| `ReviewMediaAccess` | 148 |
+| `AlertReviewComponents`（装配） | 111 |
+| `AlertReviewDependencies` | 78 |
+
+合计约 10 900 行，比拆前多出的约 1300 行是各文件的 import、类头与门面的委托方法。
+
+### 10.3 验证
+
+- 拆分前基线（容器 `TZ=Asia/Shanghai`）：iot-system-biz 463 个测试全过（含 5 个新增特征测试）。
+- 模块拆出后：iot-supervision-biz 412 + iot-system-biz 51 = 463，全过。
+- 大类拆分后：同上 463 全过；另用脚本逐个比对 484 个搬移成员，与原实现除三类机械改写外完全一致。
+- `.scripts` 中受影响的 3 个 node 测试全过。
+
+### 10.4 已知问题（本次未改）
+
+- `SupervisionAlertReviewRuntimeSchedulingTest.operationsReportJobUsesPreviousCompleteShanghaiShiftAndDayWindows` 依赖 JVM 默认时区为 `Asia/Shanghai`，在 UTC 环境（含 GitHub Actions 默认 runner）下必然失败；拆分前即如此。建议另行修测试或在 `pr-tests.yml` 的 DEVICE job 设 `TZ`。
