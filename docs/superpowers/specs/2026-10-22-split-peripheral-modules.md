@@ -162,3 +162,23 @@ SITE 产物：WEB 容器托管官网的方式不变——`pnpm --dir SITE build`
 4. **`git clean -fdx`** 会删掉被忽略的外部检出目录（含本地改动）。文档已提示。
 5. **IDEA 发布功能**：IDEA 的"发布本机栈"会在 `IDEA_HOST_PROJECT_ROOT` 下找各模块的 install 脚本；外部检出在原位置，不受影响。
 6. **离线/内网部署**：无外网时需预先放好目录，或提供 `YFEIEYE_<模块>_ARCHIVE`。COMPILE 生成的离线包目前不包含这五个模块（拆分前也只带 TWIN 的部署文件；PANEL 安装包场景本就不部署它们）。
+
+## 8. 拆分结果与验证（2026-10-23）
+
+独立仓库（`E:\yFeiEye-split\<模块>.git`，裸仓库，`main`；含 §4.3 的补丁提交）：
+
+| 模块 | 提交数 | 最新提交 | 历史起点 |
+|---|---|---|---|
+| TERMINAL | 37 | `da82fb3` | 2026-09-21 |
+| HARNESS | 15 | `ab52fd0` | 2026-08-14 |
+| IDEA | 28 | `6801c40` | 2026-08-13 |
+| SITE | 26 | `b62e067` | 2026-08-03 |
+| TWIN | 4 | `bd1b21c` | 2026-09-21 |
+
+IDEA 的 28 个提交多于 `git log -- IDEA` 显示的 4 个：默认的历史简化会隐藏一条侧分支上的 20 多个 IDEA 提交，拆分保留了这条分支及其合并。
+
+主仓库分支在测试服务器临时容器中的单元测试（`git archive` 打包 HEAD，排除 `.scripts/minio` 与 `.scripts/docker-compose` 二进制）：
+
+- `.scripts`（`find .scripts -name '*.test.mjs' | node --test`）：68 / 68 通过，含新增的 `external-modules.test.mjs`。
+- WEB `pnpm type:check`：通过。
+- WEB `tests/*.test.ts`：51 个中 50 个通过。`visibleBrandingResidue.test.ts` 失败，原因是 `WEB/tests/brandDisplay.test.ts:15` 含旧品牌字面量；该文件由基线提交 `8aa884e3c` 引入，本分支未改动它，这个失败在基线上就存在（需另行在扫描中豁免该测试文件）。
