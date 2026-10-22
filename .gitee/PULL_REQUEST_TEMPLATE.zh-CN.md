@@ -16,8 +16,6 @@
 - [ ] VISUALIZE
 - [ ] TRANSFORM
 - [ ] PANEL
-- [ ] IDEA
-- [ ] SITE
 - [ ] COMPILE / scripts
 - [ ] 文档
 

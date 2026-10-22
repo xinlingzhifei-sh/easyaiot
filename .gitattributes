@@ -181,16 +181,8 @@ APP/node_modules/** -diff
 APP/dist/** -diff
 APP/.pnpm-store/** -diff
 
-# SITE 构建产物、依赖与 pnpm 缓存：不参与 diff
-SITE/node_modules/** -diff
-SITE/dist/** -diff
-SITE/dist-prebuilt/** -diff
-SITE/.pnpm-store/** -diff
-
 # IDE / 包管理器缓存 / 测试缓存：不参与 diff
 .vscode/** -diff
-# IDEA 工作区模板的 VS Code 配置需要参与 diff（覆盖上面的 .vscode/** -diff）
-IDEA/workspace-template/.vscode/** text eol=lf
 .pnpm-store/** -diff
 **/.pytest_cache/** -diff
 
@@ -224,15 +216,6 @@ COMPILE/work/** -diff
 COMPILE/.venv-build/** -diff
 COMPILE/.venv-build-*/** -diff
 COMPILE/.panel-version -diff
-
-# IDEA 运行时数据 / 虚拟环境（工作区全仓 clone 与 git-reference 体积大；与 .gitignore 对齐，防误加入仓库）
-IDEA/.data/** -diff
-IDEA/.venv/** -diff
-IDEA/workspaces/** -diff
-IDEA/logs/** -diff
-
-# HARNESS 运行时数据（dsh-home / Sidecar 状态；与 .gitignore 对齐，防误加入仓库）
-HARNESS/.data/** -diff
 
 # ── ANDROID / IOS / HARMONYOS 移动端工程 ──
 # 打包成品与构建产物（体积大；与 .gitignore 对齐，防误加入仓库）

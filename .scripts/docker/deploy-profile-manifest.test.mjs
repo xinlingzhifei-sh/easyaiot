@@ -91,7 +91,6 @@ test('manifest allowlists every compose service and leaves no implicit auto-star
     'VIDEO/docker-compose.desktop.yaml',
     'POST/docker-compose.desktop.yaml',
     'RTC/docker-compose.desktop.yaml',
-    'TWIN/docker-compose.yml',
   ]) {
     const compose = readFileSync(join(rootDir, composePath), 'utf8');
     assert.match(compose, /name: \$\{EASYAIOT_NETWORK_NAME:-yfeieye-network\}/, composePath);
