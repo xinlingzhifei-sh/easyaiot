@@ -4,7 +4,8 @@ import re
 import tempfile
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
+from urllib.parse import urlparse
 
 import requests
 
@@ -14,6 +15,40 @@ TOKEN_ROTATE_COMMAND = "agent.token.rotate"
 # iot-node ErrorCodeConstants.AGENT_TOKEN_INVALID
 AGENT_TOKEN_INVALID_CODE = 1005002000
 _TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9._~+/-]{16,256}$")
+
+
+class ControlPlaneTlsError(RuntimeError):
+    """控制面 TLS 配置不可用。不存在"关闭证书校验"的开关，配置错误时一律失败而不是降级。"""
+
+
+def _truthy(value: Optional[str]) -> bool:
+    return (value or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def control_plane_tls_verify(environ: Optional[Dict[str, str]] = None) -> Union[bool, str]:
+    """所有发往控制面的 requests 调用的 verify 参数：配置了 CONTROL_PLANE_CA_FILE 时用该 CA，否则用系统/certifi CA。"""
+    environ = os.environ if environ is None else environ
+    ca_file = (environ.get("CONTROL_PLANE_CA_FILE") or "").strip()
+    if not ca_file:
+        return True
+    if not os.path.isfile(ca_file) or not os.access(ca_file, os.R_OK):
+        # 不回退到系统 CA：指定了私有 CA 却读不到，说明部署不完整，继续通信会连错对象或静默失败
+        raise ControlPlaneTlsError(f"CONTROL_PLANE_CA_FILE is not a readable file: {ca_file}")
+    return ca_file
+
+
+def check_control_plane_transport(url: str, environ: Optional[Dict[str, str]] = None) -> Union[bool, str]:
+    """启动时校验控制面地址与 TLS 配置，返回 verify 参数；不满足要求时抛 ControlPlaneTlsError。"""
+    environ = os.environ if environ is None else environ
+    scheme = urlparse(url or "").scheme.lower()
+    if scheme not in ("http", "https"):
+        raise ControlPlaneTlsError(f"CONTROL_PLANE_URL must be http(s): {url!r}")
+    if scheme == "http":
+        if _truthy(environ.get("CONTROL_PLANE_REQUIRE_HTTPS")):
+            raise ControlPlaneTlsError("CONTROL_PLANE_REQUIRE_HTTPS is set but CONTROL_PLANE_URL is plain http")
+        logger.warning("CONTROL_PLANE_URL uses plain http; the agent token is sent unencrypted. "
+                       "Use https (optionally with CONTROL_PLANE_CA_FILE) where the network is not trusted")
+    return control_plane_tls_verify(environ)
 
 
 def _env_node_id() -> int:

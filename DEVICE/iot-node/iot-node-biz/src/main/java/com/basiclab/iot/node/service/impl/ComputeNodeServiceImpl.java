@@ -53,11 +53,13 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -112,6 +114,9 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     private String agentSourcePath;
     @Value("${easyaiot.sentinel.auto-deploy-on-create:true}")
     private boolean autoDeployOnCreate;
+    /** 控制面网关用私有 CA 签发的证书时，指向该 CA 的 PEM；SSH 部署时下发到节点供 Agent 校验 */
+    @Value("${easyaiot.agent.control-plane-ca-file:}")
+    private String controlPlaneCaFile;
     @Resource
     private ControlPlaneEndpointResolver controlPlaneEndpointResolver;
     @Resource
@@ -649,13 +654,15 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             String controlPlaneUrl = resolveControlPlaneUrl(controlPlaneUrlOverride);
             int agentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                     ? node.getAgentPort() : DEFAULT_AGENT_PORT;
+            String controlPlaneCaPem = loadControlPlaneCaPem();
             String envContent = AgentDeployUtil.buildEnvContent(
                     node.getId(),
                     StrUtil.blankToDefault(nodeAgentCredentialService.currentToken(node), ""),
                     agentPort,
                     controlPlaneUrl,
-                    node.getNodeRole());
-            String installScript = AgentDeployUtil.buildInstallScript(envContent);
+                    node.getNodeRole(),
+                    controlPlaneCaPem != null);
+            String installScript = AgentDeployUtil.buildInstallScript(envContent, controlPlaneCaPem);
             String encoded = Base64.getEncoder().encodeToString(installScript.getBytes(StandardCharsets.UTF_8));
             SshSessionHelper.SshExecResult installResult = ssh.exec(
                     "echo " + encoded + " | base64 -d > /tmp/easyaiot-agent-install.sh "
@@ -1323,6 +1330,23 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         }
         if (node.getMaxGpuCount() == null) {
             node.setMaxGpuCount(0);
+        }
+    }
+
+    /**
+     * 读取 easyaiot.agent.control-plane-ca-file；未配置返回 null。配置了却读不到或不是证书时让部署失败，
+     * 不静默跳过——否则 Agent 会退回系统 CA，连不上用私有 CA 的网关。
+     */
+    String loadControlPlaneCaPem() {
+        if (StrUtil.isBlank(controlPlaneCaFile)) {
+            return null;
+        }
+        try {
+            String pem = Files.readString(Path.of(controlPlaneCaFile.trim()), StandardCharsets.UTF_8);
+            return AgentDeployUtil.validateControlPlaneCaPem(pem);
+        } catch (IOException | RuntimeException e) {
+            throw new IllegalStateException("无法读取控制面 CA（easyaiot.agent.control-plane-ca-file="
+                    + controlPlaneCaFile + "）: " + e.getMessage(), e);
         }
     }
 

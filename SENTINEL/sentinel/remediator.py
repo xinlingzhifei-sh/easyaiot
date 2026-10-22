@@ -381,6 +381,7 @@ def _call_control_plane_remediate(component_id: str, spec: Dict[str, Any]) -> Di
             json=payload,
             headers={'X-Agent-Token': token, 'Content-Type': 'application/json'},
             timeout=timeout,
+            verify=_tls_verify(),
         )
         body = {}
         try:
@@ -430,11 +431,19 @@ def _report_to_control_plane(component_id: str, current: Dict[str, Any], *, exha
             json=payload,
             headers={'X-Agent-Token': token, 'Content-Type': 'application/json'},
             timeout=15,
+            verify=_tls_verify(),
         )
         if resp.status_code != 200:
             logger.warning('自愈汇报 HTTP %s component=%s', resp.status_code, component_id)
     except Exception as exc:
         logger.warning('自愈汇报失败 component=%s: %s', component_id, exc)
+
+
+def _tls_verify():
+    """与心跳、指令通道共用同一套控制面 TLS 校验（CONTROL_PLANE_CA_FILE）。"""
+    from agent_commands import control_plane_tls_verify
+
+    return control_plane_tls_verify()
 
 
 def _trim(text: Any, limit: int = 4000) -> str:

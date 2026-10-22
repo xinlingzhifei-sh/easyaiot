@@ -22,6 +22,7 @@ for _p in (_repo_root, _lib_root):
 import psutil
 import requests
 
+from agent_commands import ControlPlaneTlsError, check_control_plane_transport, control_plane_tls_verify
 from agent_commands import credentials as agent_credentials
 
 logging.basicConfig(
@@ -100,6 +101,7 @@ def try_refresh_credentials(*, allow_node_id_change: bool = False) -> bool:
             url,
             headers={'X-Bootstrap-Token': PLATFORM_AGENT_BOOTSTRAP_TOKEN},
             timeout=10,
+            verify=control_plane_tls_verify(),
         )
         if resp.status_code != 200:
             logger.debug('bootstrap 请求失败 HTTP %s: %s', resp.status_code, url)
@@ -308,7 +310,7 @@ def post_json(path: str, payload: Dict[str, Any], *, allow_refresh: bool = True)
     """返回 (成功?, 错误文案)。错误文案用于识别主机名/容量冲突，避免无效重注册。"""
     url = f'{CONTROL_PLANE_URL}{path}'
     try:
-        resp = requests.post(url, json=payload, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10, verify=control_plane_tls_verify())
         if resp.status_code == 200:
             data = resp.json()
             if data.get('code') == 0:
@@ -427,7 +429,7 @@ def _wait_for_control_plane() -> None:
         if try_refresh_credentials(allow_node_id_change=True):
             return
         try:
-            resp = requests.get(url, timeout=5)
+            resp = requests.get(url, timeout=5, verify=control_plane_tls_verify())
             if resp.status_code == 200 and (resp.json() or {}).get('code') == 0:
                 try_refresh_credentials(allow_node_id_change=True)
                 return
@@ -471,6 +473,7 @@ def start_command_loop():
         capabilities=command_capabilities(executors),
         credentials=agent_credentials,
     )
+    command_client.session.verify = control_plane_tls_verify()
     command_runner = AgentCommandRunner(command_client, executors, token_rotator=TokenRotator(agent_credentials))
     thread = threading.Thread(
         target=command_runner.run_forever,
@@ -482,6 +485,11 @@ def start_command_loop():
 
 
 def main():
+    try:
+        check_control_plane_transport(CONTROL_PLANE_URL)
+    except ControlPlaneTlsError as e:
+        logger.error('控制面 TLS 配置无效，拒绝启动: %s', e)
+        sys.exit(1)
     wait_for_platform_credentials()
     _wait_for_control_plane()
     if not NODE_ID or not AGENT_TOKEN:

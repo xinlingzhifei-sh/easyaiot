@@ -13,6 +13,8 @@ public final class AgentDeployUtil {
     public static final String PIP_WHEELS_DIR = "pip-wheels";
     public static final String EXPORT_PIP_WHEELS_SCRIPT = "export_pip_wheels.sh";
     public static final String GET_PIP_SCRIPT = "get-pip.py";
+    /** 控制面自定义 CA 在节点上的位置（easyaiot.agent.control-plane-ca-file 配置时下发） */
+    public static final String REMOTE_CONTROL_PLANE_CA_FILE = REMOTE_INSTALL_DIR + "/control-plane-ca.pem";
 
     /**
      * SSH 部署时上传到安装目录的 Agent 源码（sentinel/、registry/ 按目录另行上传）。
@@ -95,6 +97,14 @@ public final class AgentDeployUtil {
 
     public static String buildEnvContent(long nodeId, String agentToken, int agentPort,
                                          String controlPlaneUrl, String functionsCsv) {
+        return buildEnvContent(nodeId, agentToken, agentPort, controlPlaneUrl, functionsCsv, false);
+    }
+
+    /**
+     * @param controlPlaneCa 是否随安装脚本下发控制面 CA（{@link #buildInstallScript(String, String)}）
+     */
+    public static String buildEnvContent(long nodeId, String agentToken, int agentPort,
+                                         String controlPlaneUrl, String functionsCsv, boolean controlPlaneCa) {
         String functions = functionsCsv != null && !functionsCsv.isBlank()
                 ? functionsCsv.trim().toLowerCase() : "";
         return "# yFeiEye Node Agent 配置\n"
@@ -103,6 +113,7 @@ public final class AgentDeployUtil {
                 + "AGENT_TOKEN=" + agentToken + "\n"
                 + "NODE_FUNCTIONS=" + functions + "\n"
                 + "CONTROL_PLANE_URL=" + controlPlaneUrl + "\n"
+                + (controlPlaneCa ? "CONTROL_PLANE_CA_FILE=" + REMOTE_CONTROL_PLANE_CA_FILE + "\n" : "")
                 + "HEARTBEAT_INTERVAL=10\n"
                 + "SENTINEL_L1_INTERVAL=300\n"
                 + "SENTINEL_AUTO_REMEDIATE=true\n"
@@ -118,15 +129,52 @@ public final class AgentDeployUtil {
     }
 
     public static String buildInstallScript(String envContent) {
-        return "#!/usr/bin/env bash\n"
-                + "set -euo pipefail\n"
-                + "INSTALL_DIR=\"" + REMOTE_INSTALL_DIR + "\"\n"
-                + "cd \"$INSTALL_DIR\"\n"
-                + "sudo tee agent.env > /dev/null <<'EOF'\n"
-                + envContent
-                + "EOF\n"
-                + "sudo chmod +x install.sh\n"
-                + "sudo bash install.sh install\n";
+        return buildInstallScript(envContent, null);
+    }
+
+    /**
+     * @param controlPlaneCaPem 控制面 CA（PEM，可含多张证书）；为空时不下发
+     */
+    public static String buildInstallScript(String envContent, String controlPlaneCaPem) {
+        StringBuilder script = new StringBuilder()
+                .append("#!/usr/bin/env bash\n")
+                .append("set -euo pipefail\n")
+                .append("INSTALL_DIR=\"").append(REMOTE_INSTALL_DIR).append("\"\n")
+                .append("cd \"$INSTALL_DIR\"\n")
+                .append("sudo tee agent.env > /dev/null <<'EOF'\n")
+                .append(envContent)
+                .append("EOF\n")
+                // 含 Agent 令牌，只给 root（systemd 服务以 root 读取）
+                .append("sudo chmod 600 agent.env\n");
+        if (controlPlaneCaPem != null && !controlPlaneCaPem.isBlank()) {
+            String pem = validateControlPlaneCaPem(controlPlaneCaPem);
+            script.append("sudo tee ").append(REMOTE_CONTROL_PLANE_CA_FILE).append(" > /dev/null <<'EOF_CA'\n")
+                    .append(pem)
+                    .append("EOF_CA\n")
+                    .append("sudo chmod 644 ").append(REMOTE_CONTROL_PLANE_CA_FILE).append("\n");
+        }
+        return script.append("sudo chmod +x install.sh\n")
+                .append("sudo bash install.sh install\n")
+                .toString();
+    }
+
+    /**
+     * 只接受证书：拒绝私钥（避免把网关私钥误配成 CA 发到每台节点）以及会提前结束 heredoc 的内容。
+     */
+    public static String validateControlPlaneCaPem(String pem) {
+        String normalized = pem.replace("\r\n", "\n").trim();
+        if (!normalized.contains("-----BEGIN CERTIFICATE-----")) {
+            throw new IllegalArgumentException("控制面 CA 文件不是 PEM 证书");
+        }
+        if (normalized.contains("PRIVATE KEY")) {
+            throw new IllegalArgumentException("控制面 CA 文件包含私钥，拒绝下发到节点");
+        }
+        for (String line : normalized.split("\n")) {
+            if ("EOF_CA".equals(line.trim())) {
+                throw new IllegalArgumentException("控制面 CA 文件内容非法");
+            }
+        }
+        return normalized + "\n";
     }
 
 }
