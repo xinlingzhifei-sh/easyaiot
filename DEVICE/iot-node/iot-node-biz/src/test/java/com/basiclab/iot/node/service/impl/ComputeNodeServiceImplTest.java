@@ -34,11 +34,14 @@ class ComputeNodeServiceImplTest {
         ComputeNodeServiceImpl service = new ComputeNodeServiceImpl();
         setField(service, "nodeSshCredentialMapper", nullReturningSshCredentialMapper());
         setField(service, "nodeMetricSnapshotMapper", nullReturningMetricSnapshotMapper());
+        NodeAgentCredentialServiceImpl credentialService = AgentCredentialTestSupport.credentialService(null);
+        setField(service, "nodeAgentCredentialService", credentialService);
 
         ComputeNodeDO node = new ComputeNodeDO();
         node.setId(7L);
         node.setName("worker-7");
-        node.setAgentToken("secret-agent-token");
+        // 库中只有哈希与密文，管理端展示时解密
+        AgentCredentialTestSupport.storeToken(credentialService, node, "secret-agent-token");
 
         ComputeNodeRespVO hidden = toRespVO(service, node, false);
         assertNull(hidden.getAgentToken());

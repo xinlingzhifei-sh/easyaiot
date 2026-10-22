@@ -8,8 +8,8 @@ import com.basiclab.iot.node.dal.pgsql.NodeMetricSnapshotMapper;
 import com.basiclab.iot.node.domain.vo.NodeAgentHeartbeatReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentRegisterReqVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.EdgeNodeService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeAgentService;
 import com.basiclab.iot.node.service.NodeClusterMetricsBroadcaster;
 import com.basiclab.iot.node.service.NodeSentinelService;
@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit;
 import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_CAPACITY_MISMATCH;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_HOST_MISMATCH;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.COMPUTE_NODE_NOT_EXISTS;
 
 @Service
 @Validated
@@ -65,6 +63,9 @@ public class NodeAgentServiceImpl implements NodeAgentService {
 
     @Resource
     private NodeSentinelService nodeSentinelService;
+
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -133,14 +134,7 @@ public class NodeAgentServiceImpl implements NodeAgentService {
     }
 
     private ComputeNodeDO validateAgent(Long nodeId, String agentToken) {
-        ComputeNodeDO node = computeNodeMapper.selectById(nodeId);
-        if (node == null) {
-            throw exception(COMPUTE_NODE_NOT_EXISTS);
-        }
-        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
-            throw exception(AGENT_TOKEN_INVALID);
-        }
-        return node;
+        return nodeAgentCredentialService.authenticate(nodeId, agentToken);
     }
 
     private void touchHeartbeat(Long nodeId) {

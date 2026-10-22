@@ -39,7 +39,10 @@ class NodeSentinelRemediatorServiceImplTest {
     void remediateRejectsWrongAgentTokenBeforeTakingTheLock() {
         StringRedisTemplate redis = mock(StringRedisTemplate.class);
         NodeSentinelRemediatorServiceImpl service = new NodeSentinelRemediatorServiceImpl();
-        ReflectionTestUtils.setField(service, "computeNodeMapper", nodeMapper());
+        ComputeNodeMapper mapper = nodeMapper();
+        ReflectionTestUtils.setField(service, "computeNodeMapper", mapper);
+        ReflectionTestUtils.setField(service, "nodeAgentCredentialService",
+                AgentCredentialTestSupport.credentialService(mapper));
         ReflectionTestUtils.setField(service, "stringRedisTemplate", redis);
 
         NodeSentinelRemediateReqVO reqVO = new NodeSentinelRemediateReqVO();
@@ -55,7 +58,10 @@ class NodeSentinelRemediatorServiceImplTest {
     @Test
     void remediationReportAcceptsOnlyTheNodeAgentToken() {
         NodeSentinelServiceImpl service = new NodeSentinelServiceImpl();
-        ReflectionTestUtils.setField(service, "computeNodeMapper", nodeMapper());
+        ComputeNodeMapper mapper = nodeMapper();
+        ReflectionTestUtils.setField(service, "computeNodeMapper", mapper);
+        ReflectionTestUtils.setField(service, "nodeAgentCredentialService",
+                AgentCredentialTestSupport.credentialService(mapper));
         ReflectionTestUtils.setField(service, "nodeSentinelRemediateLogMapper", mock(NodeSentinelRemediateLogMapper.class));
 
         NodeSentinelRemediateReportReqVO reqVO = new NodeSentinelRemediateReportReqVO();

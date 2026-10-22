@@ -92,7 +92,15 @@ CREATE TABLE public.compute_node (
     recording_storage_generation bigint DEFAULT 1 NOT NULL,
     media_public_url character varying(500),
     recording_storage_updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    recording_storage_error character varying(500)
+    recording_storage_error character varying(500),
+    agent_token_hash character varying(160),
+    agent_token_cipher character varying(256),
+    agent_token_prev_hash character varying(160),
+    agent_token_prev_cipher character varying(256),
+    agent_token_prev_expires_at timestamp without time zone,
+    agent_token_pending boolean DEFAULT false NOT NULL,
+    agent_token_generation integer DEFAULT 0 NOT NULL,
+    agent_features jsonb
 );
 
 
@@ -113,6 +121,44 @@ COMMENT ON COLUMN public.compute_node.recording_storage_mode IS '录像物理存
 COMMENT ON COLUMN public.compute_node.recording_storage_state IS '存储模式状态：active / applying / error';
 COMMENT ON COLUMN public.compute_node.recording_storage_generation IS '存储模式代次，切换时递增';
 COMMENT ON COLUMN public.compute_node.media_public_url IS '客户端可安全直连的边缘媒体地址';
+COMMENT ON COLUMN public.compute_node.agent_token IS '旧版明文令牌；iot-node 启动时迁移为哈希 + 密文后置空';
+COMMENT ON COLUMN public.compute_node.agent_token_hash IS 'Agent 令牌加盐哈希（hs256$盐$MAC），用于校验';
+COMMENT ON COLUMN public.compute_node.agent_token_cipher IS 'Agent 令牌密文（AES-GCM，密钥在应用配置中），用于调用 Agent 与写 agent.env';
+COMMENT ON COLUMN public.compute_node.agent_token_prev_expires_at IS '轮换前令牌的失效时间（宽限期）';
+COMMENT ON COLUMN public.compute_node.agent_features IS 'Agent 在指令轮询中声明的能力';
+
+
+--
+-- Name: node_agent_command; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.node_agent_command (
+    id bigserial PRIMARY KEY,
+    node_id bigint NOT NULL,
+    command_type character varying(64) NOT NULL,
+    command_key character varying(160) NOT NULL,
+    payload_json text NOT NULL,
+    status character varying(32) DEFAULT 'pending'::character varying NOT NULL,
+    attempt_count integer DEFAULT 0 NOT NULL,
+    lease_until timestamp without time zone,
+    last_error text,
+    result_json text,
+    acked_at timestamp without time zone,
+    finished_at timestamp without time zone,
+    creator character varying(64),
+    create_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updater character varying(64),
+    update_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted boolean DEFAULT false NOT NULL
+);
+
+CREATE UNIQUE INDEX uk_node_agent_command_active_key
+    ON public.node_agent_command USING btree (node_id, command_key)
+    WHERE deleted = false AND status IN ('pending', 'leased', 'running');
+
+CREATE INDEX idx_node_agent_command_poll
+    ON public.node_agent_command USING btree (node_id, status, lease_until, create_time)
+    WHERE deleted = false;
 
 
 --

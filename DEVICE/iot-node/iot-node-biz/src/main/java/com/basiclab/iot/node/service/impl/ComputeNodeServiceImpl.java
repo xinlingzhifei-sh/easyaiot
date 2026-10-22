@@ -16,6 +16,7 @@ import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
 import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
+import com.basiclab.iot.node.domain.vo.NodeAgentTokenRotateRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendPointRespVO;
@@ -24,9 +25,9 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendRespVO;
 import com.basiclab.iot.node.domain.vo.PlatformAgentBootstrapRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendSeriesRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
-import com.basiclab.iot.node.security.NodeTokenGenerator;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ComputeNodeService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeMediaService;
 import com.basiclab.iot.node.util.AgentDeployUtil;
 import com.basiclab.iot.node.util.NodeOnboardPreflight;
@@ -101,6 +102,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     private NodeWorkloadBindingMapper nodeWorkloadBindingMapper;
     @Resource
     private ObjectMapper objectMapper;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Value("${easyaiot.agent.source-path:}")
     private String agentSourcePath;
@@ -148,7 +151,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             caps.putAll(createReqVO.getCapabilities());
         }
         node.setCapabilities(caps);
-        node.setAgentToken(NodeTokenGenerator.newAgentToken());
+        nodeAgentCredentialService.issue(node);
         ensurePlatformNode();
         ComputeNodeDO platformNode = computeNodeMapper.selectPlatformNode();
         if (platformNode != null) {
@@ -214,7 +217,6 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         updateObj.setCapabilities(caps);
         updateObj.setSshPort(defaultPort(updateReqVO.getSshPort(), defaultPort(existing.getSshPort(), DEFAULT_SSH_PORT)));
         updateObj.setAgentPort(defaultPort(updateReqVO.getAgentPort(), defaultPort(existing.getAgentPort(), DEFAULT_AGENT_PORT)));
-        updateObj.setAgentToken(existing.getAgentToken());
         updateObj.setStatus(existing.getStatus());
         updateObj.setLastHeartbeatAt(existing.getLastHeartbeatAt());
         applyFunctionGpuDefaults(updateObj, functions, updateReqVO.getMaxGpuCount());
@@ -445,7 +447,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         Map<String, Boolean> caps = NodeFunctions.capabilities(NodeFunctions.PLATFORM_DEFAULT);
         caps.put(PLATFORM_CAPABILITY_KEY, true);
         node.setCapabilities(caps);
-        node.setAgentToken(NodeTokenGenerator.newAgentToken());
+        nodeAgentCredentialService.issue(node);
         node.setRemark("平台控制面宿主机，自动纳管");
         applyPlatformRecordingStorage(node);
         computeNodeMapper.insert(node);
@@ -481,7 +483,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         }
         PlatformAgentBootstrapRespVO resp = new PlatformAgentBootstrapRespVO();
         resp.setNodeId(node.getId());
-        resp.setAgentToken(node.getAgentToken());
+        resp.setAgentToken(nodeAgentCredentialService.currentToken(node));
         resp.setAgentPort(defaultPort(node.getAgentPort(), DEFAULT_AGENT_PORT));
         resp.setControlPlaneUrl(resolveControlPlaneUrl(null));
         return resp;
@@ -520,14 +522,17 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String resetAgentToken(Long id) {
+        return rotateAgentToken(id, false).getAgentToken();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public NodeAgentTokenRotateRespVO rotateAgentToken(Long id, boolean immediate) {
         ComputeNodeDO node = validateExists(id);
         if (isPlatformNode(node)) {
             throw exception(COMPUTE_NODE_PLATFORM_UPDATE_FORBIDDEN);
         }
-        String token = NodeTokenGenerator.newAgentToken();
-        node.setAgentToken(token);
-        computeNodeMapper.updateById(node);
-        return token;
+        return nodeAgentCredentialService.rotate(node, immediate);
     }
 
     @Override
@@ -632,7 +637,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
                     ? node.getAgentPort() : DEFAULT_AGENT_PORT;
             String envContent = AgentDeployUtil.buildEnvContent(
                     node.getId(),
-                    node.getAgentToken() != null ? node.getAgentToken() : "",
+                    StrUtil.blankToDefault(nodeAgentCredentialService.currentToken(node), ""),
                     agentPort,
                     controlPlaneUrl,
                     node.getNodeRole());
@@ -1224,7 +1229,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         resp.setIsPlatform(isPlatformNode(node));
         resp.setFunctions(NodeFunctions.parse(node));
         if (exposeToken) {
-            resp.setAgentToken(node.getAgentToken());
+            resp.setAgentToken(nodeAgentCredentialService.currentToken(node));
         } else {
             resp.setAgentToken(null);
         }
@@ -1912,12 +1917,15 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             SshSessionHelper ssh, ComputeNodeDO node, String expectedControlPlaneUrl) throws Exception {
         String envFile = AgentDeployUtil.REMOTE_INSTALL_DIR + "/agent.env";
         String expectedNodeId = String.valueOf(node.getId());
-        String expectedToken = node.getAgentToken() != null ? node.getAgentToken() : "";
+        String expectedToken = StrUtil.blankToDefault(nodeAgentCredentialService.currentToken(node), "");
+        // 轮换宽限期内 Agent 可能还拿着上一令牌，同样视为配置正确
+        String expectedPrevToken = StrUtil.blankToDefault(nodeAgentCredentialService.previousToken(node), "");
         int expectedAgentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                 ? node.getAgentPort() : DEFAULT_AGENT_PORT;
         String script = "ENV_FILE='" + envFile + "'\n"
                 + "EXPECTED_NODE_ID='" + expectedNodeId + "'\n"
                 + "EXPECTED_TOKEN='" + expectedToken.replace("'", "'\\''") + "'\n"
+                + "EXPECTED_PREV_TOKEN='" + expectedPrevToken.replace("'", "'\\''") + "'\n"
                 + "EXPECTED_CP='" + expectedControlPlaneUrl.replace("'", "'\\''") + "'\n"
                 + "EXPECTED_LISTEN_PORT='" + expectedAgentPort + "'\n"
                 + "if [ ! -f \"$ENV_FILE\" ]; then echo ENV_MISSING; exit 0; fi\n"
@@ -1932,7 +1940,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
                 + "echo AGENT_LISTEN_PORT=${LISTEN_PORT:-unset}\n"
                 + "echo EXPECTED_LISTEN_PORT=$EXPECTED_LISTEN_PORT\n"
                 + "if [ \"$NODE_ID\" = \"$EXPECTED_NODE_ID\" ]; then echo NODE_ID_MATCH=1; else echo NODE_ID_MATCH=0; fi\n"
-                + "if [ \"$TOKEN\" = \"$EXPECTED_TOKEN\" ]; then echo TOKEN_MATCH=1; else echo TOKEN_MATCH=0; fi\n"
+                + "if [ -n \"$TOKEN\" ] && { [ \"$TOKEN\" = \"$EXPECTED_TOKEN\" ] || [ \"$TOKEN\" = \"$EXPECTED_PREV_TOKEN\" ]; }; "
+                + "then echo TOKEN_MATCH=1; else echo TOKEN_MATCH=0; fi\n"
                 + "if [ \"$CP_URL\" = \"$EXPECTED_CP\" ]; then echo CP_MATCH=1; else echo CP_MATCH=0; fi\n"
                 + "if [ \"$LISTEN_PORT\" = \"$EXPECTED_LISTEN_PORT\" ]; then echo LISTEN_PORT_MATCH=1; else echo LISTEN_PORT_MATCH=0; fi\n"
                 + "if echo \"$CP_URL\" | grep -Eq 'localhost|127\\.0\\.0\\.1'; then echo CP_LOCALHOST=1; fi";

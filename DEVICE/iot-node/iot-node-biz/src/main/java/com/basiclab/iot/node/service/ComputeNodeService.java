@@ -7,6 +7,7 @@ import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
 import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
+import com.basiclab.iot.node.domain.vo.NodeAgentTokenRotateRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendReqVO;
@@ -36,6 +37,12 @@ public interface ComputeNodeService {
     boolean testSsh(Long id);
 
     String resetAgentToken(Long id);
+
+    /**
+     * 轮换 Agent 令牌：旧令牌在宽限期内仍有效（immediate=true 时立即失效），
+     * Agent 支持时经指令轮询通道推送新令牌。
+     */
+    NodeAgentTokenRotateRespVO rotateAgentToken(Long id, boolean immediate);
 
     ComputeNodeRespVO getAgentSetup(Long id);
 

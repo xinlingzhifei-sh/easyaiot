@@ -10,7 +10,7 @@ import com.basiclab.iot.node.domain.vo.NodeWorkloadBundleBatchRespVO;
 import com.basiclab.iot.node.domain.vo.NodeWorkloadBundleNodeResultVO;
 import com.basiclab.iot.node.enums.WorkloadBundleTypeEnum;
 import com.basiclab.iot.node.framework.SentinelCapabilityRegistry;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeFfmpegDeployService;
 import com.basiclab.iot.node.service.NodeMediaService;
 import com.basiclab.iot.node.service.NodeRuntimeCppDeployService;
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_COMMAND_FAILED;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.COMPUTE_NODE_NOT_EXISTS;
 
 @Service
@@ -41,6 +40,8 @@ public class NodeSentinelRemediatorServiceImpl implements NodeSentinelRemediator
 
     @Resource
     private ComputeNodeMapper computeNodeMapper;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
     @Resource
     private SentinelCapabilityRegistry sentinelCapabilityRegistry;
     @Resource
@@ -57,13 +58,12 @@ public class NodeSentinelRemediatorServiceImpl implements NodeSentinelRemediator
 
     @Override
     public Map<String, Object> remediate(NodeSentinelRemediateReqVO reqVO) {
-        ComputeNodeDO node = computeNodeMapper.selectById(reqVO.getNodeId());
+        // 未带令牌时由 Controller 保证调用方是管理后台用户
+        ComputeNodeDO node = StrUtil.isNotBlank(reqVO.getAgentToken())
+                ? nodeAgentCredentialService.authenticate(reqVO.getNodeId(), reqVO.getAgentToken())
+                : computeNodeMapper.selectById(reqVO.getNodeId());
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
-        }
-        if (StrUtil.isNotBlank(reqVO.getAgentToken())
-                && !NodeTokenVerifier.matches(node.getAgentToken(), reqVO.getAgentToken())) {
-            throw exception(AGENT_TOKEN_INVALID);
         }
 
         String lockKey = REMEDIATE_LOCK_PREFIX + node.getId();

@@ -11,8 +11,8 @@ import com.basiclab.iot.node.domain.vo.NodeAgentCommandEnqueueReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.NodeAgentCommandService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.COMPUTE_NODE_NOT_EXISTS;
 
 @Service
@@ -49,6 +48,8 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     private ComputeNodeMapper computeNodeMapper;
     @Resource
     private NodeAgentCommandMapper nodeAgentCommandMapper;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -166,14 +167,7 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     }
 
     private ComputeNodeDO validateAgent(Long nodeId, String agentToken) {
-        ComputeNodeDO node = computeNodeMapper.selectById(nodeId);
-        if (node == null) {
-            throw exception(COMPUTE_NODE_NOT_EXISTS);
-        }
-        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
-            throw exception(AGENT_TOKEN_INVALID);
-        }
-        return node;
+        return nodeAgentCredentialService.authenticate(nodeId, agentToken);
     }
 
     private NodeAgentCommandDO validateCommand(Long commandId, Long nodeId) {
