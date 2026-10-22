@@ -3500,6 +3500,20 @@ ensure_nacos_data_ready() {
     return 1
 }
 
+# 一次性开关用后即还原：Nacos 首次初始化完成、数据目录已有内容时，把 .env.docker 里的
+# YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT 改回 false，避免日后数据目录丢失时被静默重新初始化。
+consume_nacos_empty_init_switch() {
+    local middleware_data_root nacos_data_dir current
+    [ -f "$MIDDLEWARE_ENV_FILE" ] || return 0
+    current=$(read_middleware_env_value YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT | tr '[:upper:]' '[:lower:]')
+    [[ "$current" =~ ^(1|true|yes)$ ]] || return 0
+    middleware_data_root=$(resolve_middleware_data_root) || return 0
+    nacos_data_dir="${middleware_data_root}/nacos_data/data"
+    find "$nacos_data_dir" -mindepth 1 -print -quit 2>/dev/null | grep -q . || return 0
+    _set_env_docker_kv "$MIDDLEWARE_ENV_FILE" YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT false
+    print_info "Nacos 首次初始化已完成，已将 YFEIEYE_NACOS_ALLOW_EMPTY_DATA_INIT 还原为 false"
+}
+
 # 读取 VIDEO bridge 回调主机。优先使用已导出的变量，其次读取
 # .env.docker；只接受主机/IP 字符，避免把任意 URL 注入 SRS 配置。
 resolve_video_callback_host() {
@@ -4193,6 +4207,7 @@ wait_for_nacos() {
     while [ $attempt -lt $max_attempts ]; do
         if _nacos_is_ready; then
             print_success "Nacos 服务已就绪"
+            consume_nacos_empty_init_switch
             return 0
         fi
         attempt=$((attempt + 1))
