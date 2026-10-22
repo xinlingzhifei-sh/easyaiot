@@ -7,6 +7,7 @@ import com.basiclab.iot.system.controller.admin.auth.vo.MediaPermissionCheckReqV
 import com.basiclab.iot.system.controller.admin.auth.vo.MediaPermissionCheckRespVO;
 import com.basiclab.iot.system.dal.dataobject.user.AdminUserDO;
 import com.basiclab.iot.system.dal.pgsql.supervision.SupervisionAlertReviewItemMapper;
+import com.basiclab.iot.system.framework.supervision.PermissionServiceReviewOperatorPermissionChecker;
 import com.basiclab.iot.system.service.permission.PermissionService;
 import com.basiclab.iot.system.service.supervision.ConfiguredReviewCameraPermissionResolver;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.ReviewCameraPermissionRequest;
@@ -41,7 +42,7 @@ class MediaPermissionCheckControllerTest {
         resolver.setUsers(Map.of(42L, List.of("camera-01")));
         resolver.setActionPermissions(Map.of(
                 "coverage", List.of("system:supervision-alert-review:media:playback")));
-        resolver.setPermissionService(permissionService(true));
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService(true)));
         resolver.setReviewItemMapper(reviewItemMapper(List.of("camera-01")));
         AuthController controller = new AuthController();
         ReflectionTestUtils.setField(controller, "userService", userService);
@@ -93,7 +94,7 @@ class MediaPermissionCheckControllerTest {
         resolver.setUsers(Map.of(42L, List.of("camera-01")));
         resolver.setActionPermissions(Map.of(
                 "record_manage", List.of("system:supervision-alert-review:media:manage")));
-        resolver.setPermissionService(permissionService(true));
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService(true)));
         resolver.setReviewItemMapper(reviewItemMapper(List.of("camera-01")));
         ReflectionTestUtils.setField(controller, "permissionService", permissionService(true));
         MediaPermissionCheckRespVO missingManageCamera = controller.checkMediaPermission(
@@ -120,7 +121,7 @@ class MediaPermissionCheckControllerTest {
         resolver.setUsers(Map.of(42L, List.of("camera-01")));
         resolver.setActionPermissions(Map.of(
                 "alert_read", List.of("system:supervision-alert-review:media:playback")));
-        resolver.setPermissionService(permissionService(true));
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService(true)));
         AuthController controller = new AuthController();
         ReflectionTestUtils.setField(controller, "userService", userService(currentUser));
         ReflectionTestUtils.setField(controller, "reviewCameraPermissionResolver", resolver);
@@ -147,7 +148,7 @@ class MediaPermissionCheckControllerTest {
         AtomicReference<List<String>> requestedPermissions = new AtomicReference<>();
         ConfiguredReviewCameraPermissionResolver resolver = new ConfiguredReviewCameraPermissionResolver();
         resolver.setUsers(Map.of(42L, List.of("camera-01")));
-        resolver.setPermissionService(permissionService(true, requestedPermissions));
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService(true, requestedPermissions)));
         resolver.setReviewItemMapper(reviewItemMapper(List.of("camera-01")));
 
         List<String> granted = resolver.resolveAllowedCameraIds(

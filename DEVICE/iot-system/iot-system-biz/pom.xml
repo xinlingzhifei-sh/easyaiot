@@ -40,6 +40,12 @@
             <artifactId>iot-infra-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- 司法监管业务（与本服务同进程运行；拆分说明见 docs/superpowers/specs/2026-10-22-supervision-module-split.md） -->
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-supervision-biz</artifactId>
+            <version>${revision}</version>
+        </dependency>
 
         <!-- 业务组件 -->
         <dependency>

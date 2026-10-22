@@ -21,7 +21,7 @@ export const FR_RELEASE_PATH_RULES = [
   {
     group: 'DEVICE review backend',
     match:
-      /^DEVICE\/iot-system\/iot-system-biz\/src\/main\/java\/com\/basiclab\/iot\/system\/(controller\/admin\/supervision\/|controller\/admin\/auth\/(AuthController\.java|vo\/MediaPermissionCheck.*\.java)$|dal\/dataobject\/supervision\/|dal\/pgsql\/supervision\/|job\/supervision\/|service\/supervision\/)/,
+      /^DEVICE\/(iot-supervision\/(pom\.xml$|iot-supervision-(api|biz)\/pom\.xml$|iot-supervision-api\/src\/main\/java\/com\/basiclab\/iot\/system\/enums\/supervision\/|iot-supervision-biz\/src\/main\/java\/com\/basiclab\/iot\/system\/(controller\/admin\/supervision\/|dal\/dataobject\/supervision\/|dal\/pgsql\/supervision\/|job\/supervision\/|service\/supervision\/))|iot-system\/iot-system-biz\/src\/main\/java\/com\/basiclab\/iot\/system\/(controller\/admin\/auth\/(AuthController\.java|vo\/MediaPermissionCheck.*\.java)$|framework\/supervision\/))/,
   },
   {
     group: 'DEVICE tenant job runtime',
@@ -31,12 +31,12 @@ export const FR_RELEASE_PATH_RULES = [
   {
     group: 'DEVICE schema and migration',
     match:
-      /^DEVICE\/iot-system\/iot-system-biz\/src\/main\/resources\/(schemas\/alert-review-|sql\/migrations\/(V20260701__supervision_event_closure_baseline|V2026070[245678]__alert_review_(frigate_hardening|segment_tenant_scope|review_data_backfill|media_permissions|item_media_audit|segment_status_transition)|V20260708_2__alert_review_scheduler_jobs|V20260708_3__alert_review_report_ack|V20260708_4__alert_review_runtime_outbox_notify_templates|V20260708_5__alert_review_runtime_outbox_delivery|V20260708_6__alert_review_runtime_outbox_claim|V20260708_7__alert_review_segment_end_time_guard|V20260708_8__alert_review_segment_alert_severity_guard|V20260708_9__alert_review_merge_index_same_camera|V20260708_10__alert_review_deleted_smallint|V20260709__alert_review_scheduler_activation|V20260710__alert_review_export_queue|V20260711__alert_review_media_manage_permission|V20260712__alert_review_semantic_trigger_confirmation|V20260713__alert_review_semantic_index_claim|V20260713_2__alert_review_evidence_record_start|V20260713_3__supervision_event_create_permission|V20260713_4__alert_review_local_scheduler_ownership|V20260713_5__alert_review_notify_message_params_text)\.sql)/,
+      /^DEVICE\/iot-supervision\/iot-supervision-biz\/src\/main\/resources\/(schemas\/alert-review-|sql\/migrations\/(V20260701__supervision_event_closure_baseline|V2026070[245678]__alert_review_(frigate_hardening|segment_tenant_scope|review_data_backfill|media_permissions|item_media_audit|segment_status_transition)|V20260708_2__alert_review_scheduler_jobs|V20260708_3__alert_review_report_ack|V20260708_4__alert_review_runtime_outbox_notify_templates|V20260708_5__alert_review_runtime_outbox_delivery|V20260708_6__alert_review_runtime_outbox_claim|V20260708_7__alert_review_segment_end_time_guard|V20260708_8__alert_review_segment_alert_severity_guard|V20260708_9__alert_review_merge_index_same_camera|V20260708_10__alert_review_deleted_smallint|V20260709__alert_review_scheduler_activation|V20260710__alert_review_export_queue|V20260711__alert_review_media_manage_permission|V20260712__alert_review_semantic_trigger_confirmation|V20260713__alert_review_semantic_index_claim|V20260713_2__alert_review_evidence_record_start|V20260713_3__supervision_event_create_permission|V20260713_4__alert_review_local_scheduler_ownership|V20260713_5__alert_review_notify_message_params_text)\.sql)/,
   },
   {
     group: 'DEVICE review regression tests',
     match:
-      /^DEVICE\/iot-system\/iot-system-biz\/src\/test\/java\/com\/basiclab\/iot\/system\/supervision\/(AlertReviewDataSchemaValidatorTest|ConfiguredReviewCameraPermissionResolver|HttpVideoResolver|MediaPermissionCheckControllerTest|NotifyReviewRuntimeOutboxPublisherTest|ReviewEvidenceManifestSignerTest|SupervisionAlertReview|SupervisionPersistenceIdContractTest|SupervisionSchemaSqlTest|VideoMediaServiceRequestSignerTest)/,
+      /^DEVICE\/(iot-system\/iot-system-biz|iot-supervision\/iot-supervision-biz)\/src\/test\/java\/com\/basiclab\/iot\/system\/supervision\/(AlertReviewDataSchemaValidatorTest|ConfiguredReviewCameraPermissionResolver|HttpVideoResolver|MediaPermissionCheckControllerTest|NotifyReviewRuntimeOutboxPublisherTest|ReviewEvidenceManifestSignerTest|SupervisionAlertReview|SupervisionPersistenceIdContractTest|SupervisionSchemaSqlTest|VideoMediaServiceRequestSignerTest)/,
   },
   {
     group: 'DEVICE video integration config',
@@ -114,42 +114,48 @@ export const TRACKED_RELEASE_PATHS = [
   'DEVICE/iot-common/iot-common-tenant/src/main/java/com/basiclab/iot/common/config/YudaoTenantAutoConfiguration.java',
   'DEVICE/iot-common/iot-common-tenant/src/main/java/com/basiclab/iot/common/core/job/TenantJobAspect.java',
   'DEVICE/iot-common/iot-common-tenant/src/test/java/com/basiclab/iot/common/core/job/TenantJobAspectTest.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/controller/admin/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/controller/admin/supervision',
   'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/controller/admin/auth/AuthController.java',
+  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/framework/supervision',
   'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/controller/admin/auth/vo/MediaPermissionCheckReqVO.java',
   'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/controller/admin/auth/vo/MediaPermissionCheckRespVO.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/job/supervision',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/job/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision',
   'DEVICE/iot-system/iot-system-biz/src/main/resources/application.yaml',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/schemas',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260702__alert_review_frigate_hardening.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260712__alert_review_semantic_trigger_confirmation.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713__alert_review_semantic_index_claim.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_2__alert_review_evidence_record_start.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_3__supervision_event_create_permission.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/schemas',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260702__alert_review_frigate_hardening.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260712__alert_review_semantic_trigger_confirmation.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713__alert_review_semantic_index_claim.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_2__alert_review_evidence_record_start.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_3__supervision_event_create_permission.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
   'DEVICE/iot-system/iot-system-biz/src/test/java/com/basiclab/iot/system/supervision',
+  'DEVICE/iot-supervision/pom.xml',
+  'DEVICE/iot-supervision/iot-supervision-api/pom.xml',
+  'DEVICE/iot-supervision/iot-supervision-api/src/main/java/com/basiclab/iot/system/enums/supervision',
+  'DEVICE/iot-supervision/iot-supervision-biz/pom.xml',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/test/java/com/basiclab/iot/system/supervision',
   'VIDEO/.gitignore',
   'VIDEO/apply_migrations.py',
   'VIDEO/bootstrap_schema.py',
@@ -411,9 +417,9 @@ export function scanWebTypecheckGate(files) {
 }
 
 export function scanMediaPermissionGate(files) {
-  const migrationPath = 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql';
+  const migrationPath = 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql';
   const migration = files.find((file) => normalizePath(file.path || '') === migrationPath);
-  const managementMigrationPath = 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql';
+  const managementMigrationPath = 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql';
   const managementMigration = files.find((file) => normalizePath(file.path || '') === managementMigrationPath);
   const appConfigPath = 'DEVICE/iot-system/iot-system-biz/src/main/resources/application.yaml';
   const appConfig = files.find((file) => normalizePath(file.path || '') === appConfigPath);

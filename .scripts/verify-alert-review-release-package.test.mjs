@@ -452,7 +452,7 @@ assert.equal(clean.ok, true);
 assert.deepEqual(clean.blockers, []);
 
 const untrackedBackend = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/SupervisionAlertReviewServiceImpl.java
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/SupervisionAlertReviewServiceImpl.java
 `);
 assert.equal(untrackedBackend.ok, false);
 assert.equal(untrackedBackend.blockers[0].reason, 'untracked');
@@ -467,7 +467,7 @@ assert.equal(unstagedWorkbench.blockers[1].group, 'WEB alert review workbench pa
 
 const stagedWorkbench = evaluateStatus(`
 A  WEB/src/views/alert/components/AlertReviewWorkbench.vue
-M  DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql
+M  DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql
 `);
 assert.equal(stagedWorkbench.ok, true);
 assert.deepEqual(stagedWorkbench.blockers, []);
@@ -558,12 +558,12 @@ assert.deepEqual(
 );
 
 const untrackedBaselineMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql
 `);
 assert.equal(untrackedBaselineMigration.ok, false);
 assert.equal(untrackedBaselineMigration.blockers[0].group, 'DEVICE schema and migration');
 
-const supervisionEventCreatePermissionMigrationPath = 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_3__supervision_event_create_permission.sql';
+const supervisionEventCreatePermissionMigrationPath = 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_3__supervision_event_create_permission.sql';
 const untrackedSupervisionEventCreatePermissionMigration = evaluateStatus(`
 ?? ${supervisionEventCreatePermissionMigrationPath}
 `);
@@ -575,7 +575,7 @@ assert.equal(
 );
 
 const localSchedulerOwnershipMigrationPath =
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql';
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql';
 const untrackedLocalSchedulerOwnershipMigration = evaluateStatus(`
 ?? ${localSchedulerOwnershipMigrationPath}
 `);
@@ -586,7 +586,7 @@ assert.equal(
 );
 
 const notifyMessageParamsMigrationPath =
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql';
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql';
 const untrackedNotifyMessageParamsMigration = evaluateStatus(`
 ?? ${notifyMessageParamsMigrationPath}
 `);
@@ -678,30 +678,30 @@ const trackedReleaseEntries = releaseEntriesForTrackedPaths([
   'DEVICE/iot-common/iot-common-tenant/src/main/java/com/basiclab/iot/common/config/YudaoTenantAutoConfiguration.java',
   'DEVICE/iot-common/iot-common-tenant/src/main/java/com/basiclab/iot/common/core/job/TenantJobAspect.java',
   'DEVICE/iot-common/iot-common-tenant/src/test/java/com/basiclab/iot/common/core/job/TenantJobAspectTest.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryDO.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryMapper.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryStore.java',
-  'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryMapperStore.java',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryDO.java',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryMapper.java',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryStore.java',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryMapperStore.java',
   'DEVICE/iot-system/iot-system-biz/src/test/java/com/basiclab/iot/system/supervision/NotifyReviewRuntimeOutboxPublisherTest.java',
 ]);
 assert.equal(trackedReleaseEntries.length, 47);
@@ -744,122 +744,122 @@ assert.deepEqual(
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__supervision_event_closure_baseline.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713_5__alert_review_notify_message_params_text.sql',
       'DEVICE schema and migration',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryDO.java',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/dataobject/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryDO.java',
       'DEVICE review backend',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryMapper.java',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/dal/pgsql/supervision/SupervisionAlertReviewRuntimeOutboxDeliveryMapper.java',
       'DEVICE review backend',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryStore.java',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryStore.java',
       'DEVICE review backend',
     ],
     [
       '  ',
-      'DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryMapperStore.java',
+      'DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/ReviewRuntimeOutboxNotifyDeliveryMapperStore.java',
       'DEVICE review backend',
     ],
     [
@@ -871,109 +871,109 @@ assert.deepEqual(
 );
 
 const unstagedTenantMigration = evaluateStatus(`
- M DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql
+ M DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260704__alert_review_segment_tenant_scope.sql
 `);
 assert.equal(unstagedTenantMigration.ok, false);
 assert.equal(unstagedTenantMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedReviewDataMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260705__alert_review_review_data_backfill.sql
 `);
 assert.equal(untrackedReviewDataMigration.ok, false);
 assert.equal(untrackedReviewDataMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedMediaPermissionMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql
 `);
 assert.equal(untrackedMediaPermissionMigration.ok, false);
 assert.equal(untrackedMediaPermissionMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedItemMediaAuditMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260707__alert_review_item_media_audit.sql
 `);
 assert.equal(untrackedItemMediaAuditMigration.ok, false);
 assert.equal(untrackedItemMediaAuditMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedSegmentTransitionMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708__alert_review_segment_status_transition.sql
 `);
 assert.equal(untrackedSegmentTransitionMigration.ok, false);
 assert.equal(untrackedSegmentTransitionMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedSchedulerJobsMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_2__alert_review_scheduler_jobs.sql
 `);
 assert.equal(untrackedSchedulerJobsMigration.ok, false);
 assert.equal(untrackedSchedulerJobsMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedReportAckMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_3__alert_review_report_ack.sql
 `);
 assert.equal(untrackedReportAckMigration.ok, false);
 assert.equal(untrackedReportAckMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedRuntimeOutboxNotifyTemplateMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_4__alert_review_runtime_outbox_notify_templates.sql
 `);
 assert.equal(untrackedRuntimeOutboxNotifyTemplateMigration.ok, false);
 assert.equal(untrackedRuntimeOutboxNotifyTemplateMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedRuntimeOutboxDeliveryMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_5__alert_review_runtime_outbox_delivery.sql
 `);
 assert.equal(untrackedRuntimeOutboxDeliveryMigration.ok, false);
 assert.equal(untrackedRuntimeOutboxDeliveryMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedRuntimeOutboxClaimMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_6__alert_review_runtime_outbox_claim.sql
 `);
 assert.equal(untrackedRuntimeOutboxClaimMigration.ok, false);
 assert.equal(untrackedRuntimeOutboxClaimMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedSegmentEndTimeGuardMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_7__alert_review_segment_end_time_guard.sql
 `);
 assert.equal(untrackedSegmentEndTimeGuardMigration.ok, false);
 assert.equal(untrackedSegmentEndTimeGuardMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedSegmentAlertSeverityGuardMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_8__alert_review_segment_alert_severity_guard.sql
 `);
 assert.equal(untrackedSegmentAlertSeverityGuardMigration.ok, false);
 assert.equal(untrackedSegmentAlertSeverityGuardMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedMergeIndexSameCameraMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_9__alert_review_merge_index_same_camera.sql
 `);
 assert.equal(untrackedMergeIndexSameCameraMigration.ok, false);
 assert.equal(untrackedMergeIndexSameCameraMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedDeletedSmallintMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260708_10__alert_review_deleted_smallint.sql
 `);
 assert.equal(untrackedDeletedSmallintMigration.ok, false);
 assert.equal(untrackedDeletedSmallintMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedSchedulerActivationMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260709__alert_review_scheduler_activation.sql
 `);
 assert.equal(untrackedSchedulerActivationMigration.ok, false);
 assert.equal(untrackedSchedulerActivationMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedExportQueueMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260710__alert_review_export_queue.sql
 `);
 assert.equal(untrackedExportQueueMigration.ok, false);
 assert.equal(untrackedExportQueueMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const untrackedMediaManageMigration = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql
+?? DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql
 `);
 assert.equal(untrackedMediaManageMigration.ok, false);
 assert.equal(untrackedMediaManageMigration.blockers[0].group, 'DEVICE schema and migration');
 
 const semanticTriggerConfirmationMigrationPath =
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260712__alert_review_semantic_trigger_confirmation.sql';
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260712__alert_review_semantic_trigger_confirmation.sql';
 const untrackedSemanticTriggerConfirmationMigration = evaluateStatus(`
 ?? ${semanticTriggerConfirmationMigrationPath}
 `);
@@ -988,7 +988,7 @@ assert.ok(
 );
 
 const semanticIndexClaimMigrationPath =
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260713__alert_review_semantic_index_claim.sql';
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260713__alert_review_semantic_index_claim.sql';
 const untrackedSemanticIndexClaimMigration = evaluateStatus(`
 ?? ${semanticIndexClaimMigrationPath}
 `);
@@ -1030,13 +1030,13 @@ assert.deepEqual(
 );
 
 const untrackedManifestSignerTest = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/test/java/com/basiclab/iot/system/supervision/ReviewEvidenceManifestSignerTest.java
+?? DEVICE/iot-supervision/iot-supervision-biz/src/test/java/com/basiclab/iot/system/supervision/ReviewEvidenceManifestSignerTest.java
 `);
 assert.equal(untrackedManifestSignerTest.ok, false);
 assert.equal(untrackedManifestSignerTest.blockers[0].group, 'DEVICE review regression tests');
 
 const untrackedSupervisionPersistenceIdContractTest = evaluateStatus(`
-?? DEVICE/iot-system/iot-system-biz/src/test/java/com/basiclab/iot/system/supervision/SupervisionPersistenceIdContractTest.java
+?? DEVICE/iot-supervision/iot-supervision-biz/src/test/java/com/basiclab/iot/system/supervision/SupervisionPersistenceIdContractTest.java
 `);
 assert.equal(untrackedSupervisionPersistenceIdContractTest.ok, false);
 assert.equal(untrackedSupervisionPersistenceIdContractTest.blockers[0].group, 'DEVICE review regression tests');
@@ -1053,7 +1053,7 @@ assert.equal(untrackedWorkbenchRunner.blockers[2].group, 'WEB alert review workb
 
 const untrackedSecurityAndRealUiArtifacts = evaluateStatus(`
 ?? DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/controller/admin/auth/vo/MediaPermissionCheckReqVO.java
-?? DEVICE/iot-system/iot-system-biz/src/test/java/com/basiclab/iot/system/supervision/AlertReviewDataSchemaValidatorTest.java
+?? DEVICE/iot-supervision/iot-supervision-biz/src/test/java/com/basiclab/iot/system/supervision/AlertReviewDataSchemaValidatorTest.java
 ?? VIDEO/app/services/media_authorization_service.py
 ?? VIDEO/test_media_authorization.py
 ?? WEB/src/views/alert/index.vue
@@ -1453,11 +1453,11 @@ const completeMediaPermissionConfigContent = [
 
 const mediaPermissionGateScan = scanMediaPermissionGate([
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
     content: completeMediaPermissionSeedContent,
   },
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
     content: completeMediaManagePermissionSeedContent,
   },
   {
@@ -1469,11 +1469,11 @@ assert.equal(mediaPermissionGateScan.ok, true);
 
 const missingSnapshotMediaPermissionGateScan = scanMediaPermissionGate([
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
     content: completeMediaPermissionSeedContent.replace('system:supervision-alert-review:media:snapshot; ', ''),
   },
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
     content: completeMediaManagePermissionSeedContent,
   },
   {
@@ -1488,11 +1488,11 @@ assert.deepEqual(missingSnapshotMediaPermissionGateScan.blockers.map((blocker) =
 
 const missingManageMediaPermissionGateScan = scanMediaPermissionGate([
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
     content: completeMediaPermissionSeedContent,
   },
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
     content: '',
   },
   {
@@ -1507,11 +1507,11 @@ assert.deepEqual(missingManageMediaPermissionGateScan.blockers.map((blocker) => 
 
 const missingSnapshotMediaPermissionConfigGateScan = scanMediaPermissionGate([
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260706__alert_review_media_permissions.sql',
     content: completeMediaPermissionSeedContent,
   },
   {
-    path: 'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
+    path: 'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260711__alert_review_media_manage_permission.sql',
     content: completeMediaManagePermissionSeedContent,
   },
   {
@@ -3300,7 +3300,7 @@ try {
   const statusPath = join(tempDir, 'status.txt');
   writeFileSync(
     statusPath,
-    '?? DEVICE/iot-system/iot-system-biz/src/main/java/com/basiclab/iot/system/service/supervision/SupervisionAlertReviewServiceImpl.java\n',
+    '?? DEVICE/iot-supervision/iot-supervision-biz/src/main/java/com/basiclab/iot/system/service/supervision/SupervisionAlertReviewServiceImpl.java\n',
   );
   const scriptPath = join(dirname(fileURLToPath(import.meta.url)), 'verify-alert-review-release-package.mjs');
   const cli = spawnSync(process.execPath, [scriptPath, `--status-file=${statusPath}`], {

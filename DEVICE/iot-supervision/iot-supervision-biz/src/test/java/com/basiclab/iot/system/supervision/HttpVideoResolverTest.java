@@ -49,7 +49,7 @@ class HttpVideoResolverTest {
 
     @Test
     void dockerComposeWiresReviewVideoUrlsToRealVideoRecordEndpointsByDefault() throws Exception {
-        String applicationYaml = Files.readString(modulePath("src/main/resources/application.yaml"), StandardCharsets.UTF_8);
+        String applicationYaml = Files.readString(modulePath("../../iot-system/iot-system-biz/src/main/resources/application.yaml"), StandardCharsets.UTF_8);
         String dockerCompose = Files.readString(modulePath("../../docker-compose.yml"), StandardCharsets.UTF_8);
         String coverageResolver = Files.readString(modulePath("src/main/java/com/basiclab/iot/system/service/supervision/HttpVideoRecordCoverageResolver.java"), StandardCharsets.UTF_8);
         String exportProvider = Files.readString(modulePath("src/main/java/com/basiclab/iot/system/service/supervision/HttpVideoEvidenceExportProvider.java"), StandardCharsets.UTF_8);
@@ -97,13 +97,13 @@ class HttpVideoResolverTest {
                     .getCodeSource().getLocation().toURI());
             return testClasses.getParent().getParent().resolve(relativePath).normalize();
         } catch (Exception exception) {
-            throw new IllegalStateException("Unable to resolve iot-system-biz module path", exception);
+            throw new IllegalStateException("Unable to resolve iot-supervision-biz module path", exception);
         }
     }
 
     @Test
     void runtimeOutboxNotifyUsesTenantScopedAdminRoutesWithoutGlobalFallback() throws Exception {
-        String applicationYaml = Files.readString(modulePath("src/main/resources/application.yaml"), StandardCharsets.UTF_8);
+        String applicationYaml = Files.readString(modulePath("../../iot-system/iot-system-biz/src/main/resources/application.yaml"), StandardCharsets.UTF_8);
         String dockerCompose = Files.readString(modulePath("../../docker-compose.yml"), StandardCharsets.UTF_8);
 
         assertTrue(applicationYaml.contains(
