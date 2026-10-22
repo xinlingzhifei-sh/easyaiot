@@ -162,6 +162,7 @@ import { getLLMList, type LLMChatMessage, type LLMModel } from '@/api/device/llm
 import { getAccessToken } from '@/utils/auth'
 import { openHarnessPortal } from '@/utils/harness'
 import { useRootSetting } from '@/hooks/setting/useRootSetting'
+import { getRawTextContent } from '@/logics/brandDisplay'
 import { escapeHtml, isUnbalancedFence, renderMarkdown } from './utils/markdown'
 import { openTerminalStandalone } from '@/utils/terminal'
 
@@ -586,7 +587,8 @@ async function copyMessage(message: ChatMsg, index: number) {
 function onMessagesClick(e: MouseEvent) {
   const btn = (e.target as HTMLElement).closest?.('.md-code__copy')
   if (!btn) return
-  const code = btn.closest('.md-code')?.querySelector('pre code')?.textContent || ''
+  // 页面展示层会替换品牌写法，复制必须取原文
+  const code = getRawTextContent(btn.closest('.md-code')?.querySelector('pre code'))
   if (code) navigator.clipboard?.writeText(code).catch(() => {})
   const label = btn.textContent
   btn.textContent = '已复制'

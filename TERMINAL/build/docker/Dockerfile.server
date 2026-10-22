@@ -1,4 +1,4 @@
-# EasyAIoT TERMINAL server 模式镜像（Wails v3 -tags server,production）
+# yFeiEye TERMINAL server 模式镜像（Wails v3 -tags server,production）
 # 与 build/Taskfile.yml build:docker 契约一致：
 #   --build-arg CGO_ENABLED / GO_IMAGE / RUNTIME_IMAGE；容器内固定监听 8080。
 # 自包含多阶段构建：镜像内完成前端与 Go 编译，宿主机仅需 Docker。

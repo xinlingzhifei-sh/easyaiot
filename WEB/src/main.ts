@@ -21,6 +21,7 @@ import 'vue3-sketch-ruler/lib/style.css'
 import "@/styles/style.css"
 import {setupCustomComponents} from "@/design/component/customComponents"
 import { getAccessToken, syncJwtToken } from '@/utils/auth'
+import { setupBrandDisplay } from '@/logics/brandDisplay'
 
 declare module 'vue3-sketch-ruler';
 
@@ -82,6 +83,9 @@ async function bootstrap() {
   // Configure global error handling
   // 配置全局错误处理
   setupErrorHandle(app)
+
+  // 页面上显示的运行时路径、配置键、服务名统一换成 yFeiEye 写法（只改展示，真实值不变）
+  setupBrandDisplay()
 
   // https://next.router.vuejs.org/api/#isready
   // await router.isReady();

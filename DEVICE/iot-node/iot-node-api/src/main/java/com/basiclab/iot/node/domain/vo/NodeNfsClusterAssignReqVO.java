@@ -19,7 +19,7 @@ public class NodeNfsClusterAssignReqVO {
     @Schema(description = "需要挂载 NFS 的客户端节点 ID 列表；为空则自动选取")
     private List<Long> clientNodeIds = new ArrayList<>();
 
-    @Schema(description = "媒体挂载根，默认 /mnt/easyaiot-media")
+    @Schema(description = "媒体挂载根，默认 /mnt/yFeiEye-media")
     private String mountRoot;
 
     @Schema(description = "NFS export 路径（服务端），默认与 mountRoot 相同")

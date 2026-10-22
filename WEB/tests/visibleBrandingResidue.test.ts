@@ -134,4 +134,27 @@ for (const name of ['README.md', 'README_zh.md', 'README_zh_tw.md', 'README_fr.m
   )
 }
 
+// Node-RED 演示规则链的节点名、主题与 URL 在编辑器中可见；流 id 被 WEB 与 settings.js 引用，必须保留
+const noderedDemoFlows = JSON.parse(
+  readFileSync(resolve(repoRoot, '.scripts/node-red/easyaiot_flows_demo.json'), 'utf8'),
+) as Array<Record<string, unknown>>
+for (const node of noderedDemoFlows) {
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'id' || key === 'z') continue
+    if (typeof value === 'string' && /easyaiot/i.test(value)) {
+      violations.push(`.scripts/node-red/easyaiot_flows_demo.json: node ${String(node.id)} field ${key} shows the old brand`)
+    }
+  }
+}
+assert.ok(
+  noderedDemoFlows.some((node) => node.id === 'easyaiot_demo_telemetry'),
+  'The Node-RED demo flow ids must remain easyaiot_demo_* for WEB and settings.js compatibility.',
+)
+
+assert.match(
+  readFileSync(resolve(repoRoot, 'IDEA/webui/index.html'), 'utf8'),
+  /placeholder="https:\/\/gitee\.com\/你的账号\/yFeiEye\.git"/,
+  'The IDEA portal repository placeholder must use the yFeiEye brand.',
+)
+
 assert.deepEqual(violations, [], `Old visible brand remains:\n${violations.join('\n')}`)

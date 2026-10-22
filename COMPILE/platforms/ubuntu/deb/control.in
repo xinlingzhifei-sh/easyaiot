@@ -5,7 +5,7 @@ Priority: optional
 Architecture: __ARCH__
 Depends: libc6 (>= 2.31)
 Recommends: docker.io | docker-ce, docker-compose-v2 | docker-compose-plugin | docker-compose
-Maintainer: yFeiEye <easyaiot@local>
+Maintainer: yFeiEye <yfeieye@local>
 Homepage: https://github.com/xinlingzhifei/easyaiot
 Description: yFeiEye platform ops console (PANEL)
  Independent ops panel for yFeiEye: Docker container management,

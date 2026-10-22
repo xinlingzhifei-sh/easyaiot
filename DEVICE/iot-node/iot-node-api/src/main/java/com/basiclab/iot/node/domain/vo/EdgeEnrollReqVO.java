@@ -18,7 +18,7 @@ public class EdgeEnrollReqVO {
     @Schema(description = "节点上报 IP/主机地址")
     private String host;
 
-    @Schema(description = "加入令牌（与 easyaiot.edge.join-token 一致；开放纳管时可空）")
+    @Schema(description = "加入令牌（与 yFeiEye.edge.join-token 一致；开放纳管时可空）")
     private String joinToken;
 
     @Schema(description = "操作系统信息")
