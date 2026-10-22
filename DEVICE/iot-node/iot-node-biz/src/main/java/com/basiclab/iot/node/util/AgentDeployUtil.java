@@ -105,6 +105,14 @@ public final class AgentDeployUtil {
      */
     public static String buildEnvContent(long nodeId, String agentToken, int agentPort,
                                          String controlPlaneUrl, String functionsCsv, boolean controlPlaneCa) {
+        return buildEnvContent(nodeId, agentToken, agentPort, controlPlaneUrl, functionsCsv, controlPlaneCa, true);
+    }
+
+    /**
+     * @param inboundEnabled false 时写 AGENT_INBOUND_ENABLED=false：Agent 不监听 9100，全部指令经轮询通道下发
+     */
+    public static String buildEnvContent(long nodeId, String agentToken, int agentPort, String controlPlaneUrl,
+                                         String functionsCsv, boolean controlPlaneCa, boolean inboundEnabled) {
         String functions = functionsCsv != null && !functionsCsv.isBlank()
                 ? functionsCsv.trim().toLowerCase() : "";
         return "# yFeiEye Node Agent 配置\n"
@@ -117,6 +125,7 @@ public final class AgentDeployUtil {
                 + "HEARTBEAT_INTERVAL=10\n"
                 + "SENTINEL_L1_INTERVAL=300\n"
                 + "SENTINEL_AUTO_REMEDIATE=true\n"
+                + "AGENT_INBOUND_ENABLED=" + inboundEnabled + "\n"
                 + "AGENT_LISTEN_HOST=0.0.0.0\n"
                 + "AGENT_LISTEN_PORT=" + agentPort + "\n"
                 + "AI_ROOT=/opt/easyaiot/AI\n"

@@ -101,6 +101,11 @@ easyaiot:
       # 轮换后旧令牌的宽限期；Agent 用新令牌回连后缩短为 confirmed-grace-seconds
       rotation-grace-seconds: ${EASYAIOT_NODE_AGENT_TOKEN_GRACE_SECONDS:259200}
       confirmed-grace-seconds: ${EASYAIOT_NODE_AGENT_TOKEN_CONFIRMED_GRACE_SECONDS:300}
+    agent:
+      # false：SSH 部署的 Agent 不监听 9100（只出站），部署/扫描等全部经指令轮询通道下发
+      inbound-enabled: ${EASYAIOT_NODE_AGENT_INBOUND_ENABLED:true}
+      # true：Agent 声明支持时即使 9100 开放也走指令队列（用于在切换前验证队列链路）
+      prefer-queue: ${EASYAIOT_NODE_AGENT_PREFER_QUEUE:false}
   scheduler:
     # 自动调度时是否优先选择 GPU 节点（可被单次 allocate 请求的 preferGpu 覆盖）
     prefer-gpu-default: ${EASYAIOT_SCHEDULER_PREFER_GPU:true}

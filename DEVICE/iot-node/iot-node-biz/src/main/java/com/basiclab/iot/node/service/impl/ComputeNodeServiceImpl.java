@@ -117,6 +117,11 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     /** 控制面网关用私有 CA 签发的证书时，指向该 CA 的 PEM；SSH 部署时下发到节点供 Agent 校验 */
     @Value("${easyaiot.agent.control-plane-ca-file:}")
     private String controlPlaneCaFile;
+    /** false：新部署的 Agent 不监听 9100（只出站），控制面经指令队列下发；旧控制面无法与这类节点通信 */
+    @Value("${easyaiot.node.agent.inbound-enabled:true}")
+    private boolean agentInboundEnabled;
+    /** 只出站时部署校验改为等待心跳 */
+    long heartbeatVerifyTimeoutMs = 60_000;
     @Resource
     private ControlPlaneEndpointResolver controlPlaneEndpointResolver;
     @Resource
@@ -661,7 +666,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
                     agentPort,
                     controlPlaneUrl,
                     node.getNodeRole(),
-                    controlPlaneCaPem != null);
+                    controlPlaneCaPem != null,
+                    agentInboundEnabled);
             String installScript = AgentDeployUtil.buildInstallScript(envContent, controlPlaneCaPem);
             String encoded = Base64.getEncoder().encodeToString(installScript.getBytes(StandardCharsets.UTF_8));
             SshSessionHelper.SshExecResult installResult = ssh.exec(
@@ -2068,6 +2074,9 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
 
     private NodeMediaRemoteDeployRespVO.DeployStep verifyAgentService(SshSessionHelper ssh, ComputeNodeDO node)
             throws Exception {
+        if (!agentInboundEnabled) {
+            return verifyOutboundOnlyAgent(ssh, node);
+        }
         int agentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                 ? node.getAgentPort() : DEFAULT_AGENT_PORT;
         SshSessionHelper.SshExecResult serviceResult = ssh.exec(
@@ -2089,6 +2098,42 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             }
         }
         return step;
+    }
+
+    /**
+     * 只出站的 Agent 不监听 9100，无法 curl /health：确认服务在运行，并等它用新写入的令牌经网关发来心跳。
+     */
+    private NodeMediaRemoteDeployRespVO.DeployStep verifyOutboundOnlyAgent(SshSessionHelper ssh, ComputeNodeDO node)
+            throws Exception {
+        LocalDateTime since = LocalDateTime.now();
+        SshSessionHelper.SshExecResult serviceResult = ssh.exec(
+                "systemctl is-active easyaiot-node-agent 2>/dev/null || echo INACTIVE", 15000);
+        String out = serviceResult.combinedOutput().trim();
+        NodeMediaRemoteDeployRespVO.DeployStep step = new NodeMediaRemoteDeployRespVO.DeployStep();
+        step.setName("服务验证");
+        boolean serviceActive = out.contains("active") && !out.contains("INACTIVE") && !out.contains("inactive");
+        boolean heartbeat = serviceActive && waitForHeartbeat(node.getId(), since);
+        step.setStatus(heartbeat ? "success" : "failed");
+        step.setOutput(out + (heartbeat
+                ? "\n只出站模式：已收到 Agent 心跳"
+                : "\n只出站模式（未监听 9100）：" + heartbeatVerifyTimeoutMs / 1000
+                + " 秒内未收到 Agent 心跳，请检查 journalctl -u easyaiot-node-agent 与 CONTROL_PLANE_URL"));
+        return step;
+    }
+
+    boolean waitForHeartbeat(Long nodeId, LocalDateTime since) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + heartbeatVerifyTimeoutMs;
+        while (true) {
+            ComputeNodeDO current = computeNodeMapper.selectById(nodeId);
+            if (current != null && current.getLastHeartbeatAt() != null
+                    && !current.getLastHeartbeatAt().isBefore(since)) {
+                return true;
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                return false;
+            }
+            Thread.sleep(Math.min(2000, Math.max(1, heartbeatVerifyTimeoutMs / 10)));
+        }
     }
 
     private boolean isAgentInstallOutputSuccessful(SshSessionHelper.SshExecResult result, String output) {
