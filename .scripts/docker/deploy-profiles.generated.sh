@@ -111,6 +111,69 @@ deploy_profile_manifest_module_enabled() {
     esac
 }
 
+deploy_profile_manifest_module_label() {
+    case "${1:-}" in
+        ".scripts/docker") echo "基础服务" ;;
+        "DEVICE") echo "Device服务" ;;
+        "AI") echo "AI服务" ;;
+        "RTC") echo "RTC服务" ;;
+        "POST") echo "POST服务" ;;
+        "VIDEO") echo "Video服务" ;;
+        "WEB") echo "Web前端服务" ;;
+        "APP") echo "App移动端H5" ;;
+        "VISUALIZE") echo "可视化编辑器" ;;
+        "TRANSFORM") echo "数据转发" ;;
+        "HARNESS") echo "HARNESS AI助手" ;;
+        "IDEA") echo "IDEA在线IDE" ;;
+        "TERMINAL") echo "TERMINAL多协议终端" ;;
+        "TWIN") echo "数字孪生引擎" ;;
+        "PANEL") echo "运维控制台" ;;
+        *) echo "${1:-}" ;;
+    esac
+}
+
+deploy_profile_manifest_module_port() {
+    case "${1:-}" in
+        ".scripts/docker") echo "8848" ;;
+        "DEVICE") echo "48080" ;;
+        "AI") echo "5000" ;;
+        "RTC") echo "6100" ;;
+        "POST") echo "8089" ;;
+        "VIDEO") echo "6000" ;;
+        "WEB") echo "8888" ;;
+        "APP") echo "9010" ;;
+        "VISUALIZE") echo "8002" ;;
+        "TRANSFORM") echo "48096" ;;
+        "HARNESS") echo "3080" ;;
+        "IDEA") echo "9300" ;;
+        "TERMINAL") echo "9245" ;;
+        "TWIN") echo "8003" ;;
+        "PANEL") echo "9200" ;;
+        *) echo "" ;;
+    esac
+}
+
+deploy_profile_manifest_module_health_path() {
+    case "${1:-}" in
+        ".scripts/docker") echo "/nacos/actuator/health" ;;
+        "DEVICE") echo "/actuator/health" ;;
+        "AI") echo "/actuator/health" ;;
+        "RTC") echo "/actuator/health" ;;
+        "POST") echo "/readyz" ;;
+        "VIDEO") echo "/actuator/health" ;;
+        "WEB") echo "/health" ;;
+        "APP") echo "/health" ;;
+        "VISUALIZE") echo "/health" ;;
+        "TRANSFORM") echo "/actuator/health" ;;
+        "HARNESS") echo "/" ;;
+        "IDEA") echo "/health" ;;
+        "TERMINAL") echo "/" ;;
+        "TWIN") echo "/health" ;;
+        "PANEL") echo "/health" ;;
+        *) echo "" ;;
+    esac
+}
+
 deploy_profile_manifest_module_override_env() {
     case "${1:-}" in
         HARNESS) echo "EASYAIOT_ENABLE_HARNESS" ;;

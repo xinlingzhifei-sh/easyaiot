@@ -119,56 +119,8 @@ while IFS= read -r _manifest_module; do
 done < <(deploy_profile_manifest_module_order)
 unset _manifest_module
 
-declare -A MODULE_NAMES=(
-    [IDEA]="IDEA 在线 IDE"
-    [HARNESS]="HARNESS AI 助手"
-    [TERMINAL]="TERMINAL 多协议终端"
-    [DEVICE]="Device 服务"
-    [AI]="AI 服务"
-    [RTC]="RTC 服务"
-    [POST]="POST 服务"
-    [VIDEO]="Video 服务"
-    [WEB]="Web 前端"
-    [APP]="App 移动端 H5"
-    [VISUALIZE]="可视化编辑器"
-    [TWIN]="数字孪生引擎"
-    [TRANSFORM]="数据转发"
-    [PANEL]="运维控制台"
-)
-
-declare -A MODULE_PORTS=(
-    [IDEA]="9300"
-    [HARNESS]="3080"
-    [TERMINAL]="9245"
-    [DEVICE]="48080"
-    [AI]="5000"
-    [RTC]="6100"
-    [POST]="8089"
-    [VIDEO]="6000"
-    [WEB]="8888"
-    [APP]="9010"
-    [VISUALIZE]="8002"
-    [TWIN]="8003"
-    [TRANSFORM]="48096"
-    [PANEL]="9200"
-)
-
-declare -A MODULE_HEALTH_ENDPOINTS=(
-    [IDEA]="/health"
-    [HARNESS]="/"
-    [TERMINAL]="/"
-    [DEVICE]="/actuator/health"
-    [AI]="/actuator/health"
-    [RTC]="/actuator/health"
-    [POST]="/readyz"
-    [VIDEO]="/actuator/health"
-    [WEB]="/health"
-    [APP]="/health"
-    [VISUALIZE]="/health"
-    [TWIN]="/health"
-    [TRANSFORM]="/actuator/health"
-    [PANEL]="/health"
-)
+# 模块显示名 / 端口 / 健康检查端点来自 deploy-profiles.json 的 moduleRuntime
+deploy_profile_load_module_tables
 
 LOG_DIR="${SCRIPT_DIR}/logs"
 mkdir -p "$LOG_DIR"

@@ -26,6 +26,14 @@ function validate() {
   assertUnique(manifest.featureOrder, 'featureOrder');
   assertUnique(manifest.middlewareServiceOrder, 'middlewareServiceOrder');
   assertUnique(manifest.deviceServiceOrder, 'deviceServiceOrder');
+  if (JSON.stringify(Object.keys(manifest.moduleRuntime)) !== JSON.stringify(manifest.moduleOrder)) {
+    fail('moduleRuntime must follow moduleOrder exactly');
+  }
+  for (const [moduleName, runtime] of Object.entries(manifest.moduleRuntime)) {
+    if (!runtime.label || !Number.isInteger(runtime.port) || !String(runtime.healthPath ?? '').startsWith('/')) {
+      fail(`moduleRuntime.${moduleName} needs label, integer port and healthPath starting with /`);
+    }
+  }
   if (JSON.stringify(Object.keys(manifest.profiles)) !== JSON.stringify(manifest.profileOrder)) {
     fail('profiles must follow profileOrder exactly');
   }
@@ -125,6 +133,9 @@ function renderShell() {
   const middlewareContainerCases = manifest.middlewareServiceOrder
     .map(service => `        ${service}) echo ${JSON.stringify((manifest.containerNames.middleware[service] ?? []).join(' '))} ;;`)
     .join('\n');
+  const moduleRuntimeCases = field => manifest.moduleOrder
+    .map(moduleName => `        ${JSON.stringify(moduleName)}) echo ${JSON.stringify(String(manifest.moduleRuntime[moduleName][field]))} ;;`)
+    .join('\n');
   const moduleContainerCases = manifest.moduleOrder
     .map(moduleName => `        ${moduleName}) echo ${JSON.stringify((manifest.containerNames.modules[moduleName] ?? []).join(' '))} ;;`)
     .join('\n');
@@ -187,6 +198,27 @@ deploy_profile_manifest_module_order() {
 }
 
 ${shellMembershipFunction('deploy_profile_manifest_module_enabled', 'moduleOrder', 'modules')}
+
+deploy_profile_manifest_module_label() {
+    case "\${1:-}" in
+${moduleRuntimeCases('label')}
+        *) echo "\${1:-}" ;;
+    esac
+}
+
+deploy_profile_manifest_module_port() {
+    case "\${1:-}" in
+${moduleRuntimeCases('port')}
+        *) echo "" ;;
+    esac
+}
+
+deploy_profile_manifest_module_health_path() {
+    case "\${1:-}" in
+${moduleRuntimeCases('healthPath')}
+        *) echo "" ;;
+    esac
+}
 
 deploy_profile_manifest_module_override_env() {
     case "\${1:-}" in

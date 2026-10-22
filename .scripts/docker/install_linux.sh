@@ -229,59 +229,8 @@ is_bootstrap_module() {
     esac
 }
 
-# 模块名称映射
-declare -A MODULE_NAMES
-MODULE_NAMES["IDEA"]="IDEA在线IDE"
-MODULE_NAMES[".scripts/docker"]="基础服务"
-MODULE_NAMES["DEVICE"]="Device服务"
-MODULE_NAMES["AI"]="AI服务"
-MODULE_NAMES["RTC"]="RTC服务"
-MODULE_NAMES["POST"]="POST服务"
-MODULE_NAMES["VIDEO"]="Video服务"
-MODULE_NAMES["WEB"]="Web前端服务"
-MODULE_NAMES["HARNESS"]="HARNESS AI助手"
-MODULE_NAMES["TERMINAL"]="TERMINAL多协议终端"
-MODULE_NAMES["APP"]="App移动端H5"
-MODULE_NAMES["VISUALIZE"]="可视化编辑器"
-MODULE_NAMES["TWIN"]="数字孪生引擎"
-MODULE_NAMES["TRANSFORM"]="数据转发"
-MODULE_NAMES["PANEL"]="运维控制台"
-
-# 模块端口映射
-declare -A MODULE_PORTS
-MODULE_PORTS["IDEA"]="9300"
-MODULE_PORTS[".scripts/docker"]="8848"  # Nacos端口
-MODULE_PORTS["DEVICE"]="48080"           # Gateway端口
-MODULE_PORTS["AI"]="5000"
-MODULE_PORTS["RTC"]="6100"
-MODULE_PORTS["POST"]="8089"
-MODULE_PORTS["VIDEO"]="6000"
-MODULE_PORTS["WEB"]="8888"
-MODULE_PORTS["HARNESS"]="3080"
-MODULE_PORTS["TERMINAL"]="9245"
-MODULE_PORTS["APP"]="9010"
-MODULE_PORTS["VISUALIZE"]="8002"
-MODULE_PORTS["TWIN"]="8003"
-MODULE_PORTS["TRANSFORM"]="48096"
-MODULE_PORTS["PANEL"]="9200"
-
-# 模块健康检查端点
-declare -A MODULE_HEALTH_ENDPOINTS
-MODULE_HEALTH_ENDPOINTS["IDEA"]="/health"
-MODULE_HEALTH_ENDPOINTS[".scripts/docker"]="/nacos/actuator/health"
-MODULE_HEALTH_ENDPOINTS["DEVICE"]="/actuator/health"  # Gateway健康检查
-MODULE_HEALTH_ENDPOINTS["AI"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["RTC"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["POST"]="/readyz"
-MODULE_HEALTH_ENDPOINTS["VIDEO"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["WEB"]="/health"
-MODULE_HEALTH_ENDPOINTS["HARNESS"]="/"
-MODULE_HEALTH_ENDPOINTS["TERMINAL"]="/"
-MODULE_HEALTH_ENDPOINTS["APP"]="/health"
-MODULE_HEALTH_ENDPOINTS["VISUALIZE"]="/health"
-MODULE_HEALTH_ENDPOINTS["TWIN"]="/health"
-MODULE_HEALTH_ENDPOINTS["TRANSFORM"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["PANEL"]="/health"
+# 模块显示名 / 端口 / 健康检查端点来自 deploy-profiles.json 的 moduleRuntime
+deploy_profile_load_module_tables
 
 # 统计当前部署形态下参与 install 汇总的模块数（已启用且存在安装脚本）
 _count_installable_modules() {

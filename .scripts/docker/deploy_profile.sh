@@ -161,6 +161,19 @@ module_enabled_for_deploy_profile() {
     deploy_profile_manifest_module_enabled "${EASYAIOT_DEPLOY_PROFILE:-full}" "$module"
 }
 
+# 把 manifest 的模块显示名 / 端口 / 健康检查路径填进安装脚本沿用的三张关联数组，
+# 安装脚本不再各自硬编码一份模块表。
+deploy_profile_load_module_tables() {
+    declare -gA MODULE_NAMES MODULE_PORTS MODULE_HEALTH_ENDPOINTS
+    local module
+    while IFS= read -r module; do
+        [ -n "$module" ] || continue
+        MODULE_NAMES["$module"]="$(deploy_profile_manifest_module_label "$module")"
+        MODULE_PORTS["$module"]="$(deploy_profile_manifest_module_port "$module")"
+        MODULE_HEALTH_ENDPOINTS["$module"]="$(deploy_profile_manifest_module_health_path "$module")"
+    done < <(deploy_profile_manifest_module_order)
+}
+
 # 演示功能不属于生产规格，默认关闭；只接受 manifest 声明的显式开关。
 deploy_feature_enabled_for_profile() {
     local feature="$1" override value

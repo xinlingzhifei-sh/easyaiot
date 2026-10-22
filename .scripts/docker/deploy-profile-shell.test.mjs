@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
@@ -79,4 +79,32 @@ deploy_profile_manifest_normalize standrad
   });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /未知部署规格: standrad/);
+});
+
+test('module display names, ports and health paths come from the manifest', () => {
+  const output = runBash(`
+source '${profileScript}'
+deploy_profile_load_module_tables
+for module in .scripts/docker DEVICE POST WEB PANEL; do
+  printf '%s|%s|%s|%s\n' "$module" "\${MODULE_NAMES[$module]}" "\${MODULE_PORTS[$module]}" "\${MODULE_HEALTH_ENDPOINTS[$module]}"
+done
+deploy_profile_manifest_module_label UNKNOWN
+`);
+  assert.deepEqual(output.split(/\r?\n/), [
+    '.scripts/docker|基础服务|8848|/nacos/actuator/health',
+    'DEVICE|Device服务|48080|/actuator/health',
+    'POST|POST服务|8089|/readyz',
+    'WEB|Web前端服务|8888|/health',
+    'PANEL|运维控制台|9200|/health',
+    'UNKNOWN',
+  ]);
+});
+
+test('installers load module tables instead of hardcoding them', () => {
+  for (const file of ['install_linux.sh', 'install_business_linux.sh']) {
+    const source = readFileSync(join(dockerDir, file), 'utf8');
+    assert.match(source, /^deploy_profile_load_module_tables$/m, file);
+    assert.doesNotMatch(source, /MODULE_PORTS\[\s*"?DEVICE"?\s*\]\s*=/, file);
+    assert.doesNotMatch(source, /declare -A MODULE_(NAMES|PORTS|HEALTH_ENDPOINTS)/, file);
+  }
 });
