@@ -18,10 +18,10 @@ import com.basiclab.iot.node.domain.vo.EdgeRuntimeConfigRespVO;
 import com.basiclab.iot.node.enums.NodeFunctionEnum;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.util.NodeFunctions;
-import com.basiclab.iot.node.security.NodeTokenGenerator;
 import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.EdgeNodeService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,8 +38,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.COMPUTE_NODE_NOT_EXISTS;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.EDGE_ENROLL_HOST_EMPTY;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.EDGE_JOIN_TOKEN_INVALID;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.EDGE_NODE_NOT_EXISTS;
@@ -56,6 +54,9 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
 
     @Resource
     private EdgeNodeMapper edgeNodeMapper;
+
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Resource
     private NodeMetricSnapshotMapper nodeMetricSnapshotMapper;
@@ -123,7 +124,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
         EdgeEnrollRespVO resp = new EdgeEnrollRespVO();
         resp.setNodeId(node.getId());
         resp.setEdgeNodeId(edgeRecord != null ? edgeRecord.getId() : null);
-        resp.setAgentToken(node.getAgentToken());
+        resp.setAgentToken(nodeAgentCredentialService.currentToken(node));
         resp.setRuntimeConfig(buildRuntimeConfig(node));
         return resp;
     }
@@ -331,7 +332,6 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
                 .maxTaskCount(reqVO.getMaxTaskCount() != null && reqVO.getMaxTaskCount() > 0
                         ? reqVO.getMaxTaskCount() : 1)
                 .weight(80)
-                .agentToken(NodeTokenGenerator.newAgentToken())
                 .remark("EDGE auto-enroll")
                 .lastHeartbeatAt(LocalDateTime.now())
                 .build();
@@ -364,6 +364,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
         if (platformNode != null) {
             node.setControlPlaneId(platformNode.getId());
         }
+        nodeAgentCredentialService.issue(node);
         computeNodeMapper.insert(node);
         return node;
     }
@@ -382,7 +383,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
         cfg.setMqttAlgoTenant(mqttAlgoTenant);
         cfg.setMqttUsername("algo-edge-" + node.getId());
         // 与节点凭证绑定，便于后续接到 EMQX HTTP Auth
-        cfg.setMqttPassword(node.getAgentToken());
+        cfg.setMqttPassword(nodeAgentCredentialService.currentToken(node));
         cfg.setMqttClientId("algo-edge-" + node.getId());
         String root = StrUtil.blankToDefault(mediaHostDataRoot, DEFAULT_MEDIA_ROOT).replaceAll("/+$", "");
         cfg.setMediaHostDataRoot(root);
@@ -458,14 +459,7 @@ public class EdgeNodeServiceImpl implements EdgeNodeService {
     }
 
     private ComputeNodeDO validateAgent(Long nodeId, String agentToken) {
-        ComputeNodeDO node = computeNodeMapper.selectById(nodeId);
-        if (node == null) {
-            throw exception(COMPUTE_NODE_NOT_EXISTS);
-        }
-        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
-            throw exception(AGENT_TOKEN_INVALID);
-        }
-        return node;
+        return nodeAgentCredentialService.authenticate(nodeId, agentToken);
     }
 
 }

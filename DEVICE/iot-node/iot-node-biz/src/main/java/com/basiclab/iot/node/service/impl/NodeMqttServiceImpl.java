@@ -1,7 +1,6 @@
 package com.basiclab.iot.node.service.impl;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
+import com.basiclab.iot.node.agent.NodeAgentGateway;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
@@ -70,6 +69,8 @@ public class NodeMqttServiceImpl implements NodeMqttService {
     /** iot-sink EMQX HTTP 认证默认端口 */
     private static final int DEFAULT_MQTT_AUTH_PORT = 8090;
 
+    @Resource
+    private NodeAgentGateway nodeAgentGateway;
     @Resource
     private ComputeNodeMapper computeNodeMapper;
     @Resource
@@ -863,17 +864,7 @@ public class NodeMqttServiceImpl implements NodeMqttService {
     }
 
     private JSONObject callAgent(ComputeNodeDO node, String path, Map<String, Object> body) {
-        String url = "http://" + node.getHost() + ":" + node.getAgentPort() + path;
-        HttpResponse response = HttpRequest.post(url)
-                .header("X-Agent-Token", node.getAgentToken())
-                .body(JSONUtil.toJsonStr(body))
-                .timeout(120000)
-                .execute();
-        JSONObject json = JSONUtil.parseObj(response.body());
-        if (json.getInt("code", 1) != 0) {
-            throw new IllegalStateException(json.getStr("msg", "Agent 调用失败"));
-        }
-        return json.getJSONObject("data") != null ? json.getJSONObject("data") : new JSONObject();
+        return nodeAgentGateway.call(node, path, body, 120000);
     }
 
     private static final class NodeSshCredential {

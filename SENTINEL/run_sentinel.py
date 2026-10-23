@@ -22,6 +22,9 @@ for _p in (_repo_root, _lib_root):
 import psutil
 import requests
 
+from agent_commands import ControlPlaneTlsError, check_control_plane_transport, control_plane_tls_verify
+from agent_commands import credentials as agent_credentials
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -37,6 +40,12 @@ HEARTBEAT_INTERVAL = int(os.environ.get('HEARTBEAT_INTERVAL', '10'))
 COMMAND_POLL_ENABLED = os.environ.get('COMMAND_POLL_ENABLED', 'true').lower() in ('1', 'true', 'yes', 'on')
 COMMAND_POLL_INTERVAL = float(os.environ.get('COMMAND_POLL_INTERVAL', '3'))
 COMMAND_POLL_MAX_COMMANDS = int(os.environ.get('COMMAND_POLL_MAX_COMMANDS', '5'))
+# 同时执行的指令数（网段扫描单次可达 330s，串行会挡住部署与令牌轮换）
+COMMAND_MAX_CONCURRENCY = int(os.environ.get('COMMAND_MAX_CONCURRENCY', '4'))
+COMMAND_LEASE_RENEW_SECONDS = float(os.environ.get('COMMAND_LEASE_RENEW_SECONDS', '10'))
+# false 时不监听 9100：控制面经指令轮询通道下发全部指令（需控制面支持，旧控制面请保持 true）
+AGENT_INBOUND_ENABLED = os.environ.get('AGENT_INBOUND_ENABLED', 'true').strip().lower() not in (
+    '0', 'false', 'no', 'off')
 AGENT_VERSION = '1.0.0'
 AGENT_ENV_FILE = os.environ.get('AGENT_ENV_FILE', '')
 BOOTSTRAP_WAIT_SECONDS = int(os.environ.get('BOOTSTRAP_WAIT_SECONDS', '180'))
@@ -63,32 +72,25 @@ def bootstrap_url() -> str:
     return f'{base}/platform-agent-bootstrap'
 
 
+def _on_agent_token_rotated(new_token: str) -> None:
+    global AGENT_TOKEN
+    AGENT_TOKEN = new_token
+
+
+agent_credentials.add_listener(_on_agent_token_rotated)
+
+
 def persist_credentials() -> None:
-    env_path = AGENT_ENV_FILE
+    from agent_commands import resolve_agent_env_file, update_env_file
+
+    env_path = resolve_agent_env_file()
     if not env_path:
-        for candidate in (
-            '/opt/easyaiot/sentinel-agent/agent.env',
-            '/opt/easyaiot/node-agent/agent.env',
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'agent.env'),
-        ):
-            if os.path.isfile(candidate):
-                env_path = candidate
-                break
-    if not env_path or not os.path.isfile(env_path):
         return
     try:
-        with open(env_path, encoding='utf-8') as f:
-            lines = f.readlines()
-        with open(env_path, 'w', encoding='utf-8') as f:
-            for line in lines:
-                if line.startswith('NODE_ID='):
-                    f.write(f'NODE_ID={NODE_ID}\n')
-                elif line.startswith('AGENT_TOKEN='):
-                    f.write(f'AGENT_TOKEN={AGENT_TOKEN}\n')
-                else:
-                    f.write(line)
+        # 原子替换：旧实现截断后逐行写，中途失败会留下半个 agent.env
+        update_env_file(env_path, {'NODE_ID': str(NODE_ID), 'AGENT_TOKEN': AGENT_TOKEN})
         logger.info('已同步凭据至 %s', env_path)
-    except OSError as e:
+    except (OSError, ValueError) as e:
         logger.debug('无法持久化 agent.env: %s', e)
 
 
@@ -105,6 +107,7 @@ def try_refresh_credentials(*, allow_node_id_change: bool = False) -> bool:
             url,
             headers={'X-Bootstrap-Token': PLATFORM_AGENT_BOOTSTRAP_TOKEN},
             timeout=10,
+            verify=control_plane_tls_verify(),
         )
         if resp.status_code != 200:
             logger.debug('bootstrap 请求失败 HTTP %s: %s', resp.status_code, url)
@@ -128,7 +131,8 @@ def try_refresh_credentials(*, allow_node_id_change: bool = False) -> bool:
         if NODE_ID and NODE_ID != new_id:
             logger.info('bootstrap 同步 nodeId %s -> %s', NODE_ID, new_id)
         NODE_ID = new_id
-        AGENT_TOKEN = new_token
+        agent_credentials.node_id = new_id
+        agent_credentials.replace_token(new_token)
         logger.info('已从 bootstrap 刷新凭据 nodeId=%s', NODE_ID)
         persist_credentials()
         return True
@@ -312,7 +316,7 @@ def post_json(path: str, payload: Dict[str, Any], *, allow_refresh: bool = True)
     """返回 (成功?, 错误文案)。错误文案用于识别主机名/容量冲突，避免无效重注册。"""
     url = f'{CONTROL_PLANE_URL}{path}'
     try:
-        resp = requests.post(url, json=payload, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10, verify=control_plane_tls_verify())
         if resp.status_code == 200:
             data = resp.json()
             if data.get('code') == 0:
@@ -431,7 +435,7 @@ def _wait_for_control_plane() -> None:
         if try_refresh_credentials(allow_node_id_change=True):
             return
         try:
-            resp = requests.get(url, timeout=5)
+            resp = requests.get(url, timeout=5, verify=control_plane_tls_verify())
             if resp.status_code == 200 and (resp.json() or {}).get('code') == 0:
                 try_refresh_credentials(allow_node_id_change=True)
                 return
@@ -441,29 +445,55 @@ def _wait_for_control_plane() -> None:
 
 
 def build_command_executors():
+    from agent_server import build_route_executors
+
+    # 9100 上的入站功能全部可经指令队列调用（只出站模式依赖它）
+    executors = build_route_executors()
     try:
         from stream_forward_executor import StreamForwardExecutor
     except ImportError as exc:
         logger.warning('stream forward executor unavailable: %s', exc)
-        return {}
+        return executors
 
     stream_forward_executor = StreamForwardExecutor()
-    return {
+    executors.update({
         'stream_forward.deploy': stream_forward_executor.deploy,
         'stream_forward.stop': stream_forward_executor.stop,
-    }
+    })
+    return executors
+
+
+def command_capabilities(executors) -> Dict[str, bool]:
+    """poll 时声明的能力：控制面据此决定是否推送令牌、哪些指令可以走队列。"""
+    from agent_commands import TOKEN_ROTATE_COMMAND
+
+    capabilities = {command_type: True for command_type in executors}
+    capabilities[TOKEN_ROTATE_COMMAND] = True
+    # 控制面只在 inbound=false 时把 9100 调用改走队列；旧控制面忽略该字段
+    capabilities['inbound'] = AGENT_INBOUND_ENABLED
+    return capabilities
 
 
 def start_command_loop():
-    from agent_commands import AgentCommandClient, AgentCommandRunner
+    from agent_commands import AgentCommandClient, AgentCommandRunner, TokenRotator
 
+    executors = build_command_executors()
     command_client = AgentCommandClient(
         CONTROL_PLANE_URL,
         NODE_ID,
         AGENT_TOKEN,
         max_commands=COMMAND_POLL_MAX_COMMANDS,
+        capabilities=command_capabilities(executors),
+        credentials=agent_credentials,
     )
-    command_runner = AgentCommandRunner(command_client, build_command_executors())
+    command_client.session.verify = control_plane_tls_verify()
+    command_runner = AgentCommandRunner(
+        command_client,
+        executors,
+        token_rotator=TokenRotator(agent_credentials),
+        max_workers=COMMAND_MAX_CONCURRENCY,
+        lease_renew_seconds=COMMAND_LEASE_RENEW_SECONDS,
+    )
     thread = threading.Thread(
         target=command_runner.run_forever,
         args=(COMMAND_POLL_INTERVAL,),
@@ -474,18 +504,31 @@ def start_command_loop():
 
 
 def main():
+    try:
+        check_control_plane_transport(CONTROL_PLANE_URL)
+    except ControlPlaneTlsError as e:
+        logger.error('控制面 TLS 配置无效，拒绝启动: %s', e)
+        sys.exit(1)
     wait_for_platform_credentials()
     _wait_for_control_plane()
     if not NODE_ID or not AGENT_TOKEN:
         logger.error('请设置环境变量 NODE_ID 和 AGENT_TOKEN')
         sys.exit(1)
 
+    if not AGENT_INBOUND_ENABLED and not COMMAND_POLL_ENABLED:
+        logger.error('AGENT_INBOUND_ENABLED=false 时必须开启 COMMAND_POLL_ENABLED，否则控制面无法下发任何指令')
+        sys.exit(1)
+
     from agent_server import run_server  # noqa: F401 - 先加载 HTTP 服务与 workload manager
 
     threading.Thread(target=heartbeat_loop, daemon=True).start()
-    if COMMAND_POLL_ENABLED:
-        start_command_loop()
-    run_server()
+    command_thread = start_command_loop() if COMMAND_POLL_ENABLED else None
+    if AGENT_INBOUND_ENABLED:
+        run_server()
+        return
+    logger.info('AGENT_INBOUND_ENABLED=false：不监听 %s 端口，全部指令经控制面轮询通道下发',
+                os.environ.get('AGENT_LISTEN_PORT', '9100'))
+    command_thread.join()
 
 
 if __name__ == '__main__':

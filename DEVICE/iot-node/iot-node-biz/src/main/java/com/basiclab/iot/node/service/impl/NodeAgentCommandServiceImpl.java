@@ -11,8 +11,8 @@ import com.basiclab.iot.node.domain.vo.NodeAgentCommandEnqueueReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
 import com.basiclab.iot.node.service.NodeAgentCommandService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.exception;
-import static com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID;
 import static com.basiclab.iot.node.enums.ErrorCodeConstants.COMPUTE_NODE_NOT_EXISTS;
 
 @Service
@@ -38,6 +37,10 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     private static final String STATUS_LEASED = "leased";
     private static final String STATUS_RUNNING = "running";
     private static final String STATUS_FAILED = "failed";
+    private static final String STATUS_SUCCEEDED = "succeeded";
+    private static final String STATUS_SUPERSEDED = "superseded";
+    public static final String COMMAND_TOKEN_ROTATE = "agent.token.rotate";
+    private static final String ERROR_SUPERSEDED = "agent_token_rotation_superseded";
     private static final String ERROR_RETRY_EXHAUSTED = "agent_command_retry_exhausted";
     private static final String ERROR_RUNNING_TIMEOUT = "agent_command_running_timeout";
     private static final int DEFAULT_MAX_COMMANDS = 5;
@@ -49,6 +52,8 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     private ComputeNodeMapper computeNodeMapper;
     @Resource
     private NodeAgentCommandMapper nodeAgentCommandMapper;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,7 +90,8 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<NodeAgentCommandRespVO> poll(NodeAgentCommandPollReqVO reqVO) {
-        validateAgent(reqVO.getNodeId(), reqVO.getAgentToken());
+        ComputeNodeDO node = validateAgent(reqVO.getNodeId(), reqVO.getAgentToken());
+        recordAgentFeatures(node, reqVO.getCapabilities());
         int maxCommands = reqVO.getMaxCommands() != null ? reqVO.getMaxCommands() : DEFAULT_MAX_COMMANDS;
         LocalDateTime now = LocalDateTime.now();
         List<NodeAgentCommandDO> commands = nodeAgentCommandMapper.selectPollable(reqVO.getNodeId(), now, maxCommands);
@@ -100,13 +106,50 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
                 nodeAgentCommandMapper.updateById(command);
                 continue;
             }
+            if (COMMAND_TOKEN_ROTATE.equals(command.getCommandType())
+                    && rotationGeneration(command) != generationOf(node)) {
+                // 期间又轮换过：只下发最新一代，旧指令作废
+                command.setStatus(STATUS_SUPERSEDED);
+                command.setLastError(ERROR_SUPERSEDED);
+                command.setLeaseUntil(null);
+                command.setFinishedAt(now);
+                nodeAgentCommandMapper.updateById(command);
+                continue;
+            }
             command.setStatus(STATUS_LEASED);
             command.setAttemptCount(attemptCount + 1);
             command.setLeaseUntil(now.plusSeconds(LEASE_SECONDS));
             nodeAgentCommandMapper.updateById(command);
-            leasedCommands.add(toRespVO(command));
+            NodeAgentCommandRespVO respVO = toRespVO(command);
+            if (COMMAND_TOKEN_ROTATE.equals(command.getCommandType())) {
+                // 令牌明文不落指令表，只在经过鉴权的 poll 响应里出现
+                respVO.getPayload().put("agentToken", nodeAgentCredentialService.currentToken(node));
+            }
+            leasedCommands.add(respVO);
         }
         return leasedCommands;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public NodeAgentCommandRespVO enqueueTokenRotation(Long nodeId, int generation) {
+        LocalDateTime now = LocalDateTime.now();
+        for (NodeAgentCommandDO stale : nodeAgentCommandMapper.selectPendingByType(nodeId, COMMAND_TOKEN_ROTATE)) {
+            stale.setStatus(STATUS_SUPERSEDED);
+            stale.setLastError(ERROR_SUPERSEDED);
+            stale.setFinishedAt(now);
+            nodeAgentCommandMapper.updateById(stale);
+        }
+        NodeAgentCommandDO command = NodeAgentCommandDO.builder()
+                .nodeId(nodeId)
+                .commandType(COMMAND_TOKEN_ROTATE)
+                .commandKey(COMMAND_TOKEN_ROTATE + ":" + generation)
+                .payloadJson(JSONUtil.toJsonStr(Map.of("generation", generation)))
+                .status(STATUS_PENDING)
+                .attemptCount(0)
+                .build();
+        nodeAgentCommandMapper.insert(command);
+        return toRespVO(command);
     }
 
     @Override
@@ -136,6 +179,13 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     public void reportResult(Long commandId, NodeAgentCommandResultReqVO reqVO) {
         validateAgent(reqVO.getNodeId(), reqVO.getAgentToken());
         NodeAgentCommandDO command = validateCommand(commandId, reqVO.getNodeId());
+        if (!STATUS_SUCCEEDED.equals(reqVO.getStatus()) && !STATUS_FAILED.equals(reqVO.getStatus())) {
+            throw new IllegalArgumentException("Agent command status must be succeeded or failed: " + reqVO.getStatus());
+        }
+        if (COMMAND_TOKEN_ROTATE.equals(command.getCommandType()) && STATUS_FAILED.equals(reqVO.getStatus())) {
+            // Agent 只会在已回滚到旧令牌之后报告失败：控制面同步回滚，避免宽限期结束时节点掉线
+            nodeAgentCredentialService.revertRotation(reqVO.getNodeId(), rotationGeneration(command));
+        }
         command.setStatus(reqVO.getStatus());
         command.setResultJson(JSONUtil.toJsonStr(nullToEmpty(reqVO.getResult())));
         command.setLastError(reqVO.getError());
@@ -166,14 +216,26 @@ public class NodeAgentCommandServiceImpl implements NodeAgentCommandService {
     }
 
     private ComputeNodeDO validateAgent(Long nodeId, String agentToken) {
-        ComputeNodeDO node = computeNodeMapper.selectById(nodeId);
-        if (node == null) {
-            throw exception(COMPUTE_NODE_NOT_EXISTS);
+        return nodeAgentCredentialService.authenticate(nodeId, agentToken);
+    }
+
+    private void recordAgentFeatures(ComputeNodeDO node, Map<String, Boolean> capabilities) {
+        if (capabilities == null || capabilities.isEmpty() || capabilities.equals(node.getAgentFeatures())) {
+            return;
         }
-        if (!NodeTokenVerifier.matches(node.getAgentToken(), agentToken)) {
-            throw exception(AGENT_TOKEN_INVALID);
+        computeNodeMapper.updateAgentFeatures(node.getId(), capabilities);
+        node.setAgentFeatures(capabilities);
+    }
+
+    private static int rotationGeneration(NodeAgentCommandDO command) {
+        if (StrUtil.isBlank(command.getPayloadJson())) {
+            return -1;
         }
-        return node;
+        return JSONUtil.parseObj(command.getPayloadJson()).getInt("generation", -1);
+    }
+
+    private static int generationOf(ComputeNodeDO node) {
+        return node.getAgentTokenGeneration() != null ? node.getAgentTokenGeneration() : 0;
     }
 
     private NodeAgentCommandDO validateCommand(Long commandId, Long nodeId) {

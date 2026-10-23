@@ -1,7 +1,6 @@
 package com.basiclab.iot.node.service.impl;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
+import com.basiclab.iot.node.agent.NodeAgentGateway;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.basiclab.iot.common.exception.ServiceException;
@@ -39,6 +38,8 @@ public class NodeCommandServiceImpl implements NodeCommandService {
 
     private static final int AGENT_TIMEOUT_MS = 60000;
 
+    @Resource
+    private NodeAgentGateway nodeAgentGateway;
     @Resource
     private ComputeNodeMapper computeNodeMapper;
     @Resource
@@ -192,31 +193,7 @@ public class NodeCommandServiceImpl implements NodeCommandService {
     }
 
     private JSONObject callAgent(ComputeNodeDO node, String path, Map<String, Object> body) {
-        int port = node.getAgentPort() != null ? node.getAgentPort() : 9100;
-        String url = String.format("http://%s:%d%s", node.getHost(), port, path);
-        try {
-            HttpResponse response = HttpRequest.post(url)
-                    .header("X-Agent-Token", node.getAgentToken())
-                    .header("Content-Type", "application/json")
-                    .body(JSONUtil.toJsonStr(body))
-                    .timeout(AGENT_TIMEOUT_MS)
-                    .execute();
-            if (!response.isOk()) {
-                throw exception(AGENT_COMMAND_FAILED,
-                        "HTTP " + response.getStatus() + " — " + response.body());
-            }
-            JSONObject json = JSONUtil.parseObj(response.body());
-            if (json.getInt("code", -1) != 0) {
-                throw exception(AGENT_COMMAND_FAILED, json.getStr("msg", response.body()));
-            }
-            return json.getJSONObject("data") != null ? json.getJSONObject("data") : new JSONObject();
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Agent 请求异常 nodeId={} url={}: {}", node.getId(), url, e.getMessage(), e);
-            String detail = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            throw exception(AGENT_COMMAND_FAILED, node.getHost() + ":" + port + " — " + detail);
-        }
+        return nodeAgentGateway.call(node, path, body, AGENT_TIMEOUT_MS);
     }
 
 }

@@ -1,6 +1,7 @@
 """
 Agent HTTP 服务：接收控制面下发的部署/停止指令。
 """
+import functools
 import hmac
 import ipaddress
 import logging
@@ -10,10 +11,11 @@ import re
 import threading
 import time
 from collections import deque
-from typing import Deque, Dict, List, Optional, Tuple, Union
+from typing import Callable, Deque, Dict, List, Optional, Tuple, Union
 
 from flask import Flask, jsonify, request
 
+from agent_commands import credentials as agent_credentials
 from workload_manager import WorkloadManager, find_available_port
 from media_manager import MediaStackManager
 from mqtt_manager import MqttStackManager
@@ -43,6 +45,16 @@ def _env_int(name: str, default: int) -> int:
 
 
 AGENT_TOKEN = os.environ.get('AGENT_TOKEN', '')
+
+
+def _on_agent_token_rotated(new_token: str) -> None:
+    """控制面经指令通道推送新令牌后，9100 的 X-Agent-Token 校验随之切换（比较逻辑不变）。"""
+    global AGENT_TOKEN
+    AGENT_TOKEN = new_token
+
+
+agent_credentials.add_listener(_on_agent_token_rotated)
+
 # 可写多个地址（逗号或空格分隔），如 "10.0.0.5,127.0.0.1"；iot-node 经 SSH 探测 127.0.0.1 健康检查，收紧时须保留回环地址
 AGENT_LISTEN_HOST = os.environ.get('AGENT_LISTEN_HOST', '0.0.0.0')
 AGENT_LISTEN_PORT = int(os.environ.get('AGENT_LISTEN_PORT', '9100'))
@@ -451,6 +463,52 @@ def sentinel_profile():
 
 def create_app():
     return app
+
+
+# 只出站模式下控制面经指令轮询通道调用的入站功能：指令类型 → (HTTP 方法, 路径)。
+# 只认这张白名单，不接受控制面下发任意路径
+COMMAND_ROUTES = {
+    'workload.deploy': ('POST', '/workload/deploy'),
+    'workload.stop': ('POST', '/workload/stop'),
+    'workload.list': ('GET', '/workload/list'),
+    'media.deploy': ('POST', '/media/deploy'),
+    'media.stop': ('POST', '/media/stop'),
+    'mqtt.deploy': ('POST', '/mqtt/deploy'),
+    'mqtt.stop': ('POST', '/mqtt/stop'),
+    'sentinel.probe': ('POST', '/sentinel/probe'),
+    'sentinel.validate': ('POST', '/sentinel/validate'),
+    'sentinel.profile': ('GET', '/sentinel/profile'),
+    'camera.discover': ('POST', '/camera/discover'),
+    'camera.scan-segment': ('POST', '/camera/scan-segment'),
+    'camera.probe-onvif': ('POST', '/camera/probe-onvif'),
+    'camera.probe-stream': ('POST', '/camera/probe-stream'),
+    'camera.nvr-channels': ('POST', '/camera/nvr-channels'),
+}
+
+
+def invoke_route(command_type: str, payload: Optional[dict]) -> dict:
+    """在进程内调用与 9100 相同的处理函数。
+
+    请求带当前 X-Agent-Token 走完整的 before_request（令牌校验、来源白名单、并发上限），
+    HTTP 与指令队列两条路径共用同一份代码，不存在绕过令牌校验的旁路。
+    """
+    method, path = COMMAND_ROUTES[command_type]
+    with app.test_client() as client:
+        response = client.open(
+            path,
+            method=method,
+            json=(payload or {}) if method == 'POST' else None,
+            headers={'X-Agent-Token': AGENT_TOKEN},
+            environ_base={'REMOTE_ADDR': '127.0.0.1'},
+        )
+    body = response.get_json(silent=True) or {}
+    if response.status_code != 200 or body.get('code') != 0:
+        raise RuntimeError(body.get('msg') or f'HTTP {response.status_code}')
+    return {'data': body.get('data')}
+
+
+def build_route_executors() -> Dict[str, Callable[[dict], dict]]:
+    return {command_type: functools.partial(invoke_route, command_type) for command_type in COMMAND_ROUTES}
 
 
 def parse_listen_hosts(raw: str) -> List[str]:

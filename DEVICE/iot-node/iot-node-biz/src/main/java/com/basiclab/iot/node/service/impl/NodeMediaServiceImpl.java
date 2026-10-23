@@ -1,5 +1,6 @@
 package com.basiclab.iot.node.service.impl;
 
+import com.basiclab.iot.node.agent.NodeAgentGateway;
 import com.basiclab.iot.common.utils.object.BeanUtils;
 import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
 import com.basiclab.iot.node.dal.dataobject.DeviceMediaBindingDO;
@@ -8,8 +9,6 @@ import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
 import com.basiclab.iot.node.dal.pgsql.DeviceMediaBindingMapper;
 import com.basiclab.iot.node.dal.pgsql.NodeSshCredentialMapper;
 import com.basiclab.iot.node.domain.vo.DeviceMediaBindingRespVO;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.basiclab.iot.node.domain.vo.NodeMediaAllocateReqVO;
@@ -97,6 +96,8 @@ public class NodeMediaServiceImpl implements NodeMediaService {
     private static final String WORKLOAD_SRS_AI = "srs_ai";
     private static final String WORKLOAD_ZLM = "zlm";
 
+    @Resource
+    private NodeAgentGateway nodeAgentGateway;
     @Resource
     private DeviceMediaBindingMapper deviceMediaBindingMapper;
     @Resource
@@ -1549,22 +1550,7 @@ public class NodeMediaServiceImpl implements NodeMediaService {
     }
 
     private JSONObject callAgent(ComputeNodeDO node, String path, Map<String, Object> body) {
-        int port = node.getAgentPort() != null ? node.getAgentPort() : 9100;
-        String url = String.format("http://%s:%d%s", node.getHost(), port, path);
-        HttpResponse response = HttpRequest.post(url)
-                .header("X-Agent-Token", node.getAgentToken())
-                .header("Content-Type", "application/json")
-                .body(JSONUtil.toJsonStr(body))
-                .timeout(120000)
-                .execute();
-        if (!response.isOk()) {
-            throw new IllegalStateException("Agent 请求失败 HTTP " + response.getStatus() + ": " + response.body());
-        }
-        JSONObject json = JSONUtil.parseObj(response.body());
-        if (json.getInt("code", -1) != 0) {
-            throw new IllegalStateException("Agent 执行失败: " + json.getStr("msg", response.body()));
-        }
-        return json.getJSONObject("data") != null ? json.getJSONObject("data") : new JSONObject();
+        return nodeAgentGateway.call(node, path, body, 120000);
     }
 
 }

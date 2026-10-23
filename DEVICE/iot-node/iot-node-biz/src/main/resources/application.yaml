@@ -92,6 +92,20 @@ iot:
       - node_sentinel_remediate_log
 
 easyaiot:
+  node:
+    agent-token:
+      # 令牌密文的加密口令；留空时复用 MYBATIS_ENCRYPTOR_PASSWORD。两者都为空时令牌仍保留明文（启动打 ERROR）
+      encryption-key: ${EASYAIOT_NODE_AGENT_TOKEN_KEY:}
+      # 降级回旧版 iot-node 前设为 true 启动一次：回填明文列
+      retain-plaintext: ${EASYAIOT_NODE_AGENT_TOKEN_RETAIN_PLAINTEXT:false}
+      # 轮换后旧令牌的宽限期；Agent 用新令牌回连后缩短为 confirmed-grace-seconds
+      rotation-grace-seconds: ${EASYAIOT_NODE_AGENT_TOKEN_GRACE_SECONDS:259200}
+      confirmed-grace-seconds: ${EASYAIOT_NODE_AGENT_TOKEN_CONFIRMED_GRACE_SECONDS:300}
+    agent:
+      # false：SSH 部署的 Agent 不监听 9100（只出站），部署/扫描等全部经指令轮询通道下发
+      inbound-enabled: ${EASYAIOT_NODE_AGENT_INBOUND_ENABLED:true}
+      # true：Agent 声明支持时即使 9100 开放也走指令队列（用于在切换前验证队列链路）
+      prefer-queue: ${EASYAIOT_NODE_AGENT_PREFER_QUEUE:false}
   scheduler:
     # 自动调度时是否优先选择 GPU 节点（可被单次 allocate 请求的 preferGpu 覆盖）
     prefer-gpu-default: ${EASYAIOT_SCHEDULER_PREFER_GPU:true}
@@ -123,6 +137,8 @@ easyaiot:
     source-path: ${EASYAIOT_AGENT_SOURCE_PATH:}
     # 可选：显式指定控制面 URL；留空则与 media.hook-host 同样自动探测
     control-plane-url: ${EASYAIOT_AGENT_CONTROL_PLANE_URL:}
+    # 可选：控制面网关证书由私有 CA 签发时填该 CA 的 PEM 路径，SSH 部署 Agent 时下发并写入 CONTROL_PLANE_CA_FILE
+    control-plane-ca-file: ${EASYAIOT_AGENT_CONTROL_PLANE_CA_FILE:}
     # 控制面宿主机 Agent 领取凭据的独立 bootstrap 令牌；留空时接口拒绝所有请求
     platform-bootstrap-token: ${EASYAIOT_PLATFORM_AGENT_BOOTSTRAP_TOKEN:}
   edge:

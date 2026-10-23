@@ -7,6 +7,7 @@ import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
 import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
+import com.basiclab.iot.node.domain.vo.NodeAgentTokenRotateRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendReqVO;
@@ -113,6 +114,16 @@ public class ComputeNodeController {
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<String> resetAgentToken(@RequestParam("id") Long id) {
         return success(computeNodeService.resetAgentToken(id));
+    }
+
+    @PostMapping("/rotate-agent-token")
+    @Operation(summary = "轮换 Agent 令牌（旧令牌宽限期内有效，Agent 支持时自动推送新令牌）")
+    @Parameter(name = "id", description = "编号", required = true)
+    @Parameter(name = "immediate", description = "旧令牌立即失效（疑似泄露时使用）")
+    public CommonResult<NodeAgentTokenRotateRespVO> rotateAgentToken(
+            @RequestParam("id") Long id,
+            @RequestParam(value = "immediate", required = false, defaultValue = "false") boolean immediate) {
+        return success(computeNodeService.rotateAgentToken(id, immediate));
     }
 
     @GetMapping("/agent-setup")

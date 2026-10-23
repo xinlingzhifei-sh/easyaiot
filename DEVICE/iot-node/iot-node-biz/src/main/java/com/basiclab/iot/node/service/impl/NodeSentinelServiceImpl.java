@@ -17,7 +17,7 @@ import com.basiclab.iot.node.domain.vo.NodeSentinelRemediateReqVO;
 import com.basiclab.iot.node.domain.vo.NodeSentinelRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
 import com.basiclab.iot.node.framework.SentinelCapabilityRegistry;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeSentinelRemediatorService;
 import com.basiclab.iot.node.service.NodeSentinelService;
 import com.basiclab.iot.node.util.NodeFunctions;
@@ -68,6 +68,8 @@ public class NodeSentinelServiceImpl implements NodeSentinelService {
     private NodeSentinelAgentClient nodeSentinelAgentClient;
     @Resource
     private NodeSentinelRemediatorService nodeSentinelRemediatorService;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
 
     @Value("${easyaiot.sentinel.enabled:true}")
     private boolean sentinelEnabled;
@@ -207,13 +209,12 @@ public class NodeSentinelServiceImpl implements NodeSentinelService {
 
     @Override
     public Map<String, Object> reportRemediation(NodeSentinelRemediateReportReqVO reqVO) {
-        ComputeNodeDO node = computeNodeMapper.selectById(reqVO.getNodeId());
+        // 未带令牌时由 Controller 保证调用方是管理后台用户
+        ComputeNodeDO node = StrUtil.isNotBlank(reqVO.getAgentToken())
+                ? nodeAgentCredentialService.authenticate(reqVO.getNodeId(), reqVO.getAgentToken())
+                : computeNodeMapper.selectById(reqVO.getNodeId());
         if (node == null) {
             throw exception(COMPUTE_NODE_NOT_EXISTS);
-        }
-        if (StrUtil.isNotBlank(reqVO.getAgentToken())
-                && !NodeTokenVerifier.matches(node.getAgentToken(), reqVO.getAgentToken())) {
-            throw exception(com.basiclab.iot.node.enums.ErrorCodeConstants.AGENT_TOKEN_INVALID);
         }
         Map<String, Object> result = new HashMap<>();
         result.put("success", Boolean.TRUE.equals(reqVO.getSuccess()));

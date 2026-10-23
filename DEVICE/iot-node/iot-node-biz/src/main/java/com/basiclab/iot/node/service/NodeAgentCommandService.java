@@ -27,4 +27,10 @@ public interface NodeAgentCommandService {
 
     int reclaimTimedOutCommands();
 
+    /**
+     * 入队一条令牌轮换推送指令（payload 只含代次，令牌明文在 poll 下发时才解密放入），
+     * 并把同节点尚未被领取的旧轮换指令标记为 superseded。
+     */
+    NodeAgentCommandRespVO enqueueTokenRotation(Long nodeId, int generation);
+
 }

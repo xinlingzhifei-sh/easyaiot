@@ -16,6 +16,7 @@ import com.basiclab.iot.node.domain.vo.ComputeNodeRespVO;
 import com.basiclab.iot.node.domain.vo.ComputeNodeSaveReqVO;
 import com.basiclab.iot.node.domain.vo.NodeOnboardPreflightRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCheckRespVO;
+import com.basiclab.iot.node.domain.vo.NodeAgentTokenRotateRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMediaRemoteDeployRespVO;
 import com.basiclab.iot.node.domain.vo.NodePortCheckRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendPointRespVO;
@@ -24,9 +25,10 @@ import com.basiclab.iot.node.domain.vo.NodeMetricTrendRespVO;
 import com.basiclab.iot.node.domain.vo.PlatformAgentBootstrapRespVO;
 import com.basiclab.iot.node.domain.vo.NodeMetricTrendSeriesRespVO;
 import com.basiclab.iot.node.enums.NodeStatusEnum;
-import com.basiclab.iot.node.security.NodeTokenGenerator;
 import com.basiclab.iot.node.service.ControlPlaneEndpointResolver;
 import com.basiclab.iot.node.service.ComputeNodeService;
+import com.basiclab.iot.node.service.NodeAgentCommandService;
+import com.basiclab.iot.node.service.NodeAgentCredentialService;
 import com.basiclab.iot.node.service.NodeMediaService;
 import com.basiclab.iot.node.util.AgentDeployUtil;
 import com.basiclab.iot.node.util.NodeOnboardPreflight;
@@ -51,11 +53,13 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -101,11 +105,23 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     private NodeWorkloadBindingMapper nodeWorkloadBindingMapper;
     @Resource
     private ObjectMapper objectMapper;
+    @Resource
+    private NodeAgentCredentialService nodeAgentCredentialService;
+    @Resource
+    private NodeAgentCommandService nodeAgentCommandService;
 
     @Value("${easyaiot.agent.source-path:}")
     private String agentSourcePath;
     @Value("${easyaiot.sentinel.auto-deploy-on-create:true}")
     private boolean autoDeployOnCreate;
+    /** 控制面网关用私有 CA 签发的证书时，指向该 CA 的 PEM；SSH 部署时下发到节点供 Agent 校验 */
+    @Value("${easyaiot.agent.control-plane-ca-file:}")
+    private String controlPlaneCaFile;
+    /** false：新部署的 Agent 不监听 9100（只出站），控制面经指令队列下发；旧控制面无法与这类节点通信 */
+    @Value("${easyaiot.node.agent.inbound-enabled:true}")
+    private boolean agentInboundEnabled;
+    /** 只出站时部署校验改为等待心跳 */
+    long heartbeatVerifyTimeoutMs = 60_000;
     @Resource
     private ControlPlaneEndpointResolver controlPlaneEndpointResolver;
     @Resource
@@ -148,7 +164,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             caps.putAll(createReqVO.getCapabilities());
         }
         node.setCapabilities(caps);
-        node.setAgentToken(NodeTokenGenerator.newAgentToken());
+        nodeAgentCredentialService.issue(node);
         ensurePlatformNode();
         ComputeNodeDO platformNode = computeNodeMapper.selectPlatformNode();
         if (platformNode != null) {
@@ -214,7 +230,6 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         updateObj.setCapabilities(caps);
         updateObj.setSshPort(defaultPort(updateReqVO.getSshPort(), defaultPort(existing.getSshPort(), DEFAULT_SSH_PORT)));
         updateObj.setAgentPort(defaultPort(updateReqVO.getAgentPort(), defaultPort(existing.getAgentPort(), DEFAULT_AGENT_PORT)));
-        updateObj.setAgentToken(existing.getAgentToken());
         updateObj.setStatus(existing.getStatus());
         updateObj.setLastHeartbeatAt(existing.getLastHeartbeatAt());
         applyFunctionGpuDefaults(updateObj, functions, updateReqVO.getMaxGpuCount());
@@ -445,7 +460,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         Map<String, Boolean> caps = NodeFunctions.capabilities(NodeFunctions.PLATFORM_DEFAULT);
         caps.put(PLATFORM_CAPABILITY_KEY, true);
         node.setCapabilities(caps);
-        node.setAgentToken(NodeTokenGenerator.newAgentToken());
+        nodeAgentCredentialService.issue(node);
         node.setRemark("平台控制面宿主机，自动纳管");
         applyPlatformRecordingStorage(node);
         computeNodeMapper.insert(node);
@@ -481,7 +496,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         }
         PlatformAgentBootstrapRespVO resp = new PlatformAgentBootstrapRespVO();
         resp.setNodeId(node.getId());
-        resp.setAgentToken(node.getAgentToken());
+        resp.setAgentToken(nodeAgentCredentialService.currentToken(node));
         resp.setAgentPort(defaultPort(node.getAgentPort(), DEFAULT_AGENT_PORT));
         resp.setControlPlaneUrl(resolveControlPlaneUrl(null));
         return resp;
@@ -520,14 +535,28 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String resetAgentToken(Long id) {
+        return rotateAgentToken(id, false).getAgentToken();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public NodeAgentTokenRotateRespVO rotateAgentToken(Long id, boolean immediate) {
         ComputeNodeDO node = validateExists(id);
         if (isPlatformNode(node)) {
             throw exception(COMPUTE_NODE_PLATFORM_UPDATE_FORBIDDEN);
         }
-        String token = NodeTokenGenerator.newAgentToken();
-        node.setAgentToken(token);
-        computeNodeMapper.updateById(node);
-        return token;
+        NodeAgentTokenRotateRespVO resp = nodeAgentCredentialService.rotate(node, immediate);
+        // immediate 时旧令牌已失效，Agent 拉不到推送；旧版 Agent 不声明该能力，需重新部署
+        if (!immediate && supportsTokenPush(node)) {
+            nodeAgentCommandService.enqueueTokenRotation(node.getId(), resp.getGeneration());
+            resp.setPushed(true);
+        }
+        return resp;
+    }
+
+    private static boolean supportsTokenPush(ComputeNodeDO node) {
+        return node.getAgentFeatures() != null
+                && Boolean.TRUE.equals(node.getAgentFeatures().get(NodeAgentCommandServiceImpl.COMMAND_TOKEN_ROTATE));
     }
 
     @Override
@@ -630,13 +659,16 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             String controlPlaneUrl = resolveControlPlaneUrl(controlPlaneUrlOverride);
             int agentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                     ? node.getAgentPort() : DEFAULT_AGENT_PORT;
+            String controlPlaneCaPem = loadControlPlaneCaPem();
             String envContent = AgentDeployUtil.buildEnvContent(
                     node.getId(),
-                    node.getAgentToken() != null ? node.getAgentToken() : "",
+                    StrUtil.blankToDefault(nodeAgentCredentialService.currentToken(node), ""),
                     agentPort,
                     controlPlaneUrl,
-                    node.getNodeRole());
-            String installScript = AgentDeployUtil.buildInstallScript(envContent);
+                    node.getNodeRole(),
+                    controlPlaneCaPem != null,
+                    agentInboundEnabled);
+            String installScript = AgentDeployUtil.buildInstallScript(envContent, controlPlaneCaPem);
             String encoded = Base64.getEncoder().encodeToString(installScript.getBytes(StandardCharsets.UTF_8));
             SshSessionHelper.SshExecResult installResult = ssh.exec(
                     "echo " + encoded + " | base64 -d > /tmp/easyaiot-agent-install.sh "
@@ -1224,7 +1256,7 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         resp.setIsPlatform(isPlatformNode(node));
         resp.setFunctions(NodeFunctions.parse(node));
         if (exposeToken) {
-            resp.setAgentToken(node.getAgentToken());
+            resp.setAgentToken(nodeAgentCredentialService.currentToken(node));
         } else {
             resp.setAgentToken(null);
         }
@@ -1304,6 +1336,23 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
         }
         if (node.getMaxGpuCount() == null) {
             node.setMaxGpuCount(0);
+        }
+    }
+
+    /**
+     * 读取 easyaiot.agent.control-plane-ca-file；未配置返回 null。配置了却读不到或不是证书时让部署失败，
+     * 不静默跳过——否则 Agent 会退回系统 CA，连不上用私有 CA 的网关。
+     */
+    String loadControlPlaneCaPem() {
+        if (StrUtil.isBlank(controlPlaneCaFile)) {
+            return null;
+        }
+        try {
+            String pem = Files.readString(Path.of(controlPlaneCaFile.trim()), StandardCharsets.UTF_8);
+            return AgentDeployUtil.validateControlPlaneCaPem(pem);
+        } catch (IOException | RuntimeException e) {
+            throw new IllegalStateException("无法读取控制面 CA（easyaiot.agent.control-plane-ca-file="
+                    + controlPlaneCaFile + "）: " + e.getMessage(), e);
         }
     }
 
@@ -1912,12 +1961,15 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             SshSessionHelper ssh, ComputeNodeDO node, String expectedControlPlaneUrl) throws Exception {
         String envFile = AgentDeployUtil.REMOTE_INSTALL_DIR + "/agent.env";
         String expectedNodeId = String.valueOf(node.getId());
-        String expectedToken = node.getAgentToken() != null ? node.getAgentToken() : "";
+        String expectedToken = StrUtil.blankToDefault(nodeAgentCredentialService.currentToken(node), "");
+        // 轮换宽限期内 Agent 可能还拿着上一令牌，同样视为配置正确
+        String expectedPrevToken = StrUtil.blankToDefault(nodeAgentCredentialService.previousToken(node), "");
         int expectedAgentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                 ? node.getAgentPort() : DEFAULT_AGENT_PORT;
         String script = "ENV_FILE='" + envFile + "'\n"
                 + "EXPECTED_NODE_ID='" + expectedNodeId + "'\n"
                 + "EXPECTED_TOKEN='" + expectedToken.replace("'", "'\\''") + "'\n"
+                + "EXPECTED_PREV_TOKEN='" + expectedPrevToken.replace("'", "'\\''") + "'\n"
                 + "EXPECTED_CP='" + expectedControlPlaneUrl.replace("'", "'\\''") + "'\n"
                 + "EXPECTED_LISTEN_PORT='" + expectedAgentPort + "'\n"
                 + "if [ ! -f \"$ENV_FILE\" ]; then echo ENV_MISSING; exit 0; fi\n"
@@ -1932,7 +1984,8 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
                 + "echo AGENT_LISTEN_PORT=${LISTEN_PORT:-unset}\n"
                 + "echo EXPECTED_LISTEN_PORT=$EXPECTED_LISTEN_PORT\n"
                 + "if [ \"$NODE_ID\" = \"$EXPECTED_NODE_ID\" ]; then echo NODE_ID_MATCH=1; else echo NODE_ID_MATCH=0; fi\n"
-                + "if [ \"$TOKEN\" = \"$EXPECTED_TOKEN\" ]; then echo TOKEN_MATCH=1; else echo TOKEN_MATCH=0; fi\n"
+                + "if [ -n \"$TOKEN\" ] && { [ \"$TOKEN\" = \"$EXPECTED_TOKEN\" ] || [ \"$TOKEN\" = \"$EXPECTED_PREV_TOKEN\" ]; }; "
+                + "then echo TOKEN_MATCH=1; else echo TOKEN_MATCH=0; fi\n"
                 + "if [ \"$CP_URL\" = \"$EXPECTED_CP\" ]; then echo CP_MATCH=1; else echo CP_MATCH=0; fi\n"
                 + "if [ \"$LISTEN_PORT\" = \"$EXPECTED_LISTEN_PORT\" ]; then echo LISTEN_PORT_MATCH=1; else echo LISTEN_PORT_MATCH=0; fi\n"
                 + "if echo \"$CP_URL\" | grep -Eq 'localhost|127\\.0\\.0\\.1'; then echo CP_LOCALHOST=1; fi";
@@ -2021,6 +2074,9 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
 
     private NodeMediaRemoteDeployRespVO.DeployStep verifyAgentService(SshSessionHelper ssh, ComputeNodeDO node)
             throws Exception {
+        if (!agentInboundEnabled) {
+            return verifyOutboundOnlyAgent(ssh, node);
+        }
         int agentPort = node.getAgentPort() != null && node.getAgentPort() > 0
                 ? node.getAgentPort() : DEFAULT_AGENT_PORT;
         SshSessionHelper.SshExecResult serviceResult = ssh.exec(
@@ -2042,6 +2098,42 @@ public class ComputeNodeServiceImpl implements ComputeNodeService {
             }
         }
         return step;
+    }
+
+    /**
+     * 只出站的 Agent 不监听 9100，无法 curl /health：确认服务在运行，并等它用新写入的令牌经网关发来心跳。
+     */
+    private NodeMediaRemoteDeployRespVO.DeployStep verifyOutboundOnlyAgent(SshSessionHelper ssh, ComputeNodeDO node)
+            throws Exception {
+        LocalDateTime since = LocalDateTime.now();
+        SshSessionHelper.SshExecResult serviceResult = ssh.exec(
+                "systemctl is-active easyaiot-node-agent 2>/dev/null || echo INACTIVE", 15000);
+        String out = serviceResult.combinedOutput().trim();
+        NodeMediaRemoteDeployRespVO.DeployStep step = new NodeMediaRemoteDeployRespVO.DeployStep();
+        step.setName("服务验证");
+        boolean serviceActive = out.contains("active") && !out.contains("INACTIVE") && !out.contains("inactive");
+        boolean heartbeat = serviceActive && waitForHeartbeat(node.getId(), since);
+        step.setStatus(heartbeat ? "success" : "failed");
+        step.setOutput(out + (heartbeat
+                ? "\n只出站模式：已收到 Agent 心跳"
+                : "\n只出站模式（未监听 9100）：" + heartbeatVerifyTimeoutMs / 1000
+                + " 秒内未收到 Agent 心跳，请检查 journalctl -u easyaiot-node-agent 与 CONTROL_PLANE_URL"));
+        return step;
+    }
+
+    boolean waitForHeartbeat(Long nodeId, LocalDateTime since) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + heartbeatVerifyTimeoutMs;
+        while (true) {
+            ComputeNodeDO current = computeNodeMapper.selectById(nodeId);
+            if (current != null && current.getLastHeartbeatAt() != null
+                    && !current.getLastHeartbeatAt().isBefore(since)) {
+                return true;
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                return false;
+            }
+            Thread.sleep(Math.min(2000, Math.max(1, heartbeatVerifyTimeoutMs / 10)));
+        }
     }
 
     private boolean isAgentInstallOutputSuccessful(SshSessionHelper.SshExecResult result, String output) {

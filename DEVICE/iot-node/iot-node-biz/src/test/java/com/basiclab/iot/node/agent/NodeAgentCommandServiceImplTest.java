@@ -5,13 +5,15 @@ import com.basiclab.iot.node.dal.dataobject.ComputeNodeDO;
 import com.basiclab.iot.node.dal.dataobject.NodeAgentCommandDO;
 import com.basiclab.iot.node.dal.pgsql.ComputeNodeMapper;
 import com.basiclab.iot.node.dal.pgsql.NodeAgentCommandMapper;
+import com.basiclab.iot.node.security.AgentTokenHasher;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandAckReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandEnqueueReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandPollReqVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandRespVO;
 import com.basiclab.iot.node.domain.vo.NodeAgentCommandResultReqVO;
-import com.basiclab.iot.node.security.NodeTokenVerifier;
+import com.basiclab.iot.node.service.impl.AgentCredentialTestSupport;
 import com.basiclab.iot.node.service.impl.NodeAgentCommandServiceImpl;
+import com.basiclab.iot.node.service.impl.NodeAgentCredentialServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -30,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
 
@@ -47,7 +51,6 @@ class NodeAgentCommandServiceImplTest {
     void setUp() throws Exception {
         ComputeNodeDO node = new ComputeNodeDO();
         node.setId(NODE_ID);
-        node.setAgentToken(AGENT_TOKEN);
         computeNodeMapper = proxy(ComputeNodeMapper.class, (proxy, method, args) -> {
             if ("selectById".equals(method.getName())) {
                 return NODE_ID == (Long) args[0] ? node : null;
@@ -59,6 +62,9 @@ class NodeAgentCommandServiceImplTest {
         service = new NodeAgentCommandServiceImpl();
         setField(service, "computeNodeMapper", computeNodeMapper);
         setField(service, "nodeAgentCommandMapper", nodeAgentCommandMapper);
+        NodeAgentCredentialServiceImpl credentialService = AgentCredentialTestSupport.credentialService(computeNodeMapper);
+        AgentCredentialTestSupport.storeToken(credentialService, node, AGENT_TOKEN);
+        setField(service, "nodeAgentCredentialService", credentialService);
     }
 
     @Test
@@ -236,15 +242,16 @@ class NodeAgentCommandServiceImplTest {
     }
 
     @Test
-    void agentTokenIsComparedWithConstantTimeVerifier() {
+    void agentTokenIsVerifiedAgainstStoredHashInConstantTime() {
         NodeAgentCommandPollReqVO reqVO = new NodeAgentCommandPollReqVO();
         reqVO.setNodeId(NODE_ID);
         reqVO.setAgentToken(AGENT_TOKEN);
 
-        try (MockedStatic<NodeTokenVerifier> verifier = mockStatic(NodeTokenVerifier.class, CALLS_REAL_METHODS)) {
+        // AgentTokenHasher.matches 内部用 MessageDigest.isEqual 比较 MAC（见 AgentTokenStorageTest）
+        try (MockedStatic<AgentTokenHasher> hasher = mockStatic(AgentTokenHasher.class, CALLS_REAL_METHODS)) {
             service.poll(reqVO);
 
-            verifier.verify(() -> NodeTokenVerifier.matches(AGENT_TOKEN, AGENT_TOKEN));
+            hasher.verify(() -> AgentTokenHasher.matches(any(), eq(AGENT_TOKEN)));
         }
     }
 
