@@ -2,6 +2,7 @@ package com.basiclab.iot.system.supervision;
 
 import com.basiclab.iot.system.api.permission.dto.DeptDataPermissionRespDTO;
 import com.basiclab.iot.system.dal.pgsql.supervision.SupervisionAlertReviewItemMapper;
+import com.basiclab.iot.system.framework.supervision.PermissionServiceReviewOperatorPermissionChecker;
 import com.basiclab.iot.system.service.permission.PermissionService;
 import com.basiclab.iot.system.service.supervision.ConfiguredReviewCameraPermissionResolver;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.ReviewCameraPermissionRequest;
@@ -51,7 +52,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
         permissionService.superAdmin = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         assertEquals(
                 List.of("camera-01"),
@@ -102,7 +103,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         ));
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         assertEquals(
                 List.of("camera-02"),
@@ -141,7 +142,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         ));
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         List<String> allowed = resolver.resolveAllowedCameraIds(
                 new ReviewCameraPermissionRequest(
@@ -190,7 +191,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         resolver.setActionPermissions(Map.of(
                 "export", List.of("system:supervision-alert-review:media:export")
         ));
-        resolver.setPermissionService(new CapturingPermissionService());
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(new CapturingPermissionService()));
 
         assertEquals(
                 List.of(),
@@ -257,7 +258,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
         permissionService.superAdmin = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         assertEquals(List.of("camera-01"), resolver.resolveAllowedCameraIds(
                 new ReviewCameraPermissionRequest(1L, 1L, 1L, "playback", List.of("camera-01"))));
@@ -281,7 +282,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         ));
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         List<String> allowed = resolver.resolveAllowedCameraIds(
                 new ReviewCameraPermissionRequest(1L, 7L, 10L, "playback", null));
@@ -344,7 +345,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         resolver.setReviewItemMapper(reviewItemMapper(Map.of(10L, List.of("camera-01"))));
         resolver.setActionPermissions(Map.of("download", List.of("system:supervision-alert-review:media:download")));
         CapturingPermissionService permissionService = new CapturingPermissionService();
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         ReviewCameraPermissionRequest request = new ReviewCameraPermissionRequest(1L, 7L, 10L, "download", null);
 
@@ -363,7 +364,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         resolver.setUsers(Map.of(7L, List.of("camera-01")));
         resolver.setActionPermissions(Map.of(" Download ", List.of("system:supervision-alert-review:media:download")));
         CapturingPermissionService permissionService = new CapturingPermissionService();
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
 
         assertEquals(List.of(), resolver.resolveAllowedCameraIds(
                 new ReviewCameraPermissionRequest(1L, 7L, 10L, "download", null)));
@@ -426,7 +427,7 @@ class ConfiguredReviewCameraPermissionResolverTest {
         ));
         CapturingPermissionService permissionService = new CapturingPermissionService();
         permissionService.allowed = true;
-        resolver.setPermissionService(permissionService);
+        resolver.setPermissionChecker(new PermissionServiceReviewOperatorPermissionChecker(permissionService));
     }
 
     private static final class CapturingPermissionService implements PermissionService {

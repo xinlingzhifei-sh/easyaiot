@@ -11,7 +11,7 @@ import {
 } from './apply-alert-review-migrations.mjs';
 
 const root = mkdtempSync(join(tmpdir(), 'alert-review-migrations-'));
-const migrations = join(root, 'DEVICE', 'iot-system', 'iot-system-biz', 'src', 'main', 'resources', 'sql', 'migrations');
+const migrations = join(root, 'DEVICE', 'iot-supervision', 'iot-supervision-biz', 'src', 'main', 'resources', 'sql', 'migrations');
 mkdirSync(migrations, { recursive: true });
 writeFileSync(join(migrations, 'V20260701__baseline.sql'), 'CREATE TABLE sample_one(id BIGINT);\n');
 writeFileSync(join(migrations, 'V20260702__hardening.sql'), 'ALTER TABLE sample_one ADD COLUMN name TEXT;\n');
@@ -35,8 +35,8 @@ assert.equal(invocation.env.PGPASSWORD, 'secret-value');
 assert.equal(invocation.args.join(' ').includes('secret-value'), false);
 
 const plan = buildMigrationPlan(root, [
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260701__baseline.sql',
-  'DEVICE/iot-system/iot-system-biz/src/main/resources/sql/migrations/V20260702__hardening.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260701__baseline.sql',
+  'DEVICE/iot-supervision/iot-supervision-biz/src/main/resources/sql/migrations/V20260702__hardening.sql',
 ]);
 assert.equal(plan.length, 2);
 assert.equal(plan[0].version, 'V20260701__baseline.sql');

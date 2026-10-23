@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.basiclab.iot</groupId>
+        <artifactId>iot-supervision</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>iot-supervision-biz</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>
+        supervision 模块业务实现。普通 jar（不做 Spring Boot repackage），由 iot-system-biz 引入；
+        对平台用户/权限/通知的依赖经端口接口由宿主提供实现，因此本模块不依赖 iot-system-biz。
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-supervision-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!-- 只用到 RoleCodeEnum 等 API 契约，不依赖 iot-system-biz -->
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-system-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-data-permission</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-tenant</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-mybatis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-job</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.basiclab.iot</groupId>
+            <artifactId>iot-common-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

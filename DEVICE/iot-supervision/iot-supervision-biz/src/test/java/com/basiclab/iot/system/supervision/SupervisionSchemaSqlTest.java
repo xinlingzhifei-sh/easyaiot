@@ -779,7 +779,7 @@ class SupervisionSchemaSqlTest {
                     .getCodeSource().getLocation().toURI());
             return testClasses.getParent().getParent().resolve(relativePath).normalize();
         } catch (Exception exception) {
-            throw new IllegalStateException("Unable to resolve iot-system-biz module path", exception);
+            throw new IllegalStateException("Unable to resolve iot-supervision-biz module path", exception);
         }
     }
 

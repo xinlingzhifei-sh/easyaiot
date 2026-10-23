@@ -980,6 +980,200 @@ class SupervisionAlertReviewServiceTest {
         assertEquals("rechecking", eventProjection.get("eventReviewStatusAtConflict"));
     }
 
+    // ---- 特征测试：拆分 SupervisionAlertReviewServiceImpl 前锁定以下对外方法的现有行为 ----
+
+    @Test
+    void characterizeReconcileEventProjectionsCountsMissingReconciledAndConflictingProjections() {
+        InMemoryReviewItemStore itemStore = new InMemoryReviewItemStore();
+        Map<Long, EventProjection> projections = new LinkedHashMap<>();
+        java.util.concurrent.atomic.AtomicLong nextEventId = new java.util.concurrent.atomic.AtomicLong(7101L);
+        SupervisionAlertReviewService service = newService(
+                itemStore,
+                new InMemoryRuleStore(),
+                command -> new AlertToEventResult(
+                        nextEventId.getAndIncrement(),
+                        command.sourceSystem(),
+                        command.sourceAlertId(),
+                        command.ruleCode(),
+                        "supervision_order",
+                        SupervisionEventLevelEnum.L2,
+                        SupervisionEventStatusEnum.ACCEPTED.getCode(),
+                        false
+                ),
+                noRecordEvidenceResolver(),
+                eventId -> Optional.ofNullable(projections.get(eventId))
+        );
+        LocalDateTime base = LocalDateTime.of(2026, 7, 5, 8, 0);
+        ReviewItemAggregate returned = service.ingestClue(newClue("alert-char-reconcile-1", base, "c1.jpg", null));
+        ReviewItemAggregate missing = service.ingestClue(newClue("alert-char-reconcile-2", base.plusHours(2), "c2.jpg", null));
+        ReviewItemAggregate pending = service.ingestClue(newClue("alert-char-reconcile-3", base.plusHours(4), "c3.jpg", null));
+        service.convertToEvent(new ReviewToEventCommand(returned.id(), 9008L));
+        service.convertToEvent(new ReviewToEventCommand(missing.id(), 9008L));
+        projections.put(7101L, new EventProjection(7101L, "returned", "passed", "complete"));
+
+        SupervisionAlertReviewService.ReviewEventReconciliationResult result = service.reconcileEventProjections(
+                new SupervisionAlertReviewService.ReviewEventReconciliationCommand(
+                        new ReviewQuery(null, "camera-01", null, null, null, null, null, null,
+                                base.minusHours(1), base.plusHours(6)),
+                        9010L
+                ));
+
+        assertEquals(3, result.scannedCount());
+        assertEquals(1, result.reconciledCount());
+        assertEquals(1, result.missingProjectionCount());
+        assertEquals(1, result.conflictCount());
+        assertEquals(9010L, result.operatorUserId());
+        assertNotNull(result.reconciledAt());
+        ReviewItemAggregate reconciled = itemStore.findById(returned.id()).orElseThrow();
+        assertEquals("converted", reconciled.reviewStatus());
+        assertEquals(new LinkedHashSet<>(List.of(
+                "event_projection_reconciled:" + returned.id() + ":7101:" + reconciled.eventReviewStatus(),
+                "event_projection_conflict:" + returned.id() + ":7101:event_returned_after_conversion",
+                "event_projection_missing:" + missing.id() + ":7102"
+        )), new LinkedHashSet<>(result.findings()));
+        Map<String, Object> eventProjection = toStringObjectMap(reconciled.reviewData().get("eventProjection"));
+        assertEquals(9010L, eventProjection.get("operatorUserId"));
+        assertEquals("keep_converted_review_item", eventProjection.get("conflictPolicy"));
+        assertEquals("event_returned_after_conversion", eventProjection.get("conflictStatus"));
+        assertEquals(null, itemStore.findById(pending.id()).orElseThrow().eventId());
+    }
+
+    @Test
+    void characterizeFindReviewCaseByItemDelegatesOnlyForExistingItems() {
+        AtomicReference<ReviewCaseView> caseForLookup = new AtomicReference<>();
+        List<Long> lookups = new ArrayList<>();
+        InMemoryReviewItemStore itemStore = new InMemoryReviewItemStore() {
+            @Override
+            public Optional<ReviewCaseView> findCaseByReviewItemId(Long reviewItemId) {
+                lookups.add(reviewItemId);
+                return Optional.ofNullable(caseForLookup.get());
+            }
+        };
+        SupervisionAlertReviewService service = newService(itemStore, new InMemoryRuleStore(), unusedEventService());
+        ReviewItemAggregate item = service.ingestClue(newClue(
+                "alert-char-find-case", LocalDateTime.of(2026, 7, 5, 9, 0), "find-case.jpg", null));
+        ReviewCaseView reviewCase = service.createReviewCase(new ReviewCaseCommand(
+                "find case", item.id(), List.of(item.id())));
+        lookups.clear();
+
+        assertEquals(Optional.empty(), service.findReviewCaseByItem(item.id()));
+        caseForLookup.set(reviewCase);
+        assertEquals(Optional.of(reviewCase), service.findReviewCaseByItem(item.id()));
+        assertEquals(Optional.empty(), service.findReviewCaseByItem(999_999L));
+        assertEquals(List.of(item.id(), item.id()), lookups);
+        IllegalArgumentException zero = assertThrows(IllegalArgumentException.class,
+                () -> service.findReviewCaseByItem(0L));
+        assertEquals("reviewItemId must be positive", zero.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> service.findReviewCaseByItem(null));
+    }
+
+    @Test
+    void characterizeListRulesReturnsEveryStoredRuleIncludingDisabled() {
+        SupervisionAlertReviewService service = newService(
+                new InMemoryReviewItemStore(), new InMemoryRuleStore(), unusedEventService());
+        assertEquals(List.of(), service.listRules());
+
+        ReviewRuleView enabled = service.saveRule(new ReviewRuleCommand(
+                null, SupervisionRuleSeeds.RULE_RESTRICTED_AREA, "enabled", "video", "camera-01", "zone-a",
+                "person", 10, null, null, true, null, null));
+        ReviewRuleView disabled = service.saveRule(new ReviewRuleCommand(
+                null, SupervisionRuleSeeds.RULE_RESTRICTED_AREA, "disabled", "video", "camera-02", "zone-b",
+                "person", 20, null, null, false, null, null));
+
+        assertEquals(List.of(enabled, disabled), service.listRules());
+    }
+
+    @Test
+    void characterizeScheduleReviewReportDeliveryQueuesReportOnce() {
+        InMemoryReviewItemStore itemStore = new InMemoryReviewItemStore();
+        SupervisionAlertReviewService service = newService(
+                itemStore,
+                new InMemoryRuleStore(),
+                unusedEventService(),
+                request -> Optional.empty(),
+                noEventProjectionStore()
+        );
+        LocalDateTime shiftStart = LocalDateTime.of(2026, 7, 5, 8, 0);
+        ReviewItemAggregate item = service.ingestClue(newClue(
+                "alert-char-report-delivery", shiftStart.plusMinutes(10), "report-delivery.jpg", null));
+        ReviewReportCommand command = new ReviewReportCommand(
+                "shift",
+                new ReviewQuery(null, "camera-01", null, null, null, null, null, null, shiftStart, shiftStart.plusHours(8)),
+                shiftStart,
+                shiftStart.plusHours(8),
+                9001L
+        );
+
+        SupervisionAlertReviewService.ReviewOperationsReportDelivery first = service.scheduleReviewReportDelivery(command);
+        SupervisionAlertReviewService.ReviewOperationsReportDelivery second = service.scheduleReviewReportDelivery(command);
+
+        assertEquals(1, first.outboxEventCount());
+        assertEquals(0, second.outboxEventCount());
+        assertNotNull(first.queuedAt());
+        assertEquals("shift", first.report().reportType());
+        assertEquals(List.of(item.id()), first.report().reviewItemIds());
+        assertEquals(service.generateReviewReport(command).deliveryPlan().get("reportKey"),
+                first.report().deliveryPlan().get("reportKey"));
+        assertEquals(first.report().deliveryPlan().get("reportKey"), second.report().deliveryPlan().get("reportKey"));
+    }
+
+    @Test
+    void characterizePublicRecordEvidenceDownloadOnlyAuditsADeniedDownload() {
+        List<String> audits = new ArrayList<>();
+        InMemoryReviewItemStore itemStore = new InMemoryReviewItemStore() {
+            @Override
+            public void recordMediaAccessAudit(Long reviewCaseId,
+                                               Long reviewItemId,
+                                               String actionType,
+                                               String actionNote,
+                                               Long operatorUserId,
+                                               LocalDateTime happenedAt,
+                                               Map<String, Object> metadata) {
+                audits.add(reviewCaseId + "|" + reviewItemId + "|" + actionType + "|" + operatorUserId + "|" + actionNote);
+                super.recordMediaAccessAudit(reviewCaseId, reviewItemId, actionType, actionNote, operatorUserId,
+                        happenedAt, metadata);
+            }
+        };
+        SupervisionAlertReviewService service = newService(itemStore, new InMemoryRuleStore(), eventServiceReturning(7201L));
+        ReviewItemAggregate item = service.ingestClue(newClue(
+                "alert-char-download", LocalDateTime.of(2026, 7, 5, 10, 0), "download.jpg", "download.mp4"));
+        service.convertToEvent(new ReviewToEventCommand(item.id(), 9002L));
+        ReviewCaseView reviewCase = service.createReviewCase(new ReviewCaseCommand(
+                "download audit", item.id(), List.of(item.id())));
+        ReviewEvidenceExportJob job = service.createReviewEvidenceExportJob(new ReviewEvidenceExportCommand(
+                reviewCase.id(), List.of(item.id()), 9003L, "manifest", "regulator package", 9005L, "approved"));
+        audits.clear();
+
+        ReviewEvidenceAuditEntry entry = service.recordEvidenceDownload(job.jobNo(), 9010L, "spot check");
+        ReviewEvidenceAuditEntry scoped = service.recordEvidenceDownload(job.jobNo(), 9011L, null, List.of("camera-01"));
+
+        assertEquals(reviewCase.id(), entry.reviewCaseId());
+        assertEquals(null, entry.reviewItemId());
+        assertEquals("evidence_download_denied", entry.actionType());
+        assertEquals(job.jobNo(), entry.jobNo());
+        assertEquals(null, entry.fileHash());
+        assertEquals(9010L, entry.operatorUserId());
+        assertEquals("decision=denied; action=download; jobNo=" + job.jobNo()
+                + "; deniedReasons=audit_only_endpoint_disabled; reason=spot check", entry.actionNote());
+        assertEquals(job.exportPackage().evidenceUris(), entry.evidenceUris());
+        assertEquals(job.boundEventIds(), entry.boundEventIds());
+        assertEquals("denied", entry.metadata().get("decision"));
+        assertEquals(List.of("audit_only_endpoint_disabled"), entry.metadata().get("deniedReasons"));
+        assertEquals(job.fileHash(), entry.metadata().get("logicalPackageHash"));
+        assertEquals(List.of(), entry.metadata().get("allowedCameraIds"));
+        assertEquals(List.of("camera-01"), scoped.metadata().get("allowedCameraIds"));
+        assertFalse(scoped.metadata().containsKey("reason"));
+        assertEquals("decision=denied; action=download; jobNo=" + job.jobNo()
+                + "; deniedReasons=audit_only_endpoint_disabled", scoped.actionNote());
+        assertEquals(List.of(
+                reviewCase.id() + "|null|evidence_download_denied|9010|" + entry.actionNote(),
+                reviewCase.id() + "|null|evidence_download_denied|9011|" + scoped.actionNote()
+        ), audits);
+        IllegalArgumentException unknown = assertThrows(IllegalArgumentException.class,
+                () -> service.recordEvidenceDownload("missing-job", 9010L, "spot check"));
+        assertEquals("export job not found: missing-job", unknown.getMessage());
+    }
+
     @Test
     void reviewItemKeepsFrigateLikeReviewDataFromDetectionContext() {
         SupervisionAlertReviewService service = newService(

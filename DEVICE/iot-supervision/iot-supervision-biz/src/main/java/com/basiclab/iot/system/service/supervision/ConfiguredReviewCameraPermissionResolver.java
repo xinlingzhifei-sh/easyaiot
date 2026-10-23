@@ -2,7 +2,6 @@ package com.basiclab.iot.system.service.supervision;
 
 import com.basiclab.iot.system.dal.pgsql.supervision.SupervisionAlertReviewItemMapper;
 import com.basiclab.iot.system.enums.permission.RoleCodeEnum;
-import com.basiclab.iot.system.service.permission.PermissionService;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.ReviewCameraPermissionRequest;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.ReviewCameraPermissionResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class ConfiguredReviewCameraPermissionResolver implements ReviewCameraPer
     private List<String> defaultAllowedCameraIds = List.of();
     // Retained for configuration compatibility. Persisted fallback scope is always fail-closed.
     private boolean failClosed = true;
-    private PermissionService permissionService;
+    private ReviewOperatorPermissionChecker permissionChecker;
     private SupervisionAlertReviewItemMapper reviewItemMapper;
 
     @Override
@@ -80,8 +79,8 @@ public class ConfiguredReviewCameraPermissionResolver implements ReviewCameraPer
 
     private boolean canUseExplicitSuperAdminScope(ReviewCameraPermissionRequest request) {
         return DIRECT_SUPER_ADMIN_ACTIONS.contains(normalizeActionType(request.actionType()))
-                && permissionService != null
-                && permissionService.hasAnyRoles(
+                && permissionChecker != null
+                && permissionChecker.hasAnyRoles(
                         request.operatorUserId(), RoleCodeEnum.SUPER_ADMIN.getCode());
     }
 
@@ -91,10 +90,10 @@ public class ConfiguredReviewCameraPermissionResolver implements ReviewCameraPer
         if (normalizedPermissions == null || normalizedPermissions.isEmpty()) {
             return false;
         }
-        if (permissionService == null || request.operatorUserId() == null) {
+        if (permissionChecker == null || request.operatorUserId() == null) {
             return false;
         }
-        return permissionService.hasAnyPermissions(request.operatorUserId(), normalizedPermissions.toArray(String[]::new));
+        return permissionChecker.hasAnyPermissions(request.operatorUserId(), normalizedPermissions.toArray(String[]::new));
     }
 
     private static String normalizeActionType(String actionType) {
@@ -177,8 +176,8 @@ public class ConfiguredReviewCameraPermissionResolver implements ReviewCameraPer
     }
 
     @Autowired(required = false)
-    public void setPermissionService(PermissionService permissionService) {
-        this.permissionService = permissionService;
+    public void setPermissionChecker(ReviewOperatorPermissionChecker permissionChecker) {
+        this.permissionChecker = permissionChecker;
     }
 
     @Autowired(required = false)

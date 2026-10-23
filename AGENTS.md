@@ -125,7 +125,7 @@ mvn test                                # 跑测试（部署构建脚本均 -Dsk
 cd DEVICE && ./install_linux.sh install|build|start|stop|logs <svc>|clean
 ```
 
-15 个 Maven 模块：`iot-parent`（BOM）、`iot-common`（共享子模块：base/web/security/redis/mybatis/mq/tenant/test 等）和 13 个微服务——`iot-gateway`（48080）、`iot-system`（48099）、`iot-infra`、`iot-device`（48083）、`iot-dataset`（48087）、`iot-node`（48094，节点控制面：管理 SENTINEL Agent、分发 RUNTIME、EDGE 登记）、`iot-visualize`（48095）、`iot-flow`（48097）、`iot-tdengine`、`iot-file`、`iot-message`（48093）、`iot-sink`（48092，协议接入/数据汇流，订阅 MQTT 算法总线落库告警）、`iot-gb28181`（48088）。各规格启用哪些微服务见 `deploy-profiles.json` 的 `deviceServices`。业务模块统一拆 `*-api`（Feign 接口/DTO）+ `*-biz`（实现）。Spring profile：`local/dev/prod`，另有 `application-mini.yaml`（iot-system、iot-sink）与 `application-standard.yaml`；mini 形态同样使用 Nacos 服务发现。
+15 个 Maven 模块：`iot-parent`（BOM）、`iot-common`（共享子模块：base/web/security/redis/mybatis/mq/tenant/test 等）和 13 个微服务——`iot-gateway`（48080）、`iot-system`（48099）、`iot-infra`、`iot-device`（48083）、`iot-dataset`（48087）、`iot-node`（48094，节点控制面：管理 SENTINEL Agent、分发 RUNTIME、EDGE 登记）、`iot-visualize`（48095）、`iot-flow`（48097）、`iot-tdengine`、`iot-file`、`iot-message`（48093）、`iot-sink`（48092，协议接入/数据汇流，订阅 MQTT 算法总线落库告警）、`iot-gb28181`（48088）。另有 `iot-supervision`（司法监管：事件中心、处置任务、告警复核工作台），是普通 jar，由 `iot-system-biz` 引入并在同一进程运行，不单独部署（见 `docs/superpowers/specs/2026-10-22-supervision-module-split.md`）。各规格启用哪些微服务见 `deploy-profiles.json` 的 `deviceServices`。业务模块统一拆 `*-api`（Feign 接口/DTO）+ `*-biz`（实现）。Spring profile：`local/dev/prod`，另有 `application-mini.yaml`（iot-system、iot-sink）与 `application-standard.yaml`；mini 形态同样使用 Nacos 服务发现。
 
 ### WEB / APP / VISUALIZE（前端，均用 pnpm）
 

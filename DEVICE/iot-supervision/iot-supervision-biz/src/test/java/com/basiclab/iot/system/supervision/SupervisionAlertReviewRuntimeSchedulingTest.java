@@ -44,6 +44,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -67,7 +69,8 @@ class SupervisionAlertReviewRuntimeSchedulingTest {
             "/sql/migrations/V20260709__alert_review_scheduler_activation.sql";
     private static final String LOCAL_SCHEDULER_OWNERSHIP_MIGRATION =
             "/sql/migrations/V20260713_4__alert_review_local_scheduler_ownership.sql";
-    private static final String APPLICATION_YAML = "/application.yaml";
+    // 宿主应用 iot-system-biz 的配置，不在本模块的 classpath 上，按源码目录读取
+    private static final String HOST_APPLICATION_YAML = "../../iot-system/iot-system-biz/src/main/resources/application.yaml";
 
     @Test
     void schedulerSeedsRequiredRuntimeJobsEnabledByDefault() throws IOException {
@@ -237,7 +240,7 @@ class SupervisionAlertReviewRuntimeSchedulingTest {
 
     @Test
     void localSchedulerIsExplicitlyEnabledByProductionEnvironmentContract() throws IOException {
-        String yaml = resourceText(APPLICATION_YAML);
+        String yaml = Files.readString(modulePath(HOST_APPLICATION_YAML), StandardCharsets.UTF_8);
 
         assertTrue(yaml.contains("local-scheduler:"));
         assertTrue(yaml.contains("enabled: ${YFEIEYE_REVIEW_LOCAL_SCHEDULER_ENABLED:false}"));
@@ -424,6 +427,16 @@ class SupervisionAlertReviewRuntimeSchedulingTest {
         assertEquals(1, unlockCount.get());
         assertEquals(List.of(101L, 202L), target.tenantIds.stream().sorted().toList());
         assertEquals(null, TenantContextHolder.getTenantId());
+    }
+
+    private static Path modulePath(String relativePath) {
+        try {
+            Path testClasses = Path.of(SupervisionAlertReviewRuntimeSchedulingTest.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI());
+            return testClasses.getParent().getParent().resolve(relativePath).normalize();
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to resolve iot-supervision-biz module path", exception);
+        }
     }
 
     private static String resourceText(String path) throws IOException {

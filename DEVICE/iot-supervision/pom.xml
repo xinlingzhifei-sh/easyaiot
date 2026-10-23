@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.basiclab.iot</groupId>
+        <artifactId>iot</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <modules>
+        <module>iot-supervision-api</module>
+        <module>iot-supervision-biz</module>
+    </modules>
+    <artifactId>iot-supervision</artifactId>
+    <packaging>pom</packaging>
+
+    <name>${project.artifactId}</name>
+    <description>
+        司法监管业务：监管事件中心、处置任务、证据链与告警复核工作台。
+        当前以普通 jar 的形式由 iot-system-biz 依赖并在同一进程内运行，不单独部署。
+    </description>
+</project>
