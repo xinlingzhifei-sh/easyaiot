@@ -9,6 +9,7 @@ import com.basiclab.iot.sink.domain.model.PostProcessRequestMessage;
 import com.basiclab.iot.sink.service.AlertService;
 import com.basiclab.iot.sink.service.PostProcessService;
 import com.basiclab.iot.sink.util.AlertClassFilter;
+import com.basiclab.iot.sink.util.AlertIdempotencyKeys;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -204,11 +205,7 @@ public class IotAlgoBusMqttHandler {
         } else if (payload.has("taskName")) {
             out.set("task_name", payload.get("taskName"));
         }
-        if (payload.has("correlation_id")) {
-            out.set("correlation_id", payload.get("correlation_id"));
-        } else if (payload.has("correlationId")) {
-            out.set("correlation_id", payload.get("correlationId"));
-        }
+        AlertIdempotencyKeys.copyInto(payload, out);
         if (payload.has("timestamp")) {
             out.set("timestamp", payload.get("timestamp"));
         } else if (payload.has("time")) {

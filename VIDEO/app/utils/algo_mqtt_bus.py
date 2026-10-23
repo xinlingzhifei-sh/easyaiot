@@ -18,6 +18,19 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Tuple
 
+try:
+    from app.utils.alert_ingress_contract import (
+        ensure_alert_idempotency_key,
+        resolve_alert_event_id,
+        resolve_alert_idempotency_key,
+    )
+except ImportError:  # 算法子进程以 utils 目录为 sys.path 时的兜底
+    from alert_ingress_contract import (  # type: ignore
+        ensure_alert_idempotency_key,
+        resolve_alert_event_id,
+        resolve_alert_idempotency_key,
+    )
+
 logger = logging.getLogger('algo_mqtt_bus')
 
 _DISABLE_VALUES = frozenset({'http', 'off', '0', 'false', 'no'})
@@ -88,7 +101,7 @@ def _normalize_alert_payload(alert_data: Dict[str, Any], *, snapshot: bool = Fal
             'device_name': raw.get('device_name', raw.get('deviceName')),
             'task_id': raw.get('task_id', raw.get('taskId')),
             'task_name': raw.get('task_name', raw.get('taskName')),
-            'correlation_id': raw.get('correlation_id', raw.get('correlationId')),
+            'correlation_id': resolve_alert_idempotency_key(raw),
             'timestamp': raw.get('timestamp', alert_time),
             'time': alert_time,
             'task_type': alert['task_type'],
@@ -112,6 +125,14 @@ def _normalize_alert_payload(alert_data: Dict[str, Any], *, snapshot: bool = Fal
         ):
             if key in raw and key not in payload:
                 payload[key] = raw[key]
+
+    # 告警入站契约：correlation_id 为统一幂等键（可回落 event_id），event_id 原样保留
+    key = resolve_alert_idempotency_key(payload) or resolve_alert_idempotency_key(raw)
+    if key:
+        payload['correlation_id'] = key
+    event_id = resolve_alert_event_id(raw)
+    if event_id:
+        payload.setdefault('event_id', event_id)
 
     node_id = _node_id_from_env()
     if node_id is not None:
@@ -184,6 +205,9 @@ def publish_alert(alert_data: Dict[str, Any], *, snapshot: bool = False) -> bool
     """发布告警到 mqtt/iot-alert-notification 或 mqtt/iot-snapshot-alert。"""
     if not bus_enabled():
         return False
+    # 缺键时补齐并写回调用方字典，调用方重试时复用同一幂等键
+    if isinstance(alert_data, dict):
+        ensure_alert_idempotency_key(alert_data)
     payload = _normalize_alert_payload(alert_data, snapshot=snapshot)
     topic = 'mqtt/iot-snapshot-alert' if snapshot else 'mqtt/iot-alert-notification'
     msg_type = 'alert.snapshot' if snapshot else 'alert.notification'

@@ -1,0 +1,18 @@
+{
+  "_expect": {"idempotency_key": "fixture-bus-nested", "snapshot": true},
+  "tenant_id": 1,
+  "device_id": "camera-b",
+  "device_name": "CH2",
+  "task_id": 202,
+  "task_name": "抓拍识别",
+  "task_type": "snap",
+  "correlationId": "fixture-bus-nested",
+  "timestamp": "2026-08-27 18:00:01",
+  "alert": {
+    "object": "car",
+    "event": "车辆抓拍",
+    "image_path": "/data/snap/camera-b/frame.jpg",
+    "time": "2026-08-27 18:00:01",
+    "task_type": "snap"
+  }
+}

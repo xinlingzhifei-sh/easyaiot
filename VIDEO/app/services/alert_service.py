@@ -9,6 +9,7 @@ from typing import Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.query import Query
 from models import Alert, db
+from app.utils.alert_ingress_contract import resolve_alert_idempotency_key
 
 logger = logging.getLogger('alert')
 
@@ -724,14 +725,7 @@ def create_alert(alert_data: dict) -> dict:
 
         task_id = alert_data.get('task_id')
         task_name = alert_data.get('task_name')
-        correlation_id = (
-            alert_data.get('correlation_id')
-            or alert_data.get('correlationId')
-            or alert_data.get('event_id')
-            or alert_data.get('eventId')
-        )
-        if correlation_id:
-            correlation_id = str(correlation_id).strip() or None
+        correlation_id = resolve_alert_idempotency_key(alert_data)
 
         # 非库匹配告警：task_name 写入 object（任务展示名）；库匹配告警 object 保留匹配对象
         object_value = alert_data['object']
