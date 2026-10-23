@@ -24,6 +24,11 @@ const protectedPathPrefixes = [
   'EDGE/src/EasyAIoT.Edge.',
 ]
 const oldBrand = /EasyAIoT|Easy AI Internet of Things/
+// 本测试自身，以及以旧品牌字符串为输入验证展示层转换的测试
+const exemptPaths = new Set([
+  'WEB/tests/visibleBrandingResidue.test.ts',
+  'WEB/tests/brandDisplay.test.ts',
+])
 const violations: string[] = []
 const trackedPaths = listed.stdout.split('\0').filter(Boolean)
 const matched = spawnSync(
@@ -39,10 +44,7 @@ const matched = spawnSync(
 assert.ok(matched.status === 0 || matched.status === 1, matched.stderr || 'git grep failed')
 
 for (const relativePath of trackedPaths) {
-  if (
-    relativePath.startsWith('docs/superpowers/') ||
-    relativePath === 'WEB/tests/visibleBrandingResidue.test.ts'
-  ) continue
+  if (relativePath.startsWith('docs/superpowers/') || exemptPaths.has(relativePath)) continue
 
   if (
     oldBrand.test(relativePath) &&
@@ -53,10 +55,7 @@ for (const relativePath of trackedPaths) {
 }
 
 for (const relativePath of matched.stdout.split('\0').filter(Boolean)) {
-  if (
-    relativePath.startsWith('docs/superpowers/') ||
-    relativePath === 'WEB/tests/visibleBrandingResidue.test.ts'
-  ) continue
+  if (relativePath.startsWith('docs/superpowers/') || exemptPaths.has(relativePath)) continue
 
   const bytes = readFileSync(resolve(repoRoot, relativePath))
   let source = bytes.toString('utf8')
