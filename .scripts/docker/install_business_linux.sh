@@ -450,6 +450,8 @@ execute_module() {
 
     mapped=$(map_module_command "$module" "$cmd")
     [ -n "$mapped" ] || return 0
+    # 已拆为独立仓库的模块：目录缺失时先按 externalModules 检出
+    ensure_external_module_checkout "$module" "$cmd" "$PROJECT_ROOT" || return 1
 
     if [ ! -d "$module_dir" ]; then
         if [ "$module" = "TRANSFORM" ]; then

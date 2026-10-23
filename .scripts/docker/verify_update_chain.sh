@@ -12,6 +12,13 @@ ok()   { echo -e "${GREEN}[PASS]${NC} $1"; pass=$((pass+1)); }
 bad()  { echo -e "${RED}[FAIL]${NC} $1"; fail=$((fail+1)); }
 note() { echo -e "${BLUE}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; warn=$((warn+1)); }
+# 已拆为独立仓库的周边模块（见 deploy-profiles.json externalModules）：未检出时不按缺文件判失败
+is_unfetched_external_module() {
+  case "$1" in
+    HARNESS|IDEA|TERMINAL|TWIN|SITE) [ ! -d "$ROOT/$1" ] ;;
+    *) return 1 ;;
+  esac
+}
 
 echo "========================================"
 echo "  yFeiEye update 链路验证"
@@ -56,6 +63,10 @@ fi
 # 3) 各模块 install_linux.sh update 入口存在
 note "3) 模块 update 入口..."
 for m in DEVICE AI VIDEO WEB APP RTC VISUALIZE TRANSFORM HARNESS TERMINAL IDEA PANEL; do
+  if is_unfetched_external_module "$m"; then
+    note "$m 已拆为独立仓库且未检出，跳过（安装时按 externalModules 自动拉取）"
+    continue
+  fi
   entry="$ROOT/$m/install_linux.sh"
   [ -f "$entry" ] || { bad "$m 缺少 install_linux.sh"; continue; }
   # 包装脚本或真实脚本应能接受 update
@@ -76,6 +87,10 @@ fi
 note "4) SKIP_BUILD 静态检查..."
 check_skip() {
   local file="$1" label="$2"
+  if is_unfetched_external_module "$label"; then
+    note "$label 已拆为独立仓库且未检出，跳过"
+    return 0
+  fi
   if grep -q 'EASYAIOT_SKIP_BUILD' "$file"; then
     ok "$label 含 EASYAIOT_SKIP_BUILD 分支"
   else

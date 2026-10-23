@@ -7,7 +7,7 @@
 
 yFeiEye 是一个**云-边-端一体化的 AIoT（AI + IoT）算法应用平台**（前身/同源项目名为 easyaiot，部分路径、镜像名、环境变量前缀 `EASYAIOT_*` 仍沿用该名）。平台打通从设备接入、数据采集、实时视频分析、智能研判到告警处置的完整链路。
 
-**仓库本质：多个相互独立、可单独抽取部署的项目组成的 monorepo**。仓库根下共 24 个受版本控制的一级目录（不含点目录）：21 个模块目录 + `docs/`、`testdata/`、`tools/`。主力语言为 Java（平台控制底座）、Python（AI、视频编排、节点 Agent）、C++（高性能帧执行器）、TypeScript/Vue（前端），另有 Go（POST、TERMINAL，以及 RTC 集成的 go2rtc）与 C#（EDGE 采集器）。
+**仓库本质：多个相互独立、可单独抽取部署的项目组成的 monorepo**。仓库根下共 20 个受版本控制的一级目录（不含点目录）：17 个模块目录 + `docs/`、`testdata/`、`tools/`；另有 5 个周边模块已拆为独立仓库，按需检出（见下文「外部模块」）。主力语言为 Java（平台控制底座）、Python（AI、视频编排、节点 Agent）、C++（高性能帧执行器）、TypeScript/Vue（前端），另有 Go（POST，以及 RTC 集成的 go2rtc）与 C#（EDGE 采集器）。
 
 > 历史名称对照：原节点 Agent 模块已迁到 `SENTINEL/`，原 C++ 推理模块已演进为 `RUNTIME/`。旧文档、旧计划里出现的 NODE / TASK 目录名一律按此对照理解，不要在任何同名残留目录里改代码。
 
@@ -55,16 +55,28 @@ yFeiEye 是一个**云-边-端一体化的 AIoT（AI + IoT）算法应用平台*
 
 | 模块 | 技术栈 | 职责 | 端口 | 启用方式 |
 |---|---|---|---|---|
-| `HARNESS/` | Node 22 + DeepSeek Harness（`@deepseek-ai/dsh`，Developer Preview） | 平台 AI Agent 助手（Sidecar），内置项目本体 `HARNESS/ontology/AGENTS.md` | 3080（LLM 网关 3082） | `EASYAIOT_ENABLE_HARNESS` |
-| `IDEA/` | code-server + Python 门户 | 社区贡献在线 IDE，一人一工作区 | 门户 9300，工作区 13338–13437 | `EASYAIOT_ENABLE_IDEA` |
-| `TERMINAL/` | Go + Wails（基于开源 uniTerm 改名集成） | 多协议终端与远程运维客户端（桌面端；Docker Web 形态） | 9245 | `EASYAIOT_ENABLE_TERMINAL` |
-| `TWIN/` | Three.js + Vite 7 + TS | 工业园区数字孪生 MVP | 8003（dev 5173） | `EASYAIOT_ENABLE_TWIN` |
 | `PANEL/` | Python 后端 + Vue UI（`PANEL/ui`） | 独立于 WEB 的运维控制台（容器、部署、诊断，参考 1Panel） | 9200 | `EASYAIOT_ENABLE_PANEL` |
 | `COMPILE/` | Shell + Docker + PyInstaller | 把 PANEL（及 EDGE 等）打成 deb/rpm/exe/dmg 安装包 | — | 手工或 GitHub 手动打包 workflow |
-| `SITE/` | Vue 3 + Vite 6 | 官方网站（纯前端） | 8090 | `.scripts/docker/install_linux.sh site install`，或产物挂进 WEB 容器 |
 | `ANDROID/` / `IOS/` / `HARMONYOS/` | Gradle / Xcode / DevEco 壳工程 | 把 APP 的构建产物打成 APK / IPA / HAP，不含业务代码 | — | 各目录 `make-apk.sh` / `make-ipa.sh` / `make-hap.sh` |
 
-HARNESS、IDEA、TERMINAL、TWIN、PANEL 虽列在 `deploy-profiles.json` 的 `moduleOrder` 中，但不属于任何规格，只能用对应的 `EASYAIOT_ENABLE_*` 环境变量显式开启。
+PANEL 与下列外部模块 HARNESS、IDEA、TERMINAL、TWIN 虽列在 `deploy-profiles.json` 的 `moduleOrder` 中，但不属于任何规格，只能用对应的 `EASYAIOT_ENABLE_*` 环境变量显式开启。
+
+### 外部模块（已拆为独立仓库，2026-10-22）
+
+以下模块不再在本仓库中，仓库地址与 ref 记录在 `deploy-profiles.json` 的 `externalModules`（设计见 `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`）：
+
+| 模块 | 职责 | 端口 | 启用方式 |
+|---|---|---|---|
+| `HARNESS` | 平台 AI Agent 助手（Sidecar，DeepSeek Harness） | 3080（LLM 网关 3082） | `EASYAIOT_ENABLE_HARNESS` |
+| `IDEA` | 社区贡献在线 IDE（code-server + 门户） | 门户 9300，工作区 13338–13437 | `EASYAIOT_ENABLE_IDEA` |
+| `TERMINAL` | 多协议终端与远程运维客户端（Go + Wails，基于 uniTerm） | 9245 | `EASYAIOT_ENABLE_TERMINAL` |
+| `TWIN` | 工业园区数字孪生 MVP（Three.js） | 8003 | `EASYAIOT_ENABLE_TWIN` |
+| `SITE` | 官方网站（纯前端） | 8090 | `.scripts/docker/install_linux.sh site install`，或产物挂进 WEB 容器 |
+
+- 安装 / 构建入口（`install_linux*.sh`、`install_business_linux.sh`、`install_desktop_common.sh`、`install_mac.sh`、`runtime_image.sh`）执行 `install|update|build|start|restart` 前调用 `ensure_external_module_checkout`（`.scripts/docker/external_modules.sh`），目录缺失时把外部仓库检出到 `<平台根>/<模块>`。模块脚本仍引用 `../.scripts/docker/`（SITE 构建还引用 `../WEB/conf`），所以必须检出在平台根目录下。
+- 覆盖：`YFEIEYE_<模块>_REPO` / `YFEIEYE_<模块>_REF`；离线用 `YFEIEYE_<模块>_ARCHIVE`（release `.tar.gz`）或手工放目录；`YFEIEYE_EXTERNAL_MODULES_FETCH=0` 禁止联网。
+- 这些目录被本仓库 `.gitignore` 忽略，是各自独立的 git 仓库：**不要在本仓库里给它们提交代码**，`git clean -fdx` 也会删掉它们。
+- WEB 中调用这些服务的前端（`HarnessFloatChat`、`IdeaFloatBall`、`views/harness`、`views/idea`、`utils/terminal.ts`）只经 HTTP 访问上述端口，仍留在 WEB。
 
 ### 中间件
 
@@ -209,7 +221,7 @@ python -m edge run                 # 常驻，订阅 mqtt/iot-algo-task-cmd 任�
 **CI 现状**：根目录有两个 GitHub workflow。
 
 - `.github/workflows/pr-tests.yml`：在 `pull_request` 及推送 `main`/`dev` 时触发，按改动路径只跑对应模块的 job——DEVICE `mvn test`、VIDEO/AI `pytest tests`、WEB `pnpm type:check` + `tests/*.test.ts`、`.scripts` 下 `node --test`（各模块 `install_linux*.sh` 与 `WEB/conf/nginx.conf` 改动也会触发）、SENTINEL `unittest`（Python 3.9 与 3.11）、POST `go vet` + `go test`。目前不跳过任何已知失败测试；确需临时跳过时在对应步骤显式列出并注明原因。
-- `.github/workflows/compile-packaging.yml`：仅 `workflow_dispatch` 手动触发，用于调用 `COMPILE/build.sh` 打 Ubuntu deb、Windows exe（可选 NSIS 安装器、macOS dmg、CentOS el7/8/9 与 ARM、openEuler rpm）。APP、RUNTIME、TERMINAL 等模块尚未纳入 `pr-tests.yml`。`TERMINAL/.github/workflows/` 是上游项目带来的 workflow，嵌套在子目录中，GitHub 不会执行。各模块本地测试方式：
+- `.github/workflows/compile-packaging.yml`：仅 `workflow_dispatch` 手动触发，用于调用 `COMPILE/build.sh` 打 Ubuntu deb、Windows exe（可选 NSIS 安装器、macOS dmg、CentOS el7/8/9 与 ARM、openEuler rpm）。APP、RUNTIME 等模块尚未纳入 `pr-tests.yml`；外部模块的测试与 CI 在各自仓库。各模块本地测试方式：
 
 - **DEVICE**：JUnit 5 + spring-boot-starter-test + mockito-inline，基座模块 `iot-common-test`（H2 + jedis-mock），测试配置 `src/test/resources/application-unit-test.yaml`。命令：`cd DEVICE && mvn test`。
 - **AI / VIDEO**：`AI/tests/`、`VIDEO/tests/` 为可自动化单测（pytest 与 unittest 混用），运行 `python -m pytest AI/tests/` 或 `python -m unittest discover VIDEO/tests`。**模块根目录散落的 `test_*.py` 多为需要真实模型/服务的联调脚本，不要批量当单测跑**。
@@ -218,7 +230,7 @@ python -m edge run                 # 常驻，订阅 mqtt/iot-algo-task-cmd 任�
 - **RUNTIME**：`RUNTIME/tests/test_taskmanager_api.py`（unittest，需先设 `TASK_MANAGER_BIN` 指向编译产物）与 `test_container_packaging.py`；手工冒烟见 `RUNTIME/TEST_GUIDE.md`。
 - **SENTINEL**：`SENTINEL/tests/`（unittest，测试直接 `import agent_commands` 等顶层模块），在 `SENTINEL/` 目录下运行 `python -m unittest discover -s tests -t .`。
 - **EDGE**：仅 `EDGE/tests/test_edge_security.py`。
-- **POST / TERMINAL**：Go 单测，`go test ./...`。
+- **POST**：Go 单测，`go test ./...`。
 - **`.scripts/` 工具**：每个 `*.mjs` 配一个 `*.test.mjs`（node:test，`node --test`），`.scripts/docker/` 下的部署契约测试同理。
 
 ## 5. 开发约定

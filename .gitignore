@@ -204,12 +204,6 @@ APP/docs/.vitepress/cache
 APP/src/types/*
 !APP/src/types/auto-import.d.ts
 
-# SITE 构建产物、依赖与 pnpm 缓存（与 SITE/.gitignore 一致）
-SITE/node_modules/
-SITE/dist/
-SITE/dist-prebuilt/
-SITE/.pnpm-store/
-SITE/logs/
 
 # IDE / 包管理器缓存 / 测试缓存（仅本机，不随仓库分发）
 .vscode/
@@ -285,12 +279,6 @@ VIDEO/ffmpeg-master-*.tar.xz
 .scripts/zlmediakit/conf/config.ini
 .scripts/zlmediakit/log/
 .scripts/zlmediakit/www/
-# SITE 构建产物、依赖与 pnpm 缓存（与 SITE/.gitignore 一致）
-SITE/dist/
-SITE/dist-prebuilt/
-SITE/logs/
-SITE/node_modules/
-SITE/.pnpm-store/
 target/
 *.tar.gz
 # TASK/build/
@@ -306,25 +294,6 @@ TRANSFORM/.idea/
 venv
 **/.venv
 
-# TWIN 数字孪生前端：依赖、构建产物与本地 Blender 导出文件
-# 源码、Docker 配置、锁文件和 blender/*.py 脚本仍需提交
-/TWIN/node_modules/
-/TWIN/dist/
-/TWIN/.pnpm-store/
-/TWIN/.vite/
-/TWIN/coverage/
-/TWIN/logs/
-/TWIN/.env.local
-/TWIN/.env.*.local
-/TWIN/blender/__pycache__/
-/TWIN/blender/*.blend
-/TWIN/blender/*.blend1
-/TWIN/blender/*.blend2
-/TWIN/blender/*.glb
-/TWIN/blender/*.gltf
-/TWIN/blender/*.bin
-/TWIN/blender/render/
-/TWIN/blender/renders/
 # VIDEO 运行日志与告警截图（任务运行时生成）
 VIDEO/logs/
 # VIDEO 临时上传文件（运行时生成，不随仓库分发）
@@ -364,9 +333,6 @@ AI/yolo*.names.json
 AI/yolov*.names.json
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 .vscode/
-# IDEA 工作区模板的 VS Code 配置需要入库（覆盖上面的 .vscode/）
-!IDEA/workspace-template/.vscode/
-!IDEA/workspace-template/.vscode/**
 *.war
 # WEB 日志目录（与 WEB/.gitignore 中 logs/*、!logs/.gitkeep 一致）
 # WEB 构建产物与预构建前端缓存（runtime_image.sh 提取，体积大，勿提交）
@@ -395,19 +361,7 @@ AI/yolov*.names.json
 # 安装脚本生成的本地 docker env（模板见 .env.docker）
 .scripts/docker/.env
 
-# IDEA 运行时数据、本地配置与虚拟环境（与 IDEA/.gitignore 对齐；工作区 clone / git-reference 体积大，勿提交）
-IDEA/.data/
-IDEA/.venv/
-IDEA/idea.env
-IDEA/logs/
-IDEA/workspaces/
-IDEA/__pycache__/
-
-# HARNESS 运行时数据与本地配置（与 HARNESS/.gitignore 对齐；容器挂载工作区时会在仓库根生成 AGENTS.md 软链）
-HARNESS/.data/
-HARNESS/harness.env
-# 容器 entrypoint 在热挂载的 plugins/ 内补齐的 node_modules 符号链接（指向容器内路径，宿主机为断链）
-HARNESS/plugins/node_modules/
+# HARNESS 容器挂载平台根目录作为工作区时会在仓库根生成 AGENTS.md / HARNESS-README.md 软链
 /AGENTS.md
 /HARNESS-README.md
 
@@ -442,13 +396,17 @@ HARMONYOS/.cxx/
 # 前端构建产物：由 make-hap 脚本从 APP/dist/build/h5 同步而来，不入库
 HARMONYOS/entry/src/main/resources/rawfile/www/
 
-# ── TERMINAL 终端模块 ──
-# `go build .` 直接产出的单体二进制（数十 MB，含调试信息），大文件不入库；
-# 正式构建走 wails3 管线（产物在 TERMINAL/bin/，由 TERMINAL/.gitignore 忽略）
-TERMINAL/terminal
 
 # macOS 系统文件
 **/.DS_Store
 
-# Local terminal deployment configuration
-/TERMINAL/terminal.env
+# ── 已拆为独立仓库的周边模块（见 .scripts/docker/deploy-profiles.json 的 externalModules）──
+# 安装脚本按需把它们检出到这些目录；每个目录是独立 git 仓库，不属于本仓库源码。
+# 注意：git clean -fdx 会连同本地改动一起删掉这些检出。
+/HARNESS/
+/IDEA/
+/SITE/
+/TERMINAL/
+/TWIN/
+# ensure_external_module_checkout 拉取过程中的临时目录
+/*.fetch.*/

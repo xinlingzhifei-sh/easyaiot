@@ -549,6 +549,8 @@ yFeiEye는 현지화 전략에 적극적으로 대응하며, 현지화 하드웨
 ## 🧩 프로젝트 구조
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+> **독립 저장소:** 2026-10-22부터 TWIN, IDEA, HARNESS, SITE, TERMINAL은 별도 저장소에서 관리됩니다(커밋 이력 보존). 설치 스크립트가 `.scripts/docker/deploy-profiles.json`의 `externalModules`에 따라 필요할 때 플랫폼 루트로 체크아웃합니다. 자세한 내용은 `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`를 참고하세요.
+
 yFeiEye는 WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE, TERMINAL 등 핵심 모듈로 구성되며, COMPILE 다중 플랫폼 패키징·납품 능력을 함께 제공합니다:
 </p>
 

@@ -550,6 +550,8 @@ yFeiEye активно поддерживает стратегию локали�
 ## 🧩 Структура проекта
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
+> **Отдельные репозитории:** с 2026-10-22 модули TWIN, IDEA, HARNESS, SITE и TERMINAL ведутся в собственных репозиториях (история коммитов сохранена). Скрипты установки по требованию извлекают их в корень платформы согласно `externalModules` в `.scripts/docker/deploy-profiles.json`; подробности — в `docs/superpowers/specs/2026-10-22-split-peripheral-modules.md`.
+
 yFeiEye включает основные модули WEB, APP, DEVICE, EDGE, NODE, SENTINEL, VIDEO, RTC, AI, RUNTIME, POST, VISUALIZE, TWIN, TRANSFORM, PANEL, IDEA, HARNESS, SITE и TERMINAL, а также COMPILE для мультиплатформенной упаковки и поставки:
 </p>
 

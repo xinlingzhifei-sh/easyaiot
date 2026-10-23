@@ -63,9 +63,6 @@ for (const relativePath of matched.stdout.split('\0').filter(Boolean)) {
   for (const literal of protectedLiterals) {
     source = source.replaceAll(literal, '')
   }
-  if (relativePath === 'TERMINAL/backend/store/middleware_presets.go') {
-    source = source.replace('const legacyMiddlewareBrand = "EasyAIoT"', '')
-  }
 
   source.split(/\r?\n/).forEach((line, index) => {
     if (oldBrand.test(line)) {
@@ -74,6 +71,7 @@ for (const relativePath of matched.stdout.split('\0').filter(Boolean)) {
   })
 }
 
+// SITE / TWIN / TERMINAL / HARNESS / IDEA 已拆为独立仓库（deploy-profiles.json externalModules），其品牌检查随模块迁出
 const appMenu = readFileSync(resolve(repoRoot, 'APP/src/pages/index/index.ts'), 'utf8')
 assert.match(appMenu, /key:\s*'easyaiot'/, 'The compatibility menu key must remain easyaiot.')
 assert.match(appMenu, /name:\s*'yFeiEye'/, 'The visible APP menu name must be yFeiEye.')
@@ -100,30 +98,9 @@ assert.match(
 )
 
 assert.equal(
-  JSON.parse(readFileSync(resolve(repoRoot, 'SITE/package.json'), 'utf8')).name,
-  'yfeieye-site',
-  'The SITE package metadata must use the yFeiEye brand.',
-)
-assert.equal(
   JSON.parse(readFileSync(resolve(repoRoot, 'PANEL/ui/package.json'), 'utf8')).name,
   'yfeieye-panel-ui',
   'The PANEL package metadata must use the yFeiEye brand.',
-)
-assert.equal(
-  JSON.parse(readFileSync(resolve(repoRoot, 'TWIN/package.json'), 'utf8')).name,
-  'yfeieye-digital-twin',
-  'The TWIN package metadata must use the yFeiEye brand.',
-)
-assert.match(
-  readFileSync(resolve(repoRoot, 'TERMINAL/frontend/index.html'), 'utf8'),
-  /<title>yFeiEye 终端<\/title>/,
-  'The terminal browser title must use the yFeiEye brand.',
-)
-
-assert.match(
-  readFileSync(resolve(repoRoot, 'HARNESS/plugins/easyaiot-llm-gateway.ts'), 'utf8'),
-  /owned_by:\s*'yFeiEye'/,
-  'The model listing must display the yFeiEye owner without renaming gateway identifiers.',
 )
 
 for (const name of ['README.md', 'README_zh.md', 'README_zh_tw.md', 'README_fr.md', 'README_ko.md', 'README_ru.md']) {
@@ -149,12 +126,6 @@ for (const node of noderedDemoFlows) {
 assert.ok(
   noderedDemoFlows.some((node) => node.id === 'easyaiot_demo_telemetry'),
   'The Node-RED demo flow ids must remain easyaiot_demo_* for WEB and settings.js compatibility.',
-)
-
-assert.match(
-  readFileSync(resolve(repoRoot, 'IDEA/webui/index.html'), 'utf8'),
-  /placeholder="https:\/\/gitee\.com\/你的账号\/yFeiEye\.git"/,
-  'The IDEA portal repository placeholder must use the yFeiEye brand.',
 )
 
 assert.deepEqual(violations, [], `Old visible brand remains:\n${violations.join('\n')}`)

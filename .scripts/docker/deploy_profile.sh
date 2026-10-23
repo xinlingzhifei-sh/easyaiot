@@ -29,6 +29,10 @@ fi
 # shellcheck source=deploy-profiles.generated.sh
 # shellcheck disable=SC1090
 source "$_DEPLOY_PROFILE_MANIFEST_SH"
+# 已拆为独立仓库的周边模块：缺目录时按 externalModules 检出到 <平台根>/<模块>
+# shellcheck source=external_modules.sh
+# shellcheck disable=SC1090
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/external_modules.sh"
 
 # 统一导出 Compose 外部网络名，业务模块不得继续维护独立网络常量。
 EASYAIOT_NETWORK_NAME="$(deploy_profile_manifest_network_name)"
