@@ -8,6 +8,7 @@
 #                   https://<id>.mirror.swr.myhuaweicloud.com
 #   DOCKER_DNS      逗号分隔 DNS，默认 223.5.5.5,119.29.29.29（阿里/腾讯）
 #   EASYAIOT_FORCE_DOCKER_DNS=1  强制写入 daemon.json DNS（即使 resolv.conf 非 loopback）
+#   EASYAIOT_DOCKER_DNS_AUTO=0   关闭按 resolv.conf / 发行版自动写 DNS（install_linux.sh 默认关闭）
 #   EASYAIOT_FORCE_HOST_DNS=1    强制重写宿主机 /etc/resolv.conf
 
 if ! declare -f check_command >/dev/null 2>&1; then
@@ -51,6 +52,7 @@ _host_resolv_uses_loopback_dns() {
 # 是否应在 daemon.json 写入公网 DNS
 _should_configure_docker_dns() {
     [ "${EASYAIOT_FORCE_DOCKER_DNS:-0}" = "1" ] && return 0
+    [ "${EASYAIOT_DOCKER_DNS_AUTO:-1}" = "0" ] && return 1
     _host_resolv_uses_loopback_dns && return 0
     # 麒麟/统信等国产系统常见 DNS 异常，默认补齐
     if [ -f /etc/os-release ] && grep -Eiq 'kylin|uos|openEuler|UnionTech' /etc/os-release 2>/dev/null; then
@@ -529,6 +531,11 @@ docker_pull_with_mirror_fallback() {
             fi
             print_info "镜像源直连回退拉取: $c"
             if docker pull "${platform_args[@]}" "$c"; then
+                # digest 引用（name@sha256:...）不能打标签；内容已按 digest 落地，compose 拉取时会走 registry-mirrors 复用
+                if [[ "$img" == *@sha256:* ]]; then
+                    print_success "已按 digest 拉取 $c"
+                    return 0
+                fi
                 docker tag "$c" "$img" 2>/dev/null || true
                 print_success "已拉取并标记为 $img"
                 return 0

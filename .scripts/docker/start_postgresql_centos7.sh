@@ -32,13 +32,6 @@
 
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -47,7 +40,6 @@ SERVICE_INIT="PostgresSQL-init"
 SERVICE_PG="PostgresSQL"
 CONTAINER_NAME="postgres-server"
 INIT_CONTAINER="postgres-init"
-NETWORK_NAME="yfeieye-network"
 PG_PORT=5432
 PG_IMAGE="postgres:18"
 DOCKER_MIRROR="https://docker.m.daocloud.io/"
@@ -62,18 +54,12 @@ FORCE_DOCKER_UPGRADE=false
 MIN_DOCKER_MAJOR=20
 ACTION="start"
 
-print_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
-
-print_section() {
-    echo ""
-    echo -e "${CYAN}========================================${NC}"
-    echo -e "${CYAN}  $1${NC}"
-    echo -e "${CYAN}========================================${NC}"
-    echo ""
-}
+# 公共逻辑见 start_centos7_common.sh（统一网络名取自 deploy-profiles.json）
+C7_SERVICE_LABEL="PostgreSQL"
+C7_FIREWALL_PORTS="${PG_PORT}"
+C7_PULL_TAG_VARS="PG_IMAGE"
+# shellcheck source=start_centos7_common.sh
+source "${SCRIPT_DIR}/start_centos7_common.sh"
 
 show_help() {
     cat <<'EOF'
@@ -157,236 +143,6 @@ parse_args() {
                 ;;
         esac
     done
-}
-
-# 检测是否为 CentOS 7.x（7.9 等）
-check_centos7() {
-    if [ "$FORCE_OS_CHECK" = true ]; then
-        print_warning "已跳过 CentOS 7 系统检查 (--force)"
-        return 0
-    fi
-
-    print_section "系统环境检查"
-
-    local os_id="" os_version=""
-    if [ -f /etc/os-release ]; then
-        # shellcheck source=/dev/null
-        source /etc/os-release
-        os_id="${ID:-}"
-        os_version="${VERSION_ID:-}"
-    elif [ -f /etc/redhat-release ]; then
-        if grep -qi "centos" /etc/redhat-release 2>/dev/null; then
-            os_id="centos"
-        fi
-        os_version=$(grep -oE '[0-9]+\.[0-9]+' /etc/redhat-release | head -1)
-    fi
-
-    if [ "$os_id" != "centos" ]; then
-        print_warning "当前系统不是 CentOS (ID=$os_id)，脚本仍可继续"
-        print_info "非 CentOS 环境请使用: ./start_postgresql_centos7.sh --force"
-        return 0
-    fi
-
-    local major="${os_version%%.*}"
-    if [ "$major" != "7" ]; then
-        print_warning "检测到 CentOS $os_version，本脚本针对 CentOS 7.9 优化"
-        print_info "CentOS 8+ 通常使用 dnf，可参考 install_middleware_linux.sh"
-    else
-        print_success "CentOS 7.x ($os_version)"
-    fi
-
-    if command -v getenforce >/dev/null 2>&1; then
-        local selinux_status
-        selinux_status=$(getenforce 2>/dev/null || echo "未知")
-        print_info "SELinux 状态: $selinux_status"
-        if [ "$selinux_status" = "Enforcing" ]; then
-            print_warning "SELinux 为 Enforcing 时，若挂载目录无法访问，可临时: setenforce 0"
-            print_info "或给数据目录打标签: chcon -Rt svirt_sandbox_file_t db_data/"
-        fi
-    fi
-
-    if systemctl is-active firewalld >/dev/null 2>&1; then
-        print_info "firewalld 正在运行，若宿主机无法连接 5432，请放行端口:"
-        print_info "  sudo firewall-cmd --permanent --add-port=5432/tcp && sudo firewall-cmd --reload"
-    fi
-}
-
-resolve_compose_cmd() {
-    if docker compose version >/dev/null 2>&1; then
-        COMPOSE_CMD="docker compose"
-    elif command -v docker-compose >/dev/null 2>&1; then
-        COMPOSE_CMD="docker-compose"
-    else
-        print_error "未找到 docker compose / docker-compose"
-        print_info "CentOS 7 安装示例:"
-        print_info "  sudo yum install -y yum-utils"
-        print_info "  sudo yum-config-manager --add-repo https://mirrors.huaweicloud.com/docker-ce/linux/centos/docker-ce.repo"
-        print_info "  sudo yum install -y docker-ce docker-ce-cli containerd.io"
-        print_info "  sudo systemctl enable --now docker"
-        exit 1
-    fi
-    print_info "使用 Compose 命令: $COMPOSE_CMD"
-}
-
-check_docker() {
-    print_info "检查 Docker 服务..."
-    if docker info >/dev/null 2>&1; then
-        print_success "Docker 可用"
-        return 0
-    fi
-
-    print_warning "Docker 未运行或当前用户无权限，尝试启动..."
-    if command -v systemctl >/dev/null 2>&1; then
-        if [ "$EUID" -eq 0 ]; then
-            systemctl start docker || true
-        elif command -v sudo >/dev/null 2>&1; then
-            sudo systemctl start docker || true
-        fi
-    fi
-
-    if ! docker info >/dev/null 2>&1; then
-        print_error "无法连接 Docker"
-        print_info "请执行: sudo systemctl start docker"
-        print_info "并将用户加入 docker 组: sudo usermod -aG docker \$USER && newgrp docker"
-        exit 1
-    fi
-    print_success "Docker 已启动"
-}
-
-# 获取 Docker Server 版本号（兼容 1.13 无 --format）
-get_docker_server_version() {
-    local ver
-    ver=$(docker version 2>/dev/null | awk '
-        /^Server:/ { in_server=1; next }
-        in_server && /^Version:/ { print $2; exit }
-        in_server && /^[A-Z]/ && $1 !~ /^Version:/ { in_server=0 }
-    ')
-    if [ -n "$ver" ]; then
-        echo "$ver"
-        return 0
-    fi
-    docker -v 2>/dev/null | sed -n 's/.*[Vv]ersion \([^, ]*\).*/\1/p' | head -1
-}
-
-# Docker 1.13 等旧版本无法拉取 postgres:18（manifest 签名不兼容，报 missing signature key）
-is_docker_too_old() {
-    local ver="${1:-$(get_docker_server_version)}"
-    if [ -z "$ver" ]; then
-        return 0
-    fi
-    local major minor
-    major=$(echo "$ver" | cut -d. -f1)
-    minor=$(echo "$ver" | cut -d. -f2)
-    major=${major:-0}
-    minor=${minor:-0}
-    # 1.x 且小于 1.20，或 major < MIN_DOCKER_MAJOR
-    if [ "$major" -le 1 ] 2>/dev/null && [ "$minor" -lt 20 ] 2>/dev/null; then
-        return 0
-    fi
-    if [ "$major" -lt "$MIN_DOCKER_MAJOR" ] 2>/dev/null; then
-        return 0
-    fi
-    return 1
-}
-
-# 升级 Docker CE（与 install_middleware_linux.sh 一致，华为云 yum 源）
-upgrade_docker_ce_centos7() {
-    print_section "升级 Docker CE（CentOS 7）"
-
-    if [ "$EUID" -ne 0 ]; then
-        print_error "升级 Docker 需要 root 权限"
-        print_info "请执行: sudo $0"
-        return 1
-    fi
-
-    print_info "卸载系统自带的 docker 1.13..."
-    yum remove -y docker \
-        docker-client docker-client-latest docker-common \
-        docker-latest docker-latest-logrotate docker-logrotate \
-        docker-selinux docker-engine-selinux docker-engine \
-        2>/dev/null || true
-
-    print_info "安装依赖..."
-    yum install -y yum-utils device-mapper-persistent-data lvm2
-
-    print_info "添加 Docker CE 仓库（华为云镜像）..."
-    if ! yum-config-manager --add-repo https://mirrors.huaweicloud.com/docker-ce/linux/centos/docker-ce.repo 2>/dev/null; then
-        print_warning "华为云仓库添加失败，尝试官方源..."
-        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    fi
-
-    print_info "安装 docker-ce（el7 最新稳定版）..."
-    set +e
-    yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    local yum_rc=$?
-    set -e
-    if [ "$yum_rc" -ne 0 ]; then
-        print_warning "带 compose-plugin 安装失败，尝试仅安装 docker-ce..."
-        yum install -y docker-ce docker-ce-cli containerd.io || {
-            print_error "Docker CE 安装失败"
-            return 1
-        }
-    fi
-
-    systemctl daemon-reload
-    systemctl enable docker
-    systemctl start docker
-    sleep 2
-
-    if ! docker info >/dev/null 2>&1; then
-        print_error "Docker CE 启动失败，请检查: journalctl -u docker -n 50"
-        return 1
-    fi
-
-    local new_ver
-    new_ver=$(get_docker_server_version)
-    print_success "Docker 已升级: ${new_ver:-$(docker -v)}"
-
-    if is_docker_too_old "$new_ver"; then
-        print_error "升级后版本仍过旧: ${new_ver}"
-        return 1
-    fi
-    return 0
-}
-
-# 确保 Docker 版本可拉取 postgres:18
-ensure_modern_docker() {
-    local ver
-    ver=$(get_docker_server_version)
-    print_info "Docker 版本: ${ver:-未知}"
-
-    if [ "$FORCE_DOCKER_UPGRADE" = true ]; then
-        if [ "$EUID" -ne 0 ]; then
-            print_error "--upgrade-docker 需要 root"
-            exit 1
-        fi
-        upgrade_docker_ce_centos7 || exit 1
-        return 0
-    fi
-
-    if ! is_docker_too_old "$ver"; then
-        print_success "Docker 版本可拉取 ${PG_IMAGE}"
-        return 0
-    fi
-
-    print_warning "Docker ${ver} 过旧，拉取 ${PG_IMAGE} 会报 missing signature key"
-    print_info "这是 CentOS7 自带 docker 1.13 的已知限制，需升级到 docker-ce ${MIN_DOCKER_MAJOR}+"
-
-    if [ "$SKIP_DOCKER_UPGRADE" = true ]; then
-        print_error "已指定 --no-upgrade-docker，无法继续"
-        print_info "请手动升级: sudo $0 --upgrade-docker"
-        exit 1
-    fi
-
-    if [ "$EUID" -ne 0 ]; then
-        print_error "自动升级需要 root"
-        print_info "请执行: sudo $0"
-        print_info "或仅升级 Docker: sudo $0 --upgrade-docker"
-        exit 1
-    fi
-
-    print_info "将以 root 自动升级 Docker CE（取消请用 --no-upgrade-docker）..."
-    upgrade_docker_ce_centos7 || exit 1
 }
 
 # 配置 Docker 国内镜像源（与 install_middleware_linux.sh 一致，使用 docker.m.daocloud.io）
@@ -522,22 +278,6 @@ show_docker_registry_mirrors() {
     fi
 }
 
-# 从国内镜像站拉取并 tag 为 postgres:18
-_pull_from_registry() {
-    local source_image="$1"
-    print_info "从国内镜像站直连拉取: ${source_image}"
-    set +e
-    DOCKER_CONTENT_TRUST=0 docker pull "$source_image"
-    local pull_rc=$?
-    set -e
-    if [ "$pull_rc" -eq 0 ]; then
-        docker tag "$source_image" "$PG_IMAGE" 2>/dev/null || true
-        print_success "已拉取 ${source_image} 并标记为 ${PG_IMAGE}"
-        return 0
-    fi
-    return 1
-}
-
 # 确保 postgres:18 镜像存在（CentOS7 优先国内直连，避免走 docker.io）
 ensure_postgresql_image() {
     if [ "$SKIP_PULL" = true ]; then
@@ -603,13 +343,6 @@ ensure_postgresql_image() {
     exit 1
 }
 
-check_compose_file() {
-    if [ ! -f "$COMPOSE_FILE" ]; then
-        print_error "未找到 $COMPOSE_FILE，请在 .scripts/docker 目录下运行"
-        exit 1
-    fi
-}
-
 check_required_files() {
     local missing=0
     for f in postgresql-entrypoint.sh init-databases.sh; do
@@ -624,16 +357,6 @@ check_required_files() {
     fi
     if [ "$missing" -eq 1 ]; then
         exit 1
-    fi
-}
-
-ensure_network() {
-    if docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
-        print_success "Docker 网络 ${NETWORK_NAME} 已存在"
-    else
-        print_info "创建 Docker 网络 ${NETWORK_NAME}..."
-        docker network create "$NETWORK_NAME" >/dev/null
-        print_success "网络 ${NETWORK_NAME} 已创建"
     fi
 }
 

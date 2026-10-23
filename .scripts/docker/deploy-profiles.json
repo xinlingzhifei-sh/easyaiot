@@ -20,6 +20,23 @@
     "TWIN",
     "PANEL"
   ],
+  "moduleRuntime": {
+    ".scripts/docker": { "label": "基础服务", "port": 8848, "healthPath": "/nacos/actuator/health" },
+    "DEVICE": { "label": "Device服务", "port": 48080, "healthPath": "/actuator/health" },
+    "AI": { "label": "AI服务", "port": 5000, "healthPath": "/actuator/health" },
+    "RTC": { "label": "RTC服务", "port": 6100, "healthPath": "/actuator/health" },
+    "POST": { "label": "POST服务", "port": 8089, "healthPath": "/readyz" },
+    "VIDEO": { "label": "Video服务", "port": 6000, "healthPath": "/actuator/health" },
+    "WEB": { "label": "Web前端服务", "port": 8888, "healthPath": "/health" },
+    "APP": { "label": "App移动端H5", "port": 9010, "healthPath": "/health" },
+    "VISUALIZE": { "label": "可视化编辑器", "port": 8002, "healthPath": "/health" },
+    "TRANSFORM": { "label": "数据转发", "port": 48096, "healthPath": "/actuator/health" },
+    "HARNESS": { "label": "HARNESS AI助手", "port": 3080, "healthPath": "/" },
+    "IDEA": { "label": "IDEA在线IDE", "port": 9300, "healthPath": "/health" },
+    "TERMINAL": { "label": "TERMINAL多协议终端", "port": 9245, "healthPath": "/" },
+    "TWIN": { "label": "数字孪生引擎", "port": 8003, "healthPath": "/health" },
+    "PANEL": { "label": "运维控制台", "port": 9200, "healthPath": "/health" }
+  },
   "moduleEnvironmentOverrides": {
     "HARNESS": "EASYAIOT_ENABLE_HARNESS",
     "IDEA": "EASYAIOT_ENABLE_IDEA",

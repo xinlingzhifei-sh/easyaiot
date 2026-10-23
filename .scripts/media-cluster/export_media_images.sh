@@ -7,6 +7,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMAGES_DIR="${ROOT}/images"
 SRS_IMAGE="${SRS_IMAGE:-ossrs/srs:5}"
 ZLM_IMAGE="${ZLM_IMAGE:-zlmediakit/zlmediakit:master}"
+# 本地仍以 :master 命名（install_media_stack.sh / iot-node 按此名检查），内容按 digest 锁定，
+# 与 .scripts/docker/docker-compose.yml 的 ZLMediaKit 一致
+ZLM_DIGEST="${ZLM_DIGEST:-sha256:ddc5127d4fab7be622b34148ac8869ca6310298acd33440f1236e771a3c5ceee}"
 SRS_TAR="${IMAGES_DIR}/ossrs-srs-5.tar"
 ZLM_TAR="${IMAGES_DIR}/zlmediakit-master.tar"
 
@@ -73,7 +76,8 @@ main() {
     "registry.cn-hangzhou.aliyuncs.com/ossrs/srs:5"
 
   ensure_image "${ZLM_IMAGE}" \
-    "docker.m.daocloud.io/zlmediakit/zlmediakit:master"
+    "docker.m.daocloud.io/zlmediakit/zlmediakit@${ZLM_DIGEST}" \
+    "zlmediakit/zlmediakit@${ZLM_DIGEST}"
 
   save_image "${SRS_IMAGE}" "${SRS_TAR}"
   save_image "${ZLM_IMAGE}" "${ZLM_TAR}"

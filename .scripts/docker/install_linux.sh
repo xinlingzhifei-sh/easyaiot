@@ -56,7 +56,36 @@ NC='\033[0m' # No Color
 # 脚本所在目录（必须在 cd 之前计算：相对路径调用时，cd 后 dirname 会解析错位，
 # 曾导致日志目录落到项目根 /logs 而非 .scripts/docker/logs）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# ---------- 平台契约 ----------
+# 本脚本既是 amd64 入口，也是 Linux 平台安装的唯一实现。install_linux_arm.sh /
+# install_linux_kylin.sh 先设置下列变量再 source 本脚本，随后覆盖 install_platform_* 钩子
+# 并调用 install_linux_main。直接运行本脚本时一律取 amd64 默认值，不受同名环境变量影响。
+#   INSTALL_ENTRY_NAME        入口脚本名（日志文件名、帮助、EASYAIOT_INSTALL_SCRIPT 默认值）
+#   INSTALL_PLATFORM_TAG      标题后缀，如 " (ARM架构)"
+#   INSTALL_AI_VIDEO_SCRIPT   AI / VIDEO 模块使用的安装脚本名
+#   EASYAIOT_DOCKER_DNS_AUTO  1=按需往 daemon.json 写公网 DNS（见 docker_mirror_common.sh）
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    INSTALL_ENTRY_NAME="install_linux.sh"
+    INSTALL_PLATFORM_TAG=""
+    INSTALL_AI_VIDEO_SCRIPT="install_linux.sh"
+    EASYAIOT_DOCKER_DNS_AUTO=0
+fi
+INSTALL_ENTRY_NAME="${INSTALL_ENTRY_NAME:-install_linux.sh}"
+INSTALL_PLATFORM_TAG="${INSTALL_PLATFORM_TAG:-}"
+INSTALL_AI_VIDEO_SCRIPT="${INSTALL_AI_VIDEO_SCRIPT:-install_linux.sh}"
+EASYAIOT_DOCKER_DNS_AUTO="${EASYAIOT_DOCKER_DNS_AUTO:-0}"
 EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (AMD64/x86_64)}"
+
+# 平台钩子默认实现（平台入口在 source 之后覆盖）
+# 各命令在检测 Docker 之前调用，ARM / 麒麟用来校验架构
+install_platform_preflight() { :; }
+# install 时准备 Docker 守护进程（镜像源等）
+install_platform_prepare_docker() { configure_docker_mirror; }
+# check 命令附加的系统信息
+install_platform_describe() { :; }
+# 帮助信息附加的平台注意事项
+install_platform_help_notes() { :; }
 
 # 项目根目录（从.scripts/docker回到项目根目录）
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -204,11 +233,11 @@ stop_industrial_demo_before_stack() {
 # 日志文件配置
 LOG_DIR="${SCRIPT_DIR}/logs"
 mkdir -p "$LOG_DIR"
-LOG_FILE="${LOG_DIR}/install_linux_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="${LOG_DIR}/${INSTALL_ENTRY_NAME%.sh}_$(date +%Y%m%d_%H%M%S).log"
 
 # 初始化日志文件
 echo "=========================================" >> "$LOG_FILE"
-echo "yFeiEye 统一安装脚本日志" >> "$LOG_FILE"
+echo "yFeiEye 统一安装脚本日志${INSTALL_PLATFORM_TAG}" >> "$LOG_FILE"
 echo "开始时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
 echo "命令: $*" >> "$LOG_FILE"
 echo "=========================================" >> "$LOG_FILE"
@@ -229,59 +258,8 @@ is_bootstrap_module() {
     esac
 }
 
-# 模块名称映射
-declare -A MODULE_NAMES
-MODULE_NAMES["IDEA"]="IDEA在线IDE"
-MODULE_NAMES[".scripts/docker"]="基础服务"
-MODULE_NAMES["DEVICE"]="Device服务"
-MODULE_NAMES["AI"]="AI服务"
-MODULE_NAMES["RTC"]="RTC服务"
-MODULE_NAMES["POST"]="POST服务"
-MODULE_NAMES["VIDEO"]="Video服务"
-MODULE_NAMES["WEB"]="Web前端服务"
-MODULE_NAMES["HARNESS"]="HARNESS AI助手"
-MODULE_NAMES["TERMINAL"]="TERMINAL多协议终端"
-MODULE_NAMES["APP"]="App移动端H5"
-MODULE_NAMES["VISUALIZE"]="可视化编辑器"
-MODULE_NAMES["TWIN"]="数字孪生引擎"
-MODULE_NAMES["TRANSFORM"]="数据转发"
-MODULE_NAMES["PANEL"]="运维控制台"
-
-# 模块端口映射
-declare -A MODULE_PORTS
-MODULE_PORTS["IDEA"]="9300"
-MODULE_PORTS[".scripts/docker"]="8848"  # Nacos端口
-MODULE_PORTS["DEVICE"]="48080"           # Gateway端口
-MODULE_PORTS["AI"]="5000"
-MODULE_PORTS["RTC"]="6100"
-MODULE_PORTS["POST"]="8089"
-MODULE_PORTS["VIDEO"]="6000"
-MODULE_PORTS["WEB"]="8888"
-MODULE_PORTS["HARNESS"]="3080"
-MODULE_PORTS["TERMINAL"]="9245"
-MODULE_PORTS["APP"]="9010"
-MODULE_PORTS["VISUALIZE"]="8002"
-MODULE_PORTS["TWIN"]="8003"
-MODULE_PORTS["TRANSFORM"]="48096"
-MODULE_PORTS["PANEL"]="9200"
-
-# 模块健康检查端点
-declare -A MODULE_HEALTH_ENDPOINTS
-MODULE_HEALTH_ENDPOINTS["IDEA"]="/health"
-MODULE_HEALTH_ENDPOINTS[".scripts/docker"]="/nacos/actuator/health"
-MODULE_HEALTH_ENDPOINTS["DEVICE"]="/actuator/health"  # Gateway健康检查
-MODULE_HEALTH_ENDPOINTS["AI"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["RTC"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["POST"]="/readyz"
-MODULE_HEALTH_ENDPOINTS["VIDEO"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["WEB"]="/health"
-MODULE_HEALTH_ENDPOINTS["HARNESS"]="/"
-MODULE_HEALTH_ENDPOINTS["TERMINAL"]="/"
-MODULE_HEALTH_ENDPOINTS["APP"]="/health"
-MODULE_HEALTH_ENDPOINTS["VISUALIZE"]="/health"
-MODULE_HEALTH_ENDPOINTS["TWIN"]="/health"
-MODULE_HEALTH_ENDPOINTS["TRANSFORM"]="/actuator/health"
-MODULE_HEALTH_ENDPOINTS["PANEL"]="/health"
+# 模块显示名 / 端口 / 健康检查端点来自 deploy-profiles.json 的 moduleRuntime
+deploy_profile_load_module_tables
 
 # 统计当前部署形态下参与 install 汇总的模块数（已启用且存在安装脚本）
 _count_installable_modules() {
@@ -732,90 +710,10 @@ check_docker_compose() {
     _COMPOSE_CHECKED=1
 }
 
-# Docker 镜像源（唯一允许的源，规整后用于比较与写入）
-DOCKER_MIRROR="https://docker.m.daocloud.io/"
-
-# shellcheck source=docker_restart_guard.sh
-source "${SCRIPT_DIR}/docker_restart_guard.sh"
-
-# 配置变更后让 Docker 生效：有其它容器在跑且未开 live-restore 时只热加载，不重启
-restart_docker_if_active() {
-    apply_docker_daemon_config "${1:-Docker 镜像源配置}" || true
-}
-
-# 配置 Docker 镜像源
-# 优先用 jq（纯进程内 JSON 编辑，无解释器启动开销）；无 jq 退回精简版 python3；
-# 两者皆无时：文件不存在则直写最小配置，已存在则跳过（不敢盲改未知 JSON）。
-configure_docker_mirror() {
-    print_info "配置 Docker 镜像源..."
-
-    local config_file="/etc/docker/daemon.json"
-
-    # PANEL 容器内写 /etc/docker 不影响宿主机 dockerd
-    if _running_in_container; then
-        print_info "容器环境跳过写入宿主机 Docker 镜像源（请在宿主机配置 /etc/docker/daemon.json）"
-        return 0
-    fi
-
-    if [ "$EUID" -ne 0 ]; then
-        print_warning "配置 Docker 镜像源需要 root 权限，跳过此步骤"
-        return 0
-    fi
-    mkdir -p /etc/docker
-
-    # 文件不存在：无需任何 JSON 工具，直接写入最小配置
-    if [ ! -f "$config_file" ]; then
-        printf '{\n  "registry-mirrors": ["%s"]\n}\n' "$DOCKER_MIRROR" > "$config_file"
-        print_success "已写入 Docker 镜像源配置: $DOCKER_MIRROR"
-        restart_docker_if_active
-        return 0
-    fi
-
-    if check_command jq; then
-        # 已恰为目标镜像源（忽略尾斜杠差异）→ 零写入零重启
-        if jq -e --arg m "${DOCKER_MIRROR%/}" \
-            '(.["registry-mirrors"] // []) | map(rtrimstr("/")) == [$m]' \
-            "$config_file" > /dev/null 2>&1; then
-            print_success "Docker 镜像源配置已就绪（$DOCKER_MIRROR）"
-            return 0
-        fi
-        local tmp_json
-        tmp_json=$(mktemp)
-        if jq --arg m "$DOCKER_MIRROR" '.["registry-mirrors"] = [$m]' "$config_file" > "$tmp_json" 2>/dev/null; then
-            mv "$tmp_json" "$config_file"
-            print_success "Docker 镜像源已更新为 $DOCKER_MIRROR"
-            restart_docker_if_active
-            return 0
-        fi
-        rm -f "$tmp_json"
-        print_error "解析 $config_file 失败（非法 JSON？），请手动检查"
-        return 1
-    fi
-
-    if check_command python3; then
-        # 退出码约定：0=已就绪 3=已更新 其它=失败（|| 捕获以兼容 set -e）
-        local rc=0
-        python3 - "$config_file" "$DOCKER_MIRROR" <<'PYEOF' || rc=$?
-import json, sys
-path, mirror = sys.argv[1], sys.argv[2]
-cfg = json.load(open(path))
-cur = [m.rstrip('/') for m in cfg.get('registry-mirrors', []) if isinstance(m, str)]
-if cur == [mirror.rstrip('/')]:
-    sys.exit(0)
-cfg['registry-mirrors'] = [mirror]
-json.dump(cfg, open(path, 'w'), indent=2, ensure_ascii=False)
-sys.exit(3)
-PYEOF
-        case $rc in
-            0) print_success "Docker 镜像源配置已就绪（$DOCKER_MIRROR）" ;;
-            3) print_success "Docker 镜像源已更新为 $DOCKER_MIRROR"; restart_docker_if_active ;;
-            *) print_error "解析 $config_file 失败（非法 JSON？），请手动检查"; return 1 ;;
-        esac
-        return 0
-    fi
-
-    print_warning "未安装 jq/python3 且 $config_file 已存在，跳过自动配置（请手动确认 registry-mirrors 含 $DOCKER_MIRROR）"
-}
+# Docker 镜像源（+ 按 EASYAIOT_DOCKER_DNS_AUTO 决定是否写 DNS）与安全重启，见 docker_mirror_common.sh
+DOCKER_MIRROR="${DOCKER_MIRROR:-https://docker.m.daocloud.io/}"
+# shellcheck source=docker_mirror_common.sh
+source "${SCRIPT_DIR}/docker_mirror_common.sh"
 
 # 创建统一网络（已存在则跳过；FORCE_NETWORK_RECREATE=true 可强制重建）
 create_network() {
@@ -888,6 +786,7 @@ fix_line_endings() {
 module_install_script() {
     case "$1" in
         ".scripts/docker") echo "install_middleware_linux.sh" ;;
+        "AI"|"VIDEO")      echo "$INSTALL_AI_VIDEO_SCRIPT" ;;
         *)                 echo "install_linux.sh" ;;
     esac
 }
@@ -960,7 +859,10 @@ execute_module_command() {
     fi
 
     fix_line_endings "$install_file"
-    print_info "执行 $module_name: $command"
+    case "$module" in
+        AI|VIDEO) print_info "执行 $module_name: $command${INSTALL_PLATFORM_TAG}" ;;
+        *)        print_info "执行 $module_name: $command" ;;
+    esac
 
     local defer_agent_sync=0
     case "$module" in
@@ -1062,7 +964,7 @@ verify_service_health() {
 
 # 安装所有服务
 install_linux() {
-    print_section "开始安装所有服务"
+    print_section "开始安装所有服务${INSTALL_PLATFORM_TAG}"
 
     select_deploy_profile_for_install || return 1
     # 规格菜单选 edge → 云边一体形态：改走算力节点部署，不跑平台全量 install
@@ -1071,15 +973,16 @@ install_linux() {
         return $?
     fi
     cleanup_profile_excluded_containers
-    export EASYAIOT_INSTALL_SCRIPT="${EASYAIOT_INSTALL_SCRIPT:-.scripts/docker/install_linux.sh}"
+    export EASYAIOT_INSTALL_SCRIPT="${EASYAIOT_INSTALL_SCRIPT:-.scripts/docker/${INSTALL_ENTRY_NAME}}"
     if ! runtime_images_acquire; then
         print_error "预构建镜像获取失败，已中止安装"
         return 1
     fi
 
+    install_platform_preflight
     check_docker "$@"
     check_docker_compose
-    configure_docker_mirror
+    install_platform_prepare_docker
     prepare_runtime_environment
     create_network
 
@@ -1090,7 +993,7 @@ install_linux() {
     else
         if runtime_is_source_free_runtime; then
             print_error "当前为 PANEL 无源码 runtime，禁止本地 docker build"
-            print_error "请先确保预构建镜像拉取成功后再安装（bash .scripts/docker/install_linux.sh pull）"
+            print_error "请先确保预构建镜像拉取成功后再安装（bash .scripts/docker/${INSTALL_ENTRY_NAME} pull）"
             return 1
         fi
         print_info "将进行本地构建（各模块 docker build，耗时较长）"
@@ -1176,7 +1079,7 @@ install_linux() {
                 "Device服务")
                     print_info "  - Device服务：检查 Maven 编译是否成功、JAR 包是否生成"
                     print_info "    ls DEVICE/target/jars/"
-                    print_info "    检查日志: cat ${LOG_DIR}/install_linux_*.log | grep -i 'error\|failed\|失败'"
+                    print_info "    检查日志: cat ${LOG_DIR}/${INSTALL_ENTRY_NAME%.sh}_*.log | grep -i 'error\|failed\|失败'"
                     ;;
                 "AI服务")
                     print_info "  - AI服务：检查 PyTorch 镜像拉取和 Python 依赖安装"
@@ -1505,11 +1408,12 @@ run_modules_parallel() {
 
 # 启动所有服务
 start_all() {
-    print_section "启动所有服务"
+    print_section "启动所有服务${INSTALL_PLATFORM_TAG}"
     
     ensure_deploy_profile
     cleanup_profile_excluded_containers
     print_info "部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
+    install_platform_preflight
     check_docker "$@"
     check_docker_compose
     configure_docker_mirror
@@ -1646,11 +1550,12 @@ stop_runtime_modules() {
 
 # 重启所有服务
 restart_all() {
-    print_section "重启所有服务"
+    print_section "重启所有服务${INSTALL_PLATFORM_TAG}"
     
     ensure_deploy_profile
     cleanup_profile_excluded_containers
     print_info "部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
+    install_platform_preflight
     check_docker "$@"
     check_docker_compose
     configure_docker_mirror
@@ -1730,8 +1635,9 @@ view_logs() {
 #   - 全部结束后按模块顺序回放结果，失败的展示日志尾部
 # 默认串行：Java/Node/Python 构建内存峰值高，小内存服务器并行易 OOM，由使用者显式选择。
 build_all() {
-    print_section "构建所有镜像"
+    print_section "构建所有镜像${INSTALL_PLATFORM_TAG}"
 
+    install_platform_preflight
     check_docker "$@"
     check_docker_compose
 
@@ -1766,6 +1672,7 @@ build_all() {
 
 # 从远程仓库拉取预构建运行时镜像（交互式，默认 full）
 pull_runtime_images() {
+    install_platform_preflight
     check_docker "$@"
     runtime_images_prepare_pull_interactive
     runtime_images_export_for_invoke
@@ -1779,6 +1686,7 @@ pull_runtime_images() {
 
 # 构建并可选推送运行时镜像到远程仓库（交互式；第二参数可指定单模块）
 build_runtime_images() {
+    install_platform_preflight
     check_docker "$@"
     runtime_apply_build_module_arg "${2:-}" || exit 1
     runtime_images_prepare_build_interactive
@@ -1907,16 +1815,17 @@ clean_build_runtime() {
 
 # 更新所有服务
 update_all() {
-    print_section "更新所有服务"
+    print_section "更新所有服务${INSTALL_PLATFORM_TAG}"
     # 立刻刷出进度，避免 ensure_deploy_profile / docker 探测阶段看起来像卡死
     print_info "准备更新环境（部署形态 / Docker / 镜像来源）..."
 
     ensure_deploy_profile
     print_info "部署形态: $(_deploy_profile_desc) (EASYAIOT_DEPLOY_PROFILE=${EASYAIOT_DEPLOY_PROFILE})"
+    install_platform_preflight
     check_docker "$@"
     check_docker_compose
     configure_docker_mirror
-    export EASYAIOT_INSTALL_SCRIPT="${EASYAIOT_INSTALL_SCRIPT:-.scripts/docker/install_linux.sh}"
+    export EASYAIOT_INSTALL_SCRIPT="${EASYAIOT_INSTALL_SCRIPT:-.scripts/docker/${INSTALL_ENTRY_NAME}}"
     # 形态已由 ensure_deploy_profile 确定，拉镜像时勿再反复交互选 profile/tag
     export EASYAIOT_SKIP_PROFILE_PROMPT=1
     export EASYAIOT_RUNTIME_TAG="${EASYAIOT_RUNTIME_TAG:-latest}"
@@ -2080,7 +1989,7 @@ verify_all() {
             echo -e "  ${RED}✗ $failed${NC}"
         done
         echo ""
-        print_info "查看日志: ./install_linux.sh logs"
+        print_info "查看日志: ./${INSTALL_ENTRY_NAME} logs"
         return 1
     fi
 }
@@ -2130,7 +2039,8 @@ run_ceph_cmd() {
 
 # 检查 Docker 和 Docker Compose 安装状态
 check_environment() {
-    print_section "检查运行环境"
+    print_section "检查运行环境${INSTALL_PLATFORM_TAG}"
+    install_platform_preflight
     
     echo ""
     print_info "=== 检查 Docker ==="
@@ -2185,6 +2095,7 @@ check_environment() {
     print_info "=== 系统信息 ==="
     print_info "操作系统: $(uname -s) $(uname -r)"
     print_info "架构: $(uname -m)"
+    install_platform_describe
     print_info "用户: $(whoami)"
     
     echo ""
@@ -2193,12 +2104,12 @@ check_environment() {
 
 # 显示帮助信息
 show_help() {
-    echo "yFeiEye 统一安装脚本"
+    echo "yFeiEye 统一安装脚本${INSTALL_PLATFORM_TAG}"
     echo ""
     echo "使用方法:"
-    echo "  ./install_linux.sh                 - 打开交互式引导（推荐新手）"
-    echo "  ./install_linux.sh menu            - 同上"
-    echo "  ./install_linux.sh [命令] [模块]"
+    echo "  ./${INSTALL_ENTRY_NAME}                 - 打开交互式引导（推荐新手）"
+    echo "  ./${INSTALL_ENTRY_NAME} menu            - 同上"
+    echo "  ./${INSTALL_ENTRY_NAME} [命令] [模块]"
     echo ""
     echo "交互引导两层结构:"
     echo "  1) 部署 — 安装/启停/更新/状态/日志等"
@@ -2238,12 +2149,12 @@ show_help() {
     echo "  analyze-disk    - 项目关键目录磁盘占用分析"
     echo "  help            - 显示此帮助信息"
     echo ""
-    echo "SITE 子命令（./install_linux.sh site <子命令>）:"
+    echo "SITE 子命令（./${INSTALL_ENTRY_NAME} site <子命令>）:"
     echo "  install | start | stop | restart | status | logs | build | clean | update"
     echo "  也可直接: cd SITE && ./install_linux.sh <子命令>"
     echo "  默认端口: http://localhost:8090"
     echo ""
-    echo "移动端子命令（./install_linux.sh mobile <子命令>，详见 MOBILE.md）:"
+    echo "移动端子命令（./${INSTALL_ENTRY_NAME} mobile <子命令>，详见 MOBILE.md）:"
     echo "  status | build <android|ios|harmonyos|all> [prod|test|dev] [--skip-native]"
     echo "  bump <x.y.z> <versionCode> | artifacts | clean <android|ios|harmonyos|all>"
     echo "  也可直接: bash .scripts/docker/mobile.sh <子命令>"
@@ -2253,6 +2164,7 @@ show_help() {
         echo "  - ${MODULE_NAMES[$module]} ($module)"
     done
     echo ""
+    install_platform_help_notes
     echo "可选环境变量:"
     echo "  EASYAIOT_DEPLOY_PROFILE      - 部署形态: edge | mini | standard | full（默认 full）"
     echo "  EASYAIOT_EDGE_MORPHOLOGY     - edge 子形态: standalone | integrated"
@@ -2519,15 +2431,22 @@ main() {
     esac
 }
 
-# 运行主函数
-main "$@"
+# 运行主函数，结束时记录日志文件路径
+install_linux_main() {
+    main "$@"
 
-# 脚本结束时记录日志文件路径
-if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
-    echo "" >> "$LOG_FILE"
-    echo "=========================================" >> "$LOG_FILE"
-    echo "脚本结束时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
-    echo "=========================================" >> "$LOG_FILE"
-    echo ""
-    print_info "日志文件已保存到: $LOG_FILE"
+    # 脚本结束时记录日志文件路径
+    if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
+        echo "" >> "$LOG_FILE"
+        echo "=========================================" >> "$LOG_FILE"
+        echo "脚本结束时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
+        echo "=========================================" >> "$LOG_FILE"
+        echo ""
+        print_info "日志文件已保存到: $LOG_FILE"
+    fi
+}
+
+# 平台入口（install_linux_arm.sh 等）source 本脚本时，由入口在覆盖钩子之后自行调用
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    install_linux_main "$@"
 fi

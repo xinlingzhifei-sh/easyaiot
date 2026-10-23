@@ -367,8 +367,9 @@ services:
 
   # Node-RED Server（页面标题 yFeiEye；演示规则链只读，见 .scripts/node-red/）
   # 编辑器: http://localhost:1880  恢复演示: bash .scripts/node-red/seed_nodered_demo.sh
+  # 版本锁定：2026-10-22 时 latest 即 5.0.9；升级请改为明确版本号，勿用 latest
   NodeRED:
-    image: nodered/node-red:latest
+    image: nodered/node-red:5.0.9
     container_name: nodered-server
     restart: always
     ports:
@@ -462,8 +463,10 @@ services:
   # ZLMediaKit Media Server
   # 注意：ZLMediaKit 启动时会 setrlimit(RLIMIT_NPROC)，需要 CAP_SYS_RESOURCE
   # 不设置 privileged=true（权限过大），仅授予必要的 capability
+  # 版本锁定：上游只发布滚动的 master 分支标签，故按 digest 锁定（2026-10-12 master 构建，amd64+arm64 多架构索引）。
+  # 升级：curl -s https://hub.docker.com/v2/repositories/zlmediakit/zlmediakit/tags/master | jq -r .digest
   ZLMediaKit:
-    image: zlmediakit/zlmediakit:master
+    image: zlmediakit/zlmediakit@sha256:ddc5127d4fab7be622b34148ac8869ca6310298acd33440f1236e771a3c5ceee
     container_name: zlmediakit-server
     restart: always
     cap_add:

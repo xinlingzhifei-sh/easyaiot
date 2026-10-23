@@ -32,50 +32,25 @@
 
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-INSTALL_LINUX="${SCRIPT_DIR}/install_linux.sh"
 
-FORCE_OS_CHECK=false
-SKIP_DOCKER_UPGRADE=false
-UPGRADE_DOCKER_ONLY=false
-SKIP_FIREWALL=false
-SKIP_MIRROR=false
-MIN_DOCKER_MAJOR=20
 # openEuler 24.x 对标 RHEL9；部分环境 el9 不可用时可改 --el-release 7
 DOCKER_EL_RELEASE="${DOCKER_EL_RELEASE:-9}"
-DOCKER_MIRROR="${DOCKER_MIRROR:-https://docker.m.daocloud.io/}"
 DOCKER_DNS="${DOCKER_DNS:-223.5.5.5,119.29.29.29}"
 
-# 对外常用端口（firewalld 放行；UDP 含媒体相关）
-FIREWALL_TCP_PORTS=(
-    8888 48080 5000 6000 6100 1984 8554 8555 9010 8002 48096 9200 9300 13338-13437
-    8848 9000 9001 5432 6379 1880 1881 1883
-    8080 1985 1935 9100
-)
-FIREWALL_UDP_PORTS=(
-    8555 30000-30500 10000-20000
-)
+# 入口配置，含义见 install_el_common.sh 头注释
+EL_DELEGATE_TARGET="${SCRIPT_DIR}/install_linux.sh"
+EL_INSTALL_LABEL="yFeiEye 统一安装脚本 (openEuler)"
+EL_INSTALL_SCRIPT=".scripts/docker/install_linux_openeuler.sh"
+EL_HELP_FN=show_openeuler_help
+EL_CHECK_FN=check_openeuler
+EL_MIRROR_FN=configure_docker_mirror_openeuler
+EL_INSTALL_DOCKER_FN=install_docker_ce_openeuler
+EL_OLD_DOCKER_HINT="openEuler 自带常见 18.09），无法拉取新镜像"
 
-print_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
-
-print_section() {
-    echo ""
-    echo -e "${CYAN}========================================${NC}"
-    echo -e "${CYAN}  $1${NC}"
-    echo -e "${CYAN}========================================${NC}"
-    echo ""
-}
+# shellcheck source=install_el_common.sh
+source "${SCRIPT_DIR}/install_el_common.sh"
 
 show_openeuler_help() {
     cat <<'EOF'
@@ -113,67 +88,6 @@ openEuler 专用选项（须写在子命令之前）:
 EOF
 }
 
-# ---------- 参数解析（仅消费 openEuler 专用选项，其余原样转交） ----------
-FORWARD_ARGS=()
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -h|--help)
-            show_openeuler_help
-            exit 0
-            ;;
-        -f|--force)
-            FORCE_OS_CHECK=true
-            shift
-            ;;
-        --no-upgrade-docker)
-            SKIP_DOCKER_UPGRADE=true
-            shift
-            ;;
-        --upgrade-docker-only)
-            UPGRADE_DOCKER_ONLY=true
-            shift
-            ;;
-        --no-firewall)
-            SKIP_FIREWALL=true
-            shift
-            ;;
-        --skip-mirror)
-            SKIP_MIRROR=true
-            shift
-            ;;
-        --el-release)
-            if [ -z "${2:-}" ]; then
-                print_error "--el-release 需要参数 7|8|9"
-                exit 1
-            fi
-            DOCKER_EL_RELEASE="$2"
-            shift 2
-            ;;
-        --el-release=*)
-            DOCKER_EL_RELEASE="${1#*=}"
-            shift
-            ;;
-        --)
-            shift
-            FORWARD_ARGS+=("$@")
-            break
-            ;;
-        *)
-            FORWARD_ARGS+=("$@")
-            break
-            ;;
-    esac
-done
-
-case "$DOCKER_EL_RELEASE" in
-    7|8|9) ;;
-    *)
-        print_error "不支持的 --el-release: ${DOCKER_EL_RELEASE}（仅支持 7|8|9）"
-        exit 1
-        ;;
-esac
-
-# ---------- 发行版检测 ----------
 detect_openeuler() {
     OS_ID=""
     OS_VERSION=""
@@ -251,62 +165,7 @@ check_openeuler() {
             ;;
     esac
 
-    if command -v getenforce >/dev/null 2>&1; then
-        local selinux_status
-        selinux_status=$(getenforce 2>/dev/null || echo "未知")
-        print_info "SELinux: $selinux_status"
-        if [ "$selinux_status" = "Enforcing" ]; then
-            print_warning "SELinux Enforcing 时，若容器挂载目录权限异常，可临时: setenforce 0"
-            print_info "或给数据目录打标签: chcon -Rt svirt_sandbox_file_t <data_dir>"
-        fi
-    fi
-
-    if systemctl is-active firewalld >/dev/null 2>&1; then
-        print_info "firewalld 正在运行（安装时将自动放行常用端口，可用 --no-firewall 跳过）"
-    fi
-}
-
-pkg_mgr() {
-    if command -v dnf >/dev/null 2>&1; then
-        echo "dnf"
-    else
-        echo "yum"
-    fi
-}
-
-# ---------- Docker 版本检测 / 安装 ----------
-get_docker_server_version() {
-    local ver
-    ver=$(docker version 2>/dev/null | awk '
-        /^Server:/ { in_server=1; next }
-        in_server && /^Version:/ { print $2; exit }
-        in_server && /^[A-Z]/ && $1 !~ /^Version:/ { in_server=0 }
-    ')
-    if [ -n "$ver" ]; then
-        echo "$ver"
-        return 0
-    fi
-    docker -v 2>/dev/null | sed -n 's/.*[Vv]ersion \([^, ]*\).*/\1/p' | head -1
-}
-
-is_docker_too_old() {
-    local ver="${1:-}"
-    if [ -z "$ver" ]; then
-        return 0
-    fi
-    local major minor
-    major=$(echo "$ver" | cut -d. -f1)
-    minor=$(echo "$ver" | cut -d. -f2)
-    major=${major:-0}
-    minor=${minor:-0}
-    # openEuler 自带 docker-engine 常见 18.09
-    if [ "$major" -le 1 ] 2>/dev/null && [ "$minor" -lt 20 ] 2>/dev/null; then
-        return 0
-    fi
-    if [ "$major" -lt "$MIN_DOCKER_MAJOR" ] 2>/dev/null; then
-        return 0
-    fi
-    return 1
+    el_report_selinux_firewalld
 }
 
 fix_docker_ce_repo_releasever() {
@@ -454,54 +313,6 @@ install_docker_ce_openeuler() {
     return 0
 }
 
-ensure_modern_docker() {
-    if [ "$SKIP_DOCKER_UPGRADE" = true ]; then
-        print_warning "已跳过 Docker 自动安装/升级 (--no-upgrade-docker)"
-        if ! command -v docker >/dev/null 2>&1; then
-            print_error "Docker 未安装"
-            exit 1
-        fi
-        return 0
-    fi
-
-    if ! command -v docker >/dev/null 2>&1; then
-        print_warning "未检测到 Docker，将自动安装 Docker CE"
-        install_docker_ce_openeuler || exit 1
-        return 0
-    fi
-
-    if ! docker info >/dev/null 2>&1; then
-        if [ "$EUID" -eq 0 ]; then
-            systemctl start docker 2>/dev/null || true
-        fi
-    fi
-
-    local ver
-    ver=$(get_docker_server_version)
-    print_info "当前 Docker 版本: ${ver:-未知}"
-
-    # 检测是否为 openEuler 自带的 docker-engine（包名冲突场景）
-    local pkg_name=""
-    if command -v rpm >/dev/null 2>&1; then
-        pkg_name=$(rpm -qf "$(command -v dockerd 2>/dev/null || command -v docker)" 2>/dev/null || true)
-    fi
-    if echo "$pkg_name" | grep -qiE 'docker-engine|^docker-[0-9]'; then
-        print_warning "检测到 openEuler 自带 docker 包 (${pkg_name})，将替换为 Docker CE"
-        install_docker_ce_openeuler || exit 1
-        return 0
-    fi
-
-    if ! is_docker_too_old "$ver"; then
-        print_success "Docker 版本满足要求 (>= ${MIN_DOCKER_MAJOR})"
-        return 0
-    fi
-
-    print_warning "Docker ${ver:-未知} 过旧（openEuler 自带常见 18.09），无法拉取新镜像"
-    print_info "将自动升级为 Docker CE ${MIN_DOCKER_MAJOR}+..."
-    install_docker_ce_openeuler || exit 1
-}
-
-# ---------- 镜像源 / 防火墙 ----------
 configure_docker_mirror_openeuler() {
     if [ "$SKIP_MIRROR" = true ]; then
         print_info "已跳过 Docker 镜像源配置 (--skip-mirror)"
@@ -596,103 +407,53 @@ PYEOF
     fi
 }
 
-configure_firewalld_ports() {
-    if [ "$SKIP_FIREWALL" = true ]; then
-        print_info "已跳过 firewalld 端口放行 (--no-firewall)"
-        return 0
-    fi
-    if [ "$EUID" -ne 0 ]; then
-        print_warning "放行 firewalld 端口需要 root，已跳过"
-        return 0
-    fi
-    if ! systemctl is-active firewalld >/dev/null 2>&1; then
-        print_info "firewalld 未运行，跳过端口放行"
-        return 0
-    fi
-    if ! command -v firewall-cmd >/dev/null 2>&1; then
-        return 0
-    fi
-
-    print_section "配置 firewalld 端口"
-    local changed=false
-    local p
-    for p in "${FIREWALL_TCP_PORTS[@]}"; do
-        if firewall-cmd --permanent --add-port="${p}/tcp" >/dev/null 2>&1; then
-            changed=true
-            print_info "已放行 TCP ${p}"
-        fi
-    done
-    for p in "${FIREWALL_UDP_PORTS[@]}"; do
-        if firewall-cmd --permanent --add-port="${p}/udp" >/dev/null 2>&1; then
-            changed=true
-            print_info "已放行 UDP ${p}"
-        fi
-    done
-    if [ "$changed" = true ]; then
-        firewall-cmd --reload >/dev/null 2>&1 || true
-        print_success "firewalld 规则已刷新"
-    else
-        print_info "firewalld 端口规则无变更"
-    fi
-}
-
-prepare_openeuler_environment() {
-    check_openeuler
-    ensure_modern_docker
-    configure_docker_mirror_openeuler
-    configure_firewalld_ports
-}
-
-# ---------- 转交 install_linux.sh ----------
-delegate_to_install_linux() {
-    if [ ! -f "$INSTALL_LINUX" ]; then
-        print_error "未找到 $INSTALL_LINUX"
-        exit 1
-    fi
-    chmod +x "$INSTALL_LINUX" 2>/dev/null || true
-
-    export EASYAIOT_INSTALL_LABEL="${EASYAIOT_INSTALL_LABEL:-yFeiEye 统一安装脚本 (openEuler)}"
-    export EASYAIOT_INSTALL_SCRIPT=".scripts/docker/install_linux_openeuler.sh"
-    export DOCKER_MIRROR
-    export DOCKER_DNS
-
-    print_section "转交平台统一安装脚本"
-    print_info "执行: bash $INSTALL_LINUX ${FORWARD_ARGS[*]:-}"
-    cd "$PROJECT_ROOT"
-    exec bash "$INSTALL_LINUX" "${FORWARD_ARGS[@]}"
-}
-
-# ---------- main ----------
-main() {
-    if [ "$UPGRADE_DOCKER_ONLY" = true ]; then
-        check_openeuler
-        SKIP_DOCKER_UPGRADE=false
-        ensure_modern_docker
-        configure_docker_mirror_openeuler
-        print_success "Docker CE 准备完成"
-        exit 0
-    fi
-
-    local cmd="${FORWARD_ARGS[0]:-}"
-    case "$cmd" in
-        help|--help|-h)
-            show_openeuler_help
-            echo ""
-            print_info "以下为 install_linux.sh 完整帮助："
-            echo ""
-            bash "$INSTALL_LINUX" help
-            exit 0
+# openEuler 专有选项：--el-release 7|8|9
+el_parse_extra_option() {
+    case "$1" in
+        --el-release)
+            if [ -z "${2:-}" ]; then
+                print_error "--el-release 需要参数 7|8|9"
+                exit 1
+            fi
+            DOCKER_EL_RELEASE="$2"
+            EL_PARSE_CONSUMED=2
+            return 0
             ;;
-        profile)
-            # 纯查询，无需 Docker 升级
-            delegate_to_install_linux
+        --el-release=*)
+            DOCKER_EL_RELEASE="${1#*=}"
+            EL_PARSE_CONSUMED=1
+            return 0
             ;;
+    esac
+    return 1
+}
+
+el_after_parse() {
+    case "$DOCKER_EL_RELEASE" in
+        7|8|9) ;;
         *)
-            # 无参数（交互菜单）或其它部署命令：先做 openEuler 环境准备
-            prepare_openeuler_environment
-            delegate_to_install_linux
+            print_error "不支持的 --el-release: ${DOCKER_EL_RELEASE}（仅支持 7|8|9）"
+            exit 1
             ;;
     esac
 }
 
-main
+# 检测是否为 openEuler 自带的 docker-engine（包名冲突场景）
+el_replace_vendor_docker() {
+    local pkg_name=""
+    if command -v rpm >/dev/null 2>&1; then
+        pkg_name=$(rpm -qf "$(command -v dockerd 2>/dev/null || command -v docker)" 2>/dev/null || true)
+    fi
+    if echo "$pkg_name" | grep -qiE 'docker-engine|^docker-[0-9]'; then
+        print_warning "检测到 openEuler 自带 docker 包 (${pkg_name})，将替换为 Docker CE"
+        install_docker_ce_openeuler || exit 1
+        return 0
+    fi
+    return 1
+}
+
+el_delegate_exports() {
+    export DOCKER_DNS
+}
+
+el_main "$@"
