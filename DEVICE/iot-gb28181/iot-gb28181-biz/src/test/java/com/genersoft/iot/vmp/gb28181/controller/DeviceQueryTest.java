@@ -50,7 +50,7 @@ class DeviceQueryTest {
         sipConfig.setId("44010200492000000001");
         sipConfig.setDomain("4401020049");
         sipConfig.setPort(5060);
-        sipConfig.setShowIp("1.95.118.210");
+        sipConfig.setShowIp("eye.yfeiai.com");
         return sipConfig;
     }
 }

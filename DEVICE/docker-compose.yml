@@ -677,7 +677,7 @@ services:
       - GB28181_SIP_PASSWORD=${GB28181_SIP_PASSWORD:?GB28181_SIP_PASSWORD is required}
       - GB28181_SSL_KEYSTORE_PASSWORD=${GB28181_SSL_KEYSTORE_PASSWORD:-}
       - SPRING_PROFILES_ACTIVE=local # 指定程序运行环境
-      - MEDIA_SDP_IP=1.95.118.210 # GB28181 SDP 公网收流地址，避免摄像头向内网地址推流
+      - MEDIA_SDP_IP=eye.yfeiai.com # GB28181 SDP 公网收流地址（域名在启动时解析为 IP 写入 SDP），避免摄像头向内网地址推流
       - MEDIA_STREAM_IP=eye.yfeiai.com # 播放地址对外展示域名
       - MEDIA_RTP_ENABLE=${GB28181_RTP_ENABLE:-true} # 生产受限网络可切换为单端口收流
       - MEDIA_RTP_PUBLIC_PORT=${GB28181_RTP_PUBLIC_PORT:-0} # 单端口模式下 SDP 对外宣告端口

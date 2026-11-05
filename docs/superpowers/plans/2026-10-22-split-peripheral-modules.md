@@ -41,5 +41,5 @@
 
 ## 测试约束
 
-- 只在 `root@1.95.118.210` 的临时容器里跑单元测试，开跑前 `free -m`，`git archive` 只打包 `.scripts` 与 `WEB`，放 `/opt/yfeieye-unittest-split-peripheral/`，跑完删除。
+- 只在 `root@eye.yfeiai.com` 的临时容器里跑单元测试，开跑前 `free -m`，`git archive` 只打包 `.scripts` 与 `WEB`，放 `/opt/yfeieye-unittest-split-peripheral/`，跑完删除。
 - 提交前 `node .scripts/verify-repository-secret-hygiene.mjs`。

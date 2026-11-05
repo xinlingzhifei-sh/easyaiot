@@ -56,7 +56,7 @@ class ComputeNodeServiceImplTest {
         ComputeNodeDO platformNode = new ComputeNodeDO();
         platformNode.setId(4L);
         platformNode.setName("platform");
-        platformNode.setHost("1.95.118.210");
+        platformNode.setHost("eye.yfeiai.com");
         platformNode.setNodeRole(NodeFunctions.toCsv(NodeFunctions.PLATFORM_DEFAULT));
         Map<String, Boolean> caps = new HashMap<>();
         caps.put("platform", true);
@@ -76,14 +76,14 @@ class ComputeNodeServiceImplTest {
 
         service.ensurePlatformNode();
 
-        assertEquals("1.95.118.210", platformNode.getHost());
+        assertEquals("eye.yfeiai.com", platformNode.getHost());
     }
 
     @Test
     void refreshesPlatformHostOnlyWhenConfiguredOrMissing() {
-        assertTrue(ComputeNodeServiceImpl.shouldRefreshPlatformHost("172.18.0.12", "1.95.118.210", true));
+        assertTrue(ComputeNodeServiceImpl.shouldRefreshPlatformHost("172.18.0.12", "eye.yfeiai.com", true));
         assertTrue(ComputeNodeServiceImpl.shouldRefreshPlatformHost("", "192.168.0.88", false));
-        assertFalse(ComputeNodeServiceImpl.shouldRefreshPlatformHost("1.95.118.210", "172.18.0.12", false));
+        assertFalse(ComputeNodeServiceImpl.shouldRefreshPlatformHost("eye.yfeiai.com", "172.18.0.12", false));
     }
 
     @Test

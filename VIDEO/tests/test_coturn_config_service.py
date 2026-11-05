@@ -26,7 +26,7 @@ class CoturnConfigServiceTest(unittest.TestCase):
         from app.services.coturn_config_service import build_coturn_config
 
         config = build_coturn_config(
-            public_ip="1.95.118.210",
+            public_ip="203.0.113.10",
             realm="eye.yfeiai.com",
             username="yfeieye",
             credential="turn-secret",
@@ -36,7 +36,7 @@ class CoturnConfigServiceTest(unittest.TestCase):
         )
 
         self.assertIn("listening-port=3478", config)
-        self.assertIn("external-ip=1.95.118.210", config)
+        self.assertIn("external-ip=203.0.113.10", config)
         self.assertIn("realm=eye.yfeiai.com", config)
         self.assertIn("server-name=eye.yfeiai.com", config)
         self.assertIn("user=yfeieye:turn-secret", config)
@@ -59,7 +59,7 @@ class CoturnConfigServiceTest(unittest.TestCase):
                     sys.executable,
                     str(script),
                     "--public-ip",
-                    "1.95.118.210",
+                    "203.0.113.10",
                     "--public-host",
                     "eye.yfeiai.com",
                     "--username",
@@ -101,7 +101,7 @@ class CoturnConfigServiceTest(unittest.TestCase):
                     "--work-dir",
                     str(temp),
                     "--public-ip",
-                    "1.95.118.210",
+                    "203.0.113.10",
                     "--public-host",
                     "eye.yfeiai.com",
                     "--username",
@@ -119,7 +119,7 @@ class CoturnConfigServiceTest(unittest.TestCase):
             self.assertIn("docker.m.daocloud.io/instrumentisto/coturn:latest", result.stdout)
             self.assertTrue((temp / "turnserver.conf").exists())
             self.assertTrue((temp / "turn.env").exists())
-            self.assertIn("external-ip=1.95.118.210", (temp / "turnserver.conf").read_text(encoding="utf-8"))
+            self.assertIn("external-ip=203.0.113.10", (temp / "turnserver.conf").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

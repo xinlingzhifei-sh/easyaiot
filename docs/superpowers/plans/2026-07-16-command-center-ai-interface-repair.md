@@ -423,7 +423,7 @@ If verification required a correction, stage only that correction and commit wit
 
 - [ ] **Step 2: Deploy with rollback points**
 
-- Create timestamped release directories on `1.95.118.210`.
+- Create timestamped release directories on `eye.yfeiai.com`.
 - Preserve the current WEB symlink target, iot-system JAR, and VIDEO files for rollback.
 - Promote WEB atomically, replace the iot-system artifact, apply VIDEO files, and restart only affected services.
 
