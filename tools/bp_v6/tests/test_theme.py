@@ -27,7 +27,7 @@ def test_title_and_footer_are_editable_text():
     text = "\n".join(shape.text for shape in slide.shapes if hasattr(shape, "text"))
     assert "测试标题" in text
     assert "03" in text
-    assert "逸飞AI智眼系统｜创业大赛 BP V6" in text
+    assert "逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0｜创业大赛 BP V6" in text
 
     page_marker = next(shape for shape in slide.shapes if getattr(shape, "text", "") == "03")
     footer_page = next(shape for shape in slide.shapes if getattr(shape, "text", "") == "03/16")

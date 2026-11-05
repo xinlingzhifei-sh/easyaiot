@@ -4,9 +4,14 @@ export interface LoginBrandingValues {
   loginBgDark: string
 }
 
+/** 历史默认值：可为单个值或多个值（多次改名后，各代默认值都应回落到当前默认值） */
+export type LegacyLoginBrandingValues = {
+  [K in keyof LoginBrandingValues]: string | readonly string[]
+}
+
 export interface LoginBrandingResolutionOptions {
   current: LoginBrandingValues
-  legacy: LoginBrandingValues
+  legacy: LegacyLoginBrandingValues
 }
 
 export function resolveLoginBrandingValues(
@@ -32,8 +37,9 @@ export function resolveLoginBrandingValues(
   }
 }
 
-function resolveValue(value: unknown, currentDefault: string, legacyDefault: string): string {
-  if (typeof value !== 'string' || !value.trim() || value === legacyDefault) {
+function resolveValue(value: unknown, currentDefault: string, legacyDefault: string | readonly string[]): string {
+  const legacyDefaults: readonly string[] = typeof legacyDefault === 'string' ? [legacyDefault] : legacyDefault
+  if (typeof value !== 'string' || !value.trim() || legacyDefaults.includes(value)) {
     return currentDefault
   }
   return value

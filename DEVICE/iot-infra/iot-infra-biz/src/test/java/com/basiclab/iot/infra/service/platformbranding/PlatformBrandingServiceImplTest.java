@@ -88,7 +88,7 @@ public class PlatformBrandingServiceImplTest extends BaseDbUnitTest {
 
         PlatformBrandingDO stored = platformBrandingMapper.selectById(1L);
         assertNotNull(stored);
-        assertEquals("云边端一体化智能算法应用平台", stored.getPlatformName());
+        assertEquals("逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0", stored.getPlatformName());
         assertEquals("云边端一体算法预警监控平台", stored.getDashboardTitle());
         assertNull(stored.getPlatformLogoFileId());
         assertNull(response.getPlatformLogo());

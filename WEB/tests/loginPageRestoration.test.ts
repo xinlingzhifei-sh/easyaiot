@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolveLoginBrandingValues } from '../src/utils/loginBrandingDefaults'
 
 const currentDefaults = {
-  loginName: '逸飞 AI 智眼管控平台',
+  loginName: '逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0',
   loginBgLight: '/assets/login-yfeiEye.svg',
   loginBgDark: '/assets/login-yfeiEye.svg',
 }
@@ -35,6 +35,17 @@ function testMissingInvalidAndLegacyValuesUseRestoredDefaults() {
   )
 }
 
+function testEveryLegacyDefaultLoginNameFallsBackToCurrent() {
+  const multiLegacy = {
+    current: currentDefaults,
+    legacy: { ...legacyDefaults, loginName: ['逸飞AI智眼系统', '逸飞 AI 智眼管控平台'] },
+  }
+  for (const oldName of ['逸飞AI智眼系统', '逸飞 AI 智眼管控平台']) {
+    assert.equal(resolveLoginBrandingValues({ loginName: oldName }, multiLegacy).loginName, currentDefaults.loginName)
+  }
+  assert.equal(resolveLoginBrandingValues({ loginName: '客户自定义管控平台' }, multiLegacy).loginName, '客户自定义管控平台')
+}
+
 function testGenuineCustomValuesArePreserved() {
   const custom = {
     loginName: '客户自定义管控平台',
@@ -63,7 +74,8 @@ function testProductionWiringUsesCameraAssetAndCoverSizing() {
     storageSource,
     /import defaultLoginBg from '@\/assets\/svg\/login-yfeiEye\.svg'/,
   )
-  assert.match(storageSource, /DEFAULT_LOGIN_NAME\s*=\s*'逸飞 AI 智眼管控平台'/)
+  assert.match(storageSource, /DEFAULT_LOGIN_NAME\s*=\s*'逸飞智眼云边端一体化智能算法平台（yFeiEye）V2\.0'/)
+  assert.match(storageSource, /LEGACY_DEFAULT_LOGIN_NAMES\s*=\s*\['逸飞AI智眼系统', '逸飞 AI 智眼管控平台'\]/)
   assert.match(storageSource, /loginName:\s*DEFAULT_LOGIN_NAME/)
   assert.match(storageSource, /loginBgLight:\s*defaultLoginBg/)
   assert.match(storageSource, /loginBgDark:\s*defaultLoginBg/)
@@ -86,5 +98,6 @@ function testProductionWiringUsesCameraAssetAndCoverSizing() {
 }
 
 testMissingInvalidAndLegacyValuesUseRestoredDefaults()
+testEveryLegacyDefaultLoginNameFallsBackToCurrent()
 testGenuineCustomValuesArePreserved()
 testProductionWiringUsesCameraAssetAndCoverSizing()

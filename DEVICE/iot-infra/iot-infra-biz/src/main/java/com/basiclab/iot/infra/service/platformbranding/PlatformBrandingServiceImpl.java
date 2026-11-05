@@ -30,7 +30,7 @@ import static com.basiclab.iot.infra.service.platformbranding.PlatformBrandingFi
 public class PlatformBrandingServiceImpl implements PlatformBrandingService {
 
     private static final long GLOBAL_CONFIG_ID = 1L;
-    private static final String DEFAULT_PLATFORM_NAME = "云边端一体化智能算法应用平台";
+    private static final String DEFAULT_PLATFORM_NAME = "逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0";
     private static final String DEFAULT_DASHBOARD_TITLE = "云边端一体算法预警监控平台";
 
     @Resource

@@ -184,7 +184,7 @@ def _cover(prs, spec, assets, contact):
         _circle_label(slide, f"0{i + 1}", 9.0, 0.89 + i * 1.06, 0.45, fill=CYAN if i == 0 else MID_BLUE)
     add_badge(slide, "AI VIDEO · CLOSED LOOP", 0.7, 0.6, 2.35, fill=CYAN, color=WHITE)
     add_text(slide, spec.title, 0.7, 1.45, 7.65, 1.1, size=38, color=WHITE, bold=True)
-    add_text(slide, spec.body[0], 0.7, 2.72, 6.0, 0.52, size=23, color=CYAN, bold=True)
+    add_text(slide, spec.body[0], 0.7, 2.72, 7.65, 0.52, size=20, color=CYAN, bold=True)
     add_text(slide, spec.body[1], 0.7, 3.52, 7.15, 0.86, size=16, color=LIGHT_NAVY, line_spacing=1.12)
     add_rule(slide, 0.7, 4.65, 7.2, color=MID_BLUE)
     tags = spec.body[2].split("｜")
@@ -336,7 +336,7 @@ def _comparison(prs, spec, assets, contact):
     slide = _section_slide(prs, spec)
     x0, y0 = 0.62, 1.42
     widths = (2.25, 2.75, 2.75, 4.1)
-    headers = ("比较维度", "传统视频 / SI", "单点算法厂商", "逸飞AI智眼系统")
+    headers = ("比较维度", "传统视频 / SI", "单点算法厂商", "逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0")
     x = x0
     for index, (header, width) in enumerate(zip(headers, widths, strict=True)):
         fill = NAVY if index < 3 else CYAN
@@ -575,7 +575,7 @@ def build_presentation(output: str | Path, assets_dir: str | Path, *, contact=No
     contact_data = dict(contact or {})
     for spec in SLIDES:
         BUILDERS[spec.number](prs, spec, assets, contact_data)
-    prs.core_properties.title = "逸飞AI智眼系统｜创业大赛商业计划书 V6"
+    prs.core_properties.title = "逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0｜创业大赛商业计划书 V6"
     prs.core_properties.subject = "AI视频监管闭环平台"
     prs.core_properties.author = COMPANY["name"]
     prs.core_properties.comments = "数字与表述由 tools/bp_v6/content.py 统一约束。"

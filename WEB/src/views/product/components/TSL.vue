@@ -4,7 +4,7 @@ import { Button } from '@/components/Button'
     <Typography>
       <TypographyParagraph>
         <blockquote>
-          物模型是对设备在云端的功能描述，包括设备的属性、服务和事件。逸飞AI智眼系统通过定义一种物的描述语言来描述物模型，称之为
+          物模型是对设备在云端的功能描述，包括设备的属性、服务和事件。逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0通过定义一种物的描述语言来描述物模型，称之为
           TSL（即 Thing Specification Language），采用 JSON 格式，您可以根据 TSL
           组装上报设备的数据。您可以导出完整物模型，用于云端应用开发；您也可以只导出
           精简物模型，配合设备端 SDK 实现设备开发。

@@ -1,4 +1,4 @@
-# yFeiEye（云边端一体化智能算法应用平台）
+# 逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0
 
 [![Gitee star](https://gitee.com/volara/easyaiot/badge/star.svg?theme=gvp)](https://gitee.com/reese/easyaiot/stargazers)
 [![Gitee fork](https://gitee.com/volara/easyaiot/badge/fork.svg?theme=gvp)](https://gitee.com/reese/easyaiot/members)
@@ -34,7 +34,7 @@ yFeiEye 官方网站：[http://36.111.47.113:8090/](http://36.111.47.113:8090/)
 ## 📖 项目介绍
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>yFeiEye</strong>是一款<strong>云边端一体化的智能算法应用平台</strong>，专注于将人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
+<strong>逸飞智眼（yFeiEye）V2.0</strong>是一款<strong>云边端一体化的智能算法平台</strong>，专注于将人工智能与物联网深度融合，让摄像头、传感器与边缘算力在现场即可协同运转——从设备接入、数据采集，到实时视觉分析、智能研判与告警联动，全链路在一套软件中贯通完成。
 </p>
 
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">

@@ -6,9 +6,10 @@ import { resolveLoginBrandingValues } from '@/utils/loginBrandingDefaults'
 
 const PLATFORM_BRANDING_STORAGE_KEY = 'PLATFORM_BRANDING_CONFIG'
 export const PLATFORM_BRANDING_FAB_HIDDEN_KEY = 'PLATFORM_BRANDING_FAB_HIDDEN'
-export const DEFAULT_LOGIN_NAME = '逸飞 AI 智眼管控平台'
+export const DEFAULT_LOGIN_NAME = '逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0'
 export const DEFAULT_DASHBOARD_TITLE = '逸飞AI智眼监控平台'
-const LEGACY_DEFAULT_LOGIN_NAME = '逸飞AI智眼系统'
+/** 历代默认登录名称；浏览器中存有这些旧默认值时回落到当前默认值，自定义名称不受影响 */
+const LEGACY_DEFAULT_LOGIN_NAMES = ['逸飞AI智眼系统', '逸飞 AI 智眼管控平台'] as const
 const LEGACY_DEFAULT_DASHBOARD_TITLE = '云边端一体' + '算法预警监控平台'
 
 export interface PlatformBrandingConfig {
@@ -39,7 +40,7 @@ export interface PlatformBrandingConfig {
 }
 
 export function getDefaultPlatformBranding(): PlatformBrandingConfig {
-  const envTitle = import.meta.env.VITE_GLOB_APP_TITLE || '云边端一体化智能算法应用平台'
+  const envTitle = import.meta.env.VITE_GLOB_APP_TITLE || '逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0'
   return {
     platformName: envTitle,
     platformLogo: defaultLogo,
@@ -70,7 +71,7 @@ export function loadPlatformBrandingConfig(): PlatformBrandingConfig {
       loginBgDark: defaults.loginBgDark,
     },
     legacy: {
-      loginName: LEGACY_DEFAULT_LOGIN_NAME,
+      loginName: LEGACY_DEFAULT_LOGIN_NAMES,
       loginBgLight: legacyDefaultLightBg,
       loginBgDark: legacyDefaultDarkBg,
     },

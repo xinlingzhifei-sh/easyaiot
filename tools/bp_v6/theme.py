@@ -193,7 +193,7 @@ def add_rule(slide, x, y, w, *, color=LINE, width=1.0):
 def add_footer(slide, page: int):
     add_text(
         slide,
-        "逸飞AI智眼系统｜创业大赛 BP V6",
+        "逸飞智眼云边端一体化智能算法平台（yFeiEye）V2.0｜创业大赛 BP V6",
         0.55,
         7.13,
         5.7,
