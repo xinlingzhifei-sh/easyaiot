@@ -410,3 +410,5 @@ HARMONYOS/entry/src/main/resources/rawfile/www/
 /TWIN/
 # ensure_external_module_checkout 拉取过程中的临时目录
 /*.fetch.*/
+# 本地运维/清理操作记录（含服务器地址与运维脚本，勿提交）
+/.deploy/
