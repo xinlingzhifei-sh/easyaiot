@@ -137,11 +137,13 @@ public final class ReviewVideoExportPlanner {
                     if (!clipEndTime.isAfter(clipStartTime)) {
                         continue;
                     }
+                    LocalDateTime physicalStart = physicalTime(coverageSegment, "segmentStartTime", coverageSegment.startTime());
+                    LocalDateTime physicalEnd = physicalTime(coverageSegment, "segmentEndTime", coverageSegment.endTime());
                     String requestKey = entry.getKey()
                             + "|" + context.item().id()
                             + "|" + normalizedRecordUri
-                            + "|" + coverageSegment.startTime()
-                            + "|" + coverageSegment.endTime()
+                            + "|" + physicalStart
+                            + "|" + physicalEnd
                             + "|" + clipStartTime
                             + "|" + clipEndTime;
                     if (!requestedSegments.add(requestKey)) {
@@ -151,8 +153,8 @@ public final class ReviewVideoExportPlanner {
                             context.item().id(),
                             context.timelineItem().sourceAlertId(),
                             normalizedRecordUri,
-                            coverageSegment.startTime(),
-                            coverageSegment.endTime(),
+                            physicalStart,
+                            physicalEnd,
                             clipStartTime,
                             clipEndTime,
                             segmentRequests.size()
@@ -259,6 +261,11 @@ public final class ReviewVideoExportPlanner {
             throw new IllegalStateException("VIDEO export did not complete every requested camera timeline");
         }
         return List.copyOf(results);
+    }
+
+    private static LocalDateTime physicalTime(RecordCoverageSegment segment, String key, LocalDateTime fallback) {
+        Object value = segment.metadata().get(key);
+        return value instanceof String time ? LocalDateTime.parse(time) : fallback;
     }
 
     private record VideoExportSegmentContext(ReviewItemAggregate item,

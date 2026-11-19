@@ -43,13 +43,14 @@ Object.defineProperty(HTMLMediaElement.prototype, 'load', {
 
 if (e2eMode === 'dev-api-real-drawer') {
   const NativeImage = window.Image
-  const loadedImageSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"%3E%3Crect width="320" height="180" fill="%23f6f7f9"/%3E%3C/svg%3E'
   window.Image = class AlertReviewE2EImage extends NativeImage {
     private originalSrc = ''
 
     set src(value: string) {
       this.originalSrc = value
-      super.src = loadedImageSrc
+      super.src = new URL(value, window.location.href).pathname.includes('/snapshot-image/')
+        ? '/scripts/fixtures/alert-review-workbench-e2e/region-snapshot.svg'
+        : value
     }
 
     get src() {
@@ -130,11 +131,6 @@ function clickButtonByText(label: string) {
 function hasButtonByText(label: string) {
   return Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
     .some(candidate => candidate.textContent?.trim() === label)
-}
-
-function buttonByText(label: string) {
-  return Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
-    .find(candidate => candidate.textContent?.trim() === label)
 }
 
 function setInputValue(selector: string, value: string) {
@@ -303,22 +299,6 @@ async function runE2E() {
       return () => h('section', { 'data-testid': 'alert-review-drawer-stub' }, slots.default?.())
     },
   }))
-  app.component('AInputNumber', defineComponent({
-    name: 'AInputNumber',
-    inheritAttrs: false,
-    props: { value: Number },
-    emits: ['update:value'],
-    setup(props, { attrs, emit }) {
-      return () => h('label', attrs, [
-        h('input', {
-          type: 'number',
-          value: props.value,
-          onInput: (event: Event) => emit('update:value', Number((event.target as HTMLInputElement).value)),
-        }),
-      ])
-    },
-  }))
-
   app.mount('#app')
 
   await waitFor(() => !!document.querySelector('[data-testid="alert-review-workbench"]'), 'workbench root')
@@ -484,7 +464,12 @@ async function runE2E() {
 
   click('[data-testid="alert-review-open-rule-drawer"]')
   if (e2eMode === 'dev-api-real-drawer') {
-    await waitFor(() => text().includes('检测区域 (1)'), 'real DeviceRegionDrawer region list')
+    await waitFor(() => document.querySelector('.region-editor__aside-head-main sup')?.textContent === '1'
+      && document.querySelectorAll('.region-item').length === 1
+      && document.querySelector('.region-item__name')?.textContent === 'gate-zone', 'real DeviceRegionDrawer region list')
+    const snapshot = apiCall('getDeviceRegionsSnapshot')?.payload as { deviceId: string; taskId: number }
+    if (snapshot?.deviceId !== 'cam-east-gate' || snapshot.taskId !== 701)
+      throw new Error('Region snapshot used the wrong device or task')
     requiredElement<HTMLElement>('.region-item').click()
     await waitFor(() => !!document.querySelector('[data-testid="device-region-inertia-frames"] input'), 'region inertia frames input')
     await waitFor(() => !!document.querySelector('[data-testid="device-region-loitering-seconds"] input'), 'region loitering seconds input')
@@ -492,27 +477,26 @@ async function runE2E() {
     const loiteringInput = requiredElement<HTMLInputElement>('[data-testid="device-region-loitering-seconds"] input')
     if (inertiaInput.value !== '1' || loiteringInput.value !== '5')
       throw new Error(`region drawer expected initial rule 1/5, got ${inertiaInput.value}/${loiteringInput.value}`)
-    setInputValue('[data-testid="device-region-inertia-frames"] input', '3')
-    setInputValue('[data-testid="device-region-loitering-seconds"] input', '20')
-    clickButtonByText('抓拍图片')
-    await waitFor(() => (window.__alertReviewE2EApiCalls || []).some(call => call.name === 'captureDeviceSnapshot'), 'real DeviceRegionDrawer capture snapshot')
+    clickButtonByText('刷新抓图')
+    await waitFor(() => apiCall('captureDeviceSnapshot')?.payload === 'cam-east-gate', 'real DeviceRegionDrawer capture snapshot')
     await waitFor(
-      () => (window.__alertReviewE2EApiCalls || []).some(call => call.name === 'loadProtectedSnapshotObjectUrl'),
+      () => apiCall('loadProtectedSnapshotObjectUrl')?.payload === '/video/camera/cam-east-gate/snapshot-image/tenants/1/cameras/cam-east-gate/region-snapshot.jpg',
       'real DeviceRegionDrawer protected snapshot load',
     )
-    await waitFor(() => {
-      const saveButton = buttonByText('保存区域')
-      return !!saveButton && !saveButton.disabled
-    }, 'real DeviceRegionDrawer save button')
-    buttonByText('保存区域')?.click()
-    await waitFor(() => (window.__alertReviewE2EApiCalls || []).some(call => call.name === 'updateDeviceRegion'), 'real DeviceRegionDrawer writes device region')
-    const updateCall = apiCall('updateDeviceRegion')
-    const updateData = (updateCall?.payload as { data?: Record<string, unknown> } | undefined)?.data
-    if (updateData?.inertiaFrames !== 3 || updateData?.loiteringSeconds !== 20) {
-      throw new Error(
-        `region update expected inertiaFrames/loiteringSeconds 3/20, got ${String(updateData?.inertiaFrames)}/${String(updateData?.loiteringSeconds)}`,
-      )
+    setInputValue('[data-testid="device-region-inertia-frames"] input', '3')
+    setInputValue('[data-testid="device-region-loitering-seconds"] input', '20')
+    await waitFor(() => !!apiCall('replaceDeviceRegions'), 'real DeviceRegionDrawer autosaves regions')
+    const saved = apiCall('replaceDeviceRegions')?.payload as {
+      deviceId: string
+      taskId: number
+      expectedRevision: number
+      regions: Array<{ id: number; inertiaFrames: number; loiteringSeconds: number }>
     }
+    if (saved.deviceId !== 'cam-east-gate' || saved.taskId !== 701 || saved.expectedRevision !== 8)
+      throw new Error(`Unexpected region save scope or revision: ${JSON.stringify(saved)}`)
+    const region = saved.regions[0]
+    if (saved.regions.length !== 1 || region.id !== 801 || region.inertiaFrames !== 3 || region.loiteringSeconds !== 20)
+      throw new Error(`Unexpected saved region: ${JSON.stringify(saved.regions)}`)
   }
   else {
     await waitFor(() => !!document.querySelector('[data-testid="alert-review-region-drawer-stub"]'), 'region drawer')

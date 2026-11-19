@@ -85,7 +85,7 @@ const transform: AxiosTransform = {
           msg: data.msg,
           total: total
         };
-      } else if ((isNull(data.data) || isUnDef(data.data) || isEmpty(data.data))) {
+      } else if (!options.preserveEmptyData && (isNull(data.data) || isUnDef(data.data) || isEmpty(data.data))) {
         return data;
       } else {
         return data.data;

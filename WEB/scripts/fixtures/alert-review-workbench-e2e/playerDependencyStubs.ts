@@ -45,6 +45,9 @@ export const AI_STREAM_HEART_TIMEOUT_SEC = 8
 export function isAiStreamPlayUrl() {
   return false
 }
+export function isGb28181LivePlaceholderStreamUrl() {
+  return false
+}
 export function normalizeJessibucaPlayUrl(url: string) {
   return url
 }

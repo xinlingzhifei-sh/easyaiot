@@ -52,6 +52,7 @@ const reviewItem = {
   inReviewCase: false,
   ruleSuggestionStatus: 'pending',
   reviewData: {
+    taskId: 701,
     correlationId: 'corr-east-gate-001',
     labels: ['person'],
     zones: ['gate-zone'],
@@ -610,6 +611,11 @@ export async function summarizeAlertReviewCase(reviewCaseId: number, operatorUse
 export async function createAlertReviewEvidenceExportJob(reviewCaseId: number, payload?: unknown) {
   record('createAlertReviewEvidenceExportJob', { reviewCaseId, payload })
   return evidenceExportJob
+}
+
+export async function downloadAlertReviewEvidence(jobNo: string) {
+  record('downloadAlertReviewEvidence', { jobNo })
+  return { file: new Blob(['\x00\x00\x00\x18ftypisom'], { type: 'video/mp4' }), extension: 'mp4' }
 }
 
 export async function verifyAlertReviewEvidencePackage(jobNo: string, operatorUserId?: number) {

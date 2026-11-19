@@ -21,7 +21,7 @@
         </TabPane>
         <TabPane key="2" tab="告警事件">
           <!-- 表格模式 -->
-          <BasicTable v-if="viewMode === 'table'" @register="registerTable">
+          <BasicTable v-if="viewMode === 'table'" ref="eventTable" @register="registerTable">
             <template #toolbar>
               <AlertListToolbar
                 @toggle-view="handleToggleViewMode"
@@ -134,6 +134,7 @@ import { openDeviceInDialogPlayer } from '@/views/camera/utils/devicePlay';
 import { playAlertRecordInModal } from '@/utils/alertRecordPlayback';
 import { hasAlertFaceMatch, hasAlertPlateMatch, isSnapAlertTask, isLlmSampled } from '@/views/alert/alertDisplay';
 import { ingestAlertReviewClue } from '@/api/supervision/alertReview';
+import { alertTimeMillis } from './alertDisplay';
 import { isDeployCapabilityEnabled } from '@/utils/deployProfile';
 
 const router = useRouter();
@@ -163,6 +164,7 @@ const state = reactive<{ activeKey: string }>({
 });
 
 const params = ref<Record<string, any>>({});
+const eventTable = ref<InstanceType<typeof BasicTable>>();
 const alertMapViewRef = ref<InstanceType<typeof AlertMapView>>();
 const alertReviewWorkbenchRef = ref<InstanceType<typeof AlertReviewWorkbench>>();
 
@@ -222,7 +224,7 @@ watch(
   },
 );
 
-const refreshData = () => {
+const refreshData = async () => {
   const route = router.currentRoute.value;
   const rawTab = route.query.tab ?? (route.query.view === 'map' ? ALERT_TAB_KEYS.MAP : undefined);
   const tab = rawTab
@@ -238,20 +240,14 @@ const refreshData = () => {
     return;
   }
   state.activeKey = ALERT_TAB_KEYS.EVENTS;
-  if (route.query.task_name) {
+  if (route.query.task_name)
     params.value = { task_name: route.query.task_name };
-    setTimeout(() => {
-      const form = getForm();
-      if (form) {
-        form.setFieldsValue({ task_name: route.query.task_name });
-      }
-      reload();
-      cardListReload();
-    }, 100);
-  } else {
-    reload();
-    cardListReload();
+  await nextTick();
+  if (state.activeKey !== ALERT_TAB_KEYS.EVENTS) return;
+  if (eventTable.value && route.query.task_name) {
+    await getForm()?.setFieldsValue({ task_name: route.query.task_name });
   }
+  refreshVisibleAlerts();
 };
 
 onMounted(() => {
@@ -268,10 +264,13 @@ function getMethod(m: any) {
 
 function handleToggleViewMode() {
   viewMode.value = viewMode.value === 'card' ? 'table' : 'card';
-  if (viewMode.value === 'table') {
-    reload();
-  } else {
+}
+
+function refreshVisibleAlerts() {
+  if (viewMode.value === 'card') {
     cardListReload();
+  } else if (eventTable.value) {
+    void reload();
   }
 }
 
@@ -284,9 +283,9 @@ function handleCardViewVideo(record) {
 }
 
 async function handleCreateReviewClue(record: Record<string, any>) {
-  const alertTime = normalizeAlertTime(record['time']);
+  const alertTime = alertTimeMillis(record['time']);
   const sourceAlertId = String(record['id'] ?? record['alert_id'] ?? `${record['device_id'] || 'alert'}-${record['time'] || Date.now()}`);
-  if (!alertTime) {
+  if (alertTime === undefined) {
     createMessage.warn('缺少告警时间，无法加入线索复核');
     return;
   }
@@ -310,11 +309,6 @@ async function handleCreateReviewClue(record: Record<string, any>) {
   } catch (error: any) {
     createMessage.error(error?.message || '加入线索复核失败');
   }
-}
-
-function normalizeAlertTime(value: unknown): string {
-  if (!value) return '';
-  return String(value).trim().replace(' ', 'T');
 }
 
 function mapAlertEventToReviewRule(event: unknown): string {
@@ -528,8 +522,7 @@ const handleClearAllAlerts = () => {
       try {
         await clearAllAlerts();
         createMessage.success('清空告警成功');
-        reload();
-        cardListReload();
+        refreshVisibleAlerts();
         alertMapViewRef.value?.refresh?.();
       } catch (error: any) {
         const errorMsg =

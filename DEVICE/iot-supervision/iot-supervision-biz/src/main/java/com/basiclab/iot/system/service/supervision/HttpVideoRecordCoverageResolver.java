@@ -36,6 +36,9 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
     private final VideoMediaServiceRequestSigner mediaRequestSigner;
 
     @Autowired
+    private VideoMediaTimeZone mediaTime = new VideoMediaTimeZone("");
+
+    @Autowired
     public HttpVideoRecordCoverageResolver(RestTemplate restTemplate,
                                            @Value("${yfeieye.video.record-coverage-query-url:}") String recordCoverageQueryUrl,
                                            @Value("${yfeieye.video.record-base-url:}") String recordBaseUrl,
@@ -72,13 +75,13 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         String url = UriComponentsBuilder.fromHttpUrl(recordCoverageQueryUrl)
                 .queryParam("device_id", deviceId)
                 .queryParam("camera_id", request.cameraId())
-                .queryParam("date", request.beginTime().toLocalDate().toString())
-                .queryParam("alert_time", alertTime.format(QUERY_TIME_FORMATTER))
+                .queryParam("date", mediaTime.toVideo(request.beginTime()).toLocalDate().toString())
+                .queryParam("alert_time", mediaTime.toVideo(alertTime).format(QUERY_TIME_FORMATTER))
                 .queryParam("time_range", timeRangeSeconds)
-                .queryParam("begin_time", request.beginTime().format(QUERY_TIME_FORMATTER))
-                .queryParam("end_time", request.endTime().format(QUERY_TIME_FORMATTER))
-                .queryParam("after", request.beginTime().format(QUERY_TIME_FORMATTER))
-                .queryParam("before", request.endTime().format(QUERY_TIME_FORMATTER))
+                .queryParam("begin_time", mediaTime.toVideo(request.beginTime()).format(QUERY_TIME_FORMATTER))
+                .queryParam("end_time", mediaTime.toVideo(request.endTime()).format(QUERY_TIME_FORMATTER))
+                .queryParam("after", mediaTime.toVideo(request.beginTime()).format(QUERY_TIME_FORMATTER))
+                .queryParam("before", mediaTime.toVideo(request.endTime()).format(QUERY_TIME_FORMATTER))
                 .build()
                 .encode()
                 .toUriString();
@@ -86,17 +89,17 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         Map<?, ?> data = responseData(response);
         Object rows = firstPresent(data, "segments", "records", "items", "recordings");
         if (rows instanceof List<?> list) {
-            return withRecordBaseFallback(toSegments(list, parseDate(data.get("date"), request.beginTime().toLocalDate())),
+            return withRecordBaseFallback(toSegments(list, parseDate(data.get("date"), mediaTime.toVideo(request.beginTime()).toLocalDate())),
                     request,
                     deviceId);
         }
         Object timelineRows = firstPresent(data, "timeline_merged", "timelineMerged", "timeline");
         if (timelineRows instanceof List<?> list) {
-            return withRecordBaseFallback(toSegments(list, parseDate(data.get("date"), request.beginTime().toLocalDate())),
+            return withRecordBaseFallback(toSegments(list, parseDate(data.get("date"), mediaTime.toVideo(request.beginTime()).toLocalDate())),
                     request,
                     deviceId);
         }
-        List<RecordCoverageSegment> segments = toSegment(data, request.beginTime().toLocalDate())
+        List<RecordCoverageSegment> segments = toSegment(data, mediaTime.toVideo(request.beginTime()).toLocalDate())
                 .map(List::of)
                 .orElse(List.of());
         return withRecordBaseFallback(segments, request, deviceId);
@@ -123,7 +126,7 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         }
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .pathSegment("space", String.valueOf(spaceId), "videos", "day")
-                .queryParam("date", request.beginTime().toLocalDate().toString())
+                .queryParam("date", mediaTime.toVideo(request.beginTime()).toLocalDate().toString())
                 .queryParam("device_id", deviceId)
                 .build()
                 .toUriString();
@@ -131,11 +134,11 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         Map<?, ?> data = responseData(response);
         Object rows = firstPresent(data, "segments", "records", "items", "recordings");
         if (rows instanceof List<?> list) {
-            return toSegments(list, parseDate(data.get("date"), request.beginTime().toLocalDate()));
+            return toSegments(list, parseDate(data.get("date"), mediaTime.toVideo(request.beginTime()).toLocalDate()));
         }
         Object timelineRows = firstPresent(data, "timeline_merged", "timelineMerged", "timeline");
         if (timelineRows instanceof List<?> list) {
-            return toSegments(list, parseDate(data.get("date"), request.beginTime().toLocalDate()));
+            return toSegments(list, parseDate(data.get("date"), mediaTime.toVideo(request.beginTime()).toLocalDate()));
         }
         return List.of();
     }
@@ -203,6 +206,12 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         copyIfPresent(metadata, "motionHeatmap", firstPresent(map, "motion_heatmap", "motionHeatmap"));
         copyIfPresent(metadata, "source", firstPresent(map, "source", "message"));
         copyIfPresent(metadata, "segmentIds", segmentIds(map));
+        LocalDateTime physicalStart = parseTime(firstPresent(map, "segment_start_time", "segmentStartTime"));
+        LocalDateTime physicalEnd = parseTime(firstPresent(map, "segment_end_time", "segmentEndTime"));
+        if (physicalStart != null && physicalEnd != null && !physicalStart.isAfter(startTime) && !physicalEnd.isBefore(endTime)) {
+            metadata.put("segmentStartTime", physicalStart.toString());
+            metadata.put("segmentEndTime", physicalEnd.toString());
+        }
         String retainMode = toText(firstPresent(map, "retain_mode", "retainMode"));
         copyIfPresent(metadata, "retainMode", retainMode);
         copyIfPresent(metadata, "exportable", parseOptionalBoolean(firstPresent(map, "exportable", "can_export", "canExport")));
@@ -358,7 +367,7 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
         return segmentId == null ? null : List.of(segmentId);
     }
 
-    private static LocalDateTime parseTime(Object value) {
+    private LocalDateTime parseTime(Object value) {
         if (value == null) {
             return null;
         }
@@ -369,24 +378,15 @@ public class HttpVideoRecordCoverageResolver implements RecordCoverageResolver {
             }
             return LocalDateTime.ofInstant(Instant.ofEpochSecond(epoch), ZoneId.systemDefault());
         }
-        String text = String.valueOf(value);
-        try {
-            return LocalDateTime.parse(text);
-        } catch (DateTimeParseException ignored) {
-            try {
-                return LocalDateTime.parse(text, QUERY_TIME_FORMATTER);
-            } catch (DateTimeParseException ignoredAgain) {
-                return null;
-            }
-        }
+        return mediaTime.parseVideo(String.valueOf(value));
     }
 
-    private static LocalDateTime parseOffsetTime(LocalDate date, Object value) {
+    private LocalDateTime parseOffsetTime(LocalDate date, Object value) {
         Integer offsetSeconds = parseInteger(value);
         if (date == null || offsetSeconds == null) {
             return null;
         }
-        return date.atStartOfDay().plusSeconds(offsetSeconds);
+        return mediaTime.fromVideo(date.atStartOfDay().plusSeconds(offsetSeconds));
     }
 
     private static LocalDate parseDate(Object value, LocalDate fallback) {

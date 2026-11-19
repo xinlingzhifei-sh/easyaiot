@@ -1871,14 +1871,14 @@ def download_model_file(model_id: int, model_path: str) -> Optional[str]:
         return None
 
 
-def load_yolo_models(model_ids: List[int]):
+def load_yolo_models(model_ids: List[int]) -> Dict[int, Any]:
     """加载YOLO模型列表
 
     Args:
         model_ids: 模型ID列表（正数表示数据库模型，负数表示默认模型）
 
     Returns:
-        Tuple[Dict, Dict, Dict]: 模型、推理设备和模型元数据
+        成功加载的模型，按模型 ID 索引。
     """
     global yolo_model_devices, yolo_model_allowed_classes, yolo_model_meta
     yolo_model_devices.clear()
@@ -1888,8 +1888,6 @@ def load_yolo_models(model_ids: List[int]):
         from ultralytics import YOLO
 
         models = {}
-        model_devices = {}
-        model_meta = {}
 
         for model_id in model_ids:
             try:
@@ -2048,7 +2046,7 @@ def load_yolo_models(model_ids: List[int]):
                         isinstance(getattr(inner, 'yaml', None), dict)
                         and inner.yaml.get('end2end')
                     )
-                    model_meta[model_id] = {
+                    yolo_model_meta[model_id] = {
                         'yolo26': yolo26,
                         'end2end': end2end,
                         'path': model_path_str,
@@ -2081,11 +2079,11 @@ def load_yolo_models(model_ids: List[int]):
                 logger.error(f"❌ 加载YOLO模型失败: model_id={model_id}, error={str(e)}", exc_info=True)
                 continue
 
-        return models, model_devices, model_meta
+        return models
 
     except Exception as e:
         logger.error(f"加载YOLO模型列表失败: {str(e)}", exc_info=True)
-        return {}, {}, {}
+        return {}
 
 
 def _reuse_loaded_yolo_models(model_ids: List[int]) -> Optional[Dict[int, Any]]:
@@ -3376,9 +3374,11 @@ def _check_srs_api_ready(host: str, api_port: int, timeout: float = 3.0) -> bool
 
 
 def _normalize_srs_api_host(host: str) -> str:
-    """本机推流时 SRS HTTP API 统一走 loopback（与 stream_forward_service 一致）。"""
+    """解析流地址中的 SRS 别名，兼容独立容器与本机部署。"""
     host = (host or '').strip()
-    if host in ('srs-server', 'srs', 'SRS', 'localhost', '127.0.0.1'):
+    if host.lower() in ('srs-server', 'srs'):
+        return os.getenv('SRS_HOST', '').strip() or '127.0.0.1'
+    if host in ('localhost', '127.0.0.1'):
         return '127.0.0.1'
     if os.getenv('POD_IP', '').strip():
         return '127.0.0.1'

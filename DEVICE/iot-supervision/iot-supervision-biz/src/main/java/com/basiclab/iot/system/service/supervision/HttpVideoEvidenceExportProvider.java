@@ -27,8 +27,6 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,6 +46,9 @@ public class HttpVideoEvidenceExportProvider implements VideoEvidenceExportProvi
     private final String recordExportUrl;
     private final String publicPlayHost;
     private final VideoMediaServiceRequestSigner mediaRequestSigner;
+
+    @Autowired
+    private VideoMediaTimeZone mediaTime = new VideoMediaTimeZone("");
     private final long downloadMaxBytes;
 
     @Value("${yfeieye.video.record-export-poll-max-attempts:300}")
@@ -389,7 +390,7 @@ public class HttpVideoEvidenceExportProvider implements VideoEvidenceExportProvi
         );
     }
 
-    private static void reconcileRecordSegments(ReviewEvidenceVideoExportRequest request,
+    private void reconcileRecordSegments(ReviewEvidenceVideoExportRequest request,
                                                 List<Map<String, Object>> returnedSegments) {
         List<?> requestedSegments = request == null ? List.of() : request.recordSegments();
         if (requestedSegments.size() != returnedSegments.size()) {
@@ -498,19 +499,15 @@ public class HttpVideoEvidenceExportProvider implements VideoEvidenceExportProvi
         }
     }
 
-    private static LocalDateTime parseClipTime(String value) {
+    private LocalDateTime parseClipTime(String value) {
         if (!hasText(value)) {
             return null;
         }
-        try {
-            return LocalDateTime.parse(value);
-        } catch (DateTimeParseException ignored) {
-            try {
-                return OffsetDateTime.parse(value).toLocalDateTime();
-            } catch (DateTimeParseException invalid) {
-                throw new IllegalStateException("ready VIDEO export returned an invalid clip timestamp", invalid);
-            }
+        LocalDateTime time = mediaTime.parseVideo(value);
+        if (time == null) {
+            throw new IllegalStateException("ready VIDEO export returned an invalid clip timestamp");
         }
+        return time;
     }
 
     private static List<Map<String, Object>> recordSegments(Map<?, ?> data) {
@@ -637,18 +634,18 @@ public class HttpVideoEvidenceExportProvider implements VideoEvidenceExportProvi
         return hasText(basePath) && candidatePath.startsWith(basePath + "/");
     }
 
-    private static Map<String, Object> requestBody(ReviewEvidenceVideoExportRequest request) {
+    private Map<String, Object> requestBody(ReviewEvidenceVideoExportRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("review_case_id", request.reviewCaseId());
         body.put("review_item_id", request.reviewItemId());
         body.put("device_id", request.deviceId());
         body.put("camera_id", request.cameraId());
         body.put("source_alert_id", request.sourceAlertId());
-        body.put("start_time", request.startTime() == null ? null : request.startTime().toString());
-        body.put("end_time", request.endTime() == null ? null : request.endTime().toString());
+        body.put("start_time", mediaTime.formatVideo(request.startTime()));
+        body.put("end_time", mediaTime.formatVideo(request.endTime()));
         body.put("record_uri", request.recordUri());
         body.put("format", request.format());
-        body.put("expires_at", request.expiresAt() == null ? null : request.expiresAt().toString());
+        body.put("expires_at", mediaTime.formatVideo(request.expiresAt()));
         if (!request.recordSegments().isEmpty()) {
             List<Long> reviewItemIds = request.recordSegments().stream()
                     .map(ReviewEvidenceVideoSegmentRequest::reviewItemId)
@@ -664,18 +661,10 @@ public class HttpVideoEvidenceExportProvider implements VideoEvidenceExportProvi
                         value.put("review_item_id", segment.reviewItemId());
                         value.put("source_alert_id", segment.sourceAlertId());
                         value.put("record_uri", segment.recordUri());
-                        value.put("segment_start_time", segment.segmentStartTime() == null
-                                ? null
-                                : segment.segmentStartTime().toString());
-                        value.put("segment_end_time", segment.segmentEndTime() == null
-                                ? null
-                                : segment.segmentEndTime().toString());
-                        value.put("clip_start_time", segment.clipStartTime() == null
-                                ? null
-                                : segment.clipStartTime().toString());
-                        value.put("clip_end_time", segment.clipEndTime() == null
-                                ? null
-                                : segment.clipEndTime().toString());
+                        value.put("segment_start_time", mediaTime.formatVideo(segment.segmentStartTime()));
+                        value.put("segment_end_time", mediaTime.formatVideo(segment.segmentEndTime()));
+                        value.put("clip_start_time", mediaTime.formatVideo(segment.clipStartTime()));
+                        value.put("clip_end_time", mediaTime.formatVideo(segment.clipEndTime()));
                         value.put("stitch_order", segment.stitchOrder());
                         value.entrySet().removeIf(entry -> entry.getValue() == null);
                         return value;

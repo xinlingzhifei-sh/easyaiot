@@ -1,5 +1,7 @@
 import { defHttp } from '@/utils/http/axios'
 
+const reviewResult = { preserveEmptyData: true }
+
 const Api = {
   Items: '/system/supervision/alert-review/items',
   Ingest: '/system/supervision/alert-review/clues/ingest',
@@ -109,7 +111,7 @@ export interface AlertReviewClueIngest {
   sourceAlertId: string
   ruleCode?: string
   sourceAlertType?: string
-  alertTime: string
+  alertTime: number
   deviceId?: string
   cameraId?: string
   zoneCode?: string
@@ -702,7 +704,7 @@ export interface AlertReviewIntegrationSmokeResult {
 }
 
 export function listAlertReviewItems(params?: AlertReviewQuery) {
-  return defHttp.get<AlertReviewItem[]>({ url: Api.Items, params })
+  return defHttp.get<AlertReviewItem[]>({ url: Api.Items, params }, reviewResult)
 }
 
 export function getAlertReviewSummary(params?: Pick<AlertReviewQuery, 'reviewerUserId' | 'beginTime' | 'endTime'>) {
@@ -714,11 +716,11 @@ export function ingestAlertReviewClue(data: AlertReviewClueIngest) {
 }
 
 export function getAlertReviewTimeline(reviewItemId: number, params?: AlertReviewMediaReadQuery) {
-  return defHttp.get<AlertReviewEvidence[]>({ url: `${Api.Items}/${reviewItemId}/timeline`, params: params ?? {} })
+  return defHttp.get<AlertReviewEvidence[]>({ url: `${Api.Items}/${reviewItemId}/timeline`, params: params ?? {} }, reviewResult)
 }
 
 export function getAlertReviewDetailStream(reviewItemId: number, params?: AlertReviewMediaReadQuery) {
-  return defHttp.get<AlertReviewDetailStreamItem[]>({ url: `${Api.Items}/${reviewItemId}/detail-stream`, params: params ?? {} })
+  return defHttp.get<AlertReviewDetailStreamItem[]>({ url: `${Api.Items}/${reviewItemId}/detail-stream`, params: params ?? {} }, reviewResult)
 }
 
 export function getAlertReviewSegment(reviewItemId: number) {
@@ -726,7 +728,7 @@ export function getAlertReviewSegment(reviewItemId: number) {
 }
 
 export function getAlertReviewRecordCoverage(reviewItemId: number, params?: AlertReviewMediaReadQuery) {
-  return defHttp.get<AlertReviewCoverageSegment[]>({ url: `${Api.Items}/${reviewItemId}/record-coverage`, params: params ?? {} })
+  return defHttp.get<AlertReviewCoverageSegment[]>({ url: `${Api.Items}/${reviewItemId}/record-coverage`, params: params ?? {} }, reviewResult)
 }
 
 export function updateAlertReviewLifecycle(reviewItemId: number, data: AlertReviewLifecycleUpdate) {
@@ -780,14 +782,14 @@ export function listAlertReviewRuleSuggestionStats(
   return defHttp.get<AlertReviewRuleSuggestionStat[]>({
     url: '/system/supervision/alert-review/rule-suggestions/stats',
     params,
-  })
+  }, reviewResult)
 }
 
 export function semanticSearchAlertReview(params: AlertReviewQuery & { q: string; limit?: number }) {
   return defHttp.get<AlertReviewSemanticHit[]>({
     url: '/system/supervision/alert-review/semantic-search',
     params,
-  })
+  }, reviewResult)
 }
 
 export function evaluateAlertReviewSemanticTrigger(data: AlertReviewSemanticTriggerEvaluation) {
@@ -817,7 +819,7 @@ export function reindexAlertReviewSemanticIndex(params?: AlertReviewQuery) {
   return defHttp.post<AlertReviewSemanticIndexEntry[]>({
     url: '/system/supervision/alert-review/semantic-index/reindex',
     params,
-  })
+  }, reviewResult)
 }
 
 export function queueAlertReviewSemanticReindex(params?: AlertReviewQuery & { operatorUserId?: number }) {
@@ -878,7 +880,7 @@ export function createAlertReviewCase(data: AlertReviewCaseCreate) {
 }
 
 export function getAlertReviewItemCase(reviewItemId: number) {
-  return defHttp.get<AlertReviewCase | null>({ url: `${Api.Items}/${reviewItemId}/case` })
+  return defHttp.get<AlertReviewCase | null>({ url: `${Api.Items}/${reviewItemId}/case` }, reviewResult)
 }
 
 export function addAlertReviewItemToCase(reviewCaseId: number, reviewItemId: number) {
@@ -902,7 +904,7 @@ export function splitAlertReviewCase(sourceReviewCaseId: number, data: AlertRevi
 }
 
 export function getAlertReviewCaseTimeline(reviewCaseId: number) {
-  return defHttp.get<AlertReviewCaseTimelineItem[]>({ url: `${Api.Cases}/${reviewCaseId}/timeline` })
+  return defHttp.get<AlertReviewCaseTimelineItem[]>({ url: `${Api.Cases}/${reviewCaseId}/timeline` }, reviewResult)
 }
 
 export function summarizeAlertReviewCase(reviewCaseId: number, operatorUserId?: number) {
@@ -927,24 +929,41 @@ export function createAlertReviewEvidenceExportJob(reviewCaseId: number, data?: 
 }
 
 export function getAlertReviewEvidenceAudit(reviewCaseId: number) {
-  return defHttp.get<AlertReviewEvidenceAuditEntry[]>({ url: `${Api.Cases}/${reviewCaseId}/evidence-audit` })
+  return defHttp.get<AlertReviewEvidenceAuditEntry[]>({ url: `${Api.Cases}/${reviewCaseId}/evidence-audit` }, reviewResult)
 }
 
 export function getAlertReviewItemEvidenceAudit(reviewItemId: number) {
-  return defHttp.get<AlertReviewEvidenceAuditEntry[]>({ url: `${Api.Items}/${reviewItemId}/evidence-audit` })
+  return defHttp.get<AlertReviewEvidenceAuditEntry[]>({ url: `${Api.Items}/${reviewItemId}/evidence-audit` }, reviewResult)
 }
 
 export function queryAlertReviewEvidenceAudit(query: AlertReviewEvidenceAuditQuery) {
   return defHttp.get<AlertReviewEvidenceAuditEntry[]>({
     url: '/system/supervision/alert-review/evidence-audit',
     params: query,
-  })
+  }, reviewResult)
 }
 
 export function verifyAlertReviewManifest(jobNo: string) {
   return defHttp.get<AlertReviewManifestVerification>({
     url: `/system/supervision/alert-review/evidence-export-jobs/${jobNo}/manifest/verify`,
   })
+}
+
+export async function downloadAlertReviewEvidence(jobNo: string) {
+  const file = await defHttp.get<Blob>({
+    url: `/system/supervision/alert-review/evidence-export-jobs/${encodeURIComponent(jobNo)}/download`,
+    params: { reason: 'review_workbench_download' },
+    responseType: 'blob',
+  })
+  if (file.type.includes('json')) {
+    const response = JSON.parse(await file.text())
+    throw new Error(response.msg || '证据文件尚不可下载')
+  }
+  if (await file.slice(4, 8).text() === 'ftyp')
+    return { file, extension: 'mp4' }
+  if (await file.slice(0, 4).text() === 'PK\x03\x04')
+    return { file, extension: 'zip' }
+  throw new Error('服务未返回有效的证据文件')
 }
 
 export function verifyAlertReviewEvidencePackage(jobNo: string, operatorUserId?: number) {
@@ -997,7 +1016,7 @@ export function runAlertReviewIntegrationSmoke(data?: AlertReviewIntegrationSmok
 }
 
 export function suggestAlertReviewCaseCandidates(reviewItemId: number) {
-  return defHttp.get<AlertReviewItem[]>({ url: `${Api.Items}/${reviewItemId}/case-candidates` })
+  return defHttp.get<AlertReviewItem[]>({ url: `${Api.Items}/${reviewItemId}/case-candidates` }, reviewResult)
 }
 
 export function saveAlertReviewRule(data: AlertReviewRule) {
@@ -1005,5 +1024,5 @@ export function saveAlertReviewRule(data: AlertReviewRule) {
 }
 
 export function listAlertReviewRules() {
-  return defHttp.get<AlertReviewRule[]>({ url: Api.Rules })
+  return defHttp.get<AlertReviewRule[]>({ url: Api.Rules }, reviewResult)
 }

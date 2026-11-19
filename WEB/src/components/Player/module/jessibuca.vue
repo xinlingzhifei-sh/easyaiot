@@ -127,6 +127,8 @@
 <script>
 
 import {Icon} from "@/components/Icon";
+import {getAccessToken, getTenantId} from "@/utils/auth";
+import {resolveAlertImageDisplayUrl} from "@/utils/alertMinioImage";
 import {signStreamUrl, isProtectedStreamUrl, clearTicketForUrl} from "@/views/camera/utils/streamTicket";
 import EasyPlayer from "@/components/VideoPlayer/EasyPlayer.vue";
 import RtcPlayer from "@/components/VideoPlayer/rtcPlayer.vue";
@@ -477,7 +479,7 @@ export default {
         Object.assign(
           {
             container: this.$refs.container,
-            decoder: '/static/js/jessibuca/decoder.js',
+            decoder: `${import.meta.env.BASE_URL}static/js/jessibuca/decoder.js`,
             videoBuffer: vod ? 0.5 : 0.3,
             isResize: !stretchFill,
             isFullResize: false,
@@ -639,7 +641,16 @@ export default {
         return;
       }
       if (!this.jessibuca) return;
-      this.jessibuca.play(target);
+      const recordBase = new URL(resolveAlertImageDisplayUrl('/video/record/space/'), window.location.href);
+      const headers = {};
+      if (recordBase.origin === window.location.origin && target.startsWith(recordBase.href)
+        && /^\d+\/video\//.test(target.slice(recordBase.href.length))) {
+        const token = getAccessToken();
+        const tenant = getTenantId();
+        if (token) headers.Authorization = `Bearer ${token}`;
+        if (tenant != null) headers['tenant-id'] = String(tenant);
+      }
+      this.jessibuca.play(target, {headers});
       if ((this.vodMode || this.fillVideo) && this.jessibuca) {
         this.jessibuca.setScaleMode(0);
         this.scheduleVodResize();

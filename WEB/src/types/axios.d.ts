@@ -8,6 +8,8 @@ export interface RequestOptions {
   formatDate?: boolean
   // Whether to process the request result
   isTransformResponse?: boolean
+  // Keep an empty successful payload (for example [] or null) as the endpoint's result.
+  preserveEmptyData?: boolean
   // Whether to return native response headers
   // For example: use this attribute when you need to get the response headers
   isReturnNativeResponse?: boolean

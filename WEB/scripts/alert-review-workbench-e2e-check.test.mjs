@@ -10,9 +10,10 @@ if (!result.stderr.includes('unsupported alert review E2E mode')) {
   throw new Error(`expected unsupported mode message, got: ${result.stderr || result.stdout}`)
 }
 
-const realDrawerResult = await runScript(['--mode=dev-api-real-drawer'])
-if (realDrawerResult.code !== 0) {
-  throw new Error(`expected real drawer mode to pass, got: ${realDrawerResult.stderr || realDrawerResult.stdout}`)
+for (const mode of ['dev-api-mock', 'dev-api-real-drawer']) {
+  const browserResult = await runScript([`--mode=${mode}`])
+  if (browserResult.code !== 0)
+    throw new Error(`expected ${mode} to pass, got: ${browserResult.stderr || browserResult.stdout}`)
 }
 
 console.log('alert-review-workbench-e2e-check.test OK')

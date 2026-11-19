@@ -1,15 +1,40 @@
 import ast
+import os
 from pathlib import Path
 import threading
 from types import SimpleNamespace
 import typing
 import unittest
+from unittest.mock import patch
 
 
 VIDEO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class RealtimeAlgorithmContextTest(unittest.TestCase):
+    def test_srs_alias_uses_configured_host_on_bridge_networks(self):
+        script = VIDEO_ROOT / "services" / "realtime_algorithm_service" / "run_deploy.py"
+        helper = next(node for node in ast.parse(script.read_text(encoding="utf-8")).body
+                      if isinstance(node, ast.FunctionDef) and node.name == "_normalize_srs_api_host")
+        namespace = {"os": os}
+        exec(compile(ast.Module(body=[helper], type_ignores=[]), str(script), "exec"), namespace)
+        with patch.dict(os.environ, {"SRS_HOST": "srs", "POD_IP": ""}):
+            self.assertEqual(namespace["_normalize_srs_api_host"]("srs"), "srs")
+        with patch.dict(os.environ, {"SRS_HOST": "", "POD_IP": ""}):
+            self.assertEqual(namespace["_normalize_srs_api_host"]("srs"), "127.0.0.1")
+
+    def test_empty_model_load_returns_an_empty_model_mapping(self):
+        script = VIDEO_ROOT / "services" / "realtime_algorithm_service" / "run_deploy.py"
+        loader = next(node for node in ast.parse(script.read_text(encoding="utf-8")).body
+                      if isinstance(node, ast.FunctionDef) and node.name == "load_yolo_models")
+        namespace = {
+            "List": typing.List, "Dict": typing.Dict, "Any": typing.Any,
+            "yolo_model_devices": {}, "yolo_model_allowed_classes": {}, "yolo_model_meta": {},
+        }
+        exec(compile(ast.Module(body=[loader], type_ignores=[]), str(script), "exec"), namespace)
+        with patch.dict("sys.modules", {"ultralytics": SimpleNamespace(YOLO=object)}):
+            self.assertEqual(namespace["load_yolo_models"]([]), {})
+
     def test_face_matching_threshold_uses_script_db_session(self):
         source = (
             VIDEO_ROOT / "services" / "realtime_algorithm_service" / "run_deploy.py"

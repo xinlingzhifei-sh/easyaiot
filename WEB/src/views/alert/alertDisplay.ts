@@ -1,5 +1,16 @@
 /** 告警列表展示与筛选共用常量 */
 
+/** VIDEO 的无偏移告警时间为东八区，DEVICE 复核接口接收 Unix 毫秒。 */
+export function alertTimeMillis(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value !== 'string') return undefined;
+  const text = value.trim().replace(' ', 'T');
+  if (/^\d{13}$/.test(text)) return Number(text);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?$/i.test(text)) return undefined;
+  const timestamp = Date.parse(/(Z|[+-]\d{2}:?\d{2})$/i.test(text) ? text : text + '+08:00');
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
 export const ALERT_EVENT_OPTIONS = [
   { value: null, label: '全部' },
   { value: '行人检测', label: '行人检测' },

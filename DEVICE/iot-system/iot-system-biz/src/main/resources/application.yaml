@@ -138,6 +138,7 @@ spring.task.scheduling.pool.size: ${YFEIEYE_REVIEW_LOCAL_SCHEDULER_POOL_SIZE:4}
 yfeieye:
   video:
     alert-record-query-url: ${YFEIEYE_VIDEO_ALERT_RECORD_QUERY_URL:}
+    record-time-zone: ${YFEIEYE_VIDEO_RECORD_TIME_ZONE:}
     record-coverage-query-url: ${YFEIEYE_VIDEO_RECORD_COVERAGE_QUERY_URL:}
     record-base-url: ${YFEIEYE_VIDEO_RECORD_BASE_URL:}
     record-export-url: ${YFEIEYE_VIDEO_RECORD_EXPORT_URL:}

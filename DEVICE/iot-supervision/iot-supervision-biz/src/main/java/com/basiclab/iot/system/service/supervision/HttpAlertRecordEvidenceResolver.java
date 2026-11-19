@@ -3,6 +3,7 @@ package com.basiclab.iot.system.service.supervision;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.RecordEvidenceRequest;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.RecordEvidenceResolver;
 import com.basiclab.iot.system.service.supervision.SupervisionAlertReviewService.RecordEvidenceResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -13,8 +14,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +28,9 @@ public class HttpAlertRecordEvidenceResolver implements RecordEvidenceResolver {
     private final String alertRecordQueryUrl;
     private final String publicPlayHost;
     private final VideoMediaServiceRequestSigner mediaRequestSigner;
+
+    @Autowired
+    private VideoMediaTimeZone mediaTime = new VideoMediaTimeZone("");
 
     public HttpAlertRecordEvidenceResolver(RestTemplate restTemplate,
                                            @Value("${yfeieye.video.alert-record-query-url:}") String alertRecordQueryUrl,
@@ -52,7 +54,7 @@ public class HttpAlertRecordEvidenceResolver implements RecordEvidenceResolver {
         }
         String url = UriComponentsBuilder.fromHttpUrl(alertRecordQueryUrl)
                 .queryParam("device_id", deviceId)
-                .queryParam("alert_time", request.alertTime().format(ALERT_TIME_FORMATTER))
+                .queryParam("alert_time", mediaTime.toVideo(request.alertTime()).format(ALERT_TIME_FORMATTER))
                 .queryParam("time_range", DEFAULT_TIME_RANGE_SECONDS)
                 .queryParam("alert_id", request.sourceAlertId())
                 .build()
@@ -91,7 +93,7 @@ public class HttpAlertRecordEvidenceResolver implements RecordEvidenceResolver {
                 throw new IllegalStateException(SupervisionAlertReviewService.RECORD_GAP_PROBE_FAILED);
             }
             String message = firstText(data.get("source"), data.get("message"), data.get("msg"));
-            LocalDateTime recordStartTime = parseRecordStartTime(firstText(
+            LocalDateTime recordStartTime = mediaTime.parseVideo(firstText(
                     data.get("recordStartTime"),
                     data.get("record_start_time"),
                     data.get("event_time"),
@@ -211,25 +213,6 @@ public class HttpAlertRecordEvidenceResolver implements RecordEvidenceResolver {
             }
         }
         return null;
-    }
-
-    private static LocalDateTime parseRecordStartTime(String value) {
-        if (!hasText(value)) {
-            return null;
-        }
-        try {
-            return OffsetDateTime.parse(value).toLocalDateTime();
-        } catch (DateTimeParseException ignored) {
-            try {
-                return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (DateTimeParseException ignoredIso) {
-                try {
-                    return LocalDateTime.parse(value, ALERT_TIME_FORMATTER);
-                } catch (DateTimeParseException ignoredLegacy) {
-                    return null;
-                }
-            }
-        }
     }
 
     private static String toText(Object value) {

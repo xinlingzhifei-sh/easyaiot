@@ -5,6 +5,7 @@ import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
 import { useMessage } from '@/hooks/web/useMessage'
 import { usePermission } from '@/hooks/web/usePermission'
+import { downloadByData } from '@/utils/file/download'
 import DeviceRegionDrawer from '@/views/camera/components/DeviceRegionDrawer/index.vue'
 import type { DeviceDetectionRegion } from '@/api/device/device_detection_region'
 import {
@@ -35,6 +36,7 @@ import {
   type AlertReviewSemanticTriggerResult,
   type AlertReviewSummary,
   addAlertReviewItemToCase,
+  downloadAlertReviewEvidence,
   acknowledgeAlertReviewOperationsReport,
   assignAlertReviewCaseOwner,
   auditAlertReviewItemMediaAccess,
@@ -1160,10 +1162,25 @@ async function exportCaseEvidence() {
     })
     evidenceExport.value = evidenceExportJob.value.exportPackage
     await loadEvidenceAudit()
-    createMessage.success('evidence export job ready')
+    createMessage.success('证据导出作业已提交')
   }
   catch (error: any) {
     createMessage.error(error?.message || '证据导出失败')
+  }
+  finally {
+    evidenceExportLoading.value = false
+  }
+}
+
+async function downloadEvidence(jobNo: string) {
+  evidenceExportLoading.value = true
+  try {
+    const { file, extension } = await downloadAlertReviewEvidence(jobNo)
+    downloadByData(file, `${jobNo}.${extension}`, file.type)
+    await loadEvidenceAudit()
+  }
+  catch (error: any) {
+    createMessage.error(error?.message || '证据文件下载失败')
   }
   finally {
     evidenceExportLoading.value = false
@@ -2724,6 +2741,9 @@ defineExpose({
             </div>
             <div v-for="entry in evidenceAudit" :key="evidenceAuditKey(entry)" class="muted">
               {{ entry.actionType }} | {{ formatTime(entry.happenedAt) }} | {{ entry.fileHash || '-' }} | events {{ entry.boundEventIds?.join(' / ') || '-' }}
+              <Button v-if="entry.jobNo && entry.actionType === 'export_created'" size="small" type="link" :loading="evidenceExportLoading" @click="downloadEvidence(entry.jobNo)">
+                下载证据文件
+              </Button>
             </div>
           </div>
 

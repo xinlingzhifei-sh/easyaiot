@@ -6,6 +6,9 @@ const sharedPlayer = readFileSync(
   fileURLToPath(new URL('../src/components/Player/module/jessibuca.vue', import.meta.url)),
   'utf8',
 )
+assert.ok(sharedPlayer.includes('decoder: `${import.meta.env.BASE_URL}static/js/jessibuca/decoder.js`'))
+assert.ok(sharedPlayer.includes('recordBase.origin === window.location.origin && target.startsWith(recordBase.href)'))
+assert.ok(sharedPlayer.includes('this.jessibuca.play(target, {headers})'))
 const appIndex = readFileSync(
   fileURLToPath(new URL('../index.html', import.meta.url)),
   'utf8',
