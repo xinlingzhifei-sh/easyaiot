@@ -95,7 +95,7 @@
                 </div>
               </div>
               <div class="alert-img">
-                <img :src="thumbUrl(item.image_url) || ALERT" alt="" class="img">
+                <AlertImage :src="item.image_url || ALERT" alt="" class="img" />
               </div>
             </ListItem>
           </template>
@@ -118,7 +118,7 @@ import moment from 'moment';
 import ALERT from "@/assets/images/alert/alert.png";
 import { alertCameraSelectProps, alertFilterActionColOptions } from '@/views/alert/Data';
 import { ALERT_EVENT_OPTIONS, formatAlertEvent, getAlertMatchedPersonName, getAlertSourceEvent, normalizeAlertBusinessTagsParam, formatLlmJudgeStatus, isLlmSampled } from '@/views/alert/alertDisplay';
-import { resolveAlertImageDisplayUrl } from '@/utils/alertMinioImage';
+import AlertImage from '@/views/alert/components/AlertImage.vue';
 
 const ListItem = List.Item;
 
@@ -555,9 +555,6 @@ async function handleCopy(record: object) {
   createMessage.success('复制成功');
 }
 
-function thumbUrl(imageUrl: string | null | undefined): string {
-  return resolveAlertImageDisplayUrl(imageUrl);
-}
 </script>
 
 <style lang="less" scoped>

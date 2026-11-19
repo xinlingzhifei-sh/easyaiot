@@ -22,6 +22,13 @@ function resolveVideoApiPath(path: string): string {
   return `${apiPrefix}${path}`;
 }
 
+export function isProtectedAlertImageUrl(source: string, endpoint: string, pageUrl: string): boolean {
+  const target = new URL(source, pageUrl);
+  const api = new URL(endpoint, pageUrl);
+  return target.origin === new URL(pageUrl).origin && target.origin === api.origin
+    && !target.username && !target.password && target.pathname === api.pathname;
+}
+
 function normalizeMinioDownloadPath(path: string): string {
   const qIndex = path.indexOf('?');
   if (qIndex < 0) return path;

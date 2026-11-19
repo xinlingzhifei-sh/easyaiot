@@ -27,8 +27,7 @@
             :image-display-width="imgDisplay.w"
             :image-display-height="imgDisplay.h"
           >
-            <img
-              ref="imgRef"
+            <AlertImage
               :src="imageUrl"
               alt="告警图片"
               class="monitor-dialog__alert-image"
@@ -56,7 +55,7 @@ import { BasicModal, useModalInner } from '@/components/Modal';
 import { Spin } from 'ant-design-vue';
 import { Icon } from '@/components/Icon';
 import { useMessage } from '@/hooks/web/useMessage';
-import { resolveAlertImageDisplayUrl } from '@/utils/alertMinioImage';
+import AlertImage from '@/views/alert/components/AlertImage.vue';
 import PoseSkeletonOverlay from '@/components/PoseSkeletonOverlay/index.vue';
 import {
   isPoseIntentAlertEvent,
@@ -110,7 +109,7 @@ const [register, { setModalProps, closeModal }] = useModalInner(async (data) => 
   showSkeleton.value = true;
 
   try {
-    const url = resolveAlertImageDisplayUrl(data?.image_url);
+    const url = data?.image_url;
     if (!url) {
       createMessage.error('图片地址为空');
       return;
@@ -152,7 +151,8 @@ const handleImageError = () => {
   imageUrl.value = '';
 };
 
-const handleImageLoad = () => {
+const handleImageLoad = (event: Event) => {
+  imgRef.value = event.target as HTMLImageElement;
   measureImageDisplay();
 };
 
