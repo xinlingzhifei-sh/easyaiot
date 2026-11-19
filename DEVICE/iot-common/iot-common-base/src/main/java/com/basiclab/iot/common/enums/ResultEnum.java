@@ -3,7 +3,7 @@ package com.basiclab.iot.common.enums;
 /**
  * @EnumDescription: 结果码(状态码,异常码)统一注册类  (定型类,提供habit内部工具报错),异常码范围：[10000-20000)
  * @EnumName: ResultEnum
- * @Author: iot
+ * @Author: liufei
  * @Date: 2021-12-27 16:32:53
  */
 public enum ResultEnum {

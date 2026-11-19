@@ -6,8 +6,7 @@ import com.basiclab.iot.sink.mq.message.IotDeviceMessage;
 /**
  * PropertyEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class PropertyEvent extends AbstractIotDeviceEvent {

@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 设备动作服务降级处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class RemoteDeviceActionFallbackFactory implements FallbackFactory<RemoteDeviceActionService> {

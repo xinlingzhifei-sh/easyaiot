@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 /**
  * MailAccountSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮箱账号创建/修改 Request VO")
 @Data
@@ -32,7 +31,7 @@ public class MailAccountSaveReqVO {
     @NotNull(message = "密码必填")
     private String password;
 
-    @Schema(description = "SMTP 服务器域名", example = "www.iocoder.cn")
+    @Schema(description = "SMTP 服务器域名", example = "www.example.com")
     @NotNull(message = "SMTP 服务器域名不能为空")
     private String host;
 

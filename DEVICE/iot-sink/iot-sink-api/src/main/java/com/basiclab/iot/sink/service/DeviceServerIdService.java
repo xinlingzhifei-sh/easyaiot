@@ -3,8 +3,7 @@ package com.basiclab.iot.sink.service;
 /**
  * DeviceServerIdService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceServerIdService {
 

@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 /**
  * App
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value = "应用密钥")

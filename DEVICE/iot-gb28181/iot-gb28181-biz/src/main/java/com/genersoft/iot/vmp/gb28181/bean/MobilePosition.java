@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * @description: 移动位置bean
- * @author: lawrencehj
+ * @author: liufei
  * @date: 2021年1月23日
  */
 

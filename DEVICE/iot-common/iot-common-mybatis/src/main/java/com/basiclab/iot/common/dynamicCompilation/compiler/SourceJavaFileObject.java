@@ -7,8 +7,7 @@ import java.net.URI;
  * 存放java源码的JavaFileObject
  *
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-07-04
  */
 public class SourceJavaFileObject extends SimpleJavaFileObject {

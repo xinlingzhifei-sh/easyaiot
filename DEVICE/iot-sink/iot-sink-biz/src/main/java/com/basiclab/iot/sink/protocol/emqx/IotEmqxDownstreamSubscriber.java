@@ -15,8 +15,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
  *
  * 延迟注册消息总线，避免与 IotKafkaMessageBus 循环依赖。
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 public class IotEmqxDownstreamSubscriber

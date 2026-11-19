@@ -14,10 +14,6 @@ import java.util.Map;
 
 /**
  * 从 PostgreSQL MappingRule 仓储动态取规则执行映射。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Primary
 @Component

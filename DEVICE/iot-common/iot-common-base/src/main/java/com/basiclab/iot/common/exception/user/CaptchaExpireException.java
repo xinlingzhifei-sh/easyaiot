@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception.user;
 /**
  * 验证码失效异常类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class CaptchaExpireException extends UserException
 {

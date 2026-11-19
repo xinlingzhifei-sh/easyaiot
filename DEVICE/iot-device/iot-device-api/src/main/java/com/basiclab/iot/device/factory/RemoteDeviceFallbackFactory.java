@@ -19,8 +19,7 @@ import java.util.Map;
 /**
  * 设备管理服务降级处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class RemoteDeviceFallbackFactory implements FallbackFactory<RemoteDeviceService> {

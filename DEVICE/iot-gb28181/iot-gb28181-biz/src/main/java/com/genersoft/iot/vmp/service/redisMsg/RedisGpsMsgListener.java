@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * 接收来自redis的GPS更新通知
  *
- * @author lin
+ * @author liufei
  * 监听：  SUBSCRIBE VM_MSG_GPS
  * 发布   PUBLISH VM_MSG_GPS '{"messageId":"1727228507555","id":"24212345671381000047","lng":116.30307666666667,"lat":40.03295833333333,"time":"2024-09-25T09:41:47","direction":"56.0","speed":0.0,"altitude":60.0,"unitNo":"100000000","memberNo":"10000047"}'
  */

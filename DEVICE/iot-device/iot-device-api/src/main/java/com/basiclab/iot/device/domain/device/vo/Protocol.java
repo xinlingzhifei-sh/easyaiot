@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 /**
 * @description: ${description}
 * @packagename: com.basiclab.iot.device.api.domain.protocol
-* @author reese
-* @email reese
+* @author liufei
 * @date: 2025-07-01 17:56
 **/
 

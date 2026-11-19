@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception;
 /**
  * 验证码错误异常类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class CaptchaException extends RuntimeException
 {

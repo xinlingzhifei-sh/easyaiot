@@ -8,8 +8,7 @@ import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-07-22
  */

@@ -17,8 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 限流注解
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

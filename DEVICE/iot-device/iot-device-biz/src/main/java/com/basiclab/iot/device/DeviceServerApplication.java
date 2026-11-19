@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
  * 项目的启动类
  * <p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @EnableCustomConfig
 @EnableCustomSwagger2

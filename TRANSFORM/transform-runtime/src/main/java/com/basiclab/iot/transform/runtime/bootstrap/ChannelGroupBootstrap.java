@@ -17,10 +17,6 @@ import java.util.stream.Collectors;
 
 /**
  * 启动时按启用渠道自动 join 约定 Group；关闭时 leave。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Component

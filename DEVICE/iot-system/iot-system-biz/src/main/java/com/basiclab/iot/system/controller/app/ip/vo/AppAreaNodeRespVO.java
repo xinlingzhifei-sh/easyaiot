@@ -18,8 +18,7 @@ public class AppAreaNodeRespVO {
     /**
  * AppAreaNodeRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private List<AppAreaNodeRespVO> children;

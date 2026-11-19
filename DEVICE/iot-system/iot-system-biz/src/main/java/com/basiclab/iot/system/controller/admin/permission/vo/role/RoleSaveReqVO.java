@@ -11,8 +11,7 @@ import javax.validation.constraints.Size;
 /**
  * RoleSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 角色创建/更新 Request VO")
 @Data

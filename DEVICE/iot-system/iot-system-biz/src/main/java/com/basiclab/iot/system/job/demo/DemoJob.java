@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * DemoJob
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class DemoJob implements JobHandler {

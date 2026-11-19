@@ -2,8 +2,7 @@
 ONNX推理模块
 基于yolov8_detect_onnx.py的ONNX推理逻辑
 
-@author reese
-@email reese
+@author liufei
 """
 import ast
 import json

@@ -16,8 +16,8 @@ import java.io.IOException;
 /**
  * SSE 推送.
  *
- * @author lawrencehj
- * @author <a href="mailto:xiaoQQya@126.com">xiaoQQya</a>
+ * @author liufei
+ * @author liufei
  * @since 2021/01/20
  */
 @Tag(name = "SSE 推送")

@@ -22,8 +22,7 @@ import java.util.Map;
 /**
  * IotMessageBusAutoConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AutoConfiguration
 @EnableConfigurationProperties(IotMessageBusProperties.class)

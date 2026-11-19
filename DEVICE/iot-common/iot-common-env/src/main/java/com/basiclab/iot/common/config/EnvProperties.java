@@ -6,8 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * 环境配置
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ConfigurationProperties(prefix = "iot.env")
 @Data

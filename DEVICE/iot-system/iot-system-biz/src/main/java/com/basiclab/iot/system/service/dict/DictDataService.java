@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * DictDataService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DictDataService {
 

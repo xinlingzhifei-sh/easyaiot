@@ -9,8 +9,7 @@ import java.util.Set;
 /**
  * DeptDataPermissionRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 部门的数据权限 Response DTO")
 @Data

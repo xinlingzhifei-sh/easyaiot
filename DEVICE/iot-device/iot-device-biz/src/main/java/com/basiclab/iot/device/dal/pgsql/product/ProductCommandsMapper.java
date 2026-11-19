@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * ProductCommandsMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProductCommandsMapper extends BaseMapper<ProductCommands> {

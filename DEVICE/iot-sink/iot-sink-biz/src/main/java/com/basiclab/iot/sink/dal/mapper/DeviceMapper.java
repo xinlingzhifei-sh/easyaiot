@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * DeviceMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Mapper

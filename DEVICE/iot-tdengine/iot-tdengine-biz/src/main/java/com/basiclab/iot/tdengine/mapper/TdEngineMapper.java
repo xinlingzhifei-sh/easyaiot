@@ -20,8 +20,7 @@ import java.util.Map;
 /**
  * TdEngineMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 @InterceptorIgnore(tenantLine = "true")

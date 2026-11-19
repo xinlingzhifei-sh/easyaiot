@@ -7,7 +7,7 @@ import java.time.Instant;
 
 /**
  * 摄像机同步状态
- * @author lin
+ * @author liufei
  */
 @Data
 @Schema(description = "摄像机同步状态")

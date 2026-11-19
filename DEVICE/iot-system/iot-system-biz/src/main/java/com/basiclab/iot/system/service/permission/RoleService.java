@@ -13,8 +13,7 @@ import java.util.Set;
 /**
  * 角色 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface RoleService {
 

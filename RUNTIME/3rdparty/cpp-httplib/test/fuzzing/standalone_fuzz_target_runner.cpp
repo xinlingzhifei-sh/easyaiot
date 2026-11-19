@@ -1,6 +1,3 @@
-// Copyright 2017 Google Inc. All Rights Reserved.
-// Licensed under the Apache License, Version 2.0 (the "License");
-
 // This runner does not do any fuzzing, but allows us to run the fuzz target
 // on the test corpus or on a single file,
 // e.g. the one that comes from a bug report.

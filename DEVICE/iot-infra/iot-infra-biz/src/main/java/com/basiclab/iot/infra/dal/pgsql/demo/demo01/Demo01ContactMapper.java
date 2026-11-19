@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 示例联系人 Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface Demo01ContactMapper extends BaseMapperX<Demo01ContactDO> {

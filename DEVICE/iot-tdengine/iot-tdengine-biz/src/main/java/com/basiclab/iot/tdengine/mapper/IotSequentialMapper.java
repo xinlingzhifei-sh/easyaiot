@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * IotSequentialMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface IotSequentialMapper {

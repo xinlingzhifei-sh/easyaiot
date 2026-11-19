@@ -6,8 +6,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * CodegenConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CodegenProperties.class)

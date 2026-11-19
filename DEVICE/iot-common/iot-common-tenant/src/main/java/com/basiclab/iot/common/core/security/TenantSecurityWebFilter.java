@@ -28,8 +28,7 @@ import java.util.Objects;
  * 2. 如果请求未带租户的编号，检查是否是忽略的 URL，否则也不允许访问。
  * 3. 校验租户是合法，例如说被禁用、到期
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 public class TenantSecurityWebFilter extends ApiRequestFilter {

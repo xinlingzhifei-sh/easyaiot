@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @author panlinlin
+ * @author liufei
  * @version 1.0.0
  * @description JAIN SIP的工具类
  * @createTime 2021年09月27日 15:12:00
@@ -74,7 +74,7 @@ public class SipUtils {
 
     public static UserAgentHeader createUserAgentHeader(GitUtil gitUtil) throws PeerUnavailableException, ParseException {
         List<String> agentParam = new ArrayList<>();
-        agentParam.add("WVP-Pro ");
+        agentParam.add("yFeiEye ");
         if (gitUtil != null ) {
             if (!ObjectUtils.isEmpty(gitUtil.getBuildVersion())) {
                 agentParam.add("v");

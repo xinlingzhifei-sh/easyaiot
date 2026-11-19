@@ -1,9 +1,3 @@
-//
-//  httplib.h
-//
-//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
-//
-
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 

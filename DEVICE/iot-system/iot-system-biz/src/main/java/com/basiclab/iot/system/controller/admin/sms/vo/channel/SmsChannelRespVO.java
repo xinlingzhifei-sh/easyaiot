@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * SmsChannelRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 短信渠道 Response VO")
 @Data
@@ -41,7 +40,7 @@ public class SmsChannelRespVO {
     @Schema(description = "短信 API 的密钥", example = "yuanma")
     private String apiSecret;
 
-    @Schema(description = "短信发送回调 URL", example = "https://www.iocoder.cn")
+    @Schema(description = "短信发送回调 URL", example = "https://www.example.com")
     @URL(message = "回调 URL 格式不正确")
     private String callbackUrl;
 

@@ -6,8 +6,7 @@
 API 文档参考：
 https://bailian.console.aliyun.com/?spm=5176.29597918.J_C-NDPSQ8SFKWB4aef8i6I.4.298d7b08IRr02o&tab=doc#/doc/?type=model&url=2877996
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

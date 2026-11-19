@@ -20,8 +20,7 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertSe
 /**
  * OAuth2 批准 Service 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

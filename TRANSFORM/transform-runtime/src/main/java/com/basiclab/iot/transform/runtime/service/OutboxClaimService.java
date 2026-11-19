@@ -16,10 +16,6 @@ import java.util.UUID;
 
 /**
  * Outbox 短事务认领：认领与 Kafka 发送解耦，避免长事务持锁。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Service

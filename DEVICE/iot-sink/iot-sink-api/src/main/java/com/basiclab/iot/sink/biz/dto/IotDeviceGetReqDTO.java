@@ -5,8 +5,7 @@ import lombok.Data;
 /**
  * IotDeviceGetReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

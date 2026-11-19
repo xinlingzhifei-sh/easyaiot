@@ -10,8 +10,7 @@ import java.util.Set;
 /**
  * PermissionAssignRoleMenuReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 赋予角色菜单 Request VO")
 @Data

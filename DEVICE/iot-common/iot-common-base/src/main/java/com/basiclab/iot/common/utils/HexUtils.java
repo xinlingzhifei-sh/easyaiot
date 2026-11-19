@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 /**
  * @title 16进制相关工具类
  * @discribtion 本着依赖最少原则，封装常用工具类
- * @author reese
- * @email reese
+ * @author liufei
  * @Date 2020年5月21日 下午4:31:17
  * @vision V1.0
  */
@@ -19,7 +18,7 @@ public class HexUtils
     /**
      * @title byte数组转16进制字符串
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:36:49
      * @vision V1.0
@@ -44,7 +43,7 @@ public class HexUtils
     /**
      * @title 16进制字符串转byte数组
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:39:00
      * @vision V1.0
@@ -71,7 +70,7 @@ public class HexUtils
     /**
      * @title 合并多个byte数组
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:41:36
      * @vision V1.0
@@ -97,7 +96,7 @@ public class HexUtils
     /**
      * @title 异或校验
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:47:40
      * @vision V1.0
@@ -115,7 +114,7 @@ public class HexUtils
     /**
      * @title 16进制字符串转整数
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:54:15
      * @vision V1.0
@@ -128,7 +127,7 @@ public class HexUtils
     /**
      * @title 整数转16进制字符串
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午4:54:54
      * @vision V1.0
@@ -141,7 +140,7 @@ public class HexUtils
     /**
      * @title 16进制字符串转2进制字符串
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午5:21:30
      * @vision V1.0
@@ -164,7 +163,7 @@ public class HexUtils
     /**
      * @title 2进制字符串转16进制字符串
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午5:21:49
      * @vision V1.0
@@ -192,7 +191,7 @@ public class HexUtils
     /**
      * @title 字节转位
      * @discribtion
-     * @author zch
+     * @author liufei
      * @param
      * @Date 2020年5月21日 下午5:23:29
      * @vision V1.0
@@ -216,7 +215,7 @@ public class HexUtils
      * @Description: 16进制字符串转10进制
      * @Param: [hex]
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static Integer hexStringToDecimal(String hex) {
@@ -228,7 +227,7 @@ public class HexUtils
      * @Description: 16进制字符串转2进制字符串
      * @Param: [hex]
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static String hexStringToBinaryString(String hex) {
@@ -241,7 +240,7 @@ public class HexUtils
      * @Description: 10进制转16进制字符串
      * @Param: []
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static String decimalToHexString(Integer decimal) {
@@ -253,7 +252,7 @@ public class HexUtils
      * @Description: 10进制转2进制字符串
      * @Param: []
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static String decimalToBinaryString(Integer decimal) {
@@ -265,7 +264,7 @@ public class HexUtils
      * @Description: 2进制字符串转10进制
      * @Param: [hex]
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static Integer binaryStringToDecimal(String binary) {
@@ -277,7 +276,7 @@ public class HexUtils
      * @Description: 2进制字符串转16进制字符串
      * @Param: []
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/24 0024
      */
     public static String binaryStringToHexString(String binary) {
@@ -290,7 +289,7 @@ public class HexUtils
      * @Description: byte[]转字符串
      * @Param: [bytes]
      * @return: java.lang.String
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/20 0020
      */
     public static String byte2Hex(byte[] bytes) {
@@ -311,7 +310,7 @@ public class HexUtils
      * @Description: byte[]转String[]
      * @Param: [bytes]
      * @return: java.lang.String[]
-     * @Author: Liang Shan
+     * @Author: liufei
      * @Date: 2019/9/20 0020
      */
     public static String[] bytesToStrings(byte[] bytes) {

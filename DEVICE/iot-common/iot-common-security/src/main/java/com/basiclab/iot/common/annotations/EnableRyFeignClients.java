@@ -8,8 +8,7 @@ import java.lang.annotation.*;
  * 自定义feign注解
  * 添加basePackages路径
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

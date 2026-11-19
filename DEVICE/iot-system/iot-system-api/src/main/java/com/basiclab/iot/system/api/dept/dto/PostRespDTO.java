@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * 岗位 Response DTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 岗位 Response DTO")
 @Data

@@ -36,8 +36,7 @@ import static com.basiclab.iot.infra.enums.ErrorCodeConstants.FILE_IS_EMPTY;
 /**
  * UserProfileController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 用户个人中心")
 @RestController

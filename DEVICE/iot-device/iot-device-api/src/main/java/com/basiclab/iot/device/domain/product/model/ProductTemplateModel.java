@@ -5,8 +5,7 @@ import java.util.List;
 /**
  * ProductTemplateModel
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class ProductTemplateModel {

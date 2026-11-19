@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * OAuth2AccessTokenRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 访问令牌 Response VO")
 @Data

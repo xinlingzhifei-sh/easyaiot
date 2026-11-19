@@ -13,8 +13,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @Description: 网关设备更新子设备状态数据模型
  * @CreateDate: 2024/4/25$ 12:52$
  * @UpdateDate: 2024/4/25$ 12:52$

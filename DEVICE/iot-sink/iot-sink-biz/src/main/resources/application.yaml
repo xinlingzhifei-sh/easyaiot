@@ -233,7 +233,7 @@ iot:
     base-package: com.basiclab.iot.sink
   web:
     admin-ui:
-      url: http://dashboard.iot.iocoder.cn # Admin 管理后台 UI 的地址
+      url: http://127.0.0.1:8888 # Admin 管理后台 UI 的地址
   swagger:
     title: 管理后台
     description: 提供管理员管理的所有功能

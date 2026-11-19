@@ -11,8 +11,7 @@ import java.io.Serializable;
 /**
  * ProductCommandsResponse
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 /**

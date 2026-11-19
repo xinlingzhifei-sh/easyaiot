@@ -2,8 +2,7 @@
 排序器服务模板工程
 用于对检测结果进行排序
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

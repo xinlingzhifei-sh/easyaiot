@@ -16,10 +16,6 @@ import java.util.concurrent.TimeUnit;
  * Transactional Outbox 中继：短事务认领 → Kafka 投递 → 短事务落状态。
  * <p>
  * 多实例通过 {@code FOR UPDATE SKIP LOCKED} 并行认领，无中心锁。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Component

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception;
 /**
  * 演示模式异常
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DemoModeException extends RuntimeException
 {

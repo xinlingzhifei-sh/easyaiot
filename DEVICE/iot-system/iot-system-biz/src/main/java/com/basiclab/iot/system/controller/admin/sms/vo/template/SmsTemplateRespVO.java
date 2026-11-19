@@ -16,8 +16,7 @@ import java.util.List;
 /**
  * SmsTemplateRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 )

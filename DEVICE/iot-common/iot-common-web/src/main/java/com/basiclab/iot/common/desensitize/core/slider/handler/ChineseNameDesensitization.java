@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.ChineseNameDes
 /**
  * {@link ChineseNameDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class ChineseNameDesensitization extends AbstractSliderDesensitizationHandler<ChineseNameDesensitize> {
 

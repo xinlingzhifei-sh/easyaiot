@@ -15,8 +15,7 @@ import java.util.Set;
 /**
  * 租户 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface TenantService {
 

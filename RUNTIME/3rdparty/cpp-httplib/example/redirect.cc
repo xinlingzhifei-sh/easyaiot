@@ -1,9 +1,3 @@
-//
-//  redirect.cc
-//
-//  Copyright (c) 2019 Yuji Hirose. All rights reserved.
-//
-
 #include <httplib.h>
 
 #define SERVER_CERT_FILE "./cert.pem"

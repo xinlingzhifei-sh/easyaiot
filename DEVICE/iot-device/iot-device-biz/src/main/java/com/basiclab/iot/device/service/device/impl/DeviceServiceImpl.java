@@ -80,8 +80,7 @@ import static com.basiclab.iot.common.utils.StringUtils.isEmpty;
 /**
  * DeviceLocationServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Slf4j
@@ -242,8 +241,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, Device> impleme
     /**
      * DeviceServiceImpl
      *
-     * @author reese
-     * @email reese
+     * @author liufei
      */
 
     @Transactional(rollbackFor = Exception.class)

@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 /**
  * JobSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Schema(description = "管理后台 - 定时任务创建/修改 Request VO")

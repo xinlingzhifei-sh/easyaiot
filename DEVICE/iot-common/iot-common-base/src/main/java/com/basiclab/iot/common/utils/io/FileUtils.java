@@ -14,8 +14,7 @@ import java.io.File;
 /**
  * 文件工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileUtils {
 

@@ -9,7 +9,7 @@ import javax.sip.ResponseEvent;
 
 /**    
  * @description: BYE请求响应器
- * @author: swwheihei
+ * @author: liufei
  * @date:   2020年5月3日 下午5:32:05     
  */
 @Component

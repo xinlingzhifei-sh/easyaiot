@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * DictDataSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 数据字典精简 Response VO")
 @Data

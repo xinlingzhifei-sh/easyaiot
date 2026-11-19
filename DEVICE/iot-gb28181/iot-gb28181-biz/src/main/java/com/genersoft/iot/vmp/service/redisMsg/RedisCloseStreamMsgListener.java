@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 接收来自redis的关闭流更新通知
  * 消息举例： PUBLISH VM_MSG_STREAM_PUSH_CLOSE "{'app': 'live', 'stream': 'stream'}"
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

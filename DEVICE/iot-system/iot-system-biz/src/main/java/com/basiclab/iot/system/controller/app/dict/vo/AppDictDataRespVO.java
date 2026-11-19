@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * AppDictDataRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "用户 App - 字典数据信息 Response VO")
 @Data
@@ -23,7 +22,7 @@ public class AppDictDataRespVO {
     @Schema(description = "字典标签", example = "yFeiEye")
     private String label;
 
-    @Schema(description = "字典值", example = "iocoder")
+    @Schema(description = "字典值", example = "example")
     private String value;
 
     @Schema(description = "字典类型", example = "sys_common_sex")

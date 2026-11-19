@@ -2,8 +2,7 @@ package com.basiclab.iot.common.utils;
 
 /**
  * @Description: 字符串工具类-智能截取
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/11/15$ 19:03$
  * @UpdateDate: 2024/11/15$ 19:03$
  */

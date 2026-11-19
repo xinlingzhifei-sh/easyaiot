@@ -12,8 +12,7 @@ import javax.annotation.PostConstruct;
 /**
  * IotHttpDownstreamSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @RequiredArgsConstructor

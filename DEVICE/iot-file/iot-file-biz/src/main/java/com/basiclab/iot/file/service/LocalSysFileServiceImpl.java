@@ -27,8 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * 本地文件存储
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RefreshScope
 //@Primary

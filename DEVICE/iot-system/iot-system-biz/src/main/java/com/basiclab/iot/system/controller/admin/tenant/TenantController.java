@@ -29,8 +29,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * TenantController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 租户")
 @RestController
@@ -52,7 +51,7 @@ public class TenantController {
     @GetMapping("/get-by-website")
     @PermitAll
     @Operation(summary = "使用域名，获得租户信息", description = "登录界面，根据用户的域名，获得租户信息")
-    @Parameter(name = "website", description = "域名", required = true, example = "www.iocoder.cn")
+    @Parameter(name = "website", description = "域名", required = true, example = "www.example.com")
     public CommonResult<TenantSimpleRespVO> getTenantByWebsite(@RequestParam("website") String website) {
         TenantDO tenant = tenantService.getTenantByWebsite(website);
         return success(BeanUtils.toBean(tenant, TenantSimpleRespVO.class));

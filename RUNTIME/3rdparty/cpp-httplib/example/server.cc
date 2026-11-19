@@ -1,9 +1,3 @@
-//
-//  sample.cc
-//
-//  Copyright (c) 2019 Yuji Hirose. All rights reserved.
-//
-
 #include <chrono>
 #include <cstdio>
 #include <httplib.h>

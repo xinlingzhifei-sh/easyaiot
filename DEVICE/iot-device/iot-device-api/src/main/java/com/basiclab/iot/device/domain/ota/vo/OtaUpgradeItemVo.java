@@ -8,10 +8,6 @@ import java.io.Serializable;
 
 /**
  * 设备待升级项（四类包统一返回结构，check 检测应答返回）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "OtaUpgradeItemVo对象", description = "设备待升级项")

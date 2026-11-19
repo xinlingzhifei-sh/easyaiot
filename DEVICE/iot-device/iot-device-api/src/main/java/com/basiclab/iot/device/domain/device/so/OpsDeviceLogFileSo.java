@@ -8,8 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-06-03
  */

@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Data
 public class CatalogData {

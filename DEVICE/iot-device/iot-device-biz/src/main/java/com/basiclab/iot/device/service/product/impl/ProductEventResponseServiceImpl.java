@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProductEventResponseServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

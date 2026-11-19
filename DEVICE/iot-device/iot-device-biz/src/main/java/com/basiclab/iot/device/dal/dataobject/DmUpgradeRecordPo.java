@@ -12,10 +12,6 @@ import java.time.LocalDateTime;
 
 /**
  * 升级记录（检测/命中/下载/校验/安装/启动 全链路）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

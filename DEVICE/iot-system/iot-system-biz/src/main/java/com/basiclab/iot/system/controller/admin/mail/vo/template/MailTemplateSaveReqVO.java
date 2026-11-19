@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 /**
  * MailTemplateSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮件模版创建/修改 Request VO")
 @Data
@@ -31,7 +30,7 @@ public class MailTemplateSaveReqVO {
     @NotNull(message = "发送的邮箱账号编号不能为空")
     private Long accountId;
 
-    @Schema(description = "发送人名称", example = "芋头")
+    @Schema(description = "发送人名称", example = "张三")
     private String nickname;
 
     @Schema(description = "标题", example = "注册成功")

@@ -14,8 +14,7 @@ import javax.validation.constraints.NotNull;
 /**
  * SocialUserBindReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 取消绑定社交用户 Request DTO")
 @Data

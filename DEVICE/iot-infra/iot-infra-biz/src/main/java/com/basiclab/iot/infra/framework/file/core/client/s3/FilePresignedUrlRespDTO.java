@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 /**
  * FilePresignedUrlRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @AllArgsConstructor

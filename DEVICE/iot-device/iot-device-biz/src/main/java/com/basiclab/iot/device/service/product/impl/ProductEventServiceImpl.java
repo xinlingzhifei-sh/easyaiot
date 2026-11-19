@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProductEventServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductEventServiceImpl extends ServiceImpl<ProductEventMapper, ProductEvent> implements ProductEventService {

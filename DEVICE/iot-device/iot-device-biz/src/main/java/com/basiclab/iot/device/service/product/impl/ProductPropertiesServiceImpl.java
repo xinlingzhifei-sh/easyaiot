@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProductPropertiesServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductPropertiesServiceImpl implements ProductPropertiesService {

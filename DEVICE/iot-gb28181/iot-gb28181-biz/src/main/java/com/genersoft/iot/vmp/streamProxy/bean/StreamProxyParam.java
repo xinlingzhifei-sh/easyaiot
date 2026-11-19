@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Data
 @Schema(description = "拉流代理的信息")

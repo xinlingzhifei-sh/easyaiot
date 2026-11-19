@@ -12,8 +12,7 @@ import javax.validation.constraints.NotEmpty;
 /**
  * AuthSmsLoginReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 短信验证码的登录 Request VO")
 @Data

@@ -8,8 +8,7 @@ import com.basiclab.iot.sink.biz.dto.IotDeviceRespDTO;
 /**
  * IotDeviceCommonApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface IotDeviceCommonApi {

@@ -24,8 +24,7 @@ import java.util.List;
 /**
  * IotMqttUpstreamHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

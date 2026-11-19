@@ -32,7 +32,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
  * 移动设备位置数据查询回复
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

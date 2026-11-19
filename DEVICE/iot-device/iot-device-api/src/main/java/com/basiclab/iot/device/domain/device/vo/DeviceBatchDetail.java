@@ -7,8 +7,7 @@ import java.io.Serializable;
 /**
  * DeviceBatchDetail
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

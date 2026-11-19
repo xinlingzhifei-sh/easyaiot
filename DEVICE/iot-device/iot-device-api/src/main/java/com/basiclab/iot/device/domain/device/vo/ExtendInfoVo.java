@@ -8,8 +8,7 @@ import lombok.experimental.Accessors;
 /**
  * ExtendInfoVo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

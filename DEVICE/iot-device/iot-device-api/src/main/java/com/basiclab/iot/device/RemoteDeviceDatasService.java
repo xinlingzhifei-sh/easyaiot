@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 /**
  * 设备消息服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteDeviceDatasService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteDeviceDatasFallbackFactory.class)
 public interface RemoteDeviceDatasService {

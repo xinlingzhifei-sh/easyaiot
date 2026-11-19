@@ -27,12 +27,12 @@
 </template>
 ```
 
-`script` 部分使用 `菲鸽` 封装好的 `useRequest` 即可实现请求状态一体化，如下：
+`script` 部分使用封装好的 `useRequest` 即可实现请求状态一体化，如下：
 
 ```ts
 <script setup>
 type IFooItem = { name: string }
-const { loading, error, data, run } = useRequest<IFooItem>(() => httpGet('/foo', { name: '菲鸽' }))
+const { loading, error, data, run } = useRequest<IFooItem>(() => httpGet('/foo', { name: '张三' }))
 </script>
 ```
 
@@ -45,7 +45,7 @@ const { loading, error, data, run } = useRequest<IFooItem>(() => httpGet('/foo',
 ```ts
 <script setup>
 import { getFooAPI, IFooItem } from '@/service/index/foo' // 看这里
-const { loading, error, data, run } = useRequest<IFooItem>(() => getFooAPI('菲鸽'))
+const { loading, error, data, run } = useRequest<IFooItem>(() => getFooAPI('张三'))
 </script>
 ```
 
@@ -121,11 +121,11 @@ export const postFooAPI3 = (name: string) => {
 </template>
 ```
 
-`script` 部分使用 `菲鸽` 封装好的 `useUpload` 即可实现请求状态一体化，如下：
+`script` 部分使用封装好的 `useUpload` 即可实现请求状态一体化，如下：
 
 ```ts
 <script lang="ts" setup>
-const { loading, data, run } = useUpload<string>({ user: '菲鸽' })
+const { loading, data, run } = useUpload<string>({ user: '张三' })
 </script>
 ```
 

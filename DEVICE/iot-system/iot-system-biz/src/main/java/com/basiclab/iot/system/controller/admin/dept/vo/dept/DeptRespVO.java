@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 /**
  * DeptRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 部门信息 Response VO")
 @Data
@@ -30,10 +29,10 @@ public class DeptRespVO {
     @Schema(description = "负责人的用户编号", example = "2048")
     private Long leaderUserId;
 
-    @Schema(description = "联系电话", example = "15601691000")
+    @Schema(description = "联系电话", example = "13800000000")
     private String phone;
 
-    @Schema(description = "邮箱", example = "Yudao@iocoder.cn")
+    @Schema(description = "邮箱", example = "user@example.com")
     private String email;
 
     @Schema(description = "状态,见 CommonStatusEnum 枚举", example = "1")

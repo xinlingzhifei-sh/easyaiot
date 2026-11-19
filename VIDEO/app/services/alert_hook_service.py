@@ -1,7 +1,6 @@
 """
 告警Hook服务：处理实时分析中的告警信息，仅发送到Kafka（Java端统一处理消息）
-@author reese
-@email reese
+@author liufei
 """
 import json
 import hashlib

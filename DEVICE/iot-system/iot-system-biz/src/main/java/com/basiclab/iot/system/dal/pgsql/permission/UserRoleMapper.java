@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * UserRoleMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface UserRoleMapper extends BaseMapperX<UserRoleDO> {

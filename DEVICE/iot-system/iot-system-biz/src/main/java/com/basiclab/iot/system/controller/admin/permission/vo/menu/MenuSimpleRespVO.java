@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * MenuSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 菜单精简信息 Response VO")
 @Data

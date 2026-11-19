@@ -3,8 +3,7 @@ package com.basiclab.iot.common.utils.sign;
 /**
  * Base64工具类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public final class Base64
 {

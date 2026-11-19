@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 import java.text.ParseException;
 
 /**
- * @author lin
+ * @author liufei
  */
 public interface ChannelOnlineEvent {
 

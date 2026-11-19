@@ -12,8 +12,7 @@ import java.util.
 /**
  * TenantPackageSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 Set;

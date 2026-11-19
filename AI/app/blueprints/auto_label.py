@@ -1,6 +1,5 @@
 """
-@author reese
-@email reese
+@author liufei
 自动化标注功能蓝图
 """
 import os

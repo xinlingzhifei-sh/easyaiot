@@ -15,7 +15,7 @@ import java.util.Date;
  * 模板工具
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2019/1/5.
  */
 @Component

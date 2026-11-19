@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * AreaNodeRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 地区节点 Response VO")
 @Data

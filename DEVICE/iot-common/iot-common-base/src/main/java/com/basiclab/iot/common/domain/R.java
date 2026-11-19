@@ -7,8 +7,7 @@ import com.basiclab.iot.common.constant.Constants;
 /**
  * 响应信息主体
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class R<T> implements Serializable
 {

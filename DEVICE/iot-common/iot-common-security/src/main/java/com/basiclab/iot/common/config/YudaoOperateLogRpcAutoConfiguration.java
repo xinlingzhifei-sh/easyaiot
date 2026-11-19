@@ -8,8 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 /**
  * OperateLog 使用到 Feign 的配置项
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AutoConfiguration
 @ConditionalOnExpression("'${spring.application.name:}' != 'system-server'")

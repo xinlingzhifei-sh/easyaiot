@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * OAuth2OpenCheckTokenRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 【开放接口】校验令牌 Response VO")
 @Data

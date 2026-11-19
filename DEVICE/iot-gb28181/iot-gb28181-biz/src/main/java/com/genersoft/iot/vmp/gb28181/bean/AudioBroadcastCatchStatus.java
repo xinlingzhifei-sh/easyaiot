@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 /**
  * 语音广播状态
- * @author lin
+ * @author liufei
  */
 public enum AudioBroadcastCatchStatus {
 

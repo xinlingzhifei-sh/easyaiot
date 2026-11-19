@@ -19,8 +19,7 @@ import java.util.Map;
 /**
  * 客户端工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ServletUtils {
 

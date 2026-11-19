@@ -9,8 +9,7 @@ import com.basiclab.iot.common.utils.StringUtils;
 /**
  * 获取IP方法
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IpUtils
 {

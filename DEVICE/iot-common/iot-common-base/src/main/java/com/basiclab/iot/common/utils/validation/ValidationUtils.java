@@ -14,8 +14,7 @@ import java.util.regex.Pattern;
 /**
  * 校验工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ValidationUtils {
 

@@ -16,8 +16,7 @@ import java.time.LocalDateTime;
 /**
  * 设备动作数据
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value = "设备动作数据")
 @Data

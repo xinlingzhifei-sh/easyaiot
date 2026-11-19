@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 /**
  * DeviceTagUpstreamReportListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

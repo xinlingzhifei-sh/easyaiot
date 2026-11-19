@@ -5,7 +5,7 @@ package com.basiclab.iot.message.util;
  * 配置管理
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2017/6/14.
  */
 public class ConfigUtil extends ConfigBaseUtil {

@@ -12,8 +12,7 @@ public class SmsChannelSimpleRespVO {
 /**
  * SmsChannelSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 description = "编号", example = "1024")

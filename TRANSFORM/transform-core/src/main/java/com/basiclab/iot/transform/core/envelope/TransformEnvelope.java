@@ -11,10 +11,6 @@ import java.util.Map;
 
 /**
  * TRANSFORM 统一事件信封。iot-sink Kafka 消息归一化后进入本结构，再按渠道投递。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @Builder

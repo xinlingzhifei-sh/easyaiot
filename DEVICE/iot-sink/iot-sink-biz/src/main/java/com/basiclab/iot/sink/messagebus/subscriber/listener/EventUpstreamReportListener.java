@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 /**
  * EventUpstreamReportListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

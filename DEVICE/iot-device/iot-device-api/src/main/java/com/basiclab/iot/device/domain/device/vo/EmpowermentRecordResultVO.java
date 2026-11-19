@@ -16,8 +16,7 @@ import java.util.Map;
  * 赋能记录表
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-09-15 17:20:27
  */
 @Data

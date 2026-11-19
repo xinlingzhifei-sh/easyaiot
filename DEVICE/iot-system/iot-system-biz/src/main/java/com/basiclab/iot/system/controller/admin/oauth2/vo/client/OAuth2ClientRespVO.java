@@ -9,8 +9,7 @@ import java.util.List;
 /**
  * OAuth2ClientRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - OAuth2 客户端 Response VO")
 @Data
@@ -28,7 +27,7 @@ public class OAuth2ClientRespVO {
     @Schema(description = "应用名", example = "土豆")
     private String name;
 
-    @Schema(description = "应用图标", example = "https://www.iocoder.cn/xx.png")
+    @Schema(description = "应用图标", example = "https://www.example.com/xx.png")
     private String logo;
 
     @Schema(description = "应用描述", example = "我是一个应用")
@@ -43,7 +42,7 @@ public class OAuth2ClientRespVO {
     @Schema(description = "刷新令牌的有效期", example = "8640000")
     private Integer refreshTokenValiditySeconds;
 
-    @Schema(description = "可重定向的 URI 地址", example = "https://www.iocoder.cn")
+    @Schema(description = "可重定向的 URI 地址", example = "https://www.example.com")
     private List<String> redirectUris;
 
     @Schema(description = "授权类型，参见 OAuth2GrantTypeEnum 枚举", example = "password")
@@ -61,7 +60,7 @@ public class OAuth2ClientRespVO {
     @Schema(description = "资源", example = "1024")
     private List<String> resourceIds;
 
-    @Schema(description = "附加信息", example = "{yunai: true}")
+    @Schema(description = "附加信息", example = "{demo: true}")
     private String additionalInformation;
 
     @Schema(description = "创建时间")

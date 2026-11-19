@@ -238,10 +238,6 @@ python test_video.py \
 - [RTMP 协议规范](https://www.adobe.com/devnet/rtmp.html)
 - [SRS 流媒体服务器](https://github.com/ossrs/srs)
 
-## 许可证
-
-本工具遵循项目整体许可证。
-
 ## 更新日志
 
 ### v1.0.0 (2025-01-XX)

@@ -10,8 +10,7 @@ import java.util.List;
 
 /**
  * 在线调试请求参数实体
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @NoArgsConstructor

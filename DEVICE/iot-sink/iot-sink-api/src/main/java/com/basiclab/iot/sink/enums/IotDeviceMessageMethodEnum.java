@@ -12,8 +12,7 @@ import java.util.Set;
 /**
  * IotDeviceMessageMethodEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

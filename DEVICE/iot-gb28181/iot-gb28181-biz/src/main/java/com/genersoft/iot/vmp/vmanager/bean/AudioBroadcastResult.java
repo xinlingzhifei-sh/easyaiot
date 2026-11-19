@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
 /**
- * @author lin
+ * @author liufei
  */
 public class AudioBroadcastResult {
     /**

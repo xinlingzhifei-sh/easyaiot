@@ -864,7 +864,7 @@
         </foreach>
     </delete>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-05-->
+    <!--Author: liufei on 2024-07-05-->
     <select id="findOneByProductIdentificationAndProtocolTypeAndStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -874,7 +874,7 @@
           and "status" = #{status,jdbcType=VARCHAR}
     </select>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-05-->
+    <!--Author: liufei on 2024-07-05-->
     <select id="findAllByIdIn" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -886,14 +886,14 @@
         </foreach>
     </select>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-05-->
+    <!--Author: liufei on 2024-07-05-->
     <update id="updateStatusById">
         update protocol
         set "status"=#{updatedStatus,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-11-->
+    <!--Author: liufei on 2024-07-11-->
     <select id="findAllByStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

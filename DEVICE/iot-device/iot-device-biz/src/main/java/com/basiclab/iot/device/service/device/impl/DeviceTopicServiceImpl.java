@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * DeviceTopicServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class DeviceTopicServiceImpl extends ServiceImpl<DeviceTopicMapper, DeviceTopic> implements DeviceTopicService {

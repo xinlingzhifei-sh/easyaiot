@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 /**
  * IotDeviceAuthUtils
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IotDeviceAuthUtils {
 

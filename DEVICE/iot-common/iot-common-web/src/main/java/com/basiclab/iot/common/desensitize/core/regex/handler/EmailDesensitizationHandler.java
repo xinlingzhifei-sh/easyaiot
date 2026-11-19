@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.regex.annotation.EmailDesensitiz
 /**
  * {@link EmailDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class EmailDesensitizationHandler extends AbstractRegexDesensitizationHandler<EmailDesensitize> {
 

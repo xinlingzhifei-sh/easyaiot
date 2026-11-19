@@ -6,8 +6,7 @@ import com.basiclab.iot.common.exception.ErrorCode;
  * Device 字典类型的枚举类
  * device 系统，使用 1-003-000-000 段
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ErrorCodeConstants {
 

@@ -12,8 +12,7 @@ import javax.validation.constraints.Size;
 /**
  * DictDataSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 字典数据创建/修改 Request VO")
 @Data
@@ -31,7 +30,7 @@ public class DictDataSaveReqVO {
     @Size(max = 100, message = "字典标签长度不能超过100个字符")
     private String label;
 
-    @Schema(description = "字典值", example = "iocoder")
+    @Schema(description = "字典值", example = "example")
     @NotBlank(message = "字典键值不能为空")
     @Size(max = 100, message = "字典键值长度不能超过100个字符")
     private String value;

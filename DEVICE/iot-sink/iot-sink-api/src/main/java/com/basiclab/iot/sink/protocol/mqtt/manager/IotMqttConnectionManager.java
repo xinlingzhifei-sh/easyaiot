@@ -13,8 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * IotMqttConnectionManager
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

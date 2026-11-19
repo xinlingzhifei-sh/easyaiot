@@ -3,8 +3,7 @@ package com.basiclab.iot.device.domain.device.oo;
 import lombok.Data;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-06-03
  */

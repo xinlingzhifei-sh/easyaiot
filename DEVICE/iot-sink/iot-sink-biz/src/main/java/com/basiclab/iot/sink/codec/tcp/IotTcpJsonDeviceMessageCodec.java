@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * IotTcpJsonDeviceMessageCodec
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Component

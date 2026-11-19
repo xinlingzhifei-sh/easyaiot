@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * 配置Spring Security
  *
- * @author lin
+ * @author liufei
  */
 @Configuration
 @EnableWebSecurity

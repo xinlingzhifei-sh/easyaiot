@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
  * @program: yFeiEye
  * @description: MQTT协议Topo 状态枚举
  * @packagename: com.basiclab.iot.device.api.domain.device.enumeration
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2023-05-20 17:51
  **/
 @Getter

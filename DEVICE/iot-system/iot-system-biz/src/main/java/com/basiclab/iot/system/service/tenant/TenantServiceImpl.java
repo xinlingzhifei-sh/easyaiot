@@ -48,8 +48,7 @@ import static java.util.Collections.singleton;
 /**
  * 租户 Service 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

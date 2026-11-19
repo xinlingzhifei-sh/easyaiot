@@ -24,10 +24,6 @@ import java.util.List;
 
 /**
  * 内部投递 Topic 消费者：各渠道约定 Group 横向扩展投递。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Component

@@ -9,10 +9,6 @@ import java.io.Serializable;
 
 /**
  * 升级记录分页查询
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmUpgradeRecordPageQo对象", description = "升级记录分页Qo")

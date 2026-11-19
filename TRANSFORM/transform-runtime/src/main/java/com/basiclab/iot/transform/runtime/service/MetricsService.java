@@ -7,10 +7,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 运行时简易指标。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Service
 public class MetricsService {

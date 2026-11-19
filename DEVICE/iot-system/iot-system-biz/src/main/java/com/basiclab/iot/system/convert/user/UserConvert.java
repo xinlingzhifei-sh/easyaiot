@@ -22,8 +22,7 @@ import java.util.Map;
 /**
  * UserConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface UserConvert {

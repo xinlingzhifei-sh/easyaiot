@@ -25,8 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * IotEmqxUpstreamProtocol
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

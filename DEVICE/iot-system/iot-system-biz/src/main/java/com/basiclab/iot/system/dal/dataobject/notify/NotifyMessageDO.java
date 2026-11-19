@@ -15,8 +15,7 @@ import java.util.Map;
 /**
  * NotifyMessageDO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @TableName(value = "system_notify_message", autoResultMap = true)
 @KeySequence("system_notify_message_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。

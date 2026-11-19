@@ -15,8 +15,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * IotTcpBinaryDeviceMessageCodec
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

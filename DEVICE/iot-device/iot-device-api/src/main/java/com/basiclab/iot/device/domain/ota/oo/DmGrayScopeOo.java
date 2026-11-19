@@ -8,10 +8,6 @@ import java.io.Serializable;
 
 /**
  * 灰度范围
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmGrayScopeOo对象", description = "灰度范围Oo")

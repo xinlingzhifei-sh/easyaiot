@@ -11,8 +11,7 @@ import java.util.Properties;
 /**
  * RedisConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface RedisConvert {

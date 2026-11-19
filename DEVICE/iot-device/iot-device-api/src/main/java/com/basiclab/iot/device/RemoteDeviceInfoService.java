@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * 子设备管理服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteDeviceInfoService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteDeviceInfoFallbackFactory.class)
 public interface RemoteDeviceInfoService {

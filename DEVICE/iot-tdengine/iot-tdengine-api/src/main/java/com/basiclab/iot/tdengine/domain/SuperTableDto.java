@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * SuperTableDto
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class SuperTableDto extends BaseEntity {

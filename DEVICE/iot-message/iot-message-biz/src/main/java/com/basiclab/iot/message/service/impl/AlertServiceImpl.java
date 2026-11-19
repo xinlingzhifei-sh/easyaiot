@@ -44,8 +44,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *        'device_id': ...
  *    }
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Service

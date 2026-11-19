@@ -16,8 +16,7 @@ import java.io.Serializable;
  * 设备命令下发及响应表
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-10-20 17:27:25
  */
 @Data

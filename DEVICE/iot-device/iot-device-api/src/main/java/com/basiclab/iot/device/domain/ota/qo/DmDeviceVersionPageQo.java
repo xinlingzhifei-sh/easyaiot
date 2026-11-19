@@ -9,10 +9,6 @@ import java.io.Serializable;
 
 /**
  * 设备版本档案分页查询
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmDeviceVersionPageQo对象", description = "设备版本档案分页Qo")

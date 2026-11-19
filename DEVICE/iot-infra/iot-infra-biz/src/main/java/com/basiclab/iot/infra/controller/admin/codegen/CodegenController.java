@@ -39,8 +39,7 @@ import static com.basiclab.iot.common.utils.SecurityFrameworkUtils.getLoginUserI
 /**
  * CodegenController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 代码生成器")
 @RestController

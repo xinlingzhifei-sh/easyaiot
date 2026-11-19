@@ -5,8 +5,7 @@ import com.basiclab.iot.common.exception.BaseException;
 /**
  * 文件信息异常类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileException extends BaseException
 {

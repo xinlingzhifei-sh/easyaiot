@@ -12,8 +12,7 @@ import javax.validation.constraints.Size;
 /**
  * DeptSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 部门创建/修改 Request VO")
 @Data
@@ -37,11 +36,11 @@ public class DeptSaveReqVO {
     @Schema(description = "负责人的用户编号", example = "2048")
     private Long leaderUserId;
 
-    @Schema(description = "联系电话", example = "15601691000")
+    @Schema(description = "联系电话", example = "13800000000")
     @Size(max = 11, message = "联系电话长度不能超过11个字符")
     private String phone;
 
-    @Schema(description = "邮箱", example = "Yudao@iocoder.cn")
+    @Schema(description = "邮箱", example = "user@example.com")
     @Email(message = "邮箱格式不正确")
     @Size(max = 50, message = "邮箱长度不能超过 50 个字符")
     private String email;

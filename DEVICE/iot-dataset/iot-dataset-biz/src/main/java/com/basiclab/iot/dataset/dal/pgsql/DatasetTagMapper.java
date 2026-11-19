@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 数据集标签 Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DatasetTagMapper extends BaseMapperX<DatasetTagDO> {

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.utils.file;
 /**
  * 媒体类型工具类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class MimeTypeUtils
 {

@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * AutoLabelModelReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class AutoLabelModelReqVO {

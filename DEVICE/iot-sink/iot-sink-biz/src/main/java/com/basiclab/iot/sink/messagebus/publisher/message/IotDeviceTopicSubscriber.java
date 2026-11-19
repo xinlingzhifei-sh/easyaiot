@@ -19,8 +19,7 @@ import javax.annotation.Resource;
 /**
  * IotDeviceTopicSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

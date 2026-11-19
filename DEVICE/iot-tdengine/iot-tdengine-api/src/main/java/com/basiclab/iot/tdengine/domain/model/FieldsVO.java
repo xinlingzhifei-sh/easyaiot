@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 /**
  * FieldsVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class FieldsVO implements Serializable {

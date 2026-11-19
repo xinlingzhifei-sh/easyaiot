@@ -31,8 +31,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * PostController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 岗位")
 @RestController

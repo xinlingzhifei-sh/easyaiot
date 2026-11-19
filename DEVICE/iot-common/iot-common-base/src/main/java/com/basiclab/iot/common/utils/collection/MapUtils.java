@@ -16,8 +16,7 @@ import java.util.function.Consumer;
 /**
  * Map 工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class MapUtils {
 

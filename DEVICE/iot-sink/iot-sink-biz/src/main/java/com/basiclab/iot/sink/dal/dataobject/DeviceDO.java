@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * DeviceDO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @TableName("device")

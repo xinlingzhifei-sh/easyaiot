@@ -9,8 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 /**
  * SecurityConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false, value = "tdengineSecurityConfiguration")
 public class SecurityConfiguration {

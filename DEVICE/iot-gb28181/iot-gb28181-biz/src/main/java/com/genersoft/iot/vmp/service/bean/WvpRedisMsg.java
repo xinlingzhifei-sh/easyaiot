@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
 /**
- * @author lin
+ * @author liufei
  */
 public class WvpRedisMsg {
 

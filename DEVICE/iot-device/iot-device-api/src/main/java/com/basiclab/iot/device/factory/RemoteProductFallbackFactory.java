@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * RemoteProductFallbackFactory
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Component

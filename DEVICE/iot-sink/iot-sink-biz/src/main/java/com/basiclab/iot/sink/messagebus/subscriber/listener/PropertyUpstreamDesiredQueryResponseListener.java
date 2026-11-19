@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 /**
  * PropertyUpstreamDesiredQueryResponseListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

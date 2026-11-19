@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * DeptListReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 部门列表 Request VO")
 @Data

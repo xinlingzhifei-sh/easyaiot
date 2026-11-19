@@ -2,8 +2,7 @@ package com.basiclab.iot.common.dynamicCompilation.bytecode;
 
 /**
  * Class文件修改器
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-07-04
  */
 public class ClassModifier {

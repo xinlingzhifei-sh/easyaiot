@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * GatewayServerApplication
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @SpringBootApplication
 public class GatewayServerApplication {

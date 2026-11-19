@@ -122,7 +122,7 @@ export function logout() {
   return http.post<void>('/system/auth/logout')
 }
 
-// TODO @芋艿：三方登录
+// TODO：三方登录
 /**
  * 获取微信登录凭证
  * @returns Promise 包含微信登录凭证(code)
@@ -137,7 +137,7 @@ export function getWxCode() {
   })
 }
 
-// TODO @芋艿：三方登录
+// TODO：三方登录
 /**
  * 微信登录
  * @param params 微信登录参数，包含code

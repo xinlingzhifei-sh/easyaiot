@@ -8,8 +8,7 @@ import lombok.EqualsAndHashCode;
 /**
  * OAuth2AccessTokenPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 访问令牌分页 Request VO")
 @Data

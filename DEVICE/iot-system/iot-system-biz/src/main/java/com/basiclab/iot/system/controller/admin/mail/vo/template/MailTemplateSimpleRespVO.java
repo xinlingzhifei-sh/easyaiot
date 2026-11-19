@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * MailTemplateSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮件模版的精简 Response VO")
 @Data

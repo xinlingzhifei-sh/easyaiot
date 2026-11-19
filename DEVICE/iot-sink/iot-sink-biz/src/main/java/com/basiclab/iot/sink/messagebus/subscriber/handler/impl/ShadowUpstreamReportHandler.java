@@ -11,8 +11,7 @@ import javax.annotation.Resource;
 /**
  * ShadowUpstreamReportHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

@@ -5,8 +5,7 @@ import com.basiclab.iot.common.utils.ServletUtils;
 /**
  * 表格数据处理
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TableSupport
 {

@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 /**
  * 顶级脱敏注解，自定义注解需要使用此注解
  *
- * @author gaibu
+ * @author liufei
  */
 @Documented
 @Target(ElementType.ANNOTATION_TYPE)

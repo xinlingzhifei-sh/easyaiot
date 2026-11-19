@@ -13,8 +13,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * LoginLogPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 登录日志分页列表 Request VO")
 @Data

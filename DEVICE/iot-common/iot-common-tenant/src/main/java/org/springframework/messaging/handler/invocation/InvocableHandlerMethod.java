@@ -1,19 +1,3 @@
-/*
- * Copyright 2002-2021 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.springframework.messaging.handler.invocation;
 
 import com.basiclab.iot.common.core.context.TenantContextHolder;
@@ -42,8 +26,6 @@ import static com.basiclab.iot.common.web.core.util.WebFrameworkUtils.HEADER_TEN
  * 针对 rabbitmq-spring 和 kafka-spring，不存在合适的拓展点，可以实现 Consumer 消费前，读取 Header 中的 tenant-id 设置到 {@link TenantContextHolder} 中
  * TODO yFeiEye：持续跟进，看看有没新的拓展点
  *
- * @author Rossen Stoyanchev
- * @author Juergen Hoeller
  * @since 4.0
  */
 public class InvocableHandlerMethod extends HandlerMethod {

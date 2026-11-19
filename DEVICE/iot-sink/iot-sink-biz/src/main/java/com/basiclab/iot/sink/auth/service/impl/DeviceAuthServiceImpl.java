@@ -39,8 +39,7 @@ import static com.basiclab.iot.sink.enums.ErrorCodeConstants.DEVICE_TOKEN_EXPIRE
 /**
  * DeviceAuthServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

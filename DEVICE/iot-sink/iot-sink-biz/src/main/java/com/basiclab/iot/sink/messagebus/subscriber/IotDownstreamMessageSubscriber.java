@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * IotDownstreamMessageSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

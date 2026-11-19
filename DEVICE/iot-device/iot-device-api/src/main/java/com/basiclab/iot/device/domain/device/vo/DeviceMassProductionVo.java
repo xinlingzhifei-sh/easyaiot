@@ -10,8 +10,7 @@ import java.io.Serializable;
 
 /**
  * 设备管理
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value = "设备量产信息")
 @Getter

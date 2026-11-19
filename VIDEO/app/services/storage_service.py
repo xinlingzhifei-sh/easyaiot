@@ -1,7 +1,6 @@
 """
 设备存储空间管理服务
-@author reese
-@email reese
+@author liufei
 """
 import logging
 from datetime import datetime

@@ -17,8 +17,7 @@ import java.util.Map;
 /**
  * 文件服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteFileService", value = ServiceNameConstants.IOT_FILE, fallbackFactory = RemoteFileFallbackFactory.class)
 public interface RemoteFileService {

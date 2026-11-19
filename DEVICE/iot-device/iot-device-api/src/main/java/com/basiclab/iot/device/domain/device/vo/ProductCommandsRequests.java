@@ -9,14 +9,12 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 /**
  * 产品模型设备下发服务命令属性表
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value = "产品模型设备下发服务命令属性表")
 @Data

@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * DeviceEventService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface DeviceEventService extends IService<DeviceEvent> {

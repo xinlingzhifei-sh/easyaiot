@@ -7,10 +7,6 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * 支持语义化版本（v1.2.3 / 1.2.3.4 / 2025.08.27 等以数字段组成的版本号）：
  * 逐段按数值比较；无法解析为数字段时，回退为字典序比较。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public final class OtaVersionUtils {
 

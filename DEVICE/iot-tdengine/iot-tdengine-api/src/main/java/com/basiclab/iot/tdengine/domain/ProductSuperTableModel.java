@@ -9,8 +9,7 @@ import java.util.Optional;
 
 /**
  * @Description: 产品超级表模型
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/1/1$ 19:37$
  * @UpdateDate: 2024/1/1$ 19:37$
  * @Version: V1.0

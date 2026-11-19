@@ -10,8 +10,7 @@ import java.util.Arrays;
 /**
  * 通用状态枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

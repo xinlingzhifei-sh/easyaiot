@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 /**
  * IotMessageBusProperties
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ConfigurationProperties("basiclab.iot.message-bus")
 @Data

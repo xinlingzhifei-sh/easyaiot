@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * OAuth2AccessTokenCreateReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - OAuth2 访问令牌创建 Request DTO")
 @Data

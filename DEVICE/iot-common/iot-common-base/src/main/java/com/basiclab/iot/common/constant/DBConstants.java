@@ -3,7 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * DB通用常量
  * 
- * @author shien
+ * @author liufei
  */
 public class DBConstants
 {

@@ -19,8 +19,7 @@ import lombok.experimental.Accessors;
  * ProtocolDataMessage
  * -----------------------------------------------------------------------------
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @version 1.0
  * -----------------------------------------------------------------------------
  * Revision History:
@@ -28,7 +27,6 @@ import lombok.experimental.Accessors;
  * --------      --------     -------   --------------------
  * <p>
  * -----------------------------------------------------------------------------
- * @email reese
  * @date 2023-11-12 01:50
  */
 @Data

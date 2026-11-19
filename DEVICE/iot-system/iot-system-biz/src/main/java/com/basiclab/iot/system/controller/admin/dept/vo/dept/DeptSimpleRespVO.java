@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * DeptSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 部门精简信息 Response VO")
 @Data

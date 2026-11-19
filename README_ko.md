@@ -1682,12 +1682,6 @@ yFeiEye 플랫폼과 코드를 깊이 이해하실 수 있도록 다양한 서�
 좋은 의견을 제안하여 yFeiEye을 완성하는 데 도움을 주세요.
 </p>
 
-## 📄 저작권
-
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>사용 라이선스</strong>: 개인과 기업은 100% 무료로 사용할 수 있으며, 작성자 또는 저작권 정보를 유지할 필요가 없습니다. 우리는 기술의 가치가 널리 사용되고 지속적인 혁신에 있다고 믿으며, 저작권에 얽매이지 않습니다. 여러분이 이 프로젝트를 자유롭게 사용, 수정 및 배포하여 AI 기술이 모든 사람에게 진정으로 혜택을 줄 수 있기를 희망합니다.
-</p>
-
 ## 🌟 Star 증가 추세도
 
 [![Stargazers over time](https://starchart.cc/xinlingzhifei/easyaiot.svg?variant=adaptive)](https://starchart.cc/xinlingzhifei/easyaiot)

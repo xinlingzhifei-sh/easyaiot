@@ -27,7 +27,7 @@ import java.text.ParseException;
 
 /**
  * SIP命令类型： SUBSCRIBE请求
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

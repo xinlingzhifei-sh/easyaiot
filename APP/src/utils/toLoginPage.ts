@@ -23,7 +23,7 @@ interface ToLoginPageOptions {
  */
 export const toLoginPage = debounce((options: ToLoginPageOptions = {}) => {
   let { mode = 'navigateTo', queryString = '' } = options
-  // add by 芋艿：如果有查询参数，强制使用 reLaunch 模式。
+  // 如果有查询参数，强制使用 reLaunch 模式。
   // 原因：携带 redirect 参数，登录成功后可以跳回去。避免使用 navigateTo 导致页面数据不会刷新
   if (queryString) {
     mode = 'reLaunch'

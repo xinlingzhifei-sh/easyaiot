@@ -127,9 +127,6 @@
             如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式联系我们：
           </text>
           <text class="mt-16rpx block">
-            邮箱：7685413@qq.com
-          </text>
-          <text class="mt-16rpx block">
             电话：400-999-9999
           </text>
         </view>

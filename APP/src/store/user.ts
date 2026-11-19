@@ -11,7 +11,7 @@ const userInfoState: IUserInfoRes = {
   userId: -1,
   username: '',
   nickname: '',
-  avatar: '/static/images/default-avatar.png', // TODO @芋艿：CDN 化
+  avatar: '/static/images/default-avatar.png', // TODO：CDN 化
 }
 
 export const useUserStore = defineStore(

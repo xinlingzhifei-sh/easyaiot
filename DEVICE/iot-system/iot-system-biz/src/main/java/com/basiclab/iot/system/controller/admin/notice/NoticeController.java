@@ -25,8 +25,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * NoticeController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 通知公告")
 @RestController

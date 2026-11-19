@@ -20,28 +20,6 @@ export interface FaqCategory {
 /** FAQ 数据列表 */
 export const faqList: FaqCategory[] = [
   {
-    icon: 'github-filled',
-    title: 'yFeiEye 问题',
-    childList: [
-      {
-        title: 'yFeiEye 开源吗？',
-        content: '开源，基于 MIT 协议，可免费商用。',
-      },
-      {
-        title: 'yFeiEye 可以商用吗？',
-        content: '可以，yFeiEye 采用 MIT 开源协议，允许商业使用。',
-      },
-      {
-        title: 'yFeiEye 官网地址多少？',
-        content: 'https://gitee.com/soaring-xiongkulu/yFeiEye',
-      },
-      {
-        title: 'yFeiEye 文档地址多少？',
-        content: 'https://github.com/soaring-xiongkulu/yFeiEye',
-      },
-    ],
-  },
-  {
     icon: 'exclamation-circle',
     title: '其他问题',
     childList: [

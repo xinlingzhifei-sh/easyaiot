@@ -14,8 +14,7 @@ import javax.validation.constraints.NotNull;
 /**
  * AuthSocialLoginReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 社交绑定登录 Request VO，使用 code 授权码 + 账号密码")
 @Data

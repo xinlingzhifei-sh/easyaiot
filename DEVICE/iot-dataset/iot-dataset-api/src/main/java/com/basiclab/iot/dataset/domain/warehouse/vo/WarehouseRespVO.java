@@ -7,8 +7,7 @@ import com.alibaba.excel.annotation.*;
 /**
  * WarehouseRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 数据仓 Response VO")
 @Data

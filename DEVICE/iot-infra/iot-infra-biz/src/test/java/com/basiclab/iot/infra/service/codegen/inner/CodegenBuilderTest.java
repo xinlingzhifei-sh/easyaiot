@@ -22,8 +22,7 @@ import static org.mockito.Mockito.when;
 /**
  * CodegenBuilderTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class CodegenBuilderTest extends BaseMockitoUnitTest {
 

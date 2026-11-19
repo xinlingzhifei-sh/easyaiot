@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 /**
  * TenantRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 租户 Response VO")
 @Data
@@ -33,7 +32,7 @@ public class TenantRespVO {
     @ExcelProperty("联系人")
     private String contactName;
 
-    @Schema(description = "联系手机", example = "15601691300")
+    @Schema(description = "联系手机", example = "13800000000")
     @ExcelProperty("联系手机")
     private String contactMobile;
 
@@ -42,7 +41,7 @@ public class TenantRespVO {
     @DictFormat(DictTypeConstants.COMMON_STATUS)
     private Integer status;
 
-    @Schema(description = "绑定域名", example = "https://www.iocoder.cn")
+    @Schema(description = "绑定域名", example = "https://www.example.com")
     private String website;
 
     @Schema(description = "租户套餐编号", example = "1024")

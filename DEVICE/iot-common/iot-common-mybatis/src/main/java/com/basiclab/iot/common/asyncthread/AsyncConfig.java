@@ -12,8 +12,7 @@ package com.basiclab.iot.common.asyncthread;//package com.basiclab.iot.common.co
 ///**
 // * 异步@Async多线程配置
 // *
-// * @author reese
-// * @email reese
+// * @author liufei
 // */
 //@Configuration
 //@EnableAsync

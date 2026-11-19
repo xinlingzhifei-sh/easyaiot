@@ -18,8 +18,7 @@ import java.util.Map;
 /**
  * DeviceEventHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

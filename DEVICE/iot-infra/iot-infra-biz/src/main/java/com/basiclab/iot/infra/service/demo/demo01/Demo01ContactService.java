@@ -10,8 +10,7 @@ import javax.validation.Valid;
 /**
  * 示例联系人 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface Demo01ContactService {
 

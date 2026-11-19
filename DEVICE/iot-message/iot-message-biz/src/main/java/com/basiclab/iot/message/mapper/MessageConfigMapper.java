@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * 消息配置mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Mapper

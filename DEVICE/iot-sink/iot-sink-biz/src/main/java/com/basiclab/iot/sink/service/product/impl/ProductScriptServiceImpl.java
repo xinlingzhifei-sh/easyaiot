@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * ProductScriptServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

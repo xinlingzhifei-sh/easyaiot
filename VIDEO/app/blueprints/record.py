@@ -1,7 +1,6 @@
 """
 监控录像空间管理路由
-@author reese
-@email reese
+@author liufei
 """
 import hashlib
 import json

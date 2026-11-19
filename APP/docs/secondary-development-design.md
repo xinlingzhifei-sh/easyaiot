@@ -694,7 +694,7 @@ docs: 补充二次开发设计文档
 
 ## 14. 上游框架合并策略
 
-APP 基于 [unibest](https://unibest.tech) 模板，并叠加yFeiEye业务代码。后续若需同步 unibest 上游更新，请参考 `docs/merge/README.md`：
+APP 基于 unibest 模板，并叠加yFeiEye业务代码。后续若需同步 unibest 上游更新，请参考 `docs/merge/README.md`：
 
 - **不建议**整库 merge，按月份 cherry-pick 低风险改动
 - 重点关注：`vite.config.ts`、`router/interceptor.ts`、`store/token.ts`、`tabbar/*` 的冲突

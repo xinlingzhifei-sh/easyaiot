@@ -6,8 +6,7 @@
 # 使用方法：
 #     bash fix_kafka_consumer_group.sh [--reset] [--check-only]
 #
-# @author reese
-# @email reese
+# @author liufei
 
 # 不使用 set -e，以便更好地处理错误
 set -o pipefail

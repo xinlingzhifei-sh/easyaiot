@@ -19,8 +19,7 @@ import java.util.Map;
 /**
  * TdEngineService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface TdEngineService {
     /**

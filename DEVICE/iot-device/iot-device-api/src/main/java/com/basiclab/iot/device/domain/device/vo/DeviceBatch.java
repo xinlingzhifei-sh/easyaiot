@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 /**
  * DeviceBatch
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

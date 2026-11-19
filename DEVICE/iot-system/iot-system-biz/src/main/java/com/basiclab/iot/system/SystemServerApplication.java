@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 /**
  * SystemServerApplication
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @EnableCustomConfig

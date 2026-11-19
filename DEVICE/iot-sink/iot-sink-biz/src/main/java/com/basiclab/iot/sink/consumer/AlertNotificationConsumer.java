@@ -20,8 +20,7 @@ import java.util.Map;
  * 告警通知Kafka消费者（iot-sink服务）
  * 处理流程：1. 存储告警到数据库 2. 上传图片到MinIO 3. 如果开启了通知，发送到通知主题供iot-message消费
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * MenuRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 菜单信息 Response VO")
 @Data

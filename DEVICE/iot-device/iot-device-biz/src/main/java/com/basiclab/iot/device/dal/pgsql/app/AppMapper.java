@@ -8,8 +8,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * AppMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface AppMapper extends BaseMapper<AppDO> {

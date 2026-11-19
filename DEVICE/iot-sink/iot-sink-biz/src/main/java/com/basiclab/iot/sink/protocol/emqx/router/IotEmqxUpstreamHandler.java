@@ -17,8 +17,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * IotEmqxUpstreamHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

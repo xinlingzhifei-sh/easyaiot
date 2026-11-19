@@ -28,8 +28,7 @@ import java.util.concurrent.*;
 /**
  * FrameProcessingPipeline
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @EnableScheduling
 @Configuration

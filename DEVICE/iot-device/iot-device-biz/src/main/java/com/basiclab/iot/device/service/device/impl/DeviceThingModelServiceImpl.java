@@ -39,8 +39,7 @@ import java.util.stream.Collectors;
 /**
  * DeviceThingModelServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Service

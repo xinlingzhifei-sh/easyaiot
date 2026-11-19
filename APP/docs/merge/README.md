@@ -6,15 +6,14 @@
 - 当前项目分支：`master`
 - 合并计划创建时 HEAD：`d50300dd`
 - 2026-05 低风险项实施前 HEAD：`880d31f4`
-- 当前项目与 `origin/main`（`codercup/unibest`）的 merge-base：`05cb9eba9c4886fa059315758eb468418fffee2f`
-- 按要求克隆过的仓库：`https://github.com/uni-run/unibest.git`
+- 当前项目与 `origin/main` 的 merge-base：`05cb9eba9c4886fa059315758eb468418fffee2f`
 - 原临时克隆目录：`/tmp/unibest.JX5Sbf/unibest`，当前已不是 git repo，不能作为后续实施依据
 
-重要结论：`05cb9eba` 不在新 `uni-run/unibest` 当前 refs 中，但存在于当前项目已有的 `origin/main`（`codercup/unibest`）历史里。截图提交线更像是旧 `codercup/unibest` 远端历史；2026-05 之后的新提交来自 `uni-run/unibest`。
+重要结论：`05cb9eba` 不在新上游当前 refs 中，但存在于当前项目已有的 `origin/main` 历史里。截图提交线更像是旧远端历史；2026-05 之后的新提交来自新上游。
 
 ## 实施前置条件
 
-- 当前仓库已配置 `uni-run/unibest` remote。
+- 当前仓库已配置 `unibest` 上游 remote。
 - 已执行 `git fetch unibest main`，2026-05 提交（`03e115f6` 到 `1a1e2531`）已经在当前 object store。
 - 后续继续实施新月份前，仍建议先执行类似命令刷新上游：
 
@@ -48,7 +47,7 @@ git fetch unibest main
 
 ## 最终补录
 
-2026-06-07 复查 `uni-run/unibest` 后，发现若干 2026-01/02 已在上游 `main` 中、但此前按截图主线审计时遗漏的提交。本次作为“最终补录”处理，不视为新月份。
+2026-06-07 复查 unibest 上游后，发现若干 2026-01/02 已在上游 `main` 中、但此前按截图主线审计时遗漏的提交。本次作为“最终补录”处理，不视为新月份。
 
 | commit | 所属月份 | 处理 | 结论 |
 | --- | --- | --- | --- |

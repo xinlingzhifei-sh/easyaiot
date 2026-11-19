@@ -11,8 +11,7 @@ import java.io.Serializable;
 /**
  * ProductProperties
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @ApiModel(value="产品模型服务属性表")

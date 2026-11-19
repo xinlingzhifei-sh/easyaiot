@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * MailTemplateMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface MailTemplateMapper extends BaseMapperX<MailTemplateDO> {

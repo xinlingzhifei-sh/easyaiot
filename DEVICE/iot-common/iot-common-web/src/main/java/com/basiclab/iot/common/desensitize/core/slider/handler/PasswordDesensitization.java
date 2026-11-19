@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.PasswordDesens
 /**
  * {@link PasswordDesensitize} 的码脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class PasswordDesensitization extends AbstractSliderDesensitizationHandler<PasswordDesensitize> {
     @Override

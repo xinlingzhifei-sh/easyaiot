@@ -3,7 +3,7 @@ package com.basiclab.iot.common.utils.bytes;
 import io.netty.buffer.ByteBuf;
 
 /**
- * @author qyb
+ * @author liufei
  * @description: TODO
  * @date 2025/11/30 11:15
  */

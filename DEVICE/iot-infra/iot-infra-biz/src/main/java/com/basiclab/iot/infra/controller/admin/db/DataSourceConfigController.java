@@ -22,8 +22,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * DataSourceConfigController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 数据源配置")
 @RestController

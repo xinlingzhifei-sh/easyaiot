@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * RegisterResp
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

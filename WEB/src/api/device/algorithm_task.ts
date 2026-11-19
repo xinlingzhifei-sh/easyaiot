@@ -1,7 +1,6 @@
 /**
  * 算法任务、抽帧器、排序器管理接口
- * @author reese
- * @email reese
+ * @author liufei
  */
 import {defHttp} from '@/utils/http/axios';
 

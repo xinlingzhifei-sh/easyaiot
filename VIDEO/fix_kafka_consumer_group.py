@@ -6,8 +6,7 @@ Kafka消费者组修复脚本
 使用方法：
     python fix_kafka_consumer_group.py [--reset] [--check-only]
 
-@author reese
-@email reese
+@author liufei
 """
 import argparse
 import os

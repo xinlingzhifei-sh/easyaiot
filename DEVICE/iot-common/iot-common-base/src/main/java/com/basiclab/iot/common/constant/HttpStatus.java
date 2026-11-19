@@ -3,8 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * 返回状态码
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class HttpStatus
 {

@@ -5,8 +5,7 @@ import com.basiclab.iot.infra.framework.file.core.client.s3.FilePresignedUrlResp
 /**
  * 文件客户端
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface FileClient {
 

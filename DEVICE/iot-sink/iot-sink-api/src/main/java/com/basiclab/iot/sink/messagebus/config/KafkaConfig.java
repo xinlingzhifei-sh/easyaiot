@@ -18,8 +18,7 @@ import java.util.Map;
 /**
  * KafkaConfig
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration
 @ConditionalOnProperty(prefix = "spring.kafka.iot.producer", name = "bootstrap-servers")

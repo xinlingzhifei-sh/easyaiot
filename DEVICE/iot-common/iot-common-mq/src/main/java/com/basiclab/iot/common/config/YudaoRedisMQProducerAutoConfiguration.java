@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * Redis 消息队列 Producer 配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @AutoConfiguration(after = YudaoRedisAutoConfiguration.class)

@@ -17,8 +17,7 @@ import java.util.Map;
 /**
  * NotifyMessageServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

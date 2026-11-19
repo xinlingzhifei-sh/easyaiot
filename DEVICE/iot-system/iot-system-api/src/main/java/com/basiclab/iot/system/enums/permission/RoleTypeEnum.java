@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * RoleTypeEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

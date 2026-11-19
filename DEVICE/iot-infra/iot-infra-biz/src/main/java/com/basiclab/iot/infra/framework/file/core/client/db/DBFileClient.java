@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * 基于 DB 存储的文件客户端的配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DBFileClient extends AbstractFileClient<DBFileClientConfig> {
 

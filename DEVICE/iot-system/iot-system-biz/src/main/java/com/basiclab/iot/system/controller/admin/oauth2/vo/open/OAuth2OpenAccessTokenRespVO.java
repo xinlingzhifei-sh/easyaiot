@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 /**
  * OAuth2OpenAccessTokenRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 【开放接口】访问令牌 Response VO")
 @Data

@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * MailTemplateRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class MailTemplateRespDTO implements Serializable {

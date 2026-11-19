@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * DmDevicePackagePo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

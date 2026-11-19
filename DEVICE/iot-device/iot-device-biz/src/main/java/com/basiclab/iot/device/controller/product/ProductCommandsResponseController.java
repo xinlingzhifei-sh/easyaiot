@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * (product_commands_response)表控制层
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("/product/commands/response")

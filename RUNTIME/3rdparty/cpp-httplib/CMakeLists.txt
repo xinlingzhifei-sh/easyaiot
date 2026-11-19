@@ -295,10 +295,8 @@ if(HTTPLIB_INSTALL)
 		DESTINATION ${_TARGET_INSTALL_CMAKEDIR}
 	)
 
-	# Install documentation & license
-	# ex: /usr/share/doc/httplib/README.md and /usr/share/licenses/httplib/LICENSE
+	# Install documentation
 	install(FILES "README.md" DESTINATION "${CMAKE_INSTALL_DOCDIR}")
-	install(FILES "LICENSE" DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/${PROJECT_NAME}")
 
 	include(CPack)
 endif()

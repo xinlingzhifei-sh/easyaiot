@@ -12,8 +12,7 @@ import com.basiclab.iot.common.utils.StringUtils;
 /**
  * 类型转换器
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class Convert
 {

@@ -19,7 +19,7 @@ import java.util.Properties;
  * Mybatis工具
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2019/5/9.
  */
 @Slf4j

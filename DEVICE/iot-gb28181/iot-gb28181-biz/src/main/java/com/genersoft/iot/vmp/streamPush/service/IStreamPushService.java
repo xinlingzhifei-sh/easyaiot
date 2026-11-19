@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author lin
+ * @author liufei
  */
 public interface IStreamPushService {
 

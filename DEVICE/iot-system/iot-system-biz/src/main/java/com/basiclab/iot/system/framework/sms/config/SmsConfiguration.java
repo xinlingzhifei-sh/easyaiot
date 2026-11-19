@@ -9,8 +9,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 短信配置类，包括短信客户端、短信验证码两部分
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SmsCodeProperties.class)

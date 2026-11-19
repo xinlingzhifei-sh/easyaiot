@@ -10,8 +10,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Sftp 文件客户端的配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class SftpFileClientConfig implements FileClientConfig {

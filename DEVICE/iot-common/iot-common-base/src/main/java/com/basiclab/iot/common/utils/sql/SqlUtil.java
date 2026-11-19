@@ -6,8 +6,7 @@ import com.basiclab.iot.common.utils.StringUtils;
 /**
  * sql操作工具类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SqlUtil
 {

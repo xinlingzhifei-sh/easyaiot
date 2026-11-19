@@ -5,8 +5,7 @@ import com.basiclab.iot.common.utils.StringUtils;
 /**
  * 分页数据
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class PageDomain
 {

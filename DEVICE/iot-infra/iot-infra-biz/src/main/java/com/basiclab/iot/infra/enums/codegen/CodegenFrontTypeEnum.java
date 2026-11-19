@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * 代码生成的前端类型枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @Getter

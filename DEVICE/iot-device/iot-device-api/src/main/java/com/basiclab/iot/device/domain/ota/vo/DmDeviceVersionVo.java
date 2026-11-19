@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
 
 /**
  * 设备版本档案
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmDeviceVersionVo对象", description = "设备版本档案")

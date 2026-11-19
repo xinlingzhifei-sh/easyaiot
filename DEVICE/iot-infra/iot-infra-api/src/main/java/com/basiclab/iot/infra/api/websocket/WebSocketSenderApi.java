@@ -25,8 +25,7 @@ public interface WebSocketSenderApi {
     /**
  * WebSocketSenderApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 default void send(Integer userType, Long userId, String messageType, String messageContent) {

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * @ClassName:LinuxCmd.java
- * @author: shisen
+ * @author: liufei
  * @date: 2021年12月29
  * @Description: LinuxCmd.java
  */

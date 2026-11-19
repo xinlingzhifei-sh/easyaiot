@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  *  ThreadPoolTask 配置类
- * @author lin
+ * @author liufei
  */
 @Configuration
 @Order(1)

@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * CodegenColumnHtmlTypeEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @Getter

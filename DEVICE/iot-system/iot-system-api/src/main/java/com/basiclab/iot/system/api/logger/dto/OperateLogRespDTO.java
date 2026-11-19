@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 /**
  * OperateLogRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(name = "RPC 服务 - 系统操作日志 Response DTO")
 @Data

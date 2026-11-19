@@ -2,20 +2,7 @@
   "name": "yfeieye-web",
   "version": "2.1.0-snapshot",
   "packageManager": "pnpm@11.3.0",
-  "author": {
-    "name": "yfeieye-web",
-    "email": "basiclab@qq.com",
-    "url": "https://gitee.com/vegetable-chicken-blog/basiclab-iot"
-  },
-  "license": "Apache-2.0",
-  "homepage": "https://vegetable-chicken.blog.csdn.net/",
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitee.com/vegetable-chicken-blog/basiclab-iot.git"
-  },
-  "bugs": {
-    "url": "https://gitee.com/vegetable-chicken-blog/basiclab-iot/issues"
-  },
+  "author": "liufei",
   "engines": {
     "node": "^18.0.0 || >=20.0.0",
     "pnpm": ">=11.3.0"

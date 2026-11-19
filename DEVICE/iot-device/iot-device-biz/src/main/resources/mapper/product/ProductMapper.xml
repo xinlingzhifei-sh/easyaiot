@@ -1034,7 +1034,7 @@
         </foreach>
     </delete>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-17-->
+    <!--Author: liufei on 2024-02-17-->
     <select id="findOneByProductName" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1046,7 +1046,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-03-25-->
+    <!--Author: liufei on 2024-03-25-->
     <select id="selectByManufacturerIdAndModelAndDeviceType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1064,7 +1064,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-03-25-->
+    <!--Author: liufei on 2024-03-25-->
     <select id="findOneByManufacturerIdAndModelAndDeviceType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1082,7 +1082,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-04-13-->
+    <!--Author: liufei on 2024-04-13-->
     <select id="findAllByStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1095,7 +1095,7 @@
         <include refid="OrderByCreateTimeDesc"/>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-04-14-->
+    <!--Author: liufei on 2024-04-14-->
     <select id="findOneByManufacturerIdAndModelAndProtocolTypeAndStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1116,7 +1116,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-04-15-->
+    <!--Author: liufei on 2024-04-15-->
     <select id="findOneByIdAndStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1131,7 +1131,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-04-27-->
+    <!--Author: liufei on 2024-04-27-->
     <select id="findOneByProductIdentificationAndProtocolType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1143,7 +1143,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-04-27-->
+    <!--Author: liufei on 2024-04-27-->
     <select id="findAllByIdInAndStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

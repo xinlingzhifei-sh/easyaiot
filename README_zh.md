@@ -1720,12 +1720,3 @@ yFeiEye是一个开源学习项目，与商业行为无关。用户在使用该�
 <p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
 欢迎提出更好的意见，帮助完善 yFeiEye
 </p>
-
-## 📄 版权
-
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-yFeiEye 采用 <a href="https://github.com/xinlingzhifei/easyaiot/blob/main/LICENSE" style="color: #3498db; text-decoration: none; font-weight: 600;">MIT LICENSE</a> 开源协议。我们致力于推动 AI 技术的普及与发展，让更多人能够自由使用和受益于这项技术。
-</p>
-
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>使用许可</strong>：个人与企业可 100% 免费使用，无需保留作者、Copyright 信息。我们相信技术的价值在于被广泛使用和持续创新，而非被版权束缚。希望您能够自由地使用、修改、分发本项目，让 AI 技术真正惠及每一�

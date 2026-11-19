@@ -5,8 +5,7 @@ import com.basiclab.iot.sink.mq.message.IotDeviceMessage;
 /**
  * IotDeviceMessageCodec
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface IotDeviceMessageCodec {

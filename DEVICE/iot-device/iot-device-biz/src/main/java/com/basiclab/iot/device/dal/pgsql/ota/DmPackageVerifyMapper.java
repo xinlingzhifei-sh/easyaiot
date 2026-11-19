@@ -10,10 +10,6 @@ import java.util.List;
 
 /**
  * 测试白名单 Mapper
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Mapper
 public interface DmPackageVerifyMapper extends BaseMapper<DmPackageVerifyPo> {

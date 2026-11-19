@@ -7,7 +7,7 @@ import java.net.URLEncoder;
 
 /**
  * @ClassName:CodeUtil.java
- * @author: shisen
+ * @author: liufei
  * @date: 2021年12月29日
  * @Description: 编码转换
  */

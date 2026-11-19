@@ -34,7 +34,7 @@ import javax.sip.header.ToHeader;
 
 /**
  * SIP命令类型： ACK请求
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

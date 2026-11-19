@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 /**
  * InfraServerApplication
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @EnableCustomConfig

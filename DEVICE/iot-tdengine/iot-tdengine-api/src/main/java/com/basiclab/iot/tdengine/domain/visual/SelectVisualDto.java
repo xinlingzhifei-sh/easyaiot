@@ -8,8 +8,7 @@ import javax.validation.constraints.NotBlank;
 /**
  * SelectVisualDto
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * MailTemplateApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(name = ApiConstants.NAME)
 @Tag(name = "RPC 服务 - 邮件模板")

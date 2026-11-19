@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "yFeiEye 主模块（ArkWeb 壳）",
   "main": "",
-  "author": "",
-  "license": "Apache-2.0",
+  "author": "liufei",
   "dependencies": {}
 }

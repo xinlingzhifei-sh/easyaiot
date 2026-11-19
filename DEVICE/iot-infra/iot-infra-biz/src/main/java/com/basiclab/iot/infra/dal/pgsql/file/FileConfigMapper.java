@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * FileConfigMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface FileConfigMapper extends BaseMapperX<FileConfigDO> {

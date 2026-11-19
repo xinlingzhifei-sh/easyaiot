@@ -16,10 +16,6 @@ import java.util.List;
 
 /**
  * AppPanelTemplateServiceImpl
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Service
 @Slf4j

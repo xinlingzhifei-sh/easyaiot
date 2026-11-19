@@ -7,10 +7,6 @@ import lombok.Getter;
  * 灰度阶梯（四类包统一，仅升阶，需相邻）
  * <p>
  * 1 设备级 → 2 产品级 → 3 全量
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum DmPackageGrayLadder implements Status {
 

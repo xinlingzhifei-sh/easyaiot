@@ -10,8 +10,7 @@ import java.io.Serializable;
 /**
  * SysFileQo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @ApiModel(value = "SysFileQo对象", description = "文件管理Qo")

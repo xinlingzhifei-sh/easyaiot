@@ -12,8 +12,7 @@ import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 /**
  * {@link DataPermission} 注解的 Advisor 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @EqualsAndHashCode(callSuper = true)

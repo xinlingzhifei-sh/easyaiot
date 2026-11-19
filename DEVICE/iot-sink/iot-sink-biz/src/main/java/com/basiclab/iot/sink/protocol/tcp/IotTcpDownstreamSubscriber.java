@@ -16,8 +16,7 @@ import javax.annotation.PostConstruct;
 /**
  * IotTcpDownstreamSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

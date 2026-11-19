@@ -25,8 +25,7 @@ import static org.mockito.Mockito.*;
 /**
  * FileServiceImplTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Import({FileServiceImpl.class})
 public class FileServiceImplTest extends BaseDbUnitTest {
@@ -44,7 +43,7 @@ public class FileServiceImplTest extends BaseDbUnitTest {
     public void testGetFilePage() {
         // mock 数据
         FileDO dbFile = randomPojo(FileDO.class, o -> { // 等会查询到
-            o.setPath("yunai");
+            o.setPath("demo");
             o.setType("image/jpg");
             o.setCreateTime(buildTime(2021, 1, 15));
         });
@@ -61,7 +60,7 @@ public class FileServiceImplTest extends BaseDbUnitTest {
         }));
         // 准备参数
         FilePageReqVO reqVO = new FilePageReqVO();
-        reqVO.setPath("yunai");
+        reqVO.setPath("demo");
         reqVO.setType("jp");
         reqVO.setCreateTime((new LocalDateTime[]{buildTime(2021, 1, 10), buildTime(2021, 1, 20)}));
 

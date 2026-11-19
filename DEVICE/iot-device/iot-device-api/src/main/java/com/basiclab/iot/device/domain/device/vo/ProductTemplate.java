@@ -14,15 +14,13 @@ import java.time.LocalDateTime;
 /**
 * @description: ${description}
 * @packagename: com.basiclab.iot.device.domain.device.vo.entity
-* @author reese
-* @email reese
+* @author liufei
 * @date: 2025-11-18 20:36
 **/
 
 /**
  * 产品模板
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value = "产品模板")
 @Data

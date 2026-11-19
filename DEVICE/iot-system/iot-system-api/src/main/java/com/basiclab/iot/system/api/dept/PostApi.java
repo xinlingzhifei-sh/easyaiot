@@ -24,8 +24,7 @@ import java.util.Map;
 /**
  * PostApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 = ApiConstants.NAME) // TODO yFeiEye：fallbackFactory =

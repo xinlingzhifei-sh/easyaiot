@@ -8,8 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * SmsCodeMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface SmsCodeMapper extends BaseMapperX<SmsCodeDO> {

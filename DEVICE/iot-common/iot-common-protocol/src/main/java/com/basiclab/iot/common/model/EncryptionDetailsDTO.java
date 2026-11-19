@@ -17,8 +17,7 @@ import lombok.experimental.Accessors;
  * This class is used to encapsulate encryption and decryption details  , for message processing, providing necessary information without
  * -----------------------------------------------------------------------------
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @version 1.0
  * -----------------------------------------------------------------------------
  * Revision History:
@@ -26,7 +25,6 @@ import lombok.experimental.Accessors;
  * --------      --------     -------   --------------------
  * <p>
  * -----------------------------------------------------------------------------
- * @email reese
  * @date 2023-11-12 01:48
  */
 @Data

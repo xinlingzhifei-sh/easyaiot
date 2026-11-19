@@ -14,8 +14,7 @@ import java.util.Map;
 /**
  * DeviceService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceService extends IService<Device> {
 

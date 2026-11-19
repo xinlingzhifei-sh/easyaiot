@@ -5,8 +5,7 @@ import com.basiclab.iot.system.framework.sms.core.property.SmsChannelProperties;
 /**
  * SmsClientFactory
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface SmsClientFactory {
 

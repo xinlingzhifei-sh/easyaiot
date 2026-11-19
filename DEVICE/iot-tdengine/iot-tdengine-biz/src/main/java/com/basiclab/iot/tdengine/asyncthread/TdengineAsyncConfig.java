@@ -13,8 +13,7 @@ import java.util.concurrent.Executor;
 /**
  * 异步@Async多线程配置
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration
 @EnableAsync

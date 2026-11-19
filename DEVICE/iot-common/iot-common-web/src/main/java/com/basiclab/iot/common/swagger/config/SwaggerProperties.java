@@ -8,7 +8,7 @@ import javax.validation.constraints.NotEmpty;
 /**
  * Swagger 配置属性
  *
- * @author reese
+ * @author liufei
  */
 @ConfigurationProperties("yudao.swagger")
 @Data

@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 缓存开放服务降级处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class RemoteCacheOpenAnyFallbackFactory implements FallbackFactory<RemoteCacheOpenAnyService> {

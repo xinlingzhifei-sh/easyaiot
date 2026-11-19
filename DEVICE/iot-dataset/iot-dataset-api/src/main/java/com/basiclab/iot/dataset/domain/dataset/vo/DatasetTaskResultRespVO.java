@@ -8,8 +8,7 @@ import com.alibaba.excel.annotation.*;
 /**
  * DatasetTaskResultRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 标注任务结果 Response VO")
 @Data

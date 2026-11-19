@@ -15,7 +15,7 @@ import static date.util.com.basiclab.iot.mybatis.common.DateUtils.FORMAT_YEAR_MO
 @ToString(callSuper = true)
 public class InfraStudentPageReqVO extends PageParam {
 
-    @Schema(description = "名字", example = "芋头")
+    @Schema(description = "名字", example = "张三")
     private String name;
 
     @Schema(description = "出生日期")

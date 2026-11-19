@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * FileContentMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface FileContentMapper extends BaseMapper<FileContentDO> {

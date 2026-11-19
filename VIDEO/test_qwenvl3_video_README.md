@@ -265,7 +265,3 @@ python test_qwenvl3_video.py /opt/projects/yfeieye/VIDEO/video/video2.mp4 \
 
 - **作者**：reese
 - **邮箱**：reese
-
-## 许可证
-
-请参考项目根目录的 LICENSE 文件。

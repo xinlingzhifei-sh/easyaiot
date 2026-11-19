@@ -7,7 +7,7 @@ import java.io.File;
  * 系统工具
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2019/4/20.
  */
 public class SystemUtil {

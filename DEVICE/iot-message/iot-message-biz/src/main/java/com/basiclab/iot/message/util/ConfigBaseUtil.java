@@ -11,7 +11,7 @@ import java.io.File;
  * 配置管理基类
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2017/6/14.
  */
 public class ConfigBaseUtil {

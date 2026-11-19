@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * ProductScriptService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface ProductScriptService {

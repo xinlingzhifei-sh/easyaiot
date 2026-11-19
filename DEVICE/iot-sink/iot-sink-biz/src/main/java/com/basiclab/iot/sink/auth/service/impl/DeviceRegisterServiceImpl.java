@@ -27,8 +27,7 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.except
 /**
  * DeviceRegisterServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

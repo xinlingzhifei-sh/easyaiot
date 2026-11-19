@@ -16,8 +16,7 @@ import java.util.List;
 /**
  * 设备Topic数据Controller
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2022-06-17
  */
 @RestController

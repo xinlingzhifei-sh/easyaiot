@@ -37,8 +37,7 @@ import java.util.stream.Stream;
 /**
  * DeviceInfoServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Slf4j

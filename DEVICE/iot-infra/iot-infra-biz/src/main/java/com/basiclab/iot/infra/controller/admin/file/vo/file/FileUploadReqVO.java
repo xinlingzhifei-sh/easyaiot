@@ -9,8 +9,7 @@ import javax.validation.constraints.NotNull;
 /**
  * FileUploadReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 上传文件 Request VO")
 @Data

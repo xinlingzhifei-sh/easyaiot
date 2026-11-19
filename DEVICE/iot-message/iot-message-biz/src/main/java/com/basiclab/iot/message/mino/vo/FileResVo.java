@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 文件上传响应体
- * @author zengzhaoyang
+ * @author liufei
  * @date 2025/12/12
  */
 @Data

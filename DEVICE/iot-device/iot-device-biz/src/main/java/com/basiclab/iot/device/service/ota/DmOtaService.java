@@ -13,10 +13,6 @@ import java.util.List;
  * 一次 check 携带全部类型的当前版本，返回全部待升级项；一次 report 上报任意的升级阶段事件。
  * <p>
  * 升级采用拉取模型：由设备/APP 主动发起检测，平台仅做应答，不做主动下行推送。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public interface DmOtaService {
 

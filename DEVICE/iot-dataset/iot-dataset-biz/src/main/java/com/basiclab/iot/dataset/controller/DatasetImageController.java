@@ -40,8 +40,7 @@ import static com.basiclab.iot.dataset.enums.ErrorCodeConstants.*;
 /**
  * DatasetImageController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 图片数据集")
 @RestController

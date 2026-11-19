@@ -7,8 +7,7 @@ import lombok.Data;
 /**
  * OperateLogPageReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(name = "RPC 服务 - 操作日志分页 Request DTO")
 @Data

@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * CompileXcodeController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("/protocolCompileXcode")

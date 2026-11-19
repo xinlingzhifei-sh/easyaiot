@@ -1,7 +1,6 @@
 """
 算法模型服务管理
-@author reese
-@email reese
+@author liufei
 """
 import json
 import logging

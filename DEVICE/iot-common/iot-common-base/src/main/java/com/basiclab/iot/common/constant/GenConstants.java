@@ -3,8 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * 代码生成通用常量
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class GenConstants
 {

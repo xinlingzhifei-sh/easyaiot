@@ -15,8 +15,7 @@ import java.time.LocalDateTime;
 /**
  * OperateLogRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 操作日志 Response VO")
 @Data

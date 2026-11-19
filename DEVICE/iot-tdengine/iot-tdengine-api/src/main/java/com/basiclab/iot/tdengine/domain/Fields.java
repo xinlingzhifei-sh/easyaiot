@@ -8,8 +8,7 @@ import java.io.Serializable;
 /**
  * Fields
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class Fields implements Serializable {

@@ -24,8 +24,7 @@ import java.util.Map;
 /**
  * DeviceDataStorageService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

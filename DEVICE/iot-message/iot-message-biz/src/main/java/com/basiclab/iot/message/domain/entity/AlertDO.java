@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Alert实体类（对应VIDEO数据库中的alert表）
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class AlertDO {

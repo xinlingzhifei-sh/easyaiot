@@ -98,7 +98,7 @@ spring:
             instanceId: AUTO # 自动生成 instance ID
           # JobStore 相关配置
           jobStore:
-            # JobStore 实现类。可见博客：https://blog.csdn.net/weixin_42458219/article/details/122247162
+            # JobStore 实现类
             class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
             isClustered: true # 是集群模式
             clusterCheckinInterval: 15000 # 集群检查频率，单位：毫秒。默认为 15000，即 15 秒
@@ -255,7 +255,7 @@ python:
     streamPushServer: rtmp://172.16.0.134:1935/stream/live/
     streamSign: 69db35390ddad33f83944f44b8b75plk
   work:
-    adminEmailAddress: 853017739@qq.com
+    adminEmailAddress: ""
     dir: /data/iot
     restartCountThreshold: 17
 

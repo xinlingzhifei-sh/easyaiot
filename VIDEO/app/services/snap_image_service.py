@@ -1,7 +1,6 @@
 """
 抓拍图片管理服务
-@author reese
-@email reese
+@author liufei
 """
 import io
 import hashlib

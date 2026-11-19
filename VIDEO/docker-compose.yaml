@@ -154,7 +154,7 @@ services:
       # 告警图片落盘根目录（与外置 alert_images 卷一致，供 iot-sink 读取并上传 MinIO）
       - ALERT_IMAGES_DIR=/mnt/easyaiot-media/alert_images
       # 视频服务特有配置
-      - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-pro.basiclab.top:1935}
+      - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-127.0.0.1:1935}
       - CAMERA_ONLINE_INTERVAL=${CAMERA_ONLINE_INTERVAL:-10}
       - GB28181_PLAY_PROTOCOL=${GB28181_PLAY_PROTOCOL:-fmp4_first}
       - AI_OUTPUT_FPS=${AI_OUTPUT_FPS:-25}

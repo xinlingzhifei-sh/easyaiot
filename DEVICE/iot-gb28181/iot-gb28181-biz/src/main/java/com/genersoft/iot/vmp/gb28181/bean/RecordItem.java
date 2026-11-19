@@ -12,7 +12,7 @@ import java.time.temporal.TemporalAccessor;
 
 /**
  * @description:设备录像bean
- * @author: swwheihei
+ * @author: liufei
  * @date:   2020年5月8日 下午2:06:54
  */
 @Setter

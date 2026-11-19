@@ -16,8 +16,7 @@ import java.util.Map;
 /**
  * IotLocalMessageBus
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RequiredArgsConstructor
 @Slf4j

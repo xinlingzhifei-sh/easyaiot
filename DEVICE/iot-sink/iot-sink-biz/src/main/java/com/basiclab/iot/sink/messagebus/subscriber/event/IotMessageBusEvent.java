@@ -8,8 +8,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * IotMessageBusEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Getter

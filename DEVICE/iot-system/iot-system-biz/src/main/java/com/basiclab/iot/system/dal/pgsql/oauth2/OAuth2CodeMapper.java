@@ -7,8 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * OAuth2CodeMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OAuth2CodeMapper extends BaseMapperX<OAuth2CodeDO> {

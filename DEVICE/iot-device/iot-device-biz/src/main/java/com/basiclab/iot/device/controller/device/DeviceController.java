@@ -46,8 +46,7 @@ import java.util.stream.Collectors;
 /**
  * DeviceController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "设备管理")
 @RestController

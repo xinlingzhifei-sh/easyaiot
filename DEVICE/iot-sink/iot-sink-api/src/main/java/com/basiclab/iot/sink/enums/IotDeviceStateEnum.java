@@ -9,8 +9,7 @@ import java.util.Arrays;
 /**
  * IotDeviceStateEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RequiredArgsConstructor
 @Getter

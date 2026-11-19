@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * 当上级平台
- * @author lin
+ * @author liufei
  */
 
 @Data

@@ -5,8 +5,7 @@ import lombok.Getter;
 
 /**
  * @Description: 产品协议类型
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/10/25$ 15:57$
  * @UpdateDate: 2024/10/25$ 15:57$
  */

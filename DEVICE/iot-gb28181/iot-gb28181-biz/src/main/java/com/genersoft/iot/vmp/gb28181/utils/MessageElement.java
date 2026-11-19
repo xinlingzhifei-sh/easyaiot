@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.utils;
 import java.lang.annotation.*;
 
 /**
- * @author gaofuwang
+ * @author liufei
  * @version 1.0
  * @date 2022/6/28 14:58
  */

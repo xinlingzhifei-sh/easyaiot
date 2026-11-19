@@ -6,8 +6,7 @@ import java.util.Map;
 /**
  * NotifySendService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface NotifySendService {
 

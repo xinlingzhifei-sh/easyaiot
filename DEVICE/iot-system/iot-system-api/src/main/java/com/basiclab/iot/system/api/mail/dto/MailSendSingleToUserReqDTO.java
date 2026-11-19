@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * MailSendSingleToUserReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 邮件发送给 Admin 或者 Member 用户 Request DTO")
 @Data
@@ -19,7 +18,7 @@ public class MailSendSingleToUserReqDTO {
 
     @Schema(description = "用户编号", example = "1024")
     private Long userId;
-    @Schema(description = "手机号", example = "15601691300")
+    @Schema(description = "手机号", example = "13800000000")
     @Email
     private String mail;
 

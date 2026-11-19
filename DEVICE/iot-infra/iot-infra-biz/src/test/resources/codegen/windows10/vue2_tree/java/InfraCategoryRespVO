@@ -15,7 +15,7 @@ public class InfraCategoryRespVO {
     @ExcelProperty("编号")
     private Long id;
 
-    @Schema(description = "名字", example = "芋头")
+    @Schema(description = "名字", example = "张三")
     @ExcelProperty("名字")
     private String name;
 

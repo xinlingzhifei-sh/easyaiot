@@ -9,8 +9,7 @@ import lombok.ToString;
 /**
  * MailAccountPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮箱账号分页 Request VO")
 @Data

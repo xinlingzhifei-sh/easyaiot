@@ -1,9 +1,3 @@
-//
-//  main.cc
-//
-//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
-//
-
 #include <chrono>
 #include <ctime>
 #include <format>

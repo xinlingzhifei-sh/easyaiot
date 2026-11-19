@@ -7,8 +7,7 @@ import java.util.Map;
 /**
  * MailSendService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface MailSendService {
 

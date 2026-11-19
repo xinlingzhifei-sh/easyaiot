@@ -34,7 +34,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.TIME_ZONE_DEFAULT;
 /**
  * 阿里短信客户端的实现类
  *
- * @author zzf
+ * @author liufei
  * @since 2024/1/25 14:17
  */
 @Slf4j
@@ -121,8 +121,7 @@ public class AliyunSmsClient extends AbstractSmsClient {
      *
      * 参见 <a href="https://help.aliyun.com/document_detail/101867.html">文档</a>
      *
-     * @author reese
-     * @email reese
+     * @author liufei
      */
     @Data
     public static class SmsReceiveStatus {

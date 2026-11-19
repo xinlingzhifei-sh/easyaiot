@@ -8,8 +8,7 @@ import com.basiclab.iot.infra.dal.dataobject.job.JobLogDO;
 /**
  * Job 日志 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface JobLogService extends JobLogFrameworkService {
 

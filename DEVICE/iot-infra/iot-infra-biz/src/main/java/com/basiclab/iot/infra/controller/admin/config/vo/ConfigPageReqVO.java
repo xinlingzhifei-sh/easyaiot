@@ -14,8 +14,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * ConfigPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 参数配置分页 Request VO")
 @Data
@@ -26,7 +25,7 @@ public class ConfigPageReqVO extends PageParam {
     @Schema(description = "数据源名称，模糊匹配", example = "名称")
     private String name;
 
-    @Schema(description = "参数键名，模糊匹配", example = "yunai.db.username")
+    @Schema(description = "参数键名，模糊匹配", example = "demo.db.username")
     private String key;
 
     @Schema(description = "参数类型，参见 SysConfigTypeEnum 枚举", example = "1")

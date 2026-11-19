@@ -8,8 +8,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * IotDeviceMessageProducer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RequiredArgsConstructor
 public class IotDeviceMessageProducer {

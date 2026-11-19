@@ -11,8 +11,7 @@ import javax.validation.constraints.NotNull;
 /**
  * NotifyTemplateSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 站内信模版创建/修改 Request VO")
 @Data

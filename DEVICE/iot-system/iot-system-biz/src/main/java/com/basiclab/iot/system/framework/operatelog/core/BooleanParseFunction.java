@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * BooleanParseFunction
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Slf4j

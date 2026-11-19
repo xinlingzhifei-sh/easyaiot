@@ -11,10 +11,6 @@ import com.basiclab.iot.transform.core.channel.ChannelType;
  *   <li>不同渠道使用独立 Group，互不抢占分区</li>
  *   <li>实例启动后按启用渠道自动 join，退出自动 leave</li>
  * </ul>
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public final class GroupNames {
 

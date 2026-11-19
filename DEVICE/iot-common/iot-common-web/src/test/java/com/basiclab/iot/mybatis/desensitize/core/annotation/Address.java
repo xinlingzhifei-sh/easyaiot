@@ -12,7 +12,7 @@ import java.lang.annotation.*;
  * <p>
  * 用于 {@link DesensitizeTest} 测试使用
  *
- * @author gaibu
+ * @author liufei
  */
 @Documented
 @Target({ElementType.FIELD})

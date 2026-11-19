@@ -13,8 +13,7 @@ import java.net.URLEncoder;
 /**
  * 文件类型 Utils
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileTypeUtils {
 

@@ -1,8 +1,7 @@
 package com.basiclab.iot.device.enums.protocol;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc    协议通知类型
  * @created 2025-06-21
  */

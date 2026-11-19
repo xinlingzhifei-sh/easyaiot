@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * IotTopicDeviceMessageCodec
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

@@ -20,8 +20,7 @@ import static cn.hutool.core.exceptions.ExceptionUtil.getRootCauseMessage;
 /**
  * MailLogServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

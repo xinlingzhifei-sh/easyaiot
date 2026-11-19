@@ -11,8 +11,7 @@ import java.util.List;
 
 /**
  * @Description: 查询设备信息数据模型
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/4/25$ 12:52$
  * @UpdateDate: 2024/01/10$ 12:52$
  * @Version: V1.0

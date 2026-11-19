@@ -17,8 +17,7 @@ import javax.validation.Valid;
 /**
  * NotifyMessageSendApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 name = ApiConstants.NAME) // TODO yFeiEye：fallbackFactory =
 @Tag(name = "RPC 服务 - 站内信发送")

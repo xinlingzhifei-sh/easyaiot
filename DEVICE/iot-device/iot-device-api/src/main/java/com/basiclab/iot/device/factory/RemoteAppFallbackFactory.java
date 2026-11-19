@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * RemoteAppFallbackFactory
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Component

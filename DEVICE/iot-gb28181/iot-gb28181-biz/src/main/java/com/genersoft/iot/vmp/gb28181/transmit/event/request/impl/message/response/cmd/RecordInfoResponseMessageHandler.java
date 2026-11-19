@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

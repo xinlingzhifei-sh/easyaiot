@@ -11,8 +11,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * Demo02CategoryListReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Schema(description = "管理后台 - 示例分类列表 Request VO")

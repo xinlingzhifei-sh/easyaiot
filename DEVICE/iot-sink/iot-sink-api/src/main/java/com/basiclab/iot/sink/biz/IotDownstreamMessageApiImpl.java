@@ -19,8 +19,7 @@ import java.util.List;
 /**
  * IotDownstreamMessageApiImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

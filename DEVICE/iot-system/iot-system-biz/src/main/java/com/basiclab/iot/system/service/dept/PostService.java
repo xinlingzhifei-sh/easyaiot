@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * 岗位 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface PostService {
 

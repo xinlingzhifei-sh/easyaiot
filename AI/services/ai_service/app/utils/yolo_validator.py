@@ -2,8 +2,7 @@
 YOLO模型版本验证工具
 使用ultralytics库判断YOLO模型是版本8还是版本11
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 from typing import Optional, Tuple

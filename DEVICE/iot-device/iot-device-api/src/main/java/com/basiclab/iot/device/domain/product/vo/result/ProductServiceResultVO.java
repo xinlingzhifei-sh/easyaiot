@@ -17,8 +17,7 @@ import java.util.Map;
  * 产品模型服务表
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-03-14 19:39:59
  */
 @Data

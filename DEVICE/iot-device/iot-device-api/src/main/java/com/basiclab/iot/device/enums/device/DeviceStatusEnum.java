@@ -5,8 +5,7 @@ import lombok.Getter;
 
 /**
  *  设备状态
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-10-22
  */
 @Getter

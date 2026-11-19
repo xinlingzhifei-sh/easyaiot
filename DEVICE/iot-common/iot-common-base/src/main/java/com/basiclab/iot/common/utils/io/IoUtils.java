@@ -9,8 +9,7 @@ import java.io.InputStream;
 /**
  * IO 工具类，用于 {@link IoUtil} 缺失的方法
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IoUtils {
 

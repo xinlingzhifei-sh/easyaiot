@@ -14,10 +14,6 @@ import java.util.Map;
  * <p>
  * 所有 Party 投递共享 {@link GroupNames#PARTY_DELIVER}，实例增减自动扩展投递并行度；
  * 单 Party 失败隔离，不影响同 Group 其他目标。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 public class PartyDeliverChannel implements TransformChannel {

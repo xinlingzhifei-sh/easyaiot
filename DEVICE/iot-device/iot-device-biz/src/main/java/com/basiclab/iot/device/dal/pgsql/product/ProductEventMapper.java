@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * ProductEventMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProductEventMapper extends BaseMapper<ProductEvent> {

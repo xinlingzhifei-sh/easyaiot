@@ -25,8 +25,7 @@ import static com.basiclab.iot.common.utils.SecurityFrameworkUtils.getLoginUserI
 /**
  * NotifyMessageController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 我的站内信")
 @RestController

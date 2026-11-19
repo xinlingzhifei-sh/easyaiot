@@ -1,7 +1,6 @@
 """
 告警Kafka消费者服务：订阅告警事件，上传图片到MinIO并更新数据库
-@author reese
-@email reese
+@author liufei
 """
 import json
 import logging

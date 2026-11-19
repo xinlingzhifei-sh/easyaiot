@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * ProductEventResponseController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Api(tags = "产品事件响应管理")

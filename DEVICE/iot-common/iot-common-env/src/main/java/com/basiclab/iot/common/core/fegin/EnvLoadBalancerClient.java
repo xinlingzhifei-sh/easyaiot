@@ -26,8 +26,7 @@ import java.util.List;
  * 多环境的 {@link org.springframework.cloud.client.loadbalancer.LoadBalancerClient} 实现类
  * 在从服务实例列表选择时，优先选择 tag 匹配的服务实例
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RequiredArgsConstructor
 @Slf4j

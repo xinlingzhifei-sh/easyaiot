@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 /**
  * DataSourceConfigRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 数据源配置 Response VO")
 @Data

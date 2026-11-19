@@ -5,10 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * TRANSFORM 运行时配置：启用哪些渠道即加入哪些约定 Group。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ConfigurationProperties(prefix = "transform")

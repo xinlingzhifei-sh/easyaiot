@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * ConfigMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ConfigMapper extends BaseMapperX<ConfigDO> {

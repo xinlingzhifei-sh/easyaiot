@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * ProductTemplateService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProductTemplateService {
 

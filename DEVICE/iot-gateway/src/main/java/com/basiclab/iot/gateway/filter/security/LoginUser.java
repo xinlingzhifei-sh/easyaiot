@@ -10,8 +10,7 @@ import java.util.Map;
  *
  * copy from iot-spring-boot-starter-security 的 LoginUser 类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class LoginUser {

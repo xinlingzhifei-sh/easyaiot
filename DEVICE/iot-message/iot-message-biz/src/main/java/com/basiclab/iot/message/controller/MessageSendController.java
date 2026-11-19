@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 通知发送controller
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-17
  */
 @RestController

@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * ConfigDownstreamPushListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

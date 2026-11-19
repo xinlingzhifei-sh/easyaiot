@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service.bean;
 
 /**
  * 当redis回复推流结果上级平台
- * @author lin
+ * @author liufei
  */
 public class MessageForPushChannelResponse {
     /**

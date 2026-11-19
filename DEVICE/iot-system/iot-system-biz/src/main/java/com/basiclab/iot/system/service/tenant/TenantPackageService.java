@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * 租户套餐 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface TenantPackageService {
 

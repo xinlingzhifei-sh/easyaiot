@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception;
 /**
  * 业务异常
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public final class ServiceException extends RuntimeException
 {

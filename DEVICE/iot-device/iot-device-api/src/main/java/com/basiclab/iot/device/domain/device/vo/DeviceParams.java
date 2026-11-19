@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * @Description: Device Entity class model
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/5/4$ 18:57$
  * @UpdateDate: 2024/5/4$ 18:57$
  * @Version: V1.0

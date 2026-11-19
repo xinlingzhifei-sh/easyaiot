@@ -26,7 +26,7 @@ import java.text.ParseException;
 /**
  * 发送SIP消息
  *
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * FieldsVo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class FieldsVo {
@@ -36,7 +35,7 @@ public class FieldsVo {
     *@MethodDescription 字段实体类转为vo类
     *@param fields 字段实体类
     *@return FieldsVo 字段实体vo类
-    *@author reese
+    *@author liufei
     *@Date 2024/12/28 13:48
     */
     public static FieldsVo fieldsTranscoding(Fields fields) throws SQLException {
@@ -55,7 +54,7 @@ public class FieldsVo {
      *@MethodDescription 字段实体类集合转为vo类集合
      *@param fieldsList 字段实体类集合
      *@return List<FieldsVo> 字段实体vo类集合
-     *@author reese
+     *@author liufei
      *@Date 2024/12/28 14:00
      */
     public static List<FieldsVo> fieldsTranscoding(List<Fields> fieldsList) throws SQLException{

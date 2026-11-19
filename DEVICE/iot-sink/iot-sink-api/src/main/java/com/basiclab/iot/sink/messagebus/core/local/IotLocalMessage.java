@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * IotLocalMessage
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @AllArgsConstructor

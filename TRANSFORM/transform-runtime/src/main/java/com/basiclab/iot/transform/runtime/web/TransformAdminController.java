@@ -30,10 +30,6 @@ import java.util.Map;
 
 /**
  * TRANSFORM 管理 API（网关 /admin-api/transform/** → StripPrefix=1 → /transform/**）。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @RestController
 @RequestMapping("/transform")

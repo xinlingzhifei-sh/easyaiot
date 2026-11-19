@@ -8,8 +8,7 @@ import java.util.Date;
 /**
  * 目标用户实体
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class TPreviewUser {

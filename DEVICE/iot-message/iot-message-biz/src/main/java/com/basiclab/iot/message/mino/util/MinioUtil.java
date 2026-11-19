@@ -33,7 +33,7 @@ import java.util.*;
 /**
  * (minio工具类)
  *
- * @author zengzhaoyang
+ * @author liufei
  * @date 2025/12/12
  */
 @Component
@@ -71,7 +71,7 @@ public class MinioUtil {
      *
      * @param bucketName 桶名
      * @return void
-     * @author zzy
+     * @author liufei
      * @date 2025/12/12
      * @Param
      **/
@@ -238,7 +238,7 @@ public class MinioUtil {
     /**
      * @Title: uploadFile
      * @Description: (获取上传文件信息上传文件)
-     * @author zzy
+     * @author liufei
      * [file 上传文件（MultipartFile）, bucketName 桶名 , fileName 自定义文件名 ,fileFolderName 自定义文件夹名称]
      */
     public FileResVo uploadFile(MultipartFile file, String bucketName, String fileName, String fileFolderName)
@@ -291,7 +291,7 @@ public class MinioUtil {
      * @param bucketName 桶名，若没有传输，则为默认桶
      * @param response   响应
      * @return void
-     * @author zzy
+     * @author liufei
      * @date 2025/12/13
      * @Param
      **/
@@ -463,7 +463,7 @@ public class MinioUtil {
      * @param sliceFolderName        分片存储⽂件夹名称
      * @param mergeFolderAndFileName 合并存储⽂件夹名称 + "/" + 文件名称
      * @return String 文件合并的地址
-     * @author zzy
+     * @author liufei
      * @date 2025/12/15
      * @Param
      **/
@@ -531,7 +531,7 @@ public class MinioUtil {
      * @param bucketName
      * @param objectName
      * @return java.util.List<java.lang.Object>
-     * @author zzy
+     * @author liufei
      * @date 2025/12/12
      * @Param
      **/
@@ -555,7 +555,7 @@ public class MinioUtil {
      *
      * @param fileS 文件字节
      * @return java.lang.String
-     * @author zzy
+     * @author liufei
      * @date 2025/12/15
      * @Param
      **/

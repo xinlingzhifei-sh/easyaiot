@@ -13,8 +13,7 @@
 或者直接在命令行指定:
    python configure_qwenvl3_api_key.py --api-key "your-api-key-here"
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

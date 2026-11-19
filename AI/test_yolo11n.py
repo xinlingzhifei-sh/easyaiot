@@ -1,7 +1,6 @@
 """
 YOLO11n 模型推理测试脚本
-@author reese
-@email reese
+@author liufei
 
 使用方法:
     python test_yolo11n.py [图片路径]

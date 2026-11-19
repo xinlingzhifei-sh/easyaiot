@@ -12,8 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * IotMessageBusSubscriberThreadPoolConfig
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

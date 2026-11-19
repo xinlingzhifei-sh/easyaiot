@@ -3,8 +3,7 @@
 # PostgreSQL pg_hba.conf 自动修复脚本（用于开机自启动）
 # 等待 PostgreSQL 容器启动后自动执行修复
 #
-# @author reese
-# @email reese
+# @author liufei
 
 set -e
 

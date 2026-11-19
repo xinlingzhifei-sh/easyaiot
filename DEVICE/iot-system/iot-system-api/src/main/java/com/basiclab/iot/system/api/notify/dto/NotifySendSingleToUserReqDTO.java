@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * NotifySendSingleToUserReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 站内信发送给 Admin 或者 Member 用户 Request DTO")
 @Data

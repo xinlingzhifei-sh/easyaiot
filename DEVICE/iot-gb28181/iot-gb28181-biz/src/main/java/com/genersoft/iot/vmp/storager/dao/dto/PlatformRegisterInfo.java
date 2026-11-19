@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.storager.dao.dto;
 
 /**
  * 平台发送注册/注销消息时缓存此消息
- * @author lin
+ * @author liufei
  */
 public class PlatformRegisterInfo {
 

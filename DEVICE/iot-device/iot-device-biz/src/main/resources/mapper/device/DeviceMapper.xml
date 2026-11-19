@@ -867,7 +867,7 @@
         </trim>
     </insert>
 
-    <!--auto shihuan sun  e-mail: 853017739@qq.com on 2021-12-26-->
+    <!--Author: liufei on 2021-12-26-->
     <update id="updateConnectStatusByClientId">
         update device
         set connect_status=#{updatedConnectStatus,jdbcType=VARCHAR}
@@ -879,7 +879,7 @@
     </update>
 
 
-    <!--auto shihuan sun  e-mail: 853017739@qq.com on 2021-12-26-->
+    <!--Author: liufei on 2021-12-26-->
     <select id="findOneByClientIdAndUserNameAndPasswordAndDeviceStatusAndProtocolType" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -903,7 +903,7 @@
         </where>
     </select>
 
-    <!--auto shihuan sun  e-mail: 853017739@qq.com on 2021-12-26-->
+    <!--Author: liufei on 2021-12-26-->
     <select id="findByAll" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -999,7 +999,7 @@
         </where>
     </select>
 
-    <!--auto shihuan sun  e-mail: 853017739@qq.com on 2021-12-26-->
+    <!--Author: liufei on 2021-12-26-->
     <select id="findOneById" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1436,7 +1436,7 @@
         </foreach>
     </delete>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-18-->
+    <!--Author: liufei on 2024-02-18-->
     <select id="findOneByClientId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1448,7 +1448,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-18-->
+    <!--Author: liufei on 2024-02-18-->
     <select id="findOneByClientIdAndDeviceIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1463,7 +1463,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-18-->
+    <!--Author: liufei on 2024-02-18-->
     <select id="findOneByDeviceIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1475,7 +1475,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-18-->
+    <!--Author: liufei on 2024-02-18-->
     <select id="findOneByClientIdOrderByDeviceIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1488,7 +1488,7 @@
         order by device_identification asc
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-02-18-->
+    <!--Author: liufei on 2024-02-18-->
     <select id="findOneByClientIdOrDeviceIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1503,7 +1503,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-05-04-->
+    <!--Author: liufei on 2024-05-04-->
     <select id="countDistinctClientIdByConnectStatus" resultType="java.lang.Long">
         select count(distinct(client_id))
         from device
@@ -1530,7 +1530,7 @@
         </where>
     </select>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-06-10-->
+    <!--Author: liufei on 2024-06-10-->
     <select id="findAllByIdIn" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -1546,7 +1546,7 @@
         </where>
     </select>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-05-->
+    <!--Author: liufei on 2024-07-05-->
     <select id="findAllByProductIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

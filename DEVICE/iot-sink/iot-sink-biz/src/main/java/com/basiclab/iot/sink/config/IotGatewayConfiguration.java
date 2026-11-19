@@ -40,8 +40,7 @@ public class IotGatewayConfiguration {
     /**
  * IotGatewayConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
     @Bean

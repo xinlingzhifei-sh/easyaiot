@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * ProductEventService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProductEventService extends IService<ProductEvent> {
 

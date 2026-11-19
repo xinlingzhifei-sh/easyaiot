@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 
 /**
  * 流的鉴权信息
- * @author lin
+ * @author liufei
  */
 public class StreamAuthorityInfo {
 

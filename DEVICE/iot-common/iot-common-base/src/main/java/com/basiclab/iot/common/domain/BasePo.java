@@ -10,8 +10,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-05-27
  */

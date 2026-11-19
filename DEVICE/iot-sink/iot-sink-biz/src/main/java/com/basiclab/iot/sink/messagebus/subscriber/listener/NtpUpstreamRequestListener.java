@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 /**
  * NtpUpstreamRequestListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

@@ -5,8 +5,7 @@ import com.basiclab.iot.message.domain.model.AlertNotificationMessage;
 /**
  * 告警通知服务接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface AlertNotificationService {
     

@@ -12,8 +12,7 @@ public class DatabaseTableRespVO {
 /**
  * DatabaseTableRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 (description = "表名称", example = "yuanma")

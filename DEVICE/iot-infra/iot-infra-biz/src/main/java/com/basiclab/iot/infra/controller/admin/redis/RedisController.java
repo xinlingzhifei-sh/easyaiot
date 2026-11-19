@@ -23,8 +23,7 @@ import static com.basiclab.iot.common
 /**
  * RedisController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 .domain.CommonResult.success;

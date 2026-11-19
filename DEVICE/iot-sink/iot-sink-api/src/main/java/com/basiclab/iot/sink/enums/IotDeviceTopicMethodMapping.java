@@ -5,8 +5,7 @@ import lombok.Getter;
 /**
  * IotDeviceTopicMethodMapping
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IotDeviceTopicMethodMapping {
 

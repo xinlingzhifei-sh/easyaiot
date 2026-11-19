@@ -4,8 +4,7 @@
 
 多摄像头 + auto/node 调度时默认按设备分片（每分片独立 workload），分散到集群节点拉流推流。
 
-@author reese
-@email reese
+@author liufei
 """
 import json
 import os

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * 服务名称
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ServiceNameConstants
 {

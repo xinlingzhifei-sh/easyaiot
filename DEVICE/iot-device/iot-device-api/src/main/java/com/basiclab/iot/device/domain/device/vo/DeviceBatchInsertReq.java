@@ -7,8 +7,7 @@ import lombok.Getter;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class DeviceBatchInsertReq {

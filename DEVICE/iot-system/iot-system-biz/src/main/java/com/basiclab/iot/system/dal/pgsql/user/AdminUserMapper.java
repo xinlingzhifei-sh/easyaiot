@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * AdminUserMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface AdminUserMapper extends BaseMapperX<AdminUserDO> {

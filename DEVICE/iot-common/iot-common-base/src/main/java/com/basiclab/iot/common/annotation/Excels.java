@@ -8,8 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Excel注解集
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

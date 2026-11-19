@@ -12,10 +12,6 @@ import java.time.LocalDateTime;
 
 /**
  * 发布记录（全量/灰度）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

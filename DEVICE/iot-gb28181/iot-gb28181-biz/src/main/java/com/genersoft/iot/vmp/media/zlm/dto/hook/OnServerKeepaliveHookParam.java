@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 
 /**
  * zlm hook事件中的on_play事件的参数
- * @author lin
+ * @author liufei
  */
 public class OnServerKeepaliveHookParam extends HookParam{
 

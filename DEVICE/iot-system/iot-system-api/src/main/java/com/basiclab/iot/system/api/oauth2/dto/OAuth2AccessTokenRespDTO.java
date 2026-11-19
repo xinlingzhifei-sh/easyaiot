@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * OAuth2AccessTokenRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - OAuth2 访问令牌的信息 Response DTO")
 @Data

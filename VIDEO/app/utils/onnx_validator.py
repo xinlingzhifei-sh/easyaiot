@@ -1,10 +1,6 @@
 """
 ONNX模型验证工具
 验证ONNX模型是否为有效的YOLO模型（yolov8、yolov11 或 yolov26）
-
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
 """
 import os
 # 在导入onnxruntime之前设置环境变量，强制使用CPU执行提供者

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.event.hook;
 
 /**
  * hook类型
- * @author lin
+ * @author liufei
  */
 
 public enum HookType {

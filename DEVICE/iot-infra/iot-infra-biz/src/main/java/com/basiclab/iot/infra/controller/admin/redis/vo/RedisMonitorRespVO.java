@@ -11,8 +11,7 @@ import java.util.Properties;
 /**
  * RedisMonitorRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - Redis 监控信息 Response VO")
 @Data

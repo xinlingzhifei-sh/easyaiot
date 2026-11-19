@@ -33,8 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 产品编解码脚本管理：按产品隔离引擎，线程安全调用。
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

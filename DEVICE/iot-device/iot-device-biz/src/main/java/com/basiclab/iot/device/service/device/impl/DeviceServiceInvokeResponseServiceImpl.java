@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 /**
  * DeviceServiceInvokeResponseServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Service

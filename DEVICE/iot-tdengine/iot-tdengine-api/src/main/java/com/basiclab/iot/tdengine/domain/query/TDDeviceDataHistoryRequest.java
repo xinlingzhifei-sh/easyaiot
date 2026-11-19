@@ -9,8 +9,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel("查看设备历史数据请求实体")
 @Data

@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 /**
  * MailAccountRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮箱账号 Response VO")
 @Data
@@ -27,7 +26,7 @@ public class MailAccountRespVO {
     @Schema(description = "密码", example = "123456")
     private String password;
 
-    @Schema(description = "SMTP 服务器域名", example = "www.iocoder.cn")
+    @Schema(description = "SMTP 服务器域名", example = "www.example.com")
     private String host;
 
     @Schema(description = "SMTP 服务器端口", example = "80")

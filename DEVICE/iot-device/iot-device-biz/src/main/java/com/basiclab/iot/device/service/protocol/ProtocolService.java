@@ -9,8 +9,7 @@ import java.util.List;
 /**
  * ProtocolService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProtocolService extends IService<Protocol> {
 

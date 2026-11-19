@@ -59,8 +59,7 @@ public class AuthLoginReqVO {
     /**
  * AuthLoginReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface CodeEnableGroup {}

@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * ProductScriptMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Mapper

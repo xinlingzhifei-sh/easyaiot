@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * UserPostMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface UserPostMapper extends BaseMapperX<UserPostDO> {

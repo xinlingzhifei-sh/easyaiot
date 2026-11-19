@@ -4,8 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class DeviceStatusStatisticsVo {

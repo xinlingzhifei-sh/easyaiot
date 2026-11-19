@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * MenuMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface MenuMapper extends BaseMapperX<MenuDO> {

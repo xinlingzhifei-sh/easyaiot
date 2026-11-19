@@ -214,6 +214,6 @@ bash fix_kafka_consumer_group.sh --check-only
 
 ## 📞 技术支持
 
-- 作者：reese
+- 作者： liufei
 - 邮箱：reese
 

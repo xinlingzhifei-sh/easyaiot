@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 设备信息查询响应
  *
- * @author Y.G
+ * @author liufei
  * @version 1.0
  * @date 2022/6/28 14:55
  */

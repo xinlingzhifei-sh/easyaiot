@@ -5,10 +5,6 @@ import lombok.Getter;
 
 /**
  * 升级通道
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum DmUpgradeChannel implements Status {
 

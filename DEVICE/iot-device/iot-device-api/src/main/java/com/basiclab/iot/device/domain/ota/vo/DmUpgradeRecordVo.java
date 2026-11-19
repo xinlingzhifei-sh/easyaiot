@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
 
 /**
  * 升级记录
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmUpgradeRecordVo对象", description = "升级记录")

@@ -12,8 +12,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-05-27
  */
@@ -25,8 +24,7 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param packagePageQo
      * @return
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 2025-05-27
      */
     List<DmPackagePageVo> getPackageListByCondition(DmPackagePageQo packagePageQo);
@@ -36,8 +34,7 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param dmDeviceDetectOo
      * @return
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 2025-05-28
      */
     List<DmPackagePo> getPackageByVerifyList(DmDeviceDetectOo dmDeviceDetectOo);
@@ -47,8 +44,7 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param dmDeviceDetectOo
      * @return
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 202/5/28
      */
     List<DmPackagePo> getPublishedPackageList(DmDeviceDetectOo dmDeviceDetectOo);
@@ -59,8 +55,7 @@ public interface DmPackageMapper extends BaseMapper<DmPackagePo> {
      *
      * @param type
      * @return
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 2025-05-28
      */
     List<DmPackageVersionVo> getVersionListByType(@Param("type") Integer type);

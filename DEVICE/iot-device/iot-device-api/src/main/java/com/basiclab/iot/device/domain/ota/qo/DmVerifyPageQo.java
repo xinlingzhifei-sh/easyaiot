@@ -9,10 +9,6 @@ import java.io.Serializable;
 
 /**
  * 测试白名单分页查询
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmVerifyPageQo对象", description = "测试白名单分页Qo")

@@ -27,8 +27,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * LoginLogController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 登录日志")
 @RestController

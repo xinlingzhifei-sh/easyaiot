@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProtocolMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProtocolMapper extends BaseMapper<Protocol> {

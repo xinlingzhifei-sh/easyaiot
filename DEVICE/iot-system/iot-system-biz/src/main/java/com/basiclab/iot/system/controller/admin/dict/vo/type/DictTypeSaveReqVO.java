@@ -10,8 +10,7 @@ import javax
 /**
  * DictTypeSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 .validation.constraints.Size;
@@ -19,8 +18,7 @@ import javax
 /**
  * DictTypeSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 字典类型创建/修改 Request VO")
 @Data

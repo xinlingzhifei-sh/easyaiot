@@ -27,7 +27,7 @@ import java.util.UUID;
 
 /**
  * @description: 平台命令request创造器 TODO 冗余代码太多待优化
- * @author: panll
+ * @author: liufei
  * @date: 2020年5月6日 上午9:29:02
  */
 @Component
@@ -110,7 +110,6 @@ public class SIPRequestHeaderPlarformProvider {
 		String nonce = www.getNonce();
 		String scheme = www.getScheme();
 
-		// 参考 https://blog.csdn.net/y673533511/article/details/88388138
 		// qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
 		String qop = www.getQop();
 

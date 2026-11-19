@@ -12,8 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * 登录工具
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class LoginUtils {
 

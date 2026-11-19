@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * @description: 请求信息定义   
- * @author: swwheihei
+ * @author: liufei
  * @date:   2020年5月8日 下午1:09:18     
  */
 @Data

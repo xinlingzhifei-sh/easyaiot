@@ -12,14 +12,13 @@ import javax.validation.constraints.NotNull;
 /**
  * SmsCodeValidateReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 短信验证码的校验 Request DTO")
 @Data
 public class SmsCodeValidateReqDTO {
 
-    @Schema(description = "手机号", example = "15601691300")
+    @Schema(description = "手机号", example = "13800000000")
     @Mobile
     @NotEmpty(message = "手机号不能为空")
     private String mobile;

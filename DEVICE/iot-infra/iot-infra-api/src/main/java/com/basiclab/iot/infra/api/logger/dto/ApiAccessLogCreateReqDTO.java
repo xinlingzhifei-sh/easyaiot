@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 /**
  * ApiAccessLogCreateReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - API 访问日志创建 Request DTO")
 @Data

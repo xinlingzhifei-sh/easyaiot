@@ -26,8 +26,7 @@ import java.util.Map;
 /**
  * 腾讯云模板短信发送器
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-19
  */
 @Slf4j

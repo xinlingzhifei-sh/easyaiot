@@ -14,8 +14,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * NotifyTemplatePageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 站内信模版分页 Request VO")
 @Data

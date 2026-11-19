@@ -7,8 +7,7 @@ import com.basiclab.iot.common.utils.StringUtils;
  * @program: yFeiEye
  * @description: MQTT事件枚举
  * @packagename: com.basiclab.iot.common.core.enums
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2025-12-16 19:42
  **/
 public enum MqttEvent {

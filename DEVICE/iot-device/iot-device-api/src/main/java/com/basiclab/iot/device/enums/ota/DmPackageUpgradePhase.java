@@ -5,10 +5,6 @@ import lombok.Getter;
 
 /**
  * 升级阶段（全链路漏斗，四类包统一）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum DmPackageUpgradePhase implements Status {
 

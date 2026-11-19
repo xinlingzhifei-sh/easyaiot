@@ -13,8 +13,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 /**
  * 产品模型
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value = "产品模型")
 @Data

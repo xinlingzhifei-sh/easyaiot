@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * SmsSendStatusEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

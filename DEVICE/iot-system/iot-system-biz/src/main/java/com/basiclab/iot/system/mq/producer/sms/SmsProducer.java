@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * SmsProducer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

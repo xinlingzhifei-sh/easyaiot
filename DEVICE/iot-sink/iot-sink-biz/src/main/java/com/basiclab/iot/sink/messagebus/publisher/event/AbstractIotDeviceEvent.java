@@ -8,8 +8,7 @@ import org.springframework.context.ApplicationEvent;
 /**
  * AbstractIotDeviceEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Getter

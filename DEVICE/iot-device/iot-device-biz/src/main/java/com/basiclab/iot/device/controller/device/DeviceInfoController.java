@@ -19,8 +19,7 @@ import java.util.Map;
 /**
  * 子设备管理Controller
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2022-06-21
  */
 @RestController

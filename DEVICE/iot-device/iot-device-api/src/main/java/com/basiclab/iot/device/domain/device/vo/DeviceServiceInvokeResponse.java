@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * DeviceServiceInvokeResponse
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

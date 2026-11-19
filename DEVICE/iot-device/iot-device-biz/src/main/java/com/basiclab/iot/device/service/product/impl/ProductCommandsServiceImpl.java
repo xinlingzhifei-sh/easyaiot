@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProductCommandsServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductCommandsServiceImpl extends ServiceImpl<ProductCommandsMapper, ProductCommands> implements ProductCommandsService {

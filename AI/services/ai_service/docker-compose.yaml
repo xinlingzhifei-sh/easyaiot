@@ -74,7 +74,7 @@ services:
       - FFMPEG_PATH=${FFMPEG_PATH:-ffmpeg}
       - FFPROBE_PATH=${FFPROBE_PATH:-ffprobe}
       # 推流服务器配置（可选）
-      - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-pro.basiclab.top:1935}
+      - MODEL_AI_PUSH_URL=${MODEL_AI_PUSH_URL:-127.0.0.1:1935}
       # 时区配置
       - TZ=${TZ:-Asia/Shanghai}
       # Ultralytics (YOLO) 配置目录

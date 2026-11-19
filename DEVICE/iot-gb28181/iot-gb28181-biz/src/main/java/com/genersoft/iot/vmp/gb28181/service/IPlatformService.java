@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * 国标平台的业务类
- * @author lin
+ * @author liufei
  */
 public interface IPlatformService {
 

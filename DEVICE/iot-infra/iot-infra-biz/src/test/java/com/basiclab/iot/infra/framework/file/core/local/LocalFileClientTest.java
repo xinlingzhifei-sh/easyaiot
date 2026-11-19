@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Test;
 /**
  * LocalFileClientTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class LocalFileClientTest {
 
@@ -21,7 +20,7 @@ public class LocalFileClientTest {
         // 创建客户端
         LocalFileClientConfig config = new LocalFileClientConfig();
         config.setDomain("http://127.0.0.1:48080");
-        config.setBasePath("/Users/yunai/file_test");
+        config.setBasePath("/Users/demo/file_test");
         LocalFileClient client = new LocalFileClient(0L, config);
         client.init();
         // 上传文件

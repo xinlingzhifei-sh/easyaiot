@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * 数据库表 Service
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DatabaseTableService {
 

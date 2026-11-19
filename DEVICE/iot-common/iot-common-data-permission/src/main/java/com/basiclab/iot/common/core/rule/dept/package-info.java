@@ -1,7 +1,6 @@
 /**
  * 基于部门的数据权限规则
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 package com.basiclab.iot.common.core.rule.dept;

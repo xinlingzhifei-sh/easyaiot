@@ -2,8 +2,7 @@ package com.basiclab.iot.device.constant;
 
 /**
  * device_data数据库中方法类型
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FunctionTypeConstant {
 

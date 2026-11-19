@@ -3,7 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * @ClassDescription: 时序性数据库常用常量
  * @ClassName: TdEngineConstant
- * @Author: iot
+ * @Author: liufei
  * @Date: 2021-12-31 14:42:58
  * @Version 1.0
  */

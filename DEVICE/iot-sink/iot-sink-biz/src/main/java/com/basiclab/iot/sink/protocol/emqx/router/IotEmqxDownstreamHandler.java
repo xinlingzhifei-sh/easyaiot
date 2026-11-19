@@ -14,8 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * IotEmqxDownstreamHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

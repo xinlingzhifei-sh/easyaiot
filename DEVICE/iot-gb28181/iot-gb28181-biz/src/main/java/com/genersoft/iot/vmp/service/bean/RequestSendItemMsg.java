@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service.bean;
 
 /**
  * redis消息：请求下级回复推送信息
- * @author lin
+ * @author liufei
  */
 public class RequestSendItemMsg {
 

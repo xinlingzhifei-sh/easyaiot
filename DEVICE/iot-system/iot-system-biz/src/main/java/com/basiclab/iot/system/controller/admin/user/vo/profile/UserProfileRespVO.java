@@ -22,16 +22,16 @@ public class UserProfileRespVO {
     @Schema(description = "用户昵称", example = "yFeiEye")
     private String nickname;
 
-    @Schema(description = "用户邮箱", example = "Yudao@iocoder.cn")
+    @Schema(description = "用户邮箱", example = "user@example.com")
     private String email;
 
-    @Schema(description = "手机号码", example = "15601691300")
+    @Schema(description = "手机号码", example = "13800000000")
     private String mobile;
 
     @Schema(description = "用户性别，参见 SexEnum 枚举类", example = "1")
     private Integer sex;
 
-    @Schema(description = "用户头像", example = "https://www.iocoder.cn/xxx.png")
+    @Schema(description = "用户头像", example = "https://www.example.com/xxx.png")
     private String avatar;
 
     @Schema(description = "最后登录 IP", example = "192.168.1.1")
@@ -46,8 +46,7 @@ public class UserProfileRespVO {
     /**
  * UserProfileRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private List<RoleSimpleRespVO> roles;

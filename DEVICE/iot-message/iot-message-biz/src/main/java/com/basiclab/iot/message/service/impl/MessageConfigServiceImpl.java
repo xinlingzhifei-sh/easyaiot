@@ -15,8 +15,7 @@ import java.util.UUID;
 /**
  * 消息配置实现层impl
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-18
  */
 @Component

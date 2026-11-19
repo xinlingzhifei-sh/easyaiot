@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * 缓存开放服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteCacheOpenService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteCacheOpenAnyFallbackFactory.class, path = "/cache/open/any")
 public interface RemoteCacheOpenAnyService {

@@ -8,10 +8,6 @@ import java.io.Serializable;
 
 /**
  * 设备当前版本信息（check 请求中的单项）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmOtaVersionOo对象", description = "设备当前版本Oo")

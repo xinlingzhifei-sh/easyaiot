@@ -24,8 +24,7 @@ import com.google.common.collect.Lists;
  * 通知发送公共类
  * 支持6种通知方式：短信(阿里云/腾讯云)、邮件、企业微信、HTTP、钉钉、飞书
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-17
  */
 @Slf4j

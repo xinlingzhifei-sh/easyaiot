@@ -22,10 +22,6 @@ import java.util.Set;
  *
  * 通过 Feign 调用 system 服务发送站内信，模板 code = flow_task_todo，
  * 模板参数：processInstanceName / taskName / startUser / deepLink。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Service
 @Slf4j

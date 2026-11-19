@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 设备消息服务降级处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class RemoteDeviceDatasFallbackFactory implements FallbackFactory<RemoteDeviceDatasService> {

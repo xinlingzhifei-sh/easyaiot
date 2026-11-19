@@ -29,8 +29,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * Demo03StudentController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 学生")
 @RestController

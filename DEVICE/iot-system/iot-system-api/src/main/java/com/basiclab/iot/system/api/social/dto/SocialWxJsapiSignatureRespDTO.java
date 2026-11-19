@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * SocialWxJsapiSignatureRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - 微信公众号 JSAPI 签名 Response DTO")
 @Data
@@ -22,7 +21,7 @@ public class SocialWxJsapiSignatureRespDTO {
     @Schema(description = "时间戳", example = "123456789")
     private Long timestamp;
 
-    @Schema(description = "URL", example = "https://www.iocoder.cn")
+    @Schema(description = "URL", example = "https://www.example.com")
     private String url;
 
     @Schema(description = "签名", example = "zsw")

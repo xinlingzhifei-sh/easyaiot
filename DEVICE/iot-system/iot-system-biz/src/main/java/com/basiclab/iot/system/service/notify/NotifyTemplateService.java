@@ -12,8 +12,7 @@ import java.util.Map;
 /**
  * NotifyTemplateService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface NotifyTemplateService {
 

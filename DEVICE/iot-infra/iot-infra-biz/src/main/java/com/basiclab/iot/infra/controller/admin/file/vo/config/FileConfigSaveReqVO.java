@@ -9,8 +9,7 @@ import java.util.Map;
 /**
  * FileConfigSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 文件配置创建/修改 Request VO")
 @Data

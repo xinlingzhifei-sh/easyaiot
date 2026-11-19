@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * OAuth2ApproveMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OAuth2ApproveMapper extends BaseMapperX<OAuth2ApproveDO> {

@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * DisconnectedHook
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ToString
 @Setter

@@ -12,8 +12,7 @@ import java.util.Map;
 /**
  * MailTemplateService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface MailTemplateService {
 

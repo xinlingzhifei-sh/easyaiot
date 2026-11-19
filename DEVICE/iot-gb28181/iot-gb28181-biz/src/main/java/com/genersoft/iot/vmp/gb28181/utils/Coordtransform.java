@@ -3,10 +3,8 @@ package com.genersoft.iot.vmp.gb28181.utils;
 /**
  * 坐标转换
  * 一个提供了百度坐标（BD09）、国测局坐标（火星坐标，GCJ02）、和WGS84坐标系之间的转换的工具类
- * 参考https://github.com/wandergis/coordtransform 写的Java版本
- * @author Xinconan
+ * @author liufei
  * @date 2016-03-18
- * @url https://github.com/xinconan/coordtransform
  */
 public class Coordtransform {
 

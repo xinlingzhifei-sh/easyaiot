@@ -3,8 +3,7 @@ package com.basiclab.iot.common.service;
 /**
  * Security 框架 Service 接口，定义权限相关的校验操作
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface SecurityFrameworkService {
 

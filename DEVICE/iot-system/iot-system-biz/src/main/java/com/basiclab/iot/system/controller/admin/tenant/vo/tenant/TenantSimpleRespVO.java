@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * TenantSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 租户精简 Response VO")
 @Data

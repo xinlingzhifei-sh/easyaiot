@@ -9,7 +9,7 @@ import pojo.com.basiclab.iot.mybatis.common.PageParam;
 @Data
 public class InfraCategoryListReqVO {
 
-    @Schema(description = "名字", example = "芋头")
+    @Schema(description = "名字", example = "张三")
     private String name;
 
 }

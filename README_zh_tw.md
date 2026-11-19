@@ -1701,12 +1701,6 @@ yFeiEye是一個開源學習項目，與商業行為無關。用戶在使用該�
 歡迎提出更好的意見，幫助完善 yFeiEye
 </p>
 
-## 📄 版權
-
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>使用許可</strong>：個人與企業可 100% 免費使用，無需保留作者、Copyright 資訊。我們相信技術的價值在於被廣泛使用和持續創新，而非被版權束縛。希望您能夠自由地使用、修改、分發本項目，讓 AI 技術真正惠及每一個人。
-</p>
-
 ## 🌟 Star增長趨勢圖
 
 [![Stargazers over time](https://starchart.cc/xinlingzhifei/easyaiot.svg?variant=adaptive)](https://starchart.cc/xinlingzhifei/easyaiot)

@@ -23,8 +23,7 @@ import java.util.Map;
 /**
  * OAuth2OpenConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OAuth2OpenConvert {

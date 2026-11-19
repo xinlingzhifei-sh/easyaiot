@@ -6,7 +6,7 @@ tenant-id: {{adminTenentId}}
 
 {
   "templateCode": "test_01",
-  "mobile": "15601691390",
+  "mobile": "13800000000",
   "templateParams": {
     "operation": "value01",
     "code": "value02"

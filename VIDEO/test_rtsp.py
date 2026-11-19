@@ -3,8 +3,7 @@
 RTSP到RTMP推流测试脚本
 将本地摄像头的RTSP地址推流到远端SRS RTMP地址
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

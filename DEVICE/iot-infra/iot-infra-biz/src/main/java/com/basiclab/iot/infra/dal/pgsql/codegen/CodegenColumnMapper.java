@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * CodegenColumnMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface CodegenColumnMapper extends BaseMapperX<CodegenColumnDO> {

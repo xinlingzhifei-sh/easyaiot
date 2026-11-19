@@ -16,8 +16,7 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.except
  *
  * 另外，jobHandlerName 对应到 Spring Bean 的名字，直接调用
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SchedulerManager {
 
@@ -144,7 +143,7 @@ public class SchedulerManager {
     private void validateScheduler() {
         if (scheduler == null) {
             throw exception0(NOT_IMPLEMENTED.getCode(),
-                    "[定时任务 - 已禁用][参考 https://doc.iocoder.cn/job/ 开启]");
+                    "[定时任务 - 已禁用]");
         }
     }
 

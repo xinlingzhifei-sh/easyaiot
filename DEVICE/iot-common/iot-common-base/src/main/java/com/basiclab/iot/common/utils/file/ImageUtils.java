@@ -13,8 +13,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 图片处理工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ImageUtils
 {

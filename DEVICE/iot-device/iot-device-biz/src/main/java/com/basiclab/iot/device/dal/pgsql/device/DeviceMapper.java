@@ -18,8 +18,7 @@ import java.util.List;
 /**
  * DeviceMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeviceMapper extends BaseMapper<Device> {
@@ -83,8 +82,7 @@ public interface DeviceMapper extends BaseMapper<Device> {
 
     /**
      * @return
-     * @Author: Basiclab
-     * @E-mail: 853017739@qq.com
+     * @Author: liufei
      * @Description: 更新设备在线状态
      * @CreateDate: 2021/12/26 1:01
      * @Version: V1.0

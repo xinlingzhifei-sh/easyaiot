@@ -20,8 +20,7 @@ import java.util.List;
 /**
  * AppController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "应用密钥管理")
 @RestController

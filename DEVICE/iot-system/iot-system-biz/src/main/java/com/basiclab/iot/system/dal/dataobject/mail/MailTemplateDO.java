@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * MailTemplateDO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @TableName(value = "system_mail_template", autoResultMap = true)
 @Data

@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * DeviceEventMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeviceEventMapper extends BaseMapper<DeviceEvent> {

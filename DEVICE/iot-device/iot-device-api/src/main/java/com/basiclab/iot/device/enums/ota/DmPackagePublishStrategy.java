@@ -5,10 +5,6 @@ import lombok.Getter;
 
 /**
  * 发布策略（四类包统一）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum DmPackagePublishStrategy implements Status {
 

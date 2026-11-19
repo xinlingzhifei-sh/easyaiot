@@ -11,8 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * IotTcpConnectionManager
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

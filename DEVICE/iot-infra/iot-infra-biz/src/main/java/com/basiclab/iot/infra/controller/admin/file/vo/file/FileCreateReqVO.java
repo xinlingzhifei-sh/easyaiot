@@ -8,8 +8,7 @@ import javax.validation.constraints.NotNull;
 /**
  * FileCreateReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 文件创建 Request VO")
 @Data
@@ -28,7 +27,7 @@ public class FileCreateReqVO {
     private String name;
 
     @NotNull(message = "文件 URL不能为空")
-    @Schema(description = "文件 URL", example = "https://www.iocoder.cn/iot.jpg")
+    @Schema(description = "文件 URL", example = "https://www.example.com/iot.jpg")
     private String url;
 
     @Schema(description = "文件 MIME 类型", example = "application/octet-stream")

@@ -16,8 +16,7 @@ import javax.annotation.Resource;
 /**
  * ServiceInvokeResponseSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

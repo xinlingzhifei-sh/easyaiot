@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * OAuth2 客户端 Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OAuth2ClientMapper extends BaseMapperX<OAuth2ClientDO> {

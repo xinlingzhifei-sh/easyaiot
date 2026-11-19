@@ -50,7 +50,7 @@
         <text class="text-[#1890ff]" @click="handleGoPrivacy">《隐私协议》</text>
       </view>
       <text class="mb-10rpx text-24rpx text-gray-400">
-        Copyright © 2026 yFeiEye All Rights Reserved.
+        Copyright © 2026 心灵智飞（上海）科技有限公司 All Rights Reserved.
       </text>
       <text class="text-24rpx text-gray-400">
         yFeiEye

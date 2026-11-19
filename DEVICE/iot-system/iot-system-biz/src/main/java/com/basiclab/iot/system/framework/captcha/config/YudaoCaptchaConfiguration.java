@@ -11,8 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * 验证码的配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 public class YudaoCaptchaConfiguration {

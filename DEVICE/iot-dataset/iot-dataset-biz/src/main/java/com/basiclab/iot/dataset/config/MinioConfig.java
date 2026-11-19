@@ -13,8 +13,7 @@ import javax.annotation.PostConstruct;
 /**
  * MinioConfig
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Configuration

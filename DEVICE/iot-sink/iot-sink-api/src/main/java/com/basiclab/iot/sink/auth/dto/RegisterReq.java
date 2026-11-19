@@ -8,8 +8,7 @@ import javax.validation.constraints.NotBlank;
 /**
  * RegisterReq
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

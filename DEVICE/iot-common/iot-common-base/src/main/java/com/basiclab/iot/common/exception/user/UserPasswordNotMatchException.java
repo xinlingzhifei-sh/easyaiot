@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception.user;
 /**
  * 用户密码不正确或不符合规范异常类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class UserPasswordNotMatchException extends UserException
 {

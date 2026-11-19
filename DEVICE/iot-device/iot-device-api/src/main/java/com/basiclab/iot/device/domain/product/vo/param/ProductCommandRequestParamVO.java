@@ -16,8 +16,7 @@ import java.io.Serializable;
  * 产品模型设备下发服务命令属性表
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-03-14 19:39:59
  */
 @Data

@@ -20,8 +20,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * AppFileController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "用户 App - 文件存储")
 @RestController

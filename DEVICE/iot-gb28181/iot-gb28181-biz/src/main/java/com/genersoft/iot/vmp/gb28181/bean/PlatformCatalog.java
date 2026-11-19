@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 国标级联-目录
- * @author lin
+ * @author liufei
  */
 @Schema(description = "目录信息")
 public class PlatformCatalog {

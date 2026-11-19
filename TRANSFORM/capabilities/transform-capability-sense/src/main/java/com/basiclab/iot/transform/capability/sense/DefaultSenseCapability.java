@@ -9,10 +9,6 @@ import java.util.UUID;
 
 /**
  * 默认自感知实现：无状态，仅读本机 JVM/OS 指标。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 public class DefaultSenseCapability implements SenseCapability {

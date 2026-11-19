@@ -8,10 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * MQTT 投递渠道：面向第三方 MQTT 系统 / 桥接。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 public class MqttDeliverChannel implements TransformChannel {

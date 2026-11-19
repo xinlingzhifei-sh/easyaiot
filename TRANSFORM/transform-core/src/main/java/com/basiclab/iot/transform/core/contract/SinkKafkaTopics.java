@@ -5,10 +5,6 @@ package com.basiclab.iot.transform.core.contract;
  * <p>
  * 告警事件、图片地址、视频地址、传感器/设备数据最终均经由 iot-sink 落入这些 Topic，
  * 或可从其中拿到等价信息。TRANSFORM 只消费、不反向改写 sink 协议层。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public final class SinkKafkaTopics {
 

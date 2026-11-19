@@ -1,8 +1,6 @@
 description: Ultralytics model model trained on data.yaml
-author: Ultralytics
 date: '2025-11-22T17:49:13.207439'
 version: 8.3.141
-license: AGPL-3.0 License (https://ultralytics.com/license)
 docs: https://docs.ultralytics.com
 stride: 32
 task: detect

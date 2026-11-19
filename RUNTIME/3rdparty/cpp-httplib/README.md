@@ -962,12 +962,3 @@ Include `httplib.h` before `Windows.h` or include `Windows.h` by defining `WIN32
 
 > [!NOTE]
 > Windows 8 or lower, Visual Studio 2015 or lower, and Cygwin and MSYS2 including MinGW are neither supported nor tested.
-
-License
--------
-
-
-Special Thanks To
------------------
-
-[These folks](https://github.com/yhirose/cpp-httplib/graphs/contributors) made great contributions to polish this library to totally another level from a simple toy!

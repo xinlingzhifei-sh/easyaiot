@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * RoleMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Mapper

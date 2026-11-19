@@ -15,10 +15,6 @@ import java.io.Serializable;
  *
  * App 控制面板模板：云端定制每个产品在 APP 内展示的控制页面，
  * 模板绑定产品后由 APP 按 productIdentification 拉取并动态渲染控制页。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @TableName("app_panel_template")
 @Data

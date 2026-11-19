@@ -11,8 +11,7 @@ import static org.mockito.Mockito.mock;
 /**
  * {@link DataPermissionContextHolder} 的单元测试
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 class DataPermissionContextHolderTest {
 

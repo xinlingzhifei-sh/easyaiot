@@ -9,8 +9,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * RedisCaptchaServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Setter
 public class RedisCaptchaServiceImpl implements CaptchaCacheService {

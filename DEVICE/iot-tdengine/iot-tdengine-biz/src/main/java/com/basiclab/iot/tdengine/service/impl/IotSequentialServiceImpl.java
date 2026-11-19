@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * IotSequentialServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class IotSequentialServiceImpl implements IotSequentialService {

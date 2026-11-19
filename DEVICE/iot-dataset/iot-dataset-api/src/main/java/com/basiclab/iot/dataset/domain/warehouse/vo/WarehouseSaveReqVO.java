@@ -8,8 +8,7 @@ import javax.validation.constraints.*;
 /**
  * WarehouseSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 数据仓新增/修改 Request VO")
 @Data

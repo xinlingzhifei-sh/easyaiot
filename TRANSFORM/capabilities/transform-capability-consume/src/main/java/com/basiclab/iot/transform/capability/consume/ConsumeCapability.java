@@ -4,10 +4,6 @@ import com.basiclab.iot.transform.core.envelope.TransformEnvelope;
 
 /**
  * 消费能力：从约定 Group 拉取上游事件并交给下游处理链。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public interface ConsumeCapability {
 

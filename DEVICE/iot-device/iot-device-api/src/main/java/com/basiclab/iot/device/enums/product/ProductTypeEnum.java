@@ -14,8 +14,7 @@ import java.util.stream.Stream;
  * 产品类型
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-04-14
  */
 @AllArgsConstructor

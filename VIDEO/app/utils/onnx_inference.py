@@ -1,8 +1,7 @@
 """
 VIDEO 模块 ONNX 推理（支持按 GPU 设备 ID 选择 CUDA Execution Provider）
 
-@author reese
-@email reese
+@author liufei
 """
 import ast
 import json

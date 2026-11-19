@@ -22,7 +22,7 @@ import java.util.*;
 
 /**
  * @description:Event事件通知推送器，支持推送在线事件、离线事件
- * @author: swwheihei
+ * @author: liufei
  * @date:   2020年5月6日 上午11:30:50
  */
 @Slf4j

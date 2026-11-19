@@ -14,8 +14,7 @@ import java.util.List;
 /**
  * RemoteProductCommandsService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteProductCommandsService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteProductCommandsFallbackFactory.class)
 public interface RemoteProductCommandsService {

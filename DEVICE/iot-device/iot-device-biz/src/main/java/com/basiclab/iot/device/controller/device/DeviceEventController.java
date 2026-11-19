@@ -21,8 +21,7 @@ import java.util.List;
 /**
  * DeviceEventController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Api(tags = "设备事件管理")
 @RestController

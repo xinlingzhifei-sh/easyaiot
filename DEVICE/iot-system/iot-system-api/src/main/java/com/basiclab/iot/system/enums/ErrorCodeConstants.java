@@ -5,8 +5,7 @@ import com.basiclab.iot.common.exception.ErrorCode;
 /**
  * ErrorCodeConstants
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ErrorCodeConstants {
 

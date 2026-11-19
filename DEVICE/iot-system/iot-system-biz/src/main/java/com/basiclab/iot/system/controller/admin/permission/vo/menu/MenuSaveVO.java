@@ -10,8 +10,7 @@ import javax.validation.constraints.Size;
 /**
  * MenuSaveVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 菜单创建/修改 Request VO")
 @Data

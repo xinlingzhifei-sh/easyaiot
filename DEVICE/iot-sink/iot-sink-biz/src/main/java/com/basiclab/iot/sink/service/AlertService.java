@@ -6,8 +6,7 @@ import com.basiclab.iot.sink.domain.model.AlertNotificationMessage;
  * 告警处理服务接口
  * 负责：存储告警到数据库、上传图片到MinIO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface AlertService {
     

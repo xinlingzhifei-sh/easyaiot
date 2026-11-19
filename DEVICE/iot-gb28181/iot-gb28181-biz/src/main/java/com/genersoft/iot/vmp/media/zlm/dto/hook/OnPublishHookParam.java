@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * zlm hook事件中的on_publish事件的参数
- * @author lin
+ * @author liufei
  */
 
 public class OnPublishHookParam extends HookParam{

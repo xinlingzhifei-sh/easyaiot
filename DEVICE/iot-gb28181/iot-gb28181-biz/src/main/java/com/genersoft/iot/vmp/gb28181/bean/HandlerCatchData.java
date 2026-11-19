@@ -5,7 +5,7 @@ import org.dom4j.Element;
 import javax.sip.RequestEvent;
 
 /**
- * @author lin
+ * @author liufei
  */
 public class HandlerCatchData {
     private RequestEvent evt;

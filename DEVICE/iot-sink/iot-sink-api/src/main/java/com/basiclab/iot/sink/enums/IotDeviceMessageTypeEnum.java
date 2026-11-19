@@ -9,8 +9,7 @@ import java.util.Arrays;
 /**
  * IotDeviceMessageTypeEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @RequiredArgsConstructor

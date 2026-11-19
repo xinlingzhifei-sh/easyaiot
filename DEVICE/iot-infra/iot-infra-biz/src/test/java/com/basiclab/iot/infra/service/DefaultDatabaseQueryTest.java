@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * DefaultDatabaseQueryTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DefaultDatabaseQueryTest {
 

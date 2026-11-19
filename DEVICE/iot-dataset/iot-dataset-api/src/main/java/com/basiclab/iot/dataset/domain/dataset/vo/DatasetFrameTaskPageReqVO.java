@@ -11,8 +11,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * DatasetFrameTaskPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 视频流帧捕获任务分页 Request VO")
 @Data
@@ -38,7 +37,7 @@ public class DatasetFrameTaskPageReqVO extends PageParam {
     @Schema(description = "设备ID", example = "10185")
     private String deviceId;
 
-    @Schema(description = "RTMP播放流地址", example = "https://www.iocoder.cn")
+    @Schema(description = "RTMP播放流地址", example = "https://www.example.com")
     private String rtmpUrl;
 
     @Schema(description = "创建人")

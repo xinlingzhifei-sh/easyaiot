@@ -15,8 +15,7 @@ import java.util.Locale;
 /**
  * DateUtil
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DateUtil {
 

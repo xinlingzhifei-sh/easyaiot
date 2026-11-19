@@ -25,8 +25,7 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.invali
 /**
  * IotHttpAbstractHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @RequiredArgsConstructor

@@ -43,8 +43,7 @@ public interface AuthConvert {
     /**
  * AuthConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 default List<AuthPermissionInfoRespVO.MenuVO> buildMenuTree(List<MenuDO> menuList) {

@@ -24,8 +24,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * SmsChannelController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 短信渠道")
 @RestController

@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 文件配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 public class YudaoFileAutoConfiguration {

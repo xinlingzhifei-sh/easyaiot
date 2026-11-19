@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * DeptMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeptMapper extends BaseMapperX<DeptDO> {

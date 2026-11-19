@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.BankCardDesens
 /**
  * {@link BankCardDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class BankCardDesensitization extends AbstractSliderDesensitizationHandler<BankCardDesensitize> {
 

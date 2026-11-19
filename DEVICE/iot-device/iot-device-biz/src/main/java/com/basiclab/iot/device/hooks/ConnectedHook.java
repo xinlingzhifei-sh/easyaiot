@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * ConnectedHook
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Setter
 @Getter

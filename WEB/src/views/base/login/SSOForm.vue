@@ -45,8 +45,8 @@ const { validForm } = useFormValid(formRef)
 
 async function init() {
   // 解析参数
-  // 例如说【自动授权不通过】：client_id=default&redirect_uri=https%3A%2F%2Fwww.iocoder.cn&response_type=code&scope=user.read%20user.write
-  // 例如说【自动授权通过】：client_id=default&redirect_uri=https%3A%2F%2Fwww.iocoder.cn&response_type=code&scope=user.read
+  // 例如说【自动授权不通过】：client_id=default&redirect_uri=https%3A%2F%www.example.com&response_type=code&scope=user.read%20user.write
+  // 例如说【自动授权通过】：client_id=default&redirect_uri=https%3A%2F%www.example.com&response_type=code&scope=user.read
   params.responseType = query.response_type as any
   params.clientId = query.client_id as any
   params.redirectUri = query.redirect_uri as any

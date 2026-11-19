@@ -9,10 +9,6 @@ import java.time.LocalDateTime;
 
 /**
  * 测试白名单记录
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmVerifyVo对象", description = "测试白名单记录")

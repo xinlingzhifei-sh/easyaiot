@@ -17,8 +17,7 @@ public interface CodegenTableMapper extends BaseMapperX<CodegenTableDO>
 /**
  * CodegenTableMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 {

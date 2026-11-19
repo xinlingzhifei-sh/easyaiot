@@ -12,8 +12,7 @@ import java.util.Set;
 /**
  * TenantPackageRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 Data

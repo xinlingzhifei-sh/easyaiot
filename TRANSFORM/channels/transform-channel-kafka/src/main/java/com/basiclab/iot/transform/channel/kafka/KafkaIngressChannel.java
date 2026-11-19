@@ -19,10 +19,6 @@ import java.util.UUID;
  * <p>
  * 订阅 DEVICE/iot-sink 投递的 Topic，按约定 Group 自动加入消费集群；
  * 多实例部署即横向扩展，Kafka 负责再均衡，本渠道保持无状态。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 public class KafkaIngressChannel implements TransformChannel, EnvelopeNormalizer {

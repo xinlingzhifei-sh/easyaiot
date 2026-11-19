@@ -1,9 +1,5 @@
 """
 从 YOLO / ONNX 模型中提取类别标签，并在推理时解析所选标签。
-
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
 """
 import json
 import logging

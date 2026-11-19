@@ -29,8 +29,7 @@ import static com.basiclab.iot.sink.enums.ErrorCodeConstants.DEVICE_AUTH_FAIL;
 /**
  * DeviceAuthController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Validated

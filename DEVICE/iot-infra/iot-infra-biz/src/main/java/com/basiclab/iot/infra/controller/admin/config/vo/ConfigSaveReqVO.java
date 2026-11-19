@@ -10,8 +10,7 @@ import javax.validation.constraints.Size;
 /**
  * ConfigSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 参数配置创建/修改 Request VO")
 @Data
@@ -30,7 +29,7 @@ public class ConfigSaveReqVO {
     @Size(max = 100, message = "参数名称不能超过 100 个字符")
     private String name;
 
-    @Schema(description = "参数键名", example = "yunai.db.username")
+    @Schema(description = "参数键名", example = "demo.db.username")
     @NotBlank(message = "参数键名长度不能为空")
     @Size(max = 100, message = "参数键名长度不能超过 100 个字符")
     private String key;

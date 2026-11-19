@@ -10,8 +10,7 @@ import javax.validation.Valid;
 /**
  * 参数配置 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ConfigService {
 

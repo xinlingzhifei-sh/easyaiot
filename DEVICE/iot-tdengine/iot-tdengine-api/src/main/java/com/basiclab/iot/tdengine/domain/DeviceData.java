@@ -5,8 +5,7 @@ import lombok.Data;
 
 /**
  * Tdengine中的device_data表
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class DeviceData {

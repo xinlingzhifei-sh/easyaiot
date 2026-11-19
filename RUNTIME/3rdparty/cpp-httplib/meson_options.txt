@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2021 Andrea Pappacoda
-#
-
 option('cpp-httplib_openssl', type: 'feature', value: 'auto', description: 'Enable OpenSSL support')
 option('cpp-httplib_zlib',    type: 'feature', value: 'auto', description: 'Enable zlib support')
 option('cpp-httplib_brotli',  type: 'feature', value: 'auto', description: 'Enable Brotli support')

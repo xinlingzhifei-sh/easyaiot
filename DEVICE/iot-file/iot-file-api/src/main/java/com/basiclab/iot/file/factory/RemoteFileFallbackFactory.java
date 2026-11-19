@@ -15,8 +15,7 @@ import java.util.Map;
 /**
  * 文件服务降级处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class RemoteFileFallbackFactory implements FallbackFactory<RemoteFileService> {

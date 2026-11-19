@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * RoleMenuMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface RoleMenuMapper extends BaseMapperX<RoleMenuDO> {

@@ -428,10 +428,6 @@ ping <rtmp_server_ip>
 - [SRS 流媒体服务器](https://github.com/ossrs/srs)
 - [H.264 编码指南](https://trac.ffmpeg.org/wiki/Encode/H.264)
 
-## 许可证
-
-本工具遵循项目整体许可证。
-
 ## 更新日志
 
 ### v1.0.0 (2025-01-XX)
@@ -455,5 +451,5 @@ ping <rtmp_server_ip>
 ## 联系支持
 
 如有问题或建议，请联系：
-- 作者：reese
+- 作者： liufei
 - 邮箱：reese

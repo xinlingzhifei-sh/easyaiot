@@ -11,8 +11,7 @@ import javax.validation.constraints.Size;
 /**
  * 角色表 sys_role
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SysRole extends BaseEntity
 {

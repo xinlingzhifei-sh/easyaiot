@@ -2,8 +2,7 @@
 推送器服务模板工程
 用于推送视频流和事件告警
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

@@ -2,8 +2,7 @@
 最小化的模型部署服务模板
 用于部署模型并提供推理接口
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

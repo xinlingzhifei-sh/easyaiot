@@ -14,8 +14,7 @@ import java.util.Map;
 /**
  * {@link CodegenEngine} 的 Vue2 + Element UI 单元测试
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Disabled
 public class CodegenEngineVue2Test extends CodegenEngineAbstractTest {
@@ -50,7 +49,7 @@ public class CodegenEngineVue2Test extends CodegenEngineAbstractTest {
         //writeResult(result, resourcesPath + "/vue2_tree");
         // 断言
         assertResult(result, "/vue2_tree");
-//        writeFile(result, "/Users/yunai/test/demo66.zip");
+//        writeFile(result, "/Users/demo/test/demo66.zip");
     }
 
     @Test
@@ -95,7 +94,7 @@ public class CodegenEngineVue2Test extends CodegenEngineAbstractTest {
         //writeResult(result, resourcesPath + path);
         // 断言
         assertResult(result, path);
-//        writeFile(result, "/Users/yunai/test/demo11.zip");
+//        writeFile(result, "/Users/demo/test/demo11.zip");
     }
 
 }

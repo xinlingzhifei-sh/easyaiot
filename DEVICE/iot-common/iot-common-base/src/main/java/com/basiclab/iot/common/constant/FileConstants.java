@@ -1,8 +1,7 @@
 package com.basiclab.iot.common.constant;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileConstants {
 

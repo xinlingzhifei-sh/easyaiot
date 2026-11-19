@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * DeviceEventServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class DeviceEventServiceImpl extends ServiceImpl<DeviceEventMapper, DeviceEvent> implements DeviceEventService {

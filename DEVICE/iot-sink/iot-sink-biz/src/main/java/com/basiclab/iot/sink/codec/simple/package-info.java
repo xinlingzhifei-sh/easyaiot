@@ -1,6 +1,5 @@
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 package com.basiclab.iot.sink.codec.simple;

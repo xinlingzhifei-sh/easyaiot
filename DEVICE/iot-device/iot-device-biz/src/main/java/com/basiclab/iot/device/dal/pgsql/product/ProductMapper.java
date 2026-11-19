@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * ProductMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProductMapper extends BaseMapper<Product> {

@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * CodegenColumnListConditionEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @Getter

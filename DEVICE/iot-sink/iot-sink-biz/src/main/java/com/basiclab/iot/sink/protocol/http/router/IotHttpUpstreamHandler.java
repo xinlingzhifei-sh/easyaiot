@@ -16,8 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * IotHttpUpstreamHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @RequiredArgsConstructor

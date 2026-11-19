@@ -1,7 +1,7 @@
 /**
  * 设备设置命令API接口
  * 
- * @author lawrencehj
+ * @author liufei
  * @date 2021年2月2日
  */
 

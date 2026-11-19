@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * NtpDownstreamResponseListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

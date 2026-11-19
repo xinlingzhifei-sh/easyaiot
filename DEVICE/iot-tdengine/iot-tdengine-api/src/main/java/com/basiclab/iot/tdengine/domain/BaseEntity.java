@@ -7,8 +7,7 @@ import javax.validation.constraints.NotBlank;
 /**
  * BaseEntity
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class BaseEntity {

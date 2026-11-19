@@ -1,8 +1,7 @@
 """
 图片处理工具函数
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import logging

@@ -1,7 +1,6 @@
 """
 模型部署服务业务逻辑
-@author reese
-@email reese
+@author liufei
 """
 import os
 import socket

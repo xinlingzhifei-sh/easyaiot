@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.SliderDesensit
 /**
  * {@link SliderDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class DefaultDesensitizationHandler extends AbstractSliderDesensitizationHandler<SliderDesensitize> {
     @Override

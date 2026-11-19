@@ -6,8 +6,7 @@ import lombok.experimental.Accessors;
 /**
  * 短信发送 Response DTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @Accessors(chain = true)

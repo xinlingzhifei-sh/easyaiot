@@ -12,15 +12,6 @@
 > 1. `base` 模板一样可以使用 `uniCloud` 云开发。
 > 2. `base` 模板支持 `App` 开发，并且也可以热更新，详情请见 [APP 专区](./18-app)。
 
-## 仓库地址
-
-> `hbx` 目前由 `青谷` 大佬维护，微信号：`qingguxixi`，[青谷 github 地址](https://github.com/Xiphin) 。
-
-- gitee: [unibest-hbx](https://github.com/uni-run/unibest-hbx)
-- github: [unibest-hbx](https://github.com/uni-run/unibest-hbx)
-
-没有梯子的用户优先推荐使用 `gitee` 仓库，速度更快。（两个仓库会实时同步，无差别。）
-
 ## 导入项目
 
 有 2 种方式导入项目：

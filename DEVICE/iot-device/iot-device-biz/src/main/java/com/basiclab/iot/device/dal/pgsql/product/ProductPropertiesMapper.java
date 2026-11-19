@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * ProductPropertiesMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProductPropertiesMapper {

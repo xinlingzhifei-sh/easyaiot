@@ -23,6 +23,5 @@
     "max_replicas": 4,
     "stateless": true
   },
-  "author": "easyaiot",
-  "license": "Apache-2.0"
+  "author": "liufei"
 }

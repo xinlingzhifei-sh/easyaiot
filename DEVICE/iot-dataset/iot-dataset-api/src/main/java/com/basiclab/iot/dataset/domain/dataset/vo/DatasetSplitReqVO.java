@@ -10,8 +10,7 @@ import java.math.BigDecimal;
 /**
  * DatasetSplitReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class DatasetSplitReqVO {

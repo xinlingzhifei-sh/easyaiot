@@ -15,8 +15,7 @@ import java.util.Map;
 /**
  * SmsLogRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 短信日志 ResponseVO")
 @Data
@@ -60,7 +59,7 @@ public class SmsLogRespVO {
     @ExcelProperty("短信 API 的模板编号")
     private String apiTemplateId;
 
-    @Schema(description = "手机号", example = "15601691300")
+    @Schema(description = "手机号", example = "13800000000")
     @ExcelProperty("手机号")
     private String mobile;
 

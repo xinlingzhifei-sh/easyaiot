@@ -36,8 +36,7 @@ import java.util.Map;
 /**
  * ProductController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Tag(name = "产品管理")

@@ -8,8 +8,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * ProductCommandsRequestsService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProductCommandsRequestsService {
 

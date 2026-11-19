@@ -3,8 +3,7 @@ package com.basiclab.iot.system.enums.oauth2;
 /**
  * OAuth2.0 客户端的通用枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface OAuth2ClientConstants {
 

@@ -14,9 +14,7 @@ import java.io.Serializable;
 /**
 
  * @Description:    java类作用描述
- * @Author:         yFeiEye
- * @E-mail:         reese
- * @Website:        https://gitee.com/reese/yfeieye
+ * @Author:         liufei
  * @CreateDate:     2024/12/25$ 23:52$
  * @UpdateUser:     yFeiEye
  * @UpdateDate:     2024/12/25$ 23:52$
@@ -26,8 +24,7 @@ import java.io.Serializable;
  */
 /**
  * 产品模型设备响应服务命令属性表
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value="产品模型设备响应事件属性表")
 @Data

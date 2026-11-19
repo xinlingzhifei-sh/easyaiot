@@ -26,8 +26,7 @@ import java.util.concurrent.TimeUnit;
  * 抓拍算法任务告警Kafka消费者（iot-sink服务）
  * 处理流程：1. 存储告警到数据库（类型为抓拍算法任务） 2. 上传图片到MinIO抓拍空间 3. 如果开启了通知，发送到抓拍算法任务通知主题供iot-message消费
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

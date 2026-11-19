@@ -1,5 +1,5 @@
 """
-@author reese
+@author liufei
 讯飞语音识别API配置
 """
 

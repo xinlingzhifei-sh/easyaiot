@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 /**
  * Member Service 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class MemberServiceImpl implements MemberService {

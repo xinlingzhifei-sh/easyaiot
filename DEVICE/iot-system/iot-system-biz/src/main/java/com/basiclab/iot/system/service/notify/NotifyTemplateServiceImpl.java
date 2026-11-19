@@ -28,8 +28,7 @@ import static com.basiclab.iot.system.enums.ErrorCodeConstants.NOTIFY_TEMPLATE_N
 /**
  * NotifyTemplateServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

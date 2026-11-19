@@ -17,8 +17,7 @@ import javax.annotation.PreDestroy;
 /**
  * IotMqttUpstreamProtocol
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

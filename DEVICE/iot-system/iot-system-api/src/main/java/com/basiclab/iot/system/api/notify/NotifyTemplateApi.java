@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * NotifyTemplateApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(name = ApiConstants.NAME)
 @Tag(name = "RPC 服务 - 通知模板")

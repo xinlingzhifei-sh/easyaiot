@@ -9,8 +9,7 @@ import java.util.Map;
 /**
  * NotifyMessageRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 站内信 Response VO")
 @Data

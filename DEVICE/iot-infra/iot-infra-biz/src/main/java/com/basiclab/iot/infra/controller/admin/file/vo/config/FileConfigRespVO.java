@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 /**
  * FileConfigRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 文件配置 Response VO")
 @Data

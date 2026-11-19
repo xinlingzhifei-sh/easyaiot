@@ -12,14 +12,13 @@ public class DictDataRespDTO {
 /**
  * DictDataRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 (description = "字典标签", example = "yFeiEye")
     private String label;
 
-    @Schema(description = "字典值", example = "iocoder")
+    @Schema(description = "字典值", example = "example")
     private String value;
 
     @Schema(description = "字典类型", example = "sys_common_sex")

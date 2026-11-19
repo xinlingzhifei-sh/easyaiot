@@ -610,7 +610,7 @@
         </foreach>
     </delete>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-20-->
+    <!--Author: liufei on 2024-07-20-->
     <select id="findOneByDeviceIdentification" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

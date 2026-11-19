@@ -17,8 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 /**
  * 文件处理工具类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileUtils
 {

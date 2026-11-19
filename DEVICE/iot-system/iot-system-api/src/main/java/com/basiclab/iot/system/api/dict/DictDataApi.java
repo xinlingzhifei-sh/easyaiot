@@ -57,8 +57,7 @@ public interface DictDataApi {
     /**
  * DictDataApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 default List<String> getDictDataLabelList(String dictType) {

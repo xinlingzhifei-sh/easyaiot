@@ -1,7 +1,6 @@
 """
 设备区域检测服务
-@author reese
-@email reese
+@author liufei
 """
 import json
 import logging

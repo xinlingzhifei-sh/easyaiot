@@ -7,8 +7,7 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc    日志处理对象
  * @created 2025-06-25
  */

@@ -17,8 +17,7 @@ import static
 /**
  * DictDataApiImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 com.basiclab.iot.common.domain.CommonResult.success;

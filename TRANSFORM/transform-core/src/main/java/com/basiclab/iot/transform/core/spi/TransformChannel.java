@@ -7,10 +7,6 @@ import com.basiclab.iot.transform.core.envelope.TransformEnvelope;
  * 渠道适配器 SPI：每个渠道模块实现消费侧与/或投递侧。
  * <p>
  * 运行时按配置启用渠道 → 自动 join 该渠道约定 Group → 无状态扩缩。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public interface TransformChannel {
 

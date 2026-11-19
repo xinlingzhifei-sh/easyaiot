@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.IdCardDesensit
 /**
  * {@link IdCardDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class IdCardDesensitization extends AbstractSliderDesensitizationHandler<IdCardDesensitize> {
     @Override

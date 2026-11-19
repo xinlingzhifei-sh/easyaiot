@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 
 /**
  * 设备管理
- * @author reese
- * @email reese
+ * @author liufei
  */
 @EqualsAndHashCode(callSuper = true)
 @ApiModel(value = "设备管理")

@@ -7,8 +7,7 @@ import java.sql.Timestamp;
 /**
  * IotSequential
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IotSequential extends BaseEntity {
     private static final long serialVersionUID = 1L;

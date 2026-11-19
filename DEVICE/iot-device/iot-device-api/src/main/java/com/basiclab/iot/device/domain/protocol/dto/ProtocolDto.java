@@ -8,8 +8,7 @@ import lombok.experimental.Accessors;
 import java.util.List;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc    协议传输对象
  * @created 2025-06-21
  */

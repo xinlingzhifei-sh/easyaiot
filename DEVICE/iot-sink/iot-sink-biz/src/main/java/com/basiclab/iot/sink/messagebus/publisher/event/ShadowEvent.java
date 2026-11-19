@@ -6,8 +6,7 @@ import com.basiclab.iot.sink.mq.message.IotDeviceMessage;
 /**
  * ShadowEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class ShadowEvent extends AbstractIotDeviceEvent {

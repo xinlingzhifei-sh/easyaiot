@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * 国标通道业务类
- * @author lin
+ * @author liufei
  */
 public interface IDeviceChannelService {
 

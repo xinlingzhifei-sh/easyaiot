@@ -6,8 +6,7 @@ import lombok.Data;
 /**
  * MenuListReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 菜单列表 Request VO")
 @Data

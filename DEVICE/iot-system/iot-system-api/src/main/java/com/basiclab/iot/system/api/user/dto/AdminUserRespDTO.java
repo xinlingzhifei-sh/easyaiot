@@ -9,8 +9,7 @@ import java.util.Set;
 /**
  * AdminUserRespDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - Admin 用户 Response DTO")
 @Data
@@ -34,7 +33,7 @@ public class AdminUserRespDTO implements VO {
     @Schema(description = "岗位编号数组", example = "[1, 3]")
     private Set<Long> postIds;
 
-    @Schema(description = "手机号码", example = "15601691300")
+    @Schema(description = "手机号码", example = "13800000000")
     private String mobile;
 
     @Schema(description = "是否在做实验：0-否，1-是", example = "0")

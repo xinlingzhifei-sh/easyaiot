@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2021 Andrea Pappacoda
-#
-
 project(
   'cpp-httplib',
   'cpp',

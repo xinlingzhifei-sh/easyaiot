@@ -25,10 +25,6 @@ import java.util.stream.Collectors;
 
 /**
  * 消费 → 映射 → Outbox → 内部投递 Topic → DLQ。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Service

@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * 设备相关业务处理
- * @author lin
+ * @author liufei
  */
 public interface IDeviceService {
 

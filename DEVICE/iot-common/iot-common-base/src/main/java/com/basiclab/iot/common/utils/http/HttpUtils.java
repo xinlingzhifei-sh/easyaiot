@@ -17,8 +17,7 @@ import java.util.Map;
 /**
  * HTTP 工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class HttpUtils {
 

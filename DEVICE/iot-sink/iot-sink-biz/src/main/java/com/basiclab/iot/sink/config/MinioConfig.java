@@ -10,8 +10,7 @@ import org.springframework.util.StringUtils;
 /**
  * MinIO配置类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @Configuration

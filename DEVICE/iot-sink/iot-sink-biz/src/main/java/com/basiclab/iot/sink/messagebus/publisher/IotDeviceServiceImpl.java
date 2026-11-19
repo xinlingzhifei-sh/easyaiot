@@ -10,8 +10,7 @@ import javax.annotation.Resource;
 /**
  * IotDeviceServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

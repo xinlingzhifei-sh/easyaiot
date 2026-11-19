@@ -1,4 +1,4 @@
-package cn.iocoder.Yudao.module.infra.service.demo;
+package com.example.demo.module.infra.service.demo;
 
 import java.util.*;
 import javax.validation.*;
@@ -12,8 +12,7 @@ import pojo.com.basiclab.iot.mybatis.common.PageParam;
 /**
  * 学生 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface InfraStudentService {
 

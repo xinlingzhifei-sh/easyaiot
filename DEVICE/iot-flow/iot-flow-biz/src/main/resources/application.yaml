@@ -17,7 +17,7 @@ iot:
     base-package: com.basiclab.iot.flow
   web:
     admin-ui:
-      url: http://dashboard.iot.iocoder.cn
+      url: http://127.0.0.1:8888
   tenant:
     enable: true
     # 告警路由链路与租户无关（告警来自 VIDEO 库、无 tenant_id），对应 DO 用 BaseDO

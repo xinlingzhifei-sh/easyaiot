@@ -4,8 +4,7 @@ import com.basiclab.iot.common.exception.Status;
 import lombok.Getter;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-05-28
  */

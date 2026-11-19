@@ -8,8 +8,7 @@ import lombok.EqualsAndHashCode;
 /**
  * PostPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 岗位分页 Request VO")
 @Data

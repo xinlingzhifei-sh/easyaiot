@@ -8,10 +8,6 @@ import java.io.Serializable;
 
 /**
  * 白名单分组（按产品）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmWhiteGroupVo对象", description = "白名单分组（按产品）")

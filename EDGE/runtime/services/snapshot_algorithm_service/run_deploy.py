@@ -3,10 +3,6 @@
 统一的抓拍算法任务服务程序
 整合缓流器、抽帧器功能，按 Cron 抓拍，支持追踪和告警（不推流）
 参照test_services_pipeline.py和test_services_pipeline_tracking.py
-
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
 """
 import os
 import sys

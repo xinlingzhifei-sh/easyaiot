@@ -5,8 +5,7 @@ import lombok.Data;
 /**
  * response相应实体
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2023-07-19
  **/
 @Data

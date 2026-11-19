@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 /**
  * AppDO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @TableName("app")

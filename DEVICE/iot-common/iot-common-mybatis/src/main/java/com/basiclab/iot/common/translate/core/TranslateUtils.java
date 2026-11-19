@@ -9,8 +9,7 @@ import java.util.List;
 /**
  * VO 数据翻译 Utils
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TranslateUtils {
 

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 /**
  * 数值格式判断和处理
- * @author lawrencehj
+ * @author liufei
  * @date 2021年1月27日
  */
 public class NumericUtil {

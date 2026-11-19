@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * OtaEventListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

@@ -6,8 +6,7 @@ import com.basiclab.iot.sink.mq.message.IotDeviceMessage;
 /**
  * NtpEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class NtpEvent extends AbstractIotDeviceEvent {

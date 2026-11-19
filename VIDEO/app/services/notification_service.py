@@ -1,7 +1,6 @@
 """
 告警通知服务（通过Kafka发送）
-@author reese
-@email reese
+@author liufei
 """
 import json
 import logging

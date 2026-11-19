@@ -6,8 +6,7 @@ import org.aspectj.lang.JoinPoint;
 /**
  * 限流 Key 解析器接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface RateLimiterKeyResolver {
 

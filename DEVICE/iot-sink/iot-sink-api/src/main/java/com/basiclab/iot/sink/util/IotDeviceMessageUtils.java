@@ -13,8 +13,7 @@ import java.util.Map;
 /**
  * IotDeviceMessageUtils
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class IotDeviceMessageUtils {

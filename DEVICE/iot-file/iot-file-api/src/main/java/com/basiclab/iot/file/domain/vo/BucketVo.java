@@ -9,8 +9,7 @@ import java.time.ZonedDateTime;
 /**
  * 桶信息
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @ApiModel(value = "桶对象", description = "桶Vo")

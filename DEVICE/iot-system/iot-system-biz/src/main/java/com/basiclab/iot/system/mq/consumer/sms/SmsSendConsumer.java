@@ -12,8 +12,7 @@ import javax.annotation.Resource;
 /**
  * SmsSendConsumer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Slf4j

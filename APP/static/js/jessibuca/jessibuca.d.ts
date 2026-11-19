@@ -168,7 +168,7 @@ declare namespace Jessibuca {
          */
         wasmDecodeErrorReplay?: boolean,
         /**
-         * https://github.com/langhuihui/jessibuca/issues/152 解决方案
+         * 解决方案
          * 例如：WebGL图像预处理默认每次取4字节的数据，但是540x960分辨率下的U、V分量宽度是540/2=270不能被4整除，导致绿屏。
          */
         openWebglAlignment?: boolean

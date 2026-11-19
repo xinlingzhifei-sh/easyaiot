@@ -3,8 +3,7 @@ package com.basiclab.iot.device.constant;
 /**
  * ClientConstants
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ClientConstants {
 

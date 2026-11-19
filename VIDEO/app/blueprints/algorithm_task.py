@@ -1,7 +1,6 @@
 """
 算法任务、抽帧器、排序器管理路由
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import os

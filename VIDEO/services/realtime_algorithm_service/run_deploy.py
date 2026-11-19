@@ -4,8 +4,7 @@
 整合缓流器、抽帧器、推帧器功能，支持追踪和告警
 参照test_services_pipeline.py和test_services_pipeline_tracking.py
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

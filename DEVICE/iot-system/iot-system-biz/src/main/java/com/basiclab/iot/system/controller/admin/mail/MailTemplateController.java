@@ -23,8 +23,7 @@ import static com.basiclab.iot.common.utils.SecurityFrameworkUtils.getLoginUserI
 /**
  * MailTemplateController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 邮件模版")
 @RestController

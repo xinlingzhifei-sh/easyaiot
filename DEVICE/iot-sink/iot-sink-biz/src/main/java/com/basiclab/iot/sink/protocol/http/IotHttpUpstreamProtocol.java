@@ -20,8 +20,7 @@ import javax.annotation.PreDestroy;
 /**
  * IotHttpUpstreamProtocol
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

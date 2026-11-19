@@ -7,8 +7,7 @@ import javax.validation.constraints.NotEmpty;
 /**
  * IotDeviceAuthReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

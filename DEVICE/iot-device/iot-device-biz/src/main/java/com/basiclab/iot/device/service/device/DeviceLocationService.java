@@ -7,8 +7,7 @@ import java.util.List;
 /**
  * DeviceLocationService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceLocationService extends IService<DeviceLocation> {
 

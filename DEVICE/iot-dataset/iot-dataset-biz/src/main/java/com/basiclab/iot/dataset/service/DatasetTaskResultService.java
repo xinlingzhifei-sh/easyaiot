@@ -9,8 +9,7 @@ import com.basiclab.iot.dataset.domain.dataset.vo.DatasetTaskResultSaveReqVO;
 /**
  * 标注任务结果 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DatasetTaskResultService {
 

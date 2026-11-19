@@ -10,8 +10,7 @@ import com.basiclab.iot.common.utils.StringUtils;
 /**
  * 字符集工具类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class CharsetKit
 {

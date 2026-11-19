@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 实现参考自xiaozhangnomoney原创文章，
- * 版权声明：本文为xiaozhangnomoney原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明
- * 原文出处链接：https://blog.csdn.net/xiaozhangnomoney/article/details/107769147
- */
 @Slf4j
 public class SystemInfoUtils {
 

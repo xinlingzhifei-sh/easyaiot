@@ -13,8 +13,7 @@ import java.util.Map;
 /**
  * NotifyMessageService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface NotifyMessageService {
 

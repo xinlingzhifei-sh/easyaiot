@@ -6,7 +6,7 @@ tenant-id: {{adminTenentId}}
 
 {
   "templateCode": "test_01",
-  "mail": "7685413@qq.com",
+  "mail": "user@example.com",
   "templateParams": {
     "key01": "value01",
     "key02": "value02"

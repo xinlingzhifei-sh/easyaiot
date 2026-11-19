@@ -14,8 +14,7 @@ import java.util.Map;
  * <p>
  * 约定：脚本最终须返回 {@code byte[]}（也可用 UTF-8 字符串，引擎会自动转换）。
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class JsUtilFunction {
 

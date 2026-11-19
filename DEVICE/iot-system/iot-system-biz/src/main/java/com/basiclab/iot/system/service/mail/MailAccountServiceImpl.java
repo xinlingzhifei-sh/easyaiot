@@ -23,8 +23,7 @@ import static com.basiclab.iot.system.enums.ErrorCodeConstants.MAIL_ACCOUNT_RELA
 /**
  * MailAccountServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

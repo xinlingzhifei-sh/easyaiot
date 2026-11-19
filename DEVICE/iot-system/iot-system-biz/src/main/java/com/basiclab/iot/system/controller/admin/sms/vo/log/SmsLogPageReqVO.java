@@ -14,8 +14,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * SmsLogPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Schema(description = "管理后台 - 短信日志分页 Request VO")
@@ -30,7 +29,7 @@ public class SmsLogPageReqVO extends PageParam {
     @Schema(description = "模板编号", example = "20")
     private Long templateId;
 
-    @Schema(description = "手机号", example = "15601691300")
+    @Schema(description = "手机号", example = "13800000000")
     private String mobile;
 
     @Schema(description = "发送状态，参见 SmsSendStatusEnum 枚举类", example = "1")

@@ -7,8 +7,7 @@ import lombok.Data;
 /**
  * PostSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 岗位信息的精简 Response VO")
 @Data

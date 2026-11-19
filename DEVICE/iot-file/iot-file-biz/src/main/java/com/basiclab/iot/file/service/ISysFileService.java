@@ -21,8 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * 文件上传接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ISysFileService {
     /**

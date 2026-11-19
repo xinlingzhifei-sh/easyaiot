@@ -6,8 +6,7 @@ import com.basiclab.iot.sink.dal.dataobject.DeviceDO;
 /**
  * DeviceService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface DeviceService {

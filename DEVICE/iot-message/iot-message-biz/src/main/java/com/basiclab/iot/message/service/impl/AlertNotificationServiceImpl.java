@@ -35,8 +35,7 @@ import java.util.UUID;
 /**
  * 告警通知服务实现
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Service

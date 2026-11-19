@@ -22,8 +22,7 @@ import com.basiclab.iot.common.domain.TableSupport;
 /**
  * web层通用数据处理
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class BaseController
 {

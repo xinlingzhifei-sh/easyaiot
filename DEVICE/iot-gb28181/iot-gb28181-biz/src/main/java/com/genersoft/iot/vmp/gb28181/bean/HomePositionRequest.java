@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.utils.MessageElement;
 /**
  * 设备信息查询响应
  *
- * @author Y.G
+ * @author liufei
  * @version 1.0
  * @date 2022/6/28 14:55
  */

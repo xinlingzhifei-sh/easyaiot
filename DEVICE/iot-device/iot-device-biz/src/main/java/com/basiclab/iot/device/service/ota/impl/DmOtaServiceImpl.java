@@ -42,10 +42,6 @@ import java.util.stream.Collectors;
  * 设备侧统一 OTA 出入口实现
  * <p>
  * 升级检测采用拉取模型：由设备/APP 通过 HTTP 主动发起检测，平台仅做应答，不做主动下行推送。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Service
 @Slf4j

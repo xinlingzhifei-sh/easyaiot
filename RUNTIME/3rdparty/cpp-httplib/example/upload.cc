@@ -1,9 +1,3 @@
-//
-//  upload.cc
-//
-//  Copyright (c) 2019 Yuji Hirose. All rights reserved.
-//
-
 #include <fstream>
 #include <httplib.h>
 #include <iostream>

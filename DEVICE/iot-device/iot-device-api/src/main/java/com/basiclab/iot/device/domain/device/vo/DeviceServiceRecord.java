@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 
 /**
  * 设备服务记录管理
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel(value="设备服务记录")
 @Data

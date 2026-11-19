@@ -1,6 +1,5 @@
 """
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import multiprocessing
@@ -127,7 +126,7 @@ class InferenceService:
 
     def _get_media_server_url(self):
         """从环境变量获取推流服务器地址"""
-        push_url = os.getenv('MODEL_AI_PUSH_URL', 'pro.basiclab.top:1935')
+        push_url = os.getenv('MODEL_AI_PUSH_URL', '127.0.0.1:1935')
         if not push_url.startswith('rtmp://'):
             push_url = f'rtmp://{push_url}'
         return push_url.rstrip('/')

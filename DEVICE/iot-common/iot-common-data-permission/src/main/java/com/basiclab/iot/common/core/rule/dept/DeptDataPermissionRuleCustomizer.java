@@ -3,8 +3,7 @@ package com.basiclab.iot.common.core.rule.dept;
 /**
  * {@link DeptDataPermissionRule} 的自定义配置接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FunctionalInterface
 public interface DeptDataPermissionRuleCustomizer {

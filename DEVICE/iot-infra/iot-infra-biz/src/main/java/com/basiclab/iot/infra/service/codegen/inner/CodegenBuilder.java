@@ -25,8 +25,7 @@ import static cn.hutool.core.util.RandomUtil.randomInt;
 /**
  * CodegenBuilder
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 public class CodegenBuilder {
@@ -204,7 +203,7 @@ public class CodegenBuilder {
         }
         // url
         if (StrUtil.endWithIgnoreCase(column.getColumnName(), "url")) {
-            column.setExample("https://www.iocoder.cn");
+            column.setExample("https://www.example.com");
             return;
         }
         // reason

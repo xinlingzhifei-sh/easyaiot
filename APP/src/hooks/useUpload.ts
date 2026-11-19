@@ -34,7 +34,7 @@ export default function useUpload<T extends TfileType>(options: TOptions<T> = {}
 
   const handleFileChoose = ({ tempFilePath, size }: { tempFilePath: string, size: number }) => {
     if (size > maxSize) {
-      // 注释 by 芋艿：使用 wd-toast 替代
+      // 使用 wd-toast 替代
       // uni.showToast({
       //   title: `文件大小不能超过 ${maxSize / 1024 / 1024}MB`,
       //   icon: 'none',

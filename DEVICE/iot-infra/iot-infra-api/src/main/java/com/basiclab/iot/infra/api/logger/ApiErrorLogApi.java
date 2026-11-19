@@ -14,8 +14,7 @@ import javax.validation.Valid;
 /**
  * ApiErrorLogApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(name = ApiConstants.NAME) // TODO yFeiEye：fallbackFact
 @Tag(name = "RPC 服务 - API 异常日志")

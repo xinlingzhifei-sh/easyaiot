@@ -16,8 +16,7 @@ import java.util.List;
 /**
  * NotifyMessageMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface NotifyMessageMapper extends BaseMapperX<NotifyMessageDO> {

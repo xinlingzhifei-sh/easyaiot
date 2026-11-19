@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * SmsChannelMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface SmsChannelMapper extends BaseMapperX<SmsChannelDO> {

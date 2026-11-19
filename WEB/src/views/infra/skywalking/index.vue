@@ -5,7 +5,7 @@ import { IFrame } from '@/components/iFrame'
 
 defineOptions({ name: 'InfraSkywalking' })
 
-const src = ref('http://skywalking.shop.iocoder.cn')
+const src = ref('http://127.0.0.1:8080')
 </script>
 
 <template>

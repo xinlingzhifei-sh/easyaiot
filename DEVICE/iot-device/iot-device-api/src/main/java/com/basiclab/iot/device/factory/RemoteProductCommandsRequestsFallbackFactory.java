@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * RemoteProductCommandsRequestsFallbackFactory
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Component

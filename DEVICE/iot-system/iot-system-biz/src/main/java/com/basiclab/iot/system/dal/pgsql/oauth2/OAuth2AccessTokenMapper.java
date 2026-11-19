@@ -14,8 +14,7 @@ import java.util.List;
 /**
  * OAuth2AccessTokenMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OAuth2AccessTokenMapper extends BaseMapperX<OAuth2AccessTokenDO> {

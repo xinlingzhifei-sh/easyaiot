@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * 消息配置controller层
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-17
  */
 @RestController

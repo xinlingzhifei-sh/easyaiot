@@ -1,7 +1,6 @@
 """
 数据库迁移脚本：为 llm_config 表添加 service_type 列
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

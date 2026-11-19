@@ -1,7 +1,6 @@
 """
 模型部署服务路由
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import os

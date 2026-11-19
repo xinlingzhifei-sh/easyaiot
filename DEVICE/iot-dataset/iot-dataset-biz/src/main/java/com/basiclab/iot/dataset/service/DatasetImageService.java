@@ -18,8 +18,7 @@ import java.util.Map;
 /**
  * 图片数据集 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DatasetImageService {
 

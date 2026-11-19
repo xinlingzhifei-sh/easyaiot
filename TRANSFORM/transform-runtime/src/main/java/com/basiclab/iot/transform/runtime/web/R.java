@@ -6,10 +6,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * 统一 API 响应。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @NoArgsConstructor

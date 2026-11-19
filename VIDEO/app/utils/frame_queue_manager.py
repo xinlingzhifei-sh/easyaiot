@@ -1,7 +1,6 @@
 """
 帧队列管理器 - 管理抽帧器、排序器、推送器的内存队列
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import threading

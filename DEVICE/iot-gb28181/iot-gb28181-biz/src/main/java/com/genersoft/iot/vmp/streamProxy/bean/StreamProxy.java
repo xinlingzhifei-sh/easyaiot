@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.util.ObjectUtils;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Data
 @Schema(description = "拉流代理的信息")

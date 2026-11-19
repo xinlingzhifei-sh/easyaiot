@@ -17,8 +17,7 @@ import java.util.Map;
 /**
  * 消息模板管理（与消息推送分离，record_type=0）
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-18
  */
 @RestController

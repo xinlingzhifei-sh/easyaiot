@@ -10,10 +10,6 @@ import java.io.Serializable;
 
 /**
  * 设备升级结果上报（统一出入口：四类包共用一个上报接口）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmOtaReportOo对象", description = "设备升级结果上报Oo")

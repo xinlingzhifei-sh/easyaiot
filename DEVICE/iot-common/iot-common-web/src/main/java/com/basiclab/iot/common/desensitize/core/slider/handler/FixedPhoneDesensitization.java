@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.FixedPhoneDese
 /**
  * {@link FixedPhoneDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class FixedPhoneDesensitization extends AbstractSliderDesensitizationHandler<FixedPhoneDesensitize> {
     @Override

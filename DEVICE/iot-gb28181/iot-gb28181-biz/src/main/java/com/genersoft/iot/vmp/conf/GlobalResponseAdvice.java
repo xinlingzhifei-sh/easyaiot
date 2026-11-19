@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 
 /**
  * 全局统一返回结果
- * @author lin
+ * @author liufei
  */
 @RestControllerAdvice
 public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {

@@ -9,8 +9,7 @@ import java.math.RoundingMode;
 /**
  * 金额工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class MoneyUtils {
 

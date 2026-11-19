@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2021 Andrea Pappacoda
-#
-
 gtest_dep = dependency('gtest', main: true)
 libcurl_dep = dependency('libcurl')
 openssl = find_program('openssl')

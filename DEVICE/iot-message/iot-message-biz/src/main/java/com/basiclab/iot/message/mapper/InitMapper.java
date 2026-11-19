@@ -5,7 +5,7 @@ package com.basiclab.iot.message.mapper;
  * 初始化数据库
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2019/5/9.
  */
 public interface InitMapper {

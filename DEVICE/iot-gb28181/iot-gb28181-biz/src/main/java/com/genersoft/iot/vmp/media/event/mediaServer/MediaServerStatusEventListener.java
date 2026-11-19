@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @description: 在线事件监听器，监听到离线后，修改设备离在线状态。 设备在线有两个来源：
  *               1、设备主动注销，发送注销指令
  *               2、设备未知原因离线，心跳超时
- * @author: swwheihei
+ * @author: liufei
  * @date: 2020年5月6日 下午1:51:23
  */
 @Slf4j

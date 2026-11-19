@@ -36,7 +36,7 @@ import static com.basiclab.iot.common.web.core.util.WebFrameworkUtils.HEADER_TEN
  * 1. Springdoc 文档地址：<a href="https://github.com/springdoc/springdoc-openapi">仓库</a>
  * 2. Swagger 规范，于 2015 更名为 OpenAPI 规范，本质是一个东西
  *
- * @author reese
+ * @author liufei
  */
 @AutoConfiguration
 @ConditionalOnClass({OpenAPI.class})

@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 标注任务用户 Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DatasetTaskUserMapper extends BaseMapperX<DatasetTaskUserDO> {

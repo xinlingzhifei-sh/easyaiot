@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * SuperTableDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @Builder

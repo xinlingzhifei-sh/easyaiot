@@ -17,8 +17,6 @@ pnpm create unibest my-project -t base
 
 ## DEMO 模板
 
-`demo` 模版-在线地址：<https://feige996.github.io/hello-unibest/>
-
 推荐先全部体验一下 `demo` 的示例
 
 ## 必看章节

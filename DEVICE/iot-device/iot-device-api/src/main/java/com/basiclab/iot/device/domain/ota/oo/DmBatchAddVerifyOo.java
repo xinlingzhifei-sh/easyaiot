@@ -11,10 +11,6 @@ import java.util.List;
 
 /**
  * 批量加入测试白名单
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmBatchAddVerifyOo对象", description = "批量加入测试白名单Oo")

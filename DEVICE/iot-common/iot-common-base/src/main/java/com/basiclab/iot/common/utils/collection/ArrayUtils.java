@@ -13,8 +13,7 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertLi
 /**
  * Array 工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ArrayUtils {
 

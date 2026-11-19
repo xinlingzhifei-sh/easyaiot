@@ -90,7 +90,7 @@ async function handleSubmit() {
       images: images.value,
     }
 
-    // TODO @芋艿：替换为真实反馈 API 调用
+    // TODO：替换为真实反馈 API 调用
     await mockSubmitFeedback(submitData)
 
     toast.success('提交成功，感谢您的反馈！')
@@ -101,7 +101,7 @@ async function handleSubmit() {
 }
 
 // ===================== Mock API =====================
-// TODO @芋艿：后端 API 实现后，删除此 mock 函数
+// TODO：后端 API 实现后，删除此 mock 函数
 
 interface FeedbackData {
   content: string

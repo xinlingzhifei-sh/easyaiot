@@ -19,8 +19,7 @@ import static com.basiclab.iot.dataset.enums.ErrorCodeConstants.DATASET_FRAME_TA
 /**
  * 视频流帧捕获任务 Service 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

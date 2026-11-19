@@ -12,8 +12,7 @@ import javax.validation.constraints.NotNull;
 /**
  * SmsChannelSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class SmsChannelSaveReqVO {

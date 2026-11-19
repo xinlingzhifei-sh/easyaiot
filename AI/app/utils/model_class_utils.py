@@ -1,8 +1,7 @@
 """
 从 YOLO / ONNX 模型中提取类别标签，并在推理时解析所选标签。
 
-@author reese
-@email reese
+@author liufei
 """
 import json
 import logging

@@ -39,8 +39,7 @@ public interface DeptApi {
     /**
  * DeptApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 default Map<Long, DeptRespDTO> getDeptMap(Collection<Long> ids) {

@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 /**
  * JobRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 定时任务 Response VO")
 @Data

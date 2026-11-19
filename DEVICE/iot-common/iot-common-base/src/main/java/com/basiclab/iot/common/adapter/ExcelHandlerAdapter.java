@@ -3,8 +3,7 @@ package com.basiclab.iot.common.adapter;
 /**
  * Excel数据格式处理适配器
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ExcelHandlerAdapter
 {

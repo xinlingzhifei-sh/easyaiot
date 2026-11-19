@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 语音广播消息管理类
- * @author lin
+ * @author liufei
  */
 @Slf4j
 @Component

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 /**
  * zlm hook事件中的on_rtp_server_timeout事件的参数
- * @author lin
+ * @author liufei
  */
 public class OnRecordMp4HookParam extends HookParam{
     private String app;

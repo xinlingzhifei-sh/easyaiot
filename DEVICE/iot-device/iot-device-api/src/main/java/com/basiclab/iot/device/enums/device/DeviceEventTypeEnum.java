@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
  * 设备动作类型 枚举
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-08-20
  */
 @Getter

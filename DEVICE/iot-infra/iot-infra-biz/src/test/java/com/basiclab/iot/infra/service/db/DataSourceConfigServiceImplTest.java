@@ -35,8 +35,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link DataSourceConfigServiceImpl} 的单元测试类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Import(DataSourceConfigServiceImpl.class)
 public class DataSourceConfigServiceImplTest extends BaseDbUnitTest {
@@ -64,7 +63,7 @@ public class DataSourceConfigServiceImplTest extends BaseDbUnitTest {
         when(dynamicDataSourceProperties.getPrimary()).thenReturn("primary");
         DataSourceProperty dataSourceProperty = new DataSourceProperty();
         dataSourceProperty.setUrl("http://localhost:3306");
-        dataSourceProperty.setUsername("yunai");
+        dataSourceProperty.setUsername("demo");
         dataSourceProperty.setPassword("tudou");
         when(dynamicDataSourceProperties.getDatasource()).thenReturn(MapUtil.of("primary", dataSourceProperty));
     }
@@ -167,7 +166,7 @@ public class DataSourceConfigServiceImplTest extends BaseDbUnitTest {
         assertEquals(id, dataSourceConfig.getId());
         assertEquals("primary", dataSourceConfig.getName());
         assertEquals("http://localhost:3306", dataSourceConfig.getUrl());
-        assertEquals("yunai", dataSourceConfig.getUsername());
+        assertEquals("demo", dataSourceConfig.getUsername());
         assertEquals("tudou", dataSourceConfig.getPassword());
     }
 
@@ -200,7 +199,7 @@ public class DataSourceConfigServiceImplTest extends BaseDbUnitTest {
         assertEquals(0L, dataSourceConfigList.get(0).getId());
         assertEquals("primary", dataSourceConfigList.get(0).getName());
         assertEquals("http://localhost:3306", dataSourceConfigList.get(0).getUrl());
-        assertEquals("yunai", dataSourceConfigList.get(0).getUsername());
+        assertEquals("demo", dataSourceConfigList.get(0).getUsername());
         assertEquals("tudou", dataSourceConfigList.get(0).getPassword());
         // normal
         assertPojoEquals(dbDataSourceConfig, dataSourceConfigList.get(1));

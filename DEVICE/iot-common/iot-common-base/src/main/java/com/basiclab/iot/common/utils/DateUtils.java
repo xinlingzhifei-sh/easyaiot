@@ -16,8 +16,7 @@ import java.util.*;
 /**
  * 时间工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
     public static String YYYY = "yyyy";
@@ -62,7 +61,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
      * 获取当前系统同期。
      *
      * @return 当前系统日期
-     * @author zhenggz 2003-11-09
+     * @author liufei
      */
     public static String getCurrentDate() {
         return getCurrentDateTime(YYYY_MM_DD);
@@ -962,7 +961,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
      * @param startDate 开始日期
      * @param endDate   结束日期
      * @return
-     * @author jqlin
+     * @author liufei
      */
     public static boolean isEffectiveDate(Date startDate, Date endDate) {
         if (startDate == null || endDate == null) {

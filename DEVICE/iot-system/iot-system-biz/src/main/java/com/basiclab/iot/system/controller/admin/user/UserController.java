@@ -35,8 +35,7 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.convertLi
 /**
  * UserController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 用户")
 @RestController
@@ -150,10 +149,10 @@ public class UserController {
     public void importTemplate(HttpServletResponse response) throws IOException {
         // 手动创建导出 demo
         List<UserImportExcelVO> list = Arrays.asList(
-                UserImportExcelVO.builder().username("yunai").deptId(1L).email("yunai@iocoder.cn").mobile("15601691300")
+                UserImportExcelVO.builder().username("demo").deptId(1L).email("demo@example.com").mobile("13800000001")
                         .nickname("yFeiEye").status(CommonStatusEnum.ENABLE.getStatus()).sex(SexEnum.MALE.getSex()).build(),
-                UserImportExcelVO.builder().username("yuanma").deptId(2L).email("yuanma@iocoder.cn").mobile("15601701300")
-                        .nickname("源码").status(CommonStatusEnum.DISABLE.getStatus()).sex(SexEnum.FEMALE.getSex()).build()
+                UserImportExcelVO.builder().username("demo2").deptId(2L).email("demo2@example.com").mobile("13800000002")
+                        .nickname("演示").status(CommonStatusEnum.DISABLE.getStatus()).sex(SexEnum.FEMALE.getSex()).build()
         );
         // 输出
         ExcelUtils.write(response, "用户导入模板.xls", "用户列表", UserImportExcelVO.class, list);

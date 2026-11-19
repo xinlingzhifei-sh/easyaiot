@@ -2,10 +2,6 @@ package com.basiclab.iot.transform.core.envelope;
 
 /**
  * 四流类型：由 iot-sink Kafka 消息归一化而来。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum FlowType {
 

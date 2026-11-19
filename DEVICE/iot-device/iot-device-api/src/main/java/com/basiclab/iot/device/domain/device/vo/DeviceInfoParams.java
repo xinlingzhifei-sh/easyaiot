@@ -11,8 +11,7 @@ import javax.validation.constraints.NotNull;
  * @program: yFeiEye
  * @description: 子设备信息
  * @packagename: com.basiclab.iot.link.api.domain.device.entity
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2025-07-29 17:54
  **/
 @Data

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.lock4j.core;
 /**
  * Lock4j Redis Key 枚举类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface Lock4jRedisKeyConstants {
 

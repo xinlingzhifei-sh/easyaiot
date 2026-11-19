@@ -8,8 +8,7 @@ import lombok.Getter;
 /**
  * SignMethod
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Getter

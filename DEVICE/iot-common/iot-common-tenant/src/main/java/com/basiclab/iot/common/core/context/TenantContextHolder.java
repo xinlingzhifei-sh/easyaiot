@@ -1,13 +1,11 @@
 package com.basiclab.iot.common.core.context;
 
-import com.basiclab.iot.common.enums.DocumentEnum;
 import com.alibaba.ttl.TransmittableThreadLocal;
 
 /**
  * 多租户上下文 Holder
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TenantContextHolder {
 
@@ -38,8 +36,7 @@ public class TenantContextHolder {
     public static Long getRequiredTenantId() {
         Long tenantId = getTenantId();
         if (tenantId == null) {
-            throw new NullPointerException("TenantContextHolder 不存在租户编号！可参考文档："
-                + DocumentEnum.TENANT.getUrl());
+            throw new NullPointerException("TenantContextHolder 不存在租户编号！");
         }
         return tenantId;
     }

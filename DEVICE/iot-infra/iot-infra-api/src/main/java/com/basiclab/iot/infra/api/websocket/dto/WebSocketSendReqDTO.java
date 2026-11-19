@@ -8,8 +8,7 @@ import javax.validation.constraints.NotEmpty;
 /**
  * WebSocketSendReqDTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "RPC 服务 - WebSocket 消息发送 Request DTO")
 @Data

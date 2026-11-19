@@ -1,7 +1,6 @@
 """
 排序器管理服务
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import uuid

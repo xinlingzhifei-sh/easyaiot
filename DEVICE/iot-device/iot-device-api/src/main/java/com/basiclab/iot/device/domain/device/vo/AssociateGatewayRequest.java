@@ -6,8 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class AssociateGatewayRequest {

@@ -7,8 +7,7 @@ import java.net.URLClassLoader;
  * 自定义类加载器，用于动态加载类 
  * </BR>继承自 @see URLClassLoader
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-07-04
  *
  */

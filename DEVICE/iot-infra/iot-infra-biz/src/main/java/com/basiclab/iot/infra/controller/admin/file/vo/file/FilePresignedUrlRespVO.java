@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * FilePresignedUrlRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,7 +23,7 @@ public class FilePresignedUrlRespVO {
     private String uploadUrl;
 
     @Schema(description = "文件访问 URL",
-            example = "https://test.iot.iocoder.cn/758d3a5387507358c7236de4c8f96de1c7f5097ff6a7722b34772fb7b76b140f.png")
+            example = "https://www.example.com/758d3a5387507358c7236de4c8f96de1c7f5097ff6a7722b34772fb7b76b140f.png")
     private String url;
 
 }

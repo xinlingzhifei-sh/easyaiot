@@ -26,8 +26,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * AreaController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("/system/area")

@@ -14,8 +14,7 @@ import java.util.Set;
 /**
  * UserRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 用户信息 Response VO")
 @Data
@@ -46,11 +45,11 @@ public class UserRespVO{
     @Schema(description = "岗位编号数组", example = "1")
     private Set<Long> postIds;
 
-    @Schema(description = "用户邮箱", example = "Yudao@iocoder.cn")
+    @Schema(description = "用户邮箱", example = "user@example.com")
     @ExcelProperty("用户邮箱")
     private String email;
 
-    @Schema(description = "手机号码", example = "15601691300")
+    @Schema(description = "手机号码", example = "13800000000")
     @ExcelProperty("手机号码")
     private String mobile;
 
@@ -59,7 +58,7 @@ public class UserRespVO{
     @DictFormat(DictTypeConstants.USER_SEX)
     private Integer sex;
 
-    @Schema(description = "用户头像", example = "https://www.iocoder.cn/xxx.png")
+    @Schema(description = "用户头像", example = "https://www.example.com/xxx.png")
     private String avatar;
 
     @Schema(description = "状态，参见 CommonStatusEnum 枚举类", example = "1")

@@ -10,10 +10,6 @@ import java.util.List;
 
 /**
  * 灰度升阶（仅相邻升阶：设备级→产品级→全量）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmPackagePromoteGrayOo对象", description = "灰度升阶Oo")

@@ -13,7 +13,7 @@
 
     <name>${project.artifactId}</name>
     <description>API 服务网关，基于 Spring Cloud Gateway 实现</description>
-    <url>https://github.com/YunaiV/iot-cloud</url>
+    <url>https://github.com/reese/yfeieye</url>
 
     <dependencies>
         <!-- Spring Cloud 基础 -->

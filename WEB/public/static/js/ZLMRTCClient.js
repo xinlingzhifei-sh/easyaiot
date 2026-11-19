@@ -18,10 +18,6 @@ var ZLMRTCClient = (function (exports) {
 	const VERSION$1 = '1.0.1';
 	const BUILD_DATE = 'Mon Mar 27 2023 19:11:59 GMT+0800 (China Standard Time)';
 
-	// Copyright (C) <2018> Intel Corporation
-	//
-	// SPDX-License-Identifier: Apache-2.0
-
 	// eslint-disable-next-line require-jsdoc
 	function isFirefox() {
 	  return window.navigator.userAgent.match('Firefox') !== null;
@@ -34,8 +30,6 @@ var ZLMRTCClient = (function (exports) {
 	function isEdge() {
 	  return window.navigator.userAgent.match(/Edge\/(\d+).(\d+)$/) !== null;
 	}
-
-	// Copyright (C) <2018> Intel Corporation
 
 	/**
 	 * @class AudioSourceInfo
@@ -114,14 +108,6 @@ var ZLMRTCClient = (function (exports) {
 	    this.height = height;
 	  }
 	}
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	let logDisabled_ = true;
 	let deprecationWarnings_ = true;
@@ -381,13 +367,6 @@ var ZLMRTCClient = (function (exports) {
 	  return filteredResult;
 	}
 
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 	const logging = log$1;
 
 	function shimGetUserMedia$3(window, browserDetails) {
@@ -567,13 +546,6 @@ var ZLMRTCClient = (function (exports) {
 	  }
 	}
 
-	/*
-	 *  Copyright (c) 2018 The adapter.js project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 	function shimGetDisplayMedia$2(window, getSourceId) {
 	  if (window.navigator.mediaDevices &&
 	    'getDisplayMedia' in window.navigator.mediaDevices) {
@@ -615,14 +587,6 @@ var ZLMRTCClient = (function (exports) {
 	        });
 	    };
 	}
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	function shimMediaStream(window) {
 	  window.MediaStream = window.MediaStream || window.webkitMediaStream;
@@ -1328,13 +1292,6 @@ var ZLMRTCClient = (function (exports) {
 		shimGetDisplayMedia: shimGetDisplayMedia$2
 	});
 
-	/*
-	 *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 	// Edge does not like
 	// 1) stun: filtered after 14393 unless ?transport=udp is present
 	// 2) turn: that does not have all of turn:host:port?transport=udp
@@ -2205,14 +2162,6 @@ var ZLMRTCClient = (function (exports) {
 	  module.exports = SDPUtils;
 	}
 	});
-
-	/*
-	 *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 
 
@@ -4060,14 +4009,6 @@ var ZLMRTCClient = (function (exports) {
 	  return RTCPeerConnection;
 	};
 
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
-
 	function shimGetUserMedia$2(window) {
 	  const navigator = window && window.navigator;
 
@@ -4090,14 +4031,6 @@ var ZLMRTCClient = (function (exports) {
 	  };
 	}
 
-	/*
-	 *  Copyright (c) 2018 The adapter.js project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
-
 	function shimGetDisplayMedia$1(window) {
 	  if (!('getDisplayMedia' in window.navigator)) {
 	    return;
@@ -4112,14 +4045,6 @@ var ZLMRTCClient = (function (exports) {
 	  window.navigator.mediaDevices.getDisplayMedia =
 	    window.navigator.getDisplayMedia.bind(window.navigator);
 	}
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	function shimPeerConnection$1(window, browserDetails) {
 	  if (window.RTCIceGatherer) {
@@ -4202,14 +4127,6 @@ var ZLMRTCClient = (function (exports) {
 		shimGetDisplayMedia: shimGetDisplayMedia$1
 	});
 
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
-
 	function shimGetUserMedia$1(window, browserDetails) {
 	  const navigator = window && window.navigator;
 	  const MediaStreamTrack = window && window.MediaStreamTrack;
@@ -4266,14 +4183,6 @@ var ZLMRTCClient = (function (exports) {
 	  }
 	}
 
-	/*
-	 *  Copyright (c) 2018 The adapter.js project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
-
 	function shimGetDisplayMedia(window, preferredMediaSource) {
 	  if (window.navigator.mediaDevices &&
 	    'getDisplayMedia' in window.navigator.mediaDevices) {
@@ -4300,14 +4209,6 @@ var ZLMRTCClient = (function (exports) {
 	      return window.navigator.mediaDevices.getUserMedia(constraints);
 	    };
 	}
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	function shimOnTrack(window) {
 	  if (typeof window === 'object' && window.RTCTrackEvent &&
@@ -4607,14 +4508,6 @@ var ZLMRTCClient = (function (exports) {
 		shimGetUserMedia: shimGetUserMedia$1,
 		shimGetDisplayMedia: shimGetDisplayMedia
 	});
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	function shimLocalStreamsAPI(window) {
 	  if (typeof window !== 'object' || !window.RTCPeerConnection) {
@@ -4971,14 +4864,6 @@ var ZLMRTCClient = (function (exports) {
 		shimCreateOfferLegacy: shimCreateOfferLegacy,
 		shimAudioContext: shimAudioContext
 	});
-
-	/*
-	 *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	function shimRTCIceCandidate(window) {
 	  // foundation is arbitrarily chosen as an indicator for full support for
@@ -5365,14 +5250,6 @@ var ZLMRTCClient = (function (exports) {
 		shimAddIceCandidateNullOrEmpty: shimAddIceCandidateNullOrEmpty
 	});
 
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
-
 	// Shimming starts here.
 	function adapterFactory({window} = {}, options = {
 	  shimChrome: true,
@@ -5509,14 +5386,6 @@ var ZLMRTCClient = (function (exports) {
 
 	  return adapter;
 	}
-
-	/*
-	 *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
-	 *
-	 *  Use of this source code is governed by a BSD-style license
-	 *  that can be found in the LICENSE file in the root of the source
-	 *  tree.
-	 */
 
 	adapterFactory({window: typeof window === 'undefined' ? undefined : window});
 
@@ -5715,8 +5584,6 @@ var ZLMRTCClient = (function (exports) {
 	    }
 	  }
 	}
-
-	// Copyright (C) <2018> Intel Corporation
 
 	var media = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -8222,4 +8089,3 @@ var ZLMRTCClient = (function (exports) {
 	return exports;
 
 })({});
-//# sourceMappingURL=ZLMRTCClient.js.map

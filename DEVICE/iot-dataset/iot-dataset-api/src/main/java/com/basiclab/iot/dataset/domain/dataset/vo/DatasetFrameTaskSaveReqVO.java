@@ -8,8 +8,7 @@ import javax.validation.constraints.*;
 /**
  * DatasetFrameTaskSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 视频流帧捕获任务新增/修改 Request VO")
 @Data
@@ -39,7 +38,7 @@ public class DatasetFrameTaskSaveReqVO {
     @Schema(description = "设备ID", example = "10185")
     private String deviceId;
 
-    @Schema(description = "RTMP播放流地址", example = "https://www.iocoder.cn")
+    @Schema(description = "RTMP播放流地址", example = "https://www.example.com")
     private String rtmpUrl;
 
     @Schema(description = "创建人")

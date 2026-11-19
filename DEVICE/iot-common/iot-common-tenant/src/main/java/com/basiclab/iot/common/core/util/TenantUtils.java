@@ -10,8 +10,7 @@ import static com.basiclab.iot.common.web.core.util.WebFrameworkUtils.HEADER_TEN
 /**
  * 多租户 Util
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TenantUtils {
 

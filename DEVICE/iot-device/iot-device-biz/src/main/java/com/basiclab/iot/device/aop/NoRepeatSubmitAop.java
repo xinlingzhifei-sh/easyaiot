@@ -19,8 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @功能描述 防止多次提交aop解析注解
  * @date 2022-02-15
  */

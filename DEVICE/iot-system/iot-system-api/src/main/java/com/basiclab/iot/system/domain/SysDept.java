@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * 部门表 sys_dept
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SysDept extends BaseEntity
 {

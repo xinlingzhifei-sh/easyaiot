@@ -1,7 +1,6 @@
 """
 模型部署守护线程
-@author reese
-@email reese
+@author liufei
 """
 import json
 import subprocess as sp

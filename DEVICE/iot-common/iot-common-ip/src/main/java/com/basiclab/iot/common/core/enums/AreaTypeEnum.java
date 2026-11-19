@@ -9,8 +9,7 @@ import java.util.Arrays;
 /**
  * 区域类型枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @Getter

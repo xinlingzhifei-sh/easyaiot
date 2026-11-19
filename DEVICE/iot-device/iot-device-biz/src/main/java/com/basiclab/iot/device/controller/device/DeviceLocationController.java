@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * 设备位置信息Controller
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("deviceLocation")

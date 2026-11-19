@@ -346,7 +346,7 @@ model = YOLO('yolo11n.pt')
 ## 联系与支持
 
 如有问题或建议，请联系：
-- 作者: reese
+- 作者: liufei
 - 邮箱: reese
 
 ---

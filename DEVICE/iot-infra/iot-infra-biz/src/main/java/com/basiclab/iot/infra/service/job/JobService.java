@@ -11,8 +11,7 @@ import javax.validation.Valid;
 /**
  * 定时任务 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface JobService {
 

@@ -5,8 +5,7 @@ import com.basiclab.iot.infra.framework.file.core.enums.FileStorageEnum;
 /**
  * FileClientFactory
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface FileClientFactory {
 

@@ -22,8 +22,7 @@ import static com.basiclab.iot.common.utils.collection.CollectionUtils.findFirst
 /**
  * 区域工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 public class AreaUtils {

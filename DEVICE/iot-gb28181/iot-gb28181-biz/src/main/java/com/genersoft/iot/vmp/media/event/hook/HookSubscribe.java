@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * zlm hook事件的参数
- * @author lin
+ * @author liufei
  */
 @Component
 public class HookSubscribe {

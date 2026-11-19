@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * OperateLogMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface OperateLogMapper extends BaseMapperX<OperateLogDO> {

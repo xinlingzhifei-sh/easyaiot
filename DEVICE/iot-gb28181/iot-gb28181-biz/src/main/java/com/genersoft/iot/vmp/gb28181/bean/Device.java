@@ -6,7 +6,7 @@ import lombok.Data;
 
 /**
  * 国标设备/平台
- * @author lin
+ * @author liufei
  */
 @Data
 @Schema(description = "国标设备/平台")

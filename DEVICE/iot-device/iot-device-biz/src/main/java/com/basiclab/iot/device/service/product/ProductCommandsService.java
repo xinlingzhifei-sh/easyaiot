@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * ProductCommandsService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProductCommandsService extends IService<ProductCommands> {
 

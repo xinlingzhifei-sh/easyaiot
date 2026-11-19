@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 处理匿名用户访问逻辑
- * @author lin
+ * @author liufei
  */
 @Component
 public class    AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoint {

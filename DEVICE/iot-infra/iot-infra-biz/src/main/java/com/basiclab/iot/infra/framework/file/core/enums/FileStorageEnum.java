@@ -19,8 +19,7 @@ import lombok.Getter;
 /**
  * 文件存储器枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 @Getter

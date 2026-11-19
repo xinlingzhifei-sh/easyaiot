@@ -60,7 +60,7 @@ iot:
     base-package: com.basiclab.iot.visualize
   web:
     admin-ui:
-      url: http://dashboard.iot.iocoder.cn
+      url: http://127.0.0.1:8888
   swagger:
     title: 管理后台
     description: VISUALIZE 可视化（大屏 / 组态）配套后台

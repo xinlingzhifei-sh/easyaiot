@@ -17,8 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * 单元测试，assert 断言工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class AssertUtils {
 

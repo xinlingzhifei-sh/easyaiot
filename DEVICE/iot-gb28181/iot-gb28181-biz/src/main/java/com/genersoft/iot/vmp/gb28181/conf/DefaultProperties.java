@@ -8,7 +8,7 @@ import java.util.Properties;
 
 /**
  * 获取sip默认配置
- * @author lin
+ * @author liufei
  */
 public class DefaultProperties {
 

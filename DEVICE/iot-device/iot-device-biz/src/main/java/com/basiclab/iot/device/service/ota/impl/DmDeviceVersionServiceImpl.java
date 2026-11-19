@@ -18,10 +18,6 @@ import java.util.List;
 
 /**
  * 设备版本档案服务实现
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Service
 @Slf4j

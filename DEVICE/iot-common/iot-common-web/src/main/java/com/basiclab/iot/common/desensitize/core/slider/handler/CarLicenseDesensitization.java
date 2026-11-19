@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.slider.annotation.CarLicenseDese
 /**
  * {@link CarLicenseDesensitize} 的脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class CarLicenseDesensitization extends AbstractSliderDesensitizationHandler<CarLicenseDesensitize> {
     @Override

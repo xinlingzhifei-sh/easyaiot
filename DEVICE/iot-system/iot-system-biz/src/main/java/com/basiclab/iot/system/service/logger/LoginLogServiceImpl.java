@@ -14,8 +14,7 @@ import javax.annotation.Resource;
 /**
  * LoginLogServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Validated

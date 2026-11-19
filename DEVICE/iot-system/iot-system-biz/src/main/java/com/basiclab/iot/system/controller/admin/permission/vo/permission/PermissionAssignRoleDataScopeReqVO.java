@@ -12,8 +12,7 @@ import java.util.Set;
 /**
  * PermissionAssignRoleDataScopeReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 赋予角色数据权限 Request VO")
 @Data

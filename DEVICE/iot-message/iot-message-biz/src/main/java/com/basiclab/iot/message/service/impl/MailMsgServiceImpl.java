@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 邮件消息实现层Impl
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-18
  */
 @Component

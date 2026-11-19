@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @description: SIP信令处理类观察者
- * @author: panlinlin
+ * @author: liufei
  * @date:   2021年11月5日 下午15：32
  */
 @Slf4j

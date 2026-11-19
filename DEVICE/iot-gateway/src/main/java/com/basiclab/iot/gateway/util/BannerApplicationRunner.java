@@ -11,8 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 项目启动成功后，提供文档相关的地址
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Slf4j

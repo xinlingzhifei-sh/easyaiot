@@ -9,8 +9,7 @@ import java.util.List;
 /**
  * ProductCommandsRequestsMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ProductCommandsRequestsMapper {

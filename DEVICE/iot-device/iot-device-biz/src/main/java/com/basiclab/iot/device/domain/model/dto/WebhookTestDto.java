@@ -5,8 +5,7 @@ import lombok.Data;
 /**
  * Webhook测试DTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-12-04
  */
 @Data

@@ -12,8 +12,7 @@ import org.springframework.context.annotation.Bean;
 /**
  * IotDownstreamMessageApiAutoConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @AutoConfiguration

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Schema(description = "多个推流信息")
 public class BatchGBStreamParam {

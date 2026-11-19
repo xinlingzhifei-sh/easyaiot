@@ -15,8 +15,7 @@ import javax.annotation.Resource;
 /**
  * DeviceEventSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

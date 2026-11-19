@@ -20,8 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * StreamUrlCache
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

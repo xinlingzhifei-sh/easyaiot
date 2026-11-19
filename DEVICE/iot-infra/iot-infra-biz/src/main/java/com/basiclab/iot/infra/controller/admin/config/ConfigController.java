@@ -29,8 +29,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * ConfigController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 参数配置")
 @RestController
@@ -75,7 +74,7 @@ public class ConfigController {
 
     @GetMapping(value = "/get-value-by-key")
     @Operation(summary = "根据参数键名查询参数值", description = "不可见的配置，不允许返回给前端")
-    @Parameter(name = "key", description = "参数键", required = true, example = "yunai.biz.username")
+    @Parameter(name = "key", description = "参数键", required = true, example = "demo.biz.username")
     public CommonResult<String> getConfigKey(@RequestParam("key") String key) {
         ConfigDO config = configService.getConfigByKey(key);
         if (config == null) {

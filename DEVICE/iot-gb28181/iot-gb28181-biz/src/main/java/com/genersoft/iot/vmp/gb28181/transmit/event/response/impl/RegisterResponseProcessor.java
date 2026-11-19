@@ -23,7 +23,7 @@ import java.text.ParseException;
 
 /**
  * @description:Register响应处理器
- * @author: swwheihei
+ * @author: liufei
  * @date:   2020年5月3日 下午5:32:23
  */
 @Slf4j

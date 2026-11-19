@@ -506,7 +506,7 @@ COMMENT ON COLUMN public.infra_api_error_log.exception_name IS '异常名
 
 COMMENT ON COLUMN public.infra_api_error_log.exception_message IS '异常导致的消息
      *
-     * {@link cn.iocoder.common.framework.util.ExceptionUtil#getMessage(Throwable)}';
+     * {@link com.basiclab.iot.common.utils.ExceptionUtil#getMessage(Throwable)}';
 
 
 --
@@ -515,7 +515,7 @@ COMMENT ON COLUMN public.infra_api_error_log.exception_message IS '异常导致�
 
 COMMENT ON COLUMN public.infra_api_error_log.exception_root_cause_message IS '异常导致的根消息
      *
-     * {@link cn.iocoder.common.framework.util.ExceptionUtil#getRootCauseMessage(Throwable)}';
+     * {@link com.basiclab.iot.common.utils.ExceptionUtil#getRootCauseMessage(Throwable)}';
 
 
 --
@@ -524,7 +524,7 @@ COMMENT ON COLUMN public.infra_api_error_log.exception_root_cause_message IS '�
 
 COMMENT ON COLUMN public.infra_api_error_log.exception_stack_trace IS '异常的栈轨迹
      *
-     * {@link cn.iocoder.common.framework.util.ExceptionUtil#getServiceException(Exception)}';
+     * {@link com.basiclab.iot.common.utils.ExceptionUtil#getServiceException(Exception)}';
 
 
 --
@@ -7095,7 +7095,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 520	30	product_type_id	BIGINT	产品类型ID	t	f	33	Long	productTypeId		1486	t	t	t	=	t	input	1	2024-07-10 17:47:44.714	1	2024-07-10 17:47:44.714	1
 521	30	product_type_name	VARCHAR	产品类型名称	t	f	34	String	productTypeName		张三	t	t	t	LIKE	t	input	1	2024-07-10 17:47:44.728	1	2024-07-10 17:47:44.728	1
 522	30	group_id	BIGINT	分组ID	t	f	35	Long	groupId		8334	t	t	t	=	t	input	1	2024-07-10 17:47:44.738	1	2024-07-10 17:47:44.738	1
-602	34	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2024-07-10 18:03:25.282	1	2024-07-10 18:42:41.382	0
+602	34	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.example.com	t	t	t	=	t	input	1	2024-07-10 18:03:25.282	1	2024-07-10 18:42:41.382	0
 603	34	upload_time	TIMESTAMP	上传时间	t	f	4	LocalDateTime	uploadTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 18:03:25.307	1	2024-07-10 18:42:41.391	0
 604	34	file_name	VARCHAR	文件名称	t	f	5	String	fileName		张三	t	t	t	LIKE	t	input	1	2024-07-10 18:03:25.331	1	2024-07-10 18:42:41.403	0
 605	34	file_size	BIGINT	文件大小	t	f	6	Long	fileSize		\N	t	t	t	=	t	input	1	2024-07-10 18:03:25.352	1	2024-07-10 18:42:41.412	0
@@ -7138,7 +7138,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 80	5	remark	VARCHAR	备注	t	f	11	String	remark		你猜	t	t	t	=	t	input	1	2024-07-10 10:33:06.281	1	2024-07-10 10:33:06.281	1
 57	4	id	BIGINT	id	f	t	1	Long	id		4942	f	t	f	=	t	input	1	2024-07-10 10:33:03.572	1	2024-07-10 10:33:03.572	1
 58	4	did	VARCHAR	设备唯一标识	t	f	2	String	did		3362	t	t	t	=	t	input	1	2024-07-10 10:33:03.779	1	2024-07-10 10:33:03.779	1
-59	4	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2024-07-10 10:33:03.795	1	2024-07-10 10:33:03.795	1
+59	4	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.example.com	t	t	t	=	t	input	1	2024-07-10 10:33:03.795	1	2024-07-10 10:33:03.795	1
 60	4	upload_time	TIMESTAMP	上传时间	t	f	4	LocalDateTime	uploadTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 10:33:03.803	1	2024-07-10 10:33:03.803	1
 61	4	file_name	VARCHAR	文件名称	t	f	5	String	fileName		赵六	t	t	t	LIKE	t	input	1	2024-07-10 10:33:03.82	1	2024-07-10 10:33:03.82	1
 642	37	did	VARCHAR	设备标识	f	f	3	String	did		11199	t	t	t	=	t	input	1	2024-07-10 18:03:28.699	1	2024-07-10 18:42:13.374	0
@@ -7151,7 +7151,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 576	32	activated_time	TIMESTAMP	激活时间	t	f	19	LocalDateTime	activatedTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 18:03:22.133	1	2024-07-10 18:42:58.903	0
 577	32	last_online_time	TIMESTAMP	最后上线时间	t	f	20	LocalDateTime	lastOnlineTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 18:03:22.142	1	2024-07-10 18:42:58.914	0
 578	32	parent_did	VARCHAR	子设备关联网关的设备唯一标识	t	f	21	String	parentDid		14118	t	t	t	=	t	input	1	2024-07-10 18:03:22.152	1	2024-07-10 18:42:58.935	0
-587	32	product_name	VARCHAR	产品名称	t	f	30	String	productName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:22.293	1	2024-07-10 18:42:59.187	0
+587	32	product_name	VARCHAR	产品名称	t	f	30	String	productName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:22.293	1	2024-07-10 18:42:59.187	0
 588	32	is_shadow	SMALLINT	是否启用设备影子(0=禁用，1=启用)	t	f	31	Short	isShadow		\N	t	t	t	=	t	input	1	2024-07-10 18:03:22.311	1	2024-07-10 18:42:59.199	0
 589	32	things_model_value	OTHER	物模型值	t	f	32	Object	thingsModelValue		\N	t	t	t	=	t	input	1	2024-07-10 18:03:22.322	1	2024-07-10 18:42:59.208	0
 590	32	product_type_id	BIGINT	产品类型ID	t	f	33	Long	productTypeId		15153	t	t	t	=	t	input	1	2024-07-10 18:03:22.345	1	2024-07-10 18:42:59.221	0
@@ -7187,7 +7187,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 694	39	product_type_name	VARCHAR	产品类型名称	t	f	25	String	productTypeName		赵六	t	t	t	LIKE	t	input	1	2024-07-10 18:03:31.106	1	2024-07-10 18:41:58.489	0
 695	39	manufacturer_code	VARCHAR	厂商Code:支持英文大小写，数字，下划线和中划线	f	f	26	String	manufacturerCode		\N	t	t	t	=	t	input	1	2024-07-10 18:03:31.119	1	2024-07-10 18:41:58.499	0
 600	34	id	BIGINT	id	f	t	1	Long	id		32159	f	t	f	=	t	input	1	2024-07-10 18:03:25.248	1	2024-07-10 18:42:41.353	0
-594	33	group_name	VARCHAR	分组ID	f	f	2	String	groupName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:24.478	1	2024-07-10 18:42:49.913	0
+594	33	group_name	VARCHAR	分组ID	f	f	2	String	groupName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:24.478	1	2024-07-10 18:42:49.913	0
 595	33	create_by	VARCHAR	创建者	t	f	3	String	createBy		\N	t	t	t	=	t	input	1	2024-07-10 18:03:24.525	1	2024-07-10 18:42:49.922	0
 596	33	create_time	TIMESTAMP	创建时间	t	f	4	LocalDateTime	createTime		\N	f	f	t	BETWEEN	t	datetime	1	2024-07-10 18:03:24.541	1	2024-07-10 18:42:49.976	0
 597	33	update_by	VARCHAR	更新者	t	f	5	String	updateBy		\N	t	t	t	=	t	input	1	2024-07-10 18:03:24.57	1	2024-07-10 18:42:50.172	0
@@ -7284,7 +7284,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 237	15	method	VARCHAR	指示访问模式。R:可读；W:可写；E属性值更改时上报数据取值范围：R、RW、RE、RWE	t	f	9	String	method		\N	t	t	t	=	t	input	1	2024-07-10 10:33:24.071	1	2024-07-10 10:33:24.071	1
 238	15	min	VARCHAR	指示最小值。支持长度不超过50的数字。仅当dataType为int、decimal时生效，逻辑大于等于。	t	f	10	String	min		\N	t	t	t	=	t	input	1	2024-07-10 10:33:24.084	1	2024-07-10 10:33:24.084	1
 240	15	step	INTEGER	指示步长。	t	f	12	Integer	step		\N	t	t	t	=	t	input	1	2024-07-10 10:33:24.113	1	2024-07-10 10:33:24.113	1
-660	38	task_name	VARCHAR	任务名称	f	f	3	String	taskName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:29.545	1	2024-07-10 18:42:05.97	0
+660	38	task_name	VARCHAR	任务名称	f	f	3	String	taskName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:29.545	1	2024-07-10 18:42:05.97	0
 661	38	task_status	SMALLINT	任务状态(0:待发布、1:进行中、2:已完成、3:已取消)	f	f	4	Short	taskStatus		1	t	t	t	=	t	radio	1	2024-07-10 18:03:29.573	1	2024-07-10 18:42:05.993	0
 662	38	scheduled_time	TIMESTAMP	计划执行时间	t	f	5	LocalDateTime	scheduledTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 18:03:29.593	1	2024-07-10 18:42:06.016	0
 663	38	description	VARCHAR	任务描述	t	f	6	String	description		你说的对	t	t	t	=	t	editor	1	2024-07-10 18:03:29.614	1	2024-07-10 18:42:06.04	0
@@ -7297,7 +7297,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 776	45	description	VARCHAR	属性描述，不影响实际功能，可配置为空字符串""。	t	f	5	String	description		你猜	t	t	t	=	t	editor	1	2024-07-10 18:03:37.596	1	2024-07-10 18:41:06.414	0
 759	44	max	VARCHAR	指示最大值。\t仅当dataType为int、decimal时生效，逻辑小于等于。	t	f	6	String	max		\N	t	t	t	=	t	input	1	2024-07-10 18:03:36.614	1	2024-07-10 18:41:15.9	0
 762	44	parameter_description	VARCHAR	命令中参数的描述，不影响实际功能，可配置为空字符串""。	t	f	9	String	parameterDescription		随便	t	t	t	=	t	editor	1	2024-07-10 18:03:36.657	1	2024-07-10 18:41:16.012	0
-763	44	parameter_name	VARCHAR	命令中参数的名字。	t	f	10	String	parameterName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:36.684	1	2024-07-10 18:41:16.099	0
+763	44	parameter_name	VARCHAR	命令中参数的名字。	t	f	10	String	parameterName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:36.684	1	2024-07-10 18:41:16.099	0
 764	44	required	VARCHAR	指示本条属性是否必填，取值为0或1，默认取值1（必填）。\t目前本字段是非功能性字段，仅起到描述作用。	f	f	11	String	required		\N	t	t	t	=	t	input	1	2024-07-10 18:03:36.695	1	2024-07-10 18:41:16.11	0
 329	21	id	BIGINT	主键	f	t	1	Long	id		7441	f	t	f	=	t	input	1	2024-07-10 10:33:33.383	1	2024-07-10 10:33:33.383	1
 331	21	app_id	VARCHAR	应用ID	f	f	2	String	appId		11787	t	t	t	=	t	input	1	2024-07-10 10:33:33.47	1	2024-07-10 10:33:33.47	1
@@ -7308,7 +7308,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 281	19	id	BIGINT	id	f	t	1	Long	id		22090	f	t	f	=	t	input	1	2024-07-10 10:33:29.482	1	2024-07-10 10:33:29.482	1
 282	19	app_id	VARCHAR	应用ID	f	f	2	String	appId		3540	t	t	t	=	t	input	1	2024-07-10 10:33:29.554	1	2024-07-10 10:33:29.554	1
 283	19	pid	VARCHAR	产品标识	f	f	3	String	pid		30177	t	t	t	=	t	input	1	2024-07-10 10:33:29.783	1	2024-07-10 10:33:29.783	1
-284	19	protocol_name	VARCHAR	协议名称	t	f	4	String	protocolName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 10:33:29.795	1	2024-07-10 10:33:29.795	1
+284	19	protocol_name	VARCHAR	协议名称	t	f	4	String	protocolName		演示	t	t	t	LIKE	t	input	1	2024-07-10 10:33:29.795	1	2024-07-10 10:33:29.795	1
 285	19	protocol_code	VARCHAR	协议标识	t	f	5	String	protocolCode		\N	t	t	t	=	t	input	1	2024-07-10 10:33:29.811	1	2024-07-10 10:33:29.811	1
 286	19	protocol_version	VARCHAR	协议版本	t	f	6	String	protocolVersion		\N	t	t	t	=	t	input	1	2024-07-10 10:33:29.827	1	2024-07-10 10:33:29.827	1
 287	19	protocol_type	VARCHAR	协议类型 ：mqtt || coap || modbus || http	t	f	7	String	protocolType		1	t	t	t	=	t	select	1	2024-07-10 10:33:29.848	1	2024-07-10 10:33:29.848	1
@@ -7399,7 +7399,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 717	41	unit	VARCHAR	指示单位。\t取值根据参数确定，如：\t•温度单位：“C”或“K”\t•百分比单位：“%”\t•压强单位：“Pa”或“kPa”\t	t	f	13	String	unit		\N	t	t	t	=	t	input	1	2024-07-10 18:03:33.23	1	2024-07-10 18:41:41.817	0
 383	26	id	BIGINT	id	f	t	1	Long	id		3669	f	t	f	=	t	input	1	2024-07-10 10:33:36.792	1	2024-07-10 10:33:36.792	1
 388	26	did	VARCHAR	设备唯一标识	t	f	2	String	did		29361	t	t	t	=	t	input	1	2024-07-10 10:33:36.859	1	2024-07-10 10:33:36.859	1
-391	26	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2024-07-10 10:33:36.909	1	2024-07-10 10:33:36.909	1
+391	26	file_url	VARCHAR	文件地址	t	f	3	String	fileUrl		https://www.example.com	t	t	t	=	t	input	1	2024-07-10 10:33:36.909	1	2024-07-10 10:33:36.909	1
 393	26	upload_time	TIMESTAMP	上传时间	t	f	4	LocalDateTime	uploadTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 10:33:36.983	1	2024-07-10 10:33:36.983	1
 397	26	file_name	VARCHAR	文件名称	t	f	5	String	fileName		赵六	t	t	t	LIKE	t	input	1	2024-07-10 10:33:37	1	2024-07-10 10:33:37	1
 400	26	file_size	BIGINT	文件大小	t	f	6	Long	fileSize		\N	t	t	t	=	t	input	1	2024-07-10 10:33:37.056	1	2024-07-10 10:33:37.056	1
@@ -7430,14 +7430,14 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 297	19	remark	VARCHAR	备注	t	f	17	String	remark		你说的对	t	t	t	=	t	input	1	2024-07-10 10:33:30.342	1	2024-07-10 10:33:30.342	1
 298	19	tenant_id	BIGINT	租户ID	t	f	18	Long	tenantId		24321	f	f	f	=	f	input	1	2024-07-10 10:33:30.361	1	2024-07-10 10:33:30.361	1
 274	18	sort	BIGINT	排序序号	t	f	3	Long	sort		\N	t	t	t	=	t	input	1	2024-07-10 10:33:28.096	1	2024-07-10 10:33:28.096	1
-552	31	product_name	VARCHAR	产品名称	t	f	30	String	productName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 17:52:40.274	1	2024-07-10 17:56:36.726	1
+552	31	product_name	VARCHAR	产品名称	t	f	30	String	productName		演示	t	t	t	LIKE	t	input	1	2024-07-10 17:52:40.274	1	2024-07-10 17:56:36.726	1
 553	31	is_shadow	SMALLINT	是否启用设备影子(0=禁用，1=启用)	t	f	31	Short	isShadow		\N	t	t	t	=	t	input	1	2024-07-10 17:52:40.285	1	2024-07-10 17:56:36.74	1
 554	31	things_model_value	OTHER	物模型值	t	f	32	Object	thingsModelValue		\N	t	t	t	=	t	input	1	2024-07-10 17:52:40.297	1	2024-07-10 17:56:36.75	1
 555	31	product_type_id	BIGINT	产品类型ID	t	f	33	Long	productTypeId		5844	t	t	t	=	t	input	1	2024-07-10 17:52:40.309	1	2024-07-10 17:56:36.761	1
 556	31	product_type_name	VARCHAR	产品类型名称	t	f	34	String	productTypeName		王五	t	t	t	LIKE	t	input	1	2024-07-10 17:52:40.334	1	2024-07-10 17:56:36.771	1
 401	25	processing_time	TIMESTAMP	处理时间	t	f	10	LocalDateTime	processingTime		\N	t	t	t	BETWEEN	t	datetime	1	2024-07-10 10:33:37.06	1	2024-07-10 10:33:37.06	1
 272	18	id	BIGINT	id	f	t	1	Long	id		27207	f	t	f	=	t	input	1	2024-07-10 10:33:28.047	1	2024-07-10 10:33:28.047	1
-273	18	name	VARCHAR	名称	f	f	2	String	name		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 10:33:28.069	1	2024-07-10 10:33:28.069	1
+273	18	name	VARCHAR	名称	f	f	2	String	name		演示	t	t	t	LIKE	t	input	1	2024-07-10 10:33:28.069	1	2024-07-10 10:33:28.069	1
 263	17	template_code	VARCHAR	产品模版标识	f	f	3	String	templateCode		\N	t	t	t	=	t	input	1	2024-07-10 10:33:26.807	1	2024-07-10 10:33:26.807	1
 264	17	template_name	VARCHAR	产品模板名称:自定义，支持中文、英文大小写、数字、下划线和中划线	f	f	4	String	templateName		李四	t	t	t	LIKE	t	input	1	2024-07-10 10:33:26.822	1	2024-07-10 10:33:26.822	1
 1	1	id	BIGINT	任务编号	f	t	1	Long	id		1027	f	t	f	=	t	input	1	2024-07-09 11:38:00.12	1	2024-07-09 11:38:00.12	1
@@ -7556,7 +7556,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 739	42	update_time	TIMESTAMP	更新时间	f	f	17	LocalDateTime	updateTime		\N	f	f	f	BETWEEN	f	datetime	1	2024-07-10 18:03:34.655	1	2024-07-10 18:41:33.508	0
 740	42	tenant_id	BIGINT	租户ID	t	f	18	Long	tenantId		16499	f	f	f	=	f	input	1	2024-07-10 18:03:34.666	1	2024-07-10 18:41:33.629	0
 741	43	id	BIGINT	id	f	t	1	Long	id		28979	f	t	f	=	t	input	1	2024-07-10 18:03:35.331	1	2024-07-10 18:41:25.42	0
-742	43	event_name	VARCHAR	事件名称	f	f	2	String	eventName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:35.355	1	2024-07-10 18:41:25.433	0
+742	43	event_name	VARCHAR	事件名称	f	f	2	String	eventName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:35.355	1	2024-07-10 18:41:25.433	0
 601	34	did	VARCHAR	设备唯一标识	t	f	2	String	did		418	t	t	t	=	t	input	1	2024-07-10 18:03:25.26	1	2024-07-10 18:42:41.362	0
 765	44	step	VARCHAR	指示步长。	t	f	12	String	step		\N	t	t	t	=	t	input	1	2024-07-10 18:03:36.706	1	2024-07-10 18:41:16.129	0
 613	35	id	BIGINT	id	f	t	1	Long	id		9811	f	t	f	=	t	input	1	2024-07-10 18:03:26.355	1	2024-07-10 18:42:31.74	0
@@ -7643,7 +7643,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 548	31	province_code	VARCHAR	省,直辖市编码	t	f	26	String	provinceCode		\N	t	t	t	=	t	input	1	2024-07-10 17:52:40.21	1	2024-07-10 17:56:36.68	1
 259	16	update_time	TIMESTAMP	更新时间	f	f	11	LocalDateTime	updateTime		\N	f	f	f	BETWEEN	f	datetime	1	2024-07-10 10:33:25.324	1	2024-07-10 10:33:25.324	1
 260	16	tenant_id	BIGINT	租户ID	t	f	12	Long	tenantId		5905	f	f	f	=	f	input	1	2024-07-10 10:33:25.339	1	2024-07-10 10:33:25.339	1
-230	15	property_name	VARCHAR	功能名称	f	f	2	String	propertyName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 10:33:23.614	1	2024-07-10 10:33:23.614	1
+230	15	property_name	VARCHAR	功能名称	f	f	2	String	propertyName		演示	t	t	t	LIKE	t	input	1	2024-07-10 10:33:23.614	1	2024-07-10 10:33:23.614	1
 231	15	property_code	VARCHAR	属性code	f	f	3	String	propertyCode		\N	t	t	t	=	t	input	1	2024-07-10 10:33:23.653	1	2024-07-10 10:33:23.653	1
 239	15	required	INTEGER	指示本条属性是否必填，取值为0或1，默认取值1（必填）。目前本字段是非功能性字段，仅起到描述作用。(字典值link_product_isRequired：0非必填 1必填)	t	f	11	Integer	required		\N	t	t	t	=	t	input	1	2024-07-10 10:33:24.095	1	2024-07-10 10:33:24.095	1
 241	15	unit	VARCHAR	指示单位。支持长度不超过50。\t取值根据参数确定，如：\t•温度单位：“C”或“K”\t•百分比单位：“%”\t•压强单位：“Pa”或“kPa”	t	f	13	String	unit		\N	t	t	t	=	t	input	1	2024-07-10 10:33:24.126	1	2024-07-10 10:33:24.126	1
@@ -7760,7 +7760,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 829	49	protocol_version	VARCHAR	协议版本	t	f	6	String	protocolVersion		\N	t	t	t	=	t	input	1	2024-07-10 18:03:41.331	1	2024-07-10 18:40:26.462	0
 830	49	protocol_type	VARCHAR	协议类型 ：mqtt || coap || modbus || http	t	f	7	String	protocolType		1	t	t	t	=	t	select	1	2024-07-10 18:03:41.348	1	2024-07-10 18:40:26.475	0
 831	49	protocol_voice	VARCHAR	协议语言	t	f	8	String	protocolVoice		\N	t	t	t	=	t	input	1	2024-07-10 18:03:41.369	1	2024-07-10 18:40:26.486	0
-832	49	class_name	VARCHAR	类名	t	f	9	String	className		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:41.388	1	2024-07-10 18:40:26.497	0
+832	49	class_name	VARCHAR	类名	t	f	9	String	className		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:41.388	1	2024-07-10 18:40:26.497	0
 817	48	sort	BIGINT	排序序号	t	f	3	Long	sort		\N	t	t	t	=	t	input	1	2024-07-10 18:03:40.609	1	2024-07-10 18:40:34.884	0
 818	48	parent_id	VARCHAR	父级ID	t	f	4	String	parentId		22607	t	t	t	=	t	input	1	2024-07-10 18:03:40.619	1	2024-07-10 18:40:34.895	0
 819	48	create_by	VARCHAR	创建者	t	f	5	String	createBy		\N	t	t	t	=	t	input	1	2024-07-10 18:03:40.631	1	2024-07-10 18:40:34.908	0
@@ -7768,7 +7768,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 821	48	update_by	VARCHAR	更新者	t	f	7	String	updateBy		\N	t	t	t	=	t	input	1	2024-07-10 18:03:40.652	1	2024-07-10 18:40:34.998	0
 822	48	update_time	TIMESTAMP	更新时间	t	f	8	LocalDateTime	updateTime		\N	f	f	f	BETWEEN	f	datetime	1	2024-07-10 18:03:40.661	1	2024-07-10 18:40:35.098	0
 823	48	tenant_id	BIGINT	租户ID	t	f	9	Long	tenantId		4796	f	f	f	=	f	input	1	2024-07-10 18:03:40.677	1	2024-07-10 18:40:35.119	0
-807	47	template_name	VARCHAR	产品模板名称:自定义，支持中文、英文大小写、数字、下划线和中划线	f	f	4	String	templateName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:39.402	1	2024-07-10 18:40:46.291	0
+807	47	template_name	VARCHAR	产品模板名称:自定义，支持中文、英文大小写、数字、下划线和中划线	f	f	4	String	templateName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:39.402	1	2024-07-10 18:40:46.291	0
 842	50	id	BIGINT	主键	f	t	1	Long	id		32529	f	t	f	=	t	input	1	2024-07-10 18:03:42.292	1	2025-08-13 13:37:21.852	0
 808	47	status	VARCHAR	状态(字典值：启用  停用)	f	f	5	String	status		1	t	t	t	=	t	radio	1	2024-07-10 18:03:39.428	1	2024-07-10 18:40:46.305	0
 809	47	remark	VARCHAR	产品模型模板描述	t	f	6	String	remark		随便	t	t	t	=	t	input	1	2024-07-10 18:03:39.456	1	2024-07-10 18:40:46.315	0
@@ -7793,7 +7793,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 874	52	alarm_content	VARCHAR	告警内容	t	f	8	String	alarmContent		\N	t	t	t	=	t	editor	1	2024-07-10 18:03:44.98	1	2024-07-10 18:40:10.169	0
 875	52	processing_people	VARCHAR	处理人	t	f	9	String	processingPeople		\N	t	t	t	=	t	input	1	2024-07-10 18:03:44.99	1	2024-07-10 18:40:10.189	0
 888	53	create_time	TIMESTAMP	创建时间	f	f	11	LocalDateTime	createTime		\N	f	f	t	BETWEEN	t	datetime	1	2024-07-10 18:03:46.12	1	2024-07-10 18:40:17.567	0
-857	51	rule_alarm_name	VARCHAR	告警规则名称	t	f	3	String	ruleAlarmName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:43.907	1	2024-07-10 18:40:02.713	0
+857	51	rule_alarm_name	VARCHAR	告警规则名称	t	f	3	String	ruleAlarmName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:43.907	1	2024-07-10 18:40:02.713	0
 858	51	rule_alarm_status	INTEGER	告警状态0 未启动  1运行中	t	f	4	Integer	ruleAlarmStatus		1	t	t	t	=	t	radio	1	2024-07-10 18:03:43.939	1	2024-07-10 18:40:02.724	0
 859	51	rule_alarm_remark	VARCHAR	告警规则描述	t	f	5	String	ruleAlarmRemark		你猜	t	t	t	=	t	input	1	2024-07-10 18:03:43.986	1	2024-07-10 18:40:02.734	0
 860	51	rule_level	INTEGER	告警级别	t	f	6	Integer	ruleLevel		\N	t	t	t	=	t	input	1	2024-07-10 18:03:43.996	1	2024-07-10 18:40:02.753	0
@@ -7850,7 +7850,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 729	42	maxlength	VARCHAR	指示字符串长度。\t仅当dataType为string时生效。	t	f	7	String	maxlength		\N	t	t	t	=	t	input	1	2024-07-10 18:03:34.33	1	2024-07-10 18:41:33.383	0
 730	42	min	VARCHAR	指示最小值。\t仅当dataType为int、decimal时生效，逻辑大于等于。	t	f	8	String	min		\N	t	t	t	=	t	input	1	2024-07-10 18:03:34.345	1	2024-07-10 18:41:33.392	0
 731	42	parameter_description	VARCHAR	命令中参数的描述，不影响实际功能，可配置为空字符串""。	t	f	9	String	parameterDescription		你猜	t	t	t	=	t	editor	1	2024-07-10 18:03:34.356	1	2024-07-10 18:41:33.404	0
-732	42	parameter_name	VARCHAR	命令中参数的名字。	t	f	10	String	parameterName		芋艿	t	t	t	LIKE	t	input	1	2024-07-10 18:03:34.366	1	2024-07-10 18:41:33.419	0
+732	42	parameter_name	VARCHAR	命令中参数的名字。	t	f	10	String	parameterName		演示	t	t	t	LIKE	t	input	1	2024-07-10 18:03:34.366	1	2024-07-10 18:41:33.419	0
 675	39	model	VARCHAR	产品型号，建议包含字母或数字来保证可扩展性。支持英文大小写、数字、下划线和中划线	f	f	6	String	model		\N	t	t	t	=	t	input	1	2024-07-10 18:03:30.653	1	2024-07-10 18:41:58.273	0
 676	39	data_format	VARCHAR	数据格式，默认为JSON无需修改。	f	f	7	String	dataFormat		\N	t	t	t	=	t	input	1	2024-07-10 18:03:30.67	1	2024-07-10 18:41:58.284	0
 677	39	protocol_type	VARCHAR	设备接入平台的协议类型，默认为MQTT无需修改。	f	f	8	String	protocolType		2	t	t	t	=	t	select	1	2024-07-10 18:03:30.681	1	2024-07-10 18:41:58.294	0
@@ -7977,7 +7977,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 946	57	mobile_num	VARCHAR	手机号码	f	f	3	String	mobileNum		\N	t	t	t	=	t	input	1	2025-02-25 09:34:35.541	1	2025-02-25 09:34:35.541	0
 947	57	customer_num	VARCHAR	客户编号	f	f	4	String	customerNum		\N	t	t	t	=	t	input	1	2025-02-25 09:34:35.567	1	2025-02-25 09:34:35.567	0
 948	57	access_key	VARCHAR	HTTP请求Token	f	f	5	String	accessKey		\N	t	t	t	=	t	input	1	2025-02-25 09:34:35.582	1	2025-02-25 09:34:35.582	0
-949	57	http_req_url	VARCHAR	HTTP回调地址	f	f	6	String	httpReqUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:35.597	1	2025-02-25 09:34:35.597	0
+949	57	http_req_url	VARCHAR	HTTP回调地址	f	f	6	String	httpReqUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:35.597	1	2025-02-25 09:34:35.597	0
 950	57	http_req_header	VARCHAR	HTTP请求头	t	f	7	String	httpReqHeader		\N	t	t	t	=	t	input	1	2025-02-25 09:34:35.618	1	2025-02-25 09:34:35.618	0
 951	57	task_amount_limit	VARCHAR	任务数量限制	t	f	8	String	taskAmountLimit		\N	t	t	t	=	t	input	1	2025-02-25 09:34:35.645	1	2025-02-25 09:34:35.645	0
 952	57	status	SMALLINT	状态[0:停用, 1:启用]	t	f	9	Short	status		2	t	t	t	=	t	radio	1	2025-02-25 09:34:35.659	1	2025-02-25 09:34:35.659	0
@@ -7995,7 +7995,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 964	58	shell_key	VARCHAR	执行模型计算的shell key(yolo.py)	t	f	7	String	shellKey		\N	t	t	t	=	t	input	1	2025-02-25 09:34:36.341	1	2025-02-25 09:34:36.341	0
 965	58	latest_training_time	TIMESTAMP	最后训练时间	t	f	8	LocalDateTime	latestTrainingTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-02-25 09:34:36.356	1	2025-02-25 09:34:36.356	0
 968	58	label_list	VARCHAR	标签列表	t	f	11	String	labelList		\N	t	t	t	=	t	input	1	2025-02-25 09:34:36.396	1	2025-02-25 09:34:36.396	0
-969	58	oos_url	VARCHAR	OSS模型地址	t	f	12	String	oosUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:36.409	1	2025-02-25 09:34:36.409	0
+969	58	oos_url	VARCHAR	OSS模型地址	t	f	12	String	oosUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:36.409	1	2025-02-25 09:34:36.409	0
 972	58	create_by	VARCHAR	创建人	t	f	15	String	createBy		\N	t	t	t	=	t	input	1	2025-02-25 09:34:36.468	1	2025-02-25 09:34:36.468	0
 973	58	create_time	TIMESTAMP	创建时间	t	f	16	LocalDateTime	createTime		\N	f	f	t	BETWEEN	t	datetime	1	2025-02-25 09:34:36.486	1	2025-02-25 09:34:36.486	0
 974	58	tenant_id	BIGINT	租户编号	f	f	17	Long	tenantId		24128	f	f	f	=	f	input	1	2025-02-25 09:34:36.496	1	2025-02-25 09:34:36.496	0
@@ -8009,10 +8009,10 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 982	59	customer_num	VARCHAR	客户编号	f	f	6	String	customerNum		\N	t	t	t	=	t	input	1	2025-02-25 09:34:37.232	1	2025-02-25 09:34:37.232	0
 983	59	customer_name	VARCHAR	客户名称	f	f	7	String	customerName		BasicLab	t	t	t	LIKE	t	input	1	2025-02-25 09:34:37.25	1	2025-02-25 09:34:37.25	0
 984	59	is_video_device	SMALLINT	是否来源视频设备[0:否, 1:是]	f	f	8	Short	isVideoDevice		\N	t	t	t	=	t	input	1	2025-02-25 09:34:37.269	1	2025-02-25 09:34:37.269	0
-989	59	video_play_url	VARCHAR	原始视频流播放地址	t	f	13	String	videoPlayUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:37.351	1	2025-02-25 09:34:37.351	0
-990	59	push_video_play_url	VARCHAR	实时推送的原始视频流播放地址	t	f	14	String	pushVideoPlayUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:37.366	1	2025-02-25 09:34:37.366	0
-991	59	computing_video_play_url	VARCHAR	实时推送的检测视频流播放地址	t	f	15	String	computingVideoPlayUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:37.384	1	2025-02-25 09:34:37.384	0
-992	59	stream_server_url	VARCHAR	流媒体服务器地址	t	f	16	String	streamServerUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 09:34:37.396	1	2025-02-25 09:34:37.396	0
+989	59	video_play_url	VARCHAR	原始视频流播放地址	t	f	13	String	videoPlayUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:37.351	1	2025-02-25 09:34:37.351	0
+990	59	push_video_play_url	VARCHAR	实时推送的原始视频流播放地址	t	f	14	String	pushVideoPlayUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:37.366	1	2025-02-25 09:34:37.366	0
+991	59	computing_video_play_url	VARCHAR	实时推送的检测视频流播放地址	t	f	15	String	computingVideoPlayUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:37.384	1	2025-02-25 09:34:37.384	0
+992	59	stream_server_url	VARCHAR	流媒体服务器地址	t	f	16	String	streamServerUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 09:34:37.396	1	2025-02-25 09:34:37.396	0
 993	59	skip_frame	INTEGER	跳帧数量(每隔多少帧检测一次)	t	f	17	Integer	skipFrame		\N	t	t	t	=	t	input	1	2025-02-25 09:34:37.409	1	2025-02-25 09:34:37.409	0
 994	59	push_frequency	INTEGER	推送频率(每隔多少秒推送推理结果一次)	t	f	18	Integer	pushFrequency		\N	t	t	t	=	t	input	1	2025-02-25 09:34:37.425	1	2025-02-25 09:34:37.425	0
 995	59	work_dir	VARCHAR	模型计算工作目录	t	f	19	String	workDir		\N	t	t	t	=	t	input	1	2025-02-25 09:34:37.438	1	2025-02-25 09:34:37.438	0
@@ -8041,7 +8041,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1013	60	id	BIGINT	主键id	f	t	1	Long	id		15316	f	t	f	=	t	input	1	2025-02-25 11:49:54.081	1	2025-02-25 11:49:54.081	0
 1014	60	push_time	TIMESTAMP	推送时间	f	f	2	LocalDateTime	pushTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-02-25 11:49:54.115	1	2025-02-25 11:49:54.115	0
 1015	60	status	SMALLINT	推送状态[0:失败, 1:成功]	f	f	3	Short	status		2	t	t	t	=	t	radio	1	2025-02-25 11:49:54.139	1	2025-02-25 11:49:54.139	0
-1016	60	http_req_url	VARCHAR	http请求地址	f	f	4	String	httpReqUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-02-25 11:49:54.16	1	2025-02-25 11:49:54.16	0
+1016	60	http_req_url	VARCHAR	http请求地址	f	f	4	String	httpReqUrl		https://www.example.com	t	t	t	=	t	input	1	2025-02-25 11:49:54.16	1	2025-02-25 11:49:54.16	0
 1017	60	http_req_header	VARCHAR	http请求头	t	f	5	String	httpReqHeader		\N	t	t	t	=	t	input	1	2025-02-25 11:49:54.178	1	2025-02-25 11:49:54.178	0
 1018	60	http_req_param	VARCHAR	http请求参数	t	f	6	String	httpReqParam		\N	t	t	t	=	t	input	1	2025-02-25 11:49:54.206	1	2025-02-25 11:49:54.206	0
 1019	60	http_result	VARCHAR	http返回结果	t	f	7	String	httpResult		\N	t	t	t	=	t	input	1	2025-02-25 11:49:54.222	1	2025-02-25 11:49:54.222	0
@@ -8062,7 +8062,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1035	61	update_by	VARCHAR	创建人	t	f	5	String	updateBy		\N	t	t	t	=	t	input	1	2025-03-31 16:12:44.275	1	2025-03-31 16:12:44.275	0
 1036	61	update_time	TIMESTAMP	创建时间	t	f	6	LocalDateTime	updateTime		\N	f	f	f	BETWEEN	f	datetime	1	2025-03-31 16:12:44.29	1	2025-03-31 16:12:44.29	0
 1037	61	deleted	SMALLINT	是否删除	f	f	7	Short	deleted		\N	f	f	f	=	f	input	1	2025-03-31 16:12:44.301	1	2025-03-31 16:12:44.301	0
-1038	61	file_url	VARCHAR	文件路径	t	f	8	String	fileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-03-31 16:12:44.313	1	2025-03-31 16:12:44.313	0
+1038	61	file_url	VARCHAR	文件路径	t	f	8	String	fileUrl		https://www.example.com	t	t	t	=	t	input	1	2025-03-31 16:12:44.313	1	2025-03-31 16:12:44.313	0
 1039	61	event_time	TIMESTAMP	告警事件时间	t	f	9	LocalDateTime	eventTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-03-31 16:12:44.328	1	2025-03-31 16:12:44.328	0
 1040	61	algorithm_video_id	BIGINT	计算设备ID	t	f	10	Long	algorithmVideoId		9603	t	t	t	=	t	input	1	2025-03-31 16:12:44.339	1	2025-03-31 16:12:44.339	0
 1041	61	device_name	VARCHAR	设备名称	t	f	11	String	deviceName		赵六	t	t	t	LIKE	t	input	1	2025-03-31 16:12:44.352	1	2025-03-31 16:12:44.352	0
@@ -8079,7 +8079,7 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1053	62	ip	VARCHAR	IP地址	t	f	11	String	ip		\N	t	t	t	=	t	input	1	2025-03-31 16:12:45.019	1	2025-03-31 16:12:45.019	0
 1054	62	port	VARCHAR	端口	t	f	12	String	port		\N	t	t	t	=	t	input	1	2025-03-31 16:12:45.035	1	2025-03-31 16:12:45.035	0
 1031	61	id	BIGINT	主键id	f	t	1	Long	id		17655	f	t	f	=	t	input	1	2025-03-31 16:12:44.21	1	2025-03-31 16:12:44.21	1
-1058	62	stream_server_url	VARCHAR	流媒体服务器地址	t	f	16	String	streamServerUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-03-31 16:12:45.088	1	2025-03-31 16:12:45.088	0
+1058	62	stream_server_url	VARCHAR	流媒体服务器地址	t	f	16	String	streamServerUrl		https://www.example.com	t	t	t	=	t	input	1	2025-03-31 16:12:45.088	1	2025-03-31 16:12:45.088	0
 1059	62	source	VARCHAR	原始摄像头rtsp取流地址	t	f	17	String	source		\N	t	t	t	=	t	input	1	2025-03-31 16:12:45.108	1	2025-03-31 16:12:45.108	0
 1060	62	ai_rtmp_stream	VARCHAR	AI处理后的rtmp视频流	t	f	18	String	aiRtmpStream		\N	t	t	t	=	t	input	1	2025-03-31 16:12:45.127	1	2025-03-31 16:12:45.127	0
 1061	62	ai_http_stream	VARCHAR	AI处理后的http视频流	t	f	19	String	aiHttpStream		\N	t	t	t	=	t	input	1	2025-03-31 16:12:45.141	1	2025-03-31 16:12:45.141	0
@@ -8125,8 +8125,8 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1095	56	event_time	TIMESTAMP	告警事件时间	t	f	6	LocalDateTime	eventTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-03-31 16:13:23.214	1	2025-03-31 16:13:23.214	0
 1096	56	algorithm_video_id	BIGINT	计算设备ID	t	f	7	Long	algorithmVideoId		989	t	t	t	=	t	input	1	2025-03-31 16:13:23.227	1	2025-03-31 16:13:23.227	0
 1097	56	device_name	VARCHAR	设备名称	t	f	8	String	deviceName		王五	t	t	t	LIKE	t	input	1	2025-03-31 16:13:23.243	1	2025-03-31 16:13:23.243	0
-1098	56	image_url	VARCHAR	告警图片地址	t	f	9	String	imageUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-03-31 16:13:23.256	1	2025-03-31 16:13:23.256	0
-1099	56	record_url	VARCHAR	告警录像地址	t	f	10	String	recordUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-03-31 16:13:23.267	1	2025-03-31 16:13:23.267	0
+1098	56	image_url	VARCHAR	告警图片地址	t	f	9	String	imageUrl		https://www.example.com	t	t	t	=	t	input	1	2025-03-31 16:13:23.256	1	2025-03-31 16:13:23.256	0
+1099	56	record_url	VARCHAR	告警录像地址	t	f	10	String	recordUrl		https://www.example.com	t	t	t	=	t	input	1	2025-03-31 16:13:23.267	1	2025-03-31 16:13:23.267	0
 1100	63	id	BIGINT	主键id	f	t	1	Long	id		6641	f	t	f	=	t	input	1	2025-03-31 18:02:01.971	1	2025-03-31 18:02:01.971	1
 1101	63	ip	VARCHAR	IP地址	t	f	2	String	ip		\N	t	t	t	=	t	input	1	2025-03-31 18:02:01.987	1	2025-03-31 18:02:01.987	1
 1102	63	port	VARCHAR	端口	t	f	3	String	port		\N	t	t	t	=	t	input	1	2025-03-31 18:02:01.998	1	2025-03-31 18:02:01.998	1
@@ -8213,13 +8213,13 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1183	71	chip_model	VARCHAR	芯片型号	t	f	9	String	chipModel		\N	t	t	t	=	t	input	1	2025-06-15 07:13:31.495	1	2025-06-15 07:13:31.495	0
 1184	71	run_environment	VARCHAR	运行时环境	t	f	10	String	runEnvironment		\N	t	t	t	=	t	input	1	2025-06-15 07:13:31.545	1	2025-06-15 07:13:31.545	0
 1185	71	dev_language	VARCHAR	开发语言	t	f	11	String	devLanguage		\N	t	t	t	=	t	input	1	2025-06-15 07:13:31.595	1	2025-06-15 07:13:31.595	0
-1186	71	git_url	VARCHAR	git地址	t	f	12	String	gitUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.644	1	2025-06-15 07:13:31.644	0
-1187	71	pt_model_url	VARCHAR	pt模型地址	t	f	13	String	ptModelUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.684	1	2025-06-15 07:13:31.684	0
-1188	71	pt_result_url	VARCHAR	pt模型训练结果地址	t	f	14	String	ptResultUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.724	1	2025-06-15 07:13:31.724	0
-1189	71	onnx_model_url	VARCHAR	onnx模型地址	t	f	15	String	onnxModelUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.76	1	2025-06-15 07:13:31.76	0
-1190	71	onnx_result_url	VARCHAR	onnx模型训练结果地址	t	f	16	String	onnxResultUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.804	1	2025-06-15 07:13:31.804	0
-1191	71	rknn_model_url	VARCHAR	rknn模型地址	t	f	17	String	rknnModelUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.844	1	2025-06-15 07:13:31.844	0
-1192	71	rknn_result_url	VARCHAR	rknn模型训练结果地址	t	f	18	String	rknnResultUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:31.884	1	2025-06-15 07:13:31.884	0
+1186	71	git_url	VARCHAR	git地址	t	f	12	String	gitUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.644	1	2025-06-15 07:13:31.644	0
+1187	71	pt_model_url	VARCHAR	pt模型地址	t	f	13	String	ptModelUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.684	1	2025-06-15 07:13:31.684	0
+1188	71	pt_result_url	VARCHAR	pt模型训练结果地址	t	f	14	String	ptResultUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.724	1	2025-06-15 07:13:31.724	0
+1189	71	onnx_model_url	VARCHAR	onnx模型地址	t	f	15	String	onnxModelUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.76	1	2025-06-15 07:13:31.76	0
+1190	71	onnx_result_url	VARCHAR	onnx模型训练结果地址	t	f	16	String	onnxResultUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.804	1	2025-06-15 07:13:31.804	0
+1191	71	rknn_model_url	VARCHAR	rknn模型地址	t	f	17	String	rknnModelUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.844	1	2025-06-15 07:13:31.844	0
+1192	71	rknn_result_url	VARCHAR	rknn模型训练结果地址	t	f	18	String	rknnResultUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:31.884	1	2025-06-15 07:13:31.884	0
 1193	72	id	BIGINT	主键ID	f	t	1	Long	id		644	f	t	f	=	t	input	1	2025-06-15 07:13:33.295	1	2025-06-15 07:13:33.295	0
 1194	72	name	VARCHAR	模型服务名称	f	f	2	String	name		张三	t	t	t	LIKE	t	input	1	2025-06-15 07:13:33.355	1	2025-06-15 07:13:33.355	0
 1195	72	model_id	BIGINT	模型ID	f	f	3	Long	modelId		20545	t	t	t	=	t	input	1	2025-06-15 07:13:33.414	1	2025-06-15 07:13:33.414	0
@@ -8228,13 +8228,13 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1198	72	audit_user_id	BIGINT	审核人ID	t	f	6	Long	auditUserId		29565	t	t	t	=	t	input	1	2025-06-15 07:13:33.535	1	2025-06-15 07:13:33.535	0
 1199	72	version	VARCHAR	版本号	t	f	7	String	version		\N	t	t	t	=	t	input	1	2025-06-15 07:13:33.575	1	2025-06-15 07:13:33.575	0
 1200	72	server_address	VARCHAR	服务访问地址	t	f	8	String	serverAddress		\N	t	t	t	=	t	input	1	2025-06-15 07:13:33.619	1	2025-06-15 07:13:33.619	0
-1201	72	onnx_file_url	VARCHAR	ONNX模型文件	t	f	9	String	onnxFileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:33.655	1	2025-06-15 07:13:33.655	0
+1201	72	onnx_file_url	VARCHAR	ONNX模型文件	t	f	9	String	onnxFileUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:33.655	1	2025-06-15 07:13:33.655	0
 1202	72	description	VARCHAR	描述	t	f	10	String	description		你说的对	t	t	t	=	t	editor	1	2025-06-15 07:13:33.725	1	2025-06-15 07:13:33.725	0
 1203	72	size	BIGINT	模型大小	t	f	11	Long	size		\N	t	t	t	=	t	input	1	2025-06-15 07:13:33.775	1	2025-06-15 07:13:33.775	0
 1204	72	execute_status	SMALLINT	执行状态[0:未启动,1:部署中,2:部署失败,3:运行中,4:已关闭]	f	f	12	Short	executeStatus		1	t	t	t	=	t	radio	1	2025-06-15 07:13:33.819	1	2025-06-15 07:13:33.819	0
 1205	72	publish_time	TIMESTAMP	发布时间	t	f	13	LocalDateTime	publishTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-06-15 07:13:33.908	1	2025-06-15 07:13:33.908	0
-1206	72	anchors_file_url	VARCHAR	anchors.txt文件	t	f	14	String	anchorsFileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:33.965	1	2025-06-15 07:13:33.965	0
-1207	72	apply_file_url	VARCHAR	完整应用文件（或量化后应用文件）	t	f	15	String	applyFileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:34.024	1	2025-06-15 07:13:34.024	0
+1206	72	anchors_file_url	VARCHAR	anchors.txt文件	t	f	14	String	anchorsFileUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:33.965	1	2025-06-15 07:13:33.965	0
+1207	72	apply_file_url	VARCHAR	完整应用文件（或量化后应用文件）	t	f	15	String	applyFileUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:34.024	1	2025-06-15 07:13:34.024	0
 1208	72	apply_file_size	BIGINT	应用文件大小	t	f	16	Long	applyFileSize		\N	t	t	t	=	t	input	1	2025-06-15 07:13:34.064	1	2025-06-15 07:13:34.064	0
 1209	72	apply_file_md5	VARCHAR	应用文件MD5值	t	f	17	String	applyFileMd5		\N	t	t	t	=	t	input	1	2025-06-15 07:13:34.103	1	2025-06-15 07:13:34.103	0
 1210	73	id	BIGINT	主键ID	f	t	1	Long	id		26697	f	t	f	=	t	input	1	2025-06-15 07:13:35.726	1	2025-06-15 07:13:35.726	0
@@ -8245,13 +8245,13 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 1215	73	quantify_time	TIMESTAMP	量化时间	t	f	6	LocalDateTime	quantifyTime		\N	t	t	t	BETWEEN	t	datetime	1	2025-06-15 07:13:35.934	1	2025-06-15 07:13:35.934	0
 1216	73	quantify_state	SMALLINT	量化状态[0:量化未开始,1:量化中,2:量化成功,3:量化失败]	f	f	7	Short	quantifyState		\N	t	t	t	=	t	input	1	2025-06-15 07:13:35.975	1	2025-06-15 07:13:35.975	0
 1217	73	pack_state	SMALLINT	打包状态[0:打包未开始,1:打包中,2:打包成功,3:打包失败]	f	f	8	Short	packState		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.015	1	2025-06-15 07:13:36.015	0
-1218	73	quantify_file_url	VARCHAR	量化文件地址	t	f	9	String	quantifyFileUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:36.059	1	2025-06-15 07:13:36.059	0
+1218	73	quantify_file_url	VARCHAR	量化文件地址	t	f	9	String	quantifyFileUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:36.059	1	2025-06-15 07:13:36.059	0
 1219	73	edge_platform	VARCHAR	边缘平台	t	f	10	String	edgePlatform		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.124	1	2025-06-15 07:13:36.124	0
 1220	73	chip_model	VARCHAR	芯片型号	t	f	11	String	chipModel		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.164	1	2025-06-15 07:13:36.164	0
 1221	73	run_environment	VARCHAR	运行时环境	t	f	12	String	runEnvironment		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.204	1	2025-06-15 07:13:36.204	0
 1222	73	dev_language	VARCHAR	开发语言	t	f	13	String	devLanguage		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.245	1	2025-06-15 07:13:36.245	0
 1223	73	apply_type	SMALLINT	部署类型[0:压缩包下载,1:gitee拉取]	t	f	14	Short	applyType		1	t	t	t	=	t	select	1	2025-06-15 07:13:36.284	1	2025-06-15 07:13:36.284	0
-1224	73	gitee_url	VARCHAR	下载或拉取地址	t	f	15	String	giteeUrl		https://www.iocoder.cn	t	t	t	=	t	input	1	2025-06-15 07:13:36.334	1	2025-06-15 07:13:36.334	0
+1224	73	gitee_url	VARCHAR	下载或拉取地址	t	f	15	String	giteeUrl		https://www.example.com	t	t	t	=	t	input	1	2025-06-15 07:13:36.334	1	2025-06-15 07:13:36.334	0
 1225	73	reason	VARCHAR	失败原因	t	f	16	String	reason		不香	t	t	t	=	t	input	1	2025-06-15 07:13:36.369	1	2025-06-15 07:13:36.369	0
 1226	73	quantify_description	VARCHAR	量化备注	t	f	17	String	quantifyDescription		你说的对	t	t	t	=	t	editor	1	2025-06-15 07:13:36.414	1	2025-06-15 07:13:36.414	0
 1227	73	rknn_dir	VARCHAR	rknn存放目录	t	f	18	String	rknnDir		\N	t	t	t	=	t	input	1	2025-06-15 07:13:36.45	1	2025-06-15 07:13:36.45	0
@@ -8326,36 +8326,36 @@ COPY public.infra_codegen_column (id, table_id, column_name, data_type, column_c
 --
 
 COPY public.infra_codegen_table (id, data_source_config_id, scene, table_name, table_comment, remark, module_name, business_name, class_name, class_comment, author, template_type, front_type, parent_menu_id, master_table_id, sub_join_column_id, sub_join_many, tree_parent_column_id, tree_name_column_id, creator, create_time, updater, update_time, deleted) FROM stdin;
-1	0	1	infra_job	定时任务表	\N	infra	job	Job	定时任务	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-09 11:38:00.076	1	2024-07-09 11:38:00.076	1
-20	1	1	device	设备表	\N	device			设备	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:30.81	1	2024-07-10 10:33:30.81	1
-27	1	1	rule_conditions	规则条件表	\N	rule	conditions	Conditions	规则条件	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:38.948	1	2024-07-10 10:33:38.948	1
-2	1	1	device	设备表	\N	device			设备	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:32:59.118	1	2024-07-10 10:32:59.118	1
-28	1	1	device	设备表	\N	device			设备	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:46:57.377	1	2024-07-10 17:46:57.377	1
-30	1	1	device	设备表	\N	device			设备	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:47:44.046	1	2024-07-10 17:47:44.046	1
-23	1	1	device_group	设备分组表	\N	device	group	Group	设备分组	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:35.441	1	2024-07-10 10:33:35.441	1
-22	1	1	rule_alarm	规则告警表	\N	rule	alarm	Alarm	规则告警	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:35.183	1	2024-07-10 10:33:35.183	1
-29	1	1	rule_conditions	规则条件表	\N	rule	conditions	Conditions	规则条件	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:47:27.332	1	2024-07-10 17:47:27.332	1
+1	0	1	infra_job	定时任务表	\N	infra	job	Job	定时任务	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-09 11:38:00.076	1	2024-07-09 11:38:00.076	1
+20	1	1	device	设备表	\N	device			设备	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:30.81	1	2024-07-10 10:33:30.81	1
+27	1	1	rule_conditions	规则条件表	\N	rule	conditions	Conditions	规则条件	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:38.948	1	2024-07-10 10:33:38.948	1
+2	1	1	device	设备表	\N	device			设备	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:32:59.118	1	2024-07-10 10:32:59.118	1
+28	1	1	device	设备表	\N	device			设备	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:46:57.377	1	2024-07-10 17:46:57.377	1
+30	1	1	device	设备表	\N	device			设备	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:47:44.046	1	2024-07-10 17:47:44.046	1
+23	1	1	device_group	设备分组表	\N	device	group	Group	设备分组	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:35.441	1	2024-07-10 10:33:35.441	1
+22	1	1	rule_alarm	规则告警表	\N	rule	alarm	Alarm	规则告警	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:35.183	1	2024-07-10 10:33:35.183	1
+29	1	1	rule_conditions	规则条件表	\N	rule	conditions	Conditions	规则条件	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 17:47:27.332	1	2024-07-10 17:47:27.332	1
 31	1	1	device	设备表	设备表	device	device	Device	设备	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 17:52:39.556	1	2024-07-10 17:56:36.073	1
-26	1	1	device_log	设备日志表	\N	device	log	Log	设备日志	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:36.659	1	2024-07-10 10:33:36.659	1
-25	1	1	rule_alarm_list	告警列表	\N	rule	alarmlist	AlarmList	告警列	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:36.436	1	2024-07-10 10:33:36.436	1
-21	1	1	rule	规则信息表	\N	rule			规则信息	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:33.308	1	2024-07-10 10:33:33.308	1
-19	1	1	protocol	协议信息表	\N	protocol			协议信息	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:29.336	1	2024-07-10 10:33:29.336	1
-18	1	1	product_type	产品分类表	\N	product	type	Type	产品分类	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:27.987	1	2024-07-10 10:33:27.987	1
-17	1	1	product_template	产品模板表	\N	product	template	Template	产品模板	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:26.741	1	2024-07-10 10:33:26.741	1
-16	1	1	product_services	产品模型服务表	\N	product	services	Services	产品模型服务	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:25.075	1	2024-07-10 10:33:25.075	1
-15	1	1	product_properties	产品模型属性表	\N	product	properties	Properties	产品模型属性	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:23.512	1	2024-07-10 10:33:23.512	1
-14	1	1	product_event_response	产品模型事件响应表	\N	product	eventresponse	EventResponse	产品模型事件响应	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:22.15	1	2024-07-10 10:33:22.15	1
-13	1	1	product_event	产品模型事件表	\N	product	event	Event	产品模型事件	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:19.988	1	2024-07-10 10:33:19.988	1
-12	1	1	product_commands_response	产品模型设备响应服务命令属性表	\N	product	commandsresponse	CommandsResponse	产品模型设备响应服务命令属性	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:18.637	1	2024-07-10 10:33:18.637	1
-11	1	1	product_commands_requests	产品模型设备下发服务命令属性表	\N	product	commandsrequests	CommandsRequests	产品模型设备下发服务命令属性	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:16.828	1	2024-07-10 10:33:16.828	1
-10	1	1	product_commands	产品模型设备服务命令表	\N	product	commands	Commands	产品模型设备服务命令	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:14.952	1	2024-07-10 10:33:14.952	1
-9	1	1	product	产品表	\N	product			产品	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:12.643	1	2024-07-10 10:33:12.643	1
-8	1	1	ota_tasks	OTA升级任务表	\N	ota	tasks	Tasks	OTA升级任务	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:10.632	1	2024-07-10 10:33:10.632	1
-7	1	1	ota_records	OTA升级记录表	\N	ota	records	Records	OTA升级记录	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:08.997	1	2024-07-10 10:33:08.997	1
-6	1	1	ota_packages	OTA升级包表	\N	ota	packages	Packages	OTA升级包	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:07.359	1	2024-07-10 10:33:07.359	1
-5	1	1	device_topic	设备Topic数据表	\N	device	topic	Topic	设备Topic数据	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:05.995	1	2024-07-10 10:33:05.995	1
-4	1	1	device_log	设备日志表	\N	device	log	Log	设备日志	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:03.425	1	2024-07-10 10:33:03.425	1
-3	1	1	device_group	设备分组表	\N	device	group	Group	设备分组	芋道源码	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:02.108	1	2024-07-10 10:33:02.108	1
+26	1	1	device_log	设备日志表	\N	device	log	Log	设备日志	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:36.659	1	2024-07-10 10:33:36.659	1
+25	1	1	rule_alarm_list	告警列表	\N	rule	alarmlist	AlarmList	告警列	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:36.436	1	2024-07-10 10:33:36.436	1
+21	1	1	rule	规则信息表	\N	rule			规则信息	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:33.308	1	2024-07-10 10:33:33.308	1
+19	1	1	protocol	协议信息表	\N	protocol			协议信息	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:29.336	1	2024-07-10 10:33:29.336	1
+18	1	1	product_type	产品分类表	\N	product	type	Type	产品分类	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:27.987	1	2024-07-10 10:33:27.987	1
+17	1	1	product_template	产品模板表	\N	product	template	Template	产品模板	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:26.741	1	2024-07-10 10:33:26.741	1
+16	1	1	product_services	产品模型服务表	\N	product	services	Services	产品模型服务	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:25.075	1	2024-07-10 10:33:25.075	1
+15	1	1	product_properties	产品模型属性表	\N	product	properties	Properties	产品模型属性	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:23.512	1	2024-07-10 10:33:23.512	1
+14	1	1	product_event_response	产品模型事件响应表	\N	product	eventresponse	EventResponse	产品模型事件响应	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:22.15	1	2024-07-10 10:33:22.15	1
+13	1	1	product_event	产品模型事件表	\N	product	event	Event	产品模型事件	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:19.988	1	2024-07-10 10:33:19.988	1
+12	1	1	product_commands_response	产品模型设备响应服务命令属性表	\N	product	commandsresponse	CommandsResponse	产品模型设备响应服务命令属性	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:18.637	1	2024-07-10 10:33:18.637	1
+11	1	1	product_commands_requests	产品模型设备下发服务命令属性表	\N	product	commandsrequests	CommandsRequests	产品模型设备下发服务命令属性	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:16.828	1	2024-07-10 10:33:16.828	1
+10	1	1	product_commands	产品模型设备服务命令表	\N	product	commands	Commands	产品模型设备服务命令	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:14.952	1	2024-07-10 10:33:14.952	1
+9	1	1	product	产品表	\N	product			产品	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:12.643	1	2024-07-10 10:33:12.643	1
+8	1	1	ota_tasks	OTA升级任务表	\N	ota	tasks	Tasks	OTA升级任务	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:10.632	1	2024-07-10 10:33:10.632	1
+7	1	1	ota_records	OTA升级记录表	\N	ota	records	Records	OTA升级记录	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:08.997	1	2024-07-10 10:33:08.997	1
+6	1	1	ota_packages	OTA升级包表	\N	ota	packages	Packages	OTA升级包	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:07.359	1	2024-07-10 10:33:07.359	1
+5	1	1	device_topic	设备Topic数据表	\N	device	topic	Topic	设备Topic数据	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:05.995	1	2024-07-10 10:33:05.995	1
+4	1	1	device_log	设备日志表	\N	device	log	Log	设备日志	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:03.425	1	2024-07-10 10:33:03.425	1
+3	1	1	device_group	设备分组表	\N	device	group	Group	设备分组	liufei	1	10	\N	\N	\N	\N	\N	\N	1	2024-07-10 10:33:02.108	1	2024-07-10 10:33:02.108	1
 43	1	1	product_event	产品模型事件表	产品模型事件	xxx	product_event	ProductEvent	产品模型事件	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:35.299	1	2024-07-10 18:41:25.407	0
 42	1	1	product_commands_response	产品模型设备响应服务命令属性表	产品模型设备响应服务命令属性	xxx	product_commands_response	ProductCommandsResponse	产品模型设备响应服务命令属性	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:34.203	1	2024-07-10 18:41:33.071	0
 40	1	1	product_commands	产品模型设备服务命令表	产品模型设备服务命令	xxx	product_commands	ProductCommands	产品模型设备服务命令	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:31.723	1	2024-07-10 18:41:48.682	0
@@ -8372,7 +8372,7 @@ COPY public.infra_codegen_table (id, data_source_config_id, scene, table_name, t
 49	1	1	protocol	协议信息表	协议信息	xxx	protocol	Protocol	协议信息	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:41.245	1	2024-07-10 18:40:26.385	0
 48	1	1	product_type	产品分类表	产品分类	xxx	product_type	ProductType	产品分类	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:40.4	1	2024-07-10 18:40:34.837	0
 47	1	1	product_template	产品模板表	产品模板	xxx	product_template	ProductTemplate	产品模板	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:39.324	1	2024-07-10 18:40:45.974	0
-46	1	1	product_services	产品模型服务表	产品模型服务	xxx	product_services	ProductServices	产品模型服务	芋道源码	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:38.358	1	2024-07-10 18:40:55.747	0
+46	1	1	product_services	产品模型服务表	产品模型服务	xxx	product_services	ProductServices	产品模型服务	liufei	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:38.358	1	2024-07-10 18:40:55.747	0
 45	1	1	product_properties	产品模型属性表	产品模型属性	xxx	product_properties	ProductProperties	产品模型属性	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:37.392	1	2024-07-10 18:41:06.348	0
 44	1	1	product_event_response	产品模型事件响应表	产品模型事件响应	xxx	product_event_response	ProductEventResponse	产品模型事件响应	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:36.34	1	2024-07-10 18:41:15.802	0
 41	1	1	product_commands_requests	产品模型设备下发服务命令属性表	产品模型设备下发服务命令属性	xxx	product_commands_requests	ProductCommandsRequests	产品模型设备下发服务命令属性	BasicLab	1	30	2761	\N	\N	\N	\N	\N	1	2024-07-10 18:03:32.84	1	2024-07-10 18:41:41.652	0
@@ -8439,7 +8439,7 @@ COPY public.infra_data_source_config (id, name, url, username, password, creator
 --
 
 COPY public.infra_file (id, config_id, name, path, url, type, size, creator, create_time, updater, update_time, deleted) FROM stdin;
-1	22	113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	http://test.yudao.iocoder.cn/113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	image/png	677522	1	2024-07-24 10:44:19.797	1	2024-07-24 10:44:19.797	0
+1	22	113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	http://www.example.com/113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	image/png	677522	1	2024-07-24 10:44:19.797	1	2024-07-24 10:44:19.797	0
 \.
 
 
@@ -8448,8 +8448,8 @@ COPY public.infra_file (id, config_id, name, path, url, type, size, creator, cre
 --
 
 COPY public.infra_file_config (id, name, storage, remark, master, config, creator, create_time, updater, update_time, deleted) FROM stdin;
-4	数据库	1	我是数据库	f	{"@class":"cn.iocoder.yudao.module.infra.framework.file.core.client.db.DBFileClientConfig","domain":"http://127.0.0.1:48080"}	1	2022-03-15 23:56:24	1	2024-02-28 22:54:07	0
-22	七牛存储器	20		t	{"@class":"cn.iocoder.yudao.module.infra.framework.file.core.client.s3.S3FileClientConfig","endpoint":"s3.cn-south-1.qiniucs.com","domain":"http://test.yudao.iocoder.cn","bucket":"ruoyi-vue-pro","accessKey":"3TvrJ70gl2Gt6IBe7_IZT1F6i_k0iMuRtyEv4EyS","accessSecret":"wd0tbVBYlp0S-ihA8Qg2hPLncoP83wyrIq24OZuY"}	1	2024-01-13 22:11:12	1	2024-04-03 19:38:34	0
+4	数据库	1	我是数据库	f	{"@class":"com.basiclab.iot.infra.framework.file.core.client.db.DBFileClientConfig","domain":"http://127.0.0.1:48080"}	1	2022-03-15 23:56:24	1	2024-02-28 22:54:07	0
+22	七牛存储器	20		t	{"@class":"com.basiclab.iot.infra.framework.file.core.client.s3.S3FileClientConfig","endpoint":"s3.cn-south-1.qiniucs.com","domain":"http://www.example.com","bucket":"ruoyi-vue-pro","accessKey":"3TvrJ70gl2Gt6IBe7_IZT1F6i_k0iMuRtyEv4EyS","accessSecret":"wd0tbVBYlp0S-ihA8Qg2hPLncoP83wyrIq24OZuY"}	1	2024-01-13 22:11:12	1	2024-04-03 19:38:34	0
 \.
 
 
@@ -8593,20 +8593,20 @@ COPY public.qrtz_triggers (sched_name, trigger_name, trigger_group, job_name, jo
 --
 
 COPY public.system_dept (id, name, parent_id, sort, leader_user_id, phone, email, status, creator, create_time, updater, update_time, deleted, tenant_id) FROM stdin;
-101	深圳总公司	100	1	104	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2023-12-02 09:53:35	0	1
-102	长沙分公司	100	2	\N	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:40	0	1
-103	研发部门	101	1	104	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2024-03-24 20:56:04	0	1
-104	市场部门	101	2	\N	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:38	0	1
-105	测试部门	101	3	\N	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2022-05-16 20:25:15	0	1
-106	财务部门	101	4	103	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	103	2022-01-15 21:32:22	0	1
-107	运维部门	101	5	1	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2023-12-02 09:28:22	0	1
-108	市场部门	102	1	\N	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2022-02-16 08:35:45	0	1
-109	财务部门	102	2	\N	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:29	0	1
+101	深圳总公司	100	1	104	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2023-12-02 09:53:35	0	1
+102	长沙分公司	100	2	\N	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:40	0	1
+103	研发部门	101	1	104	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2024-03-24 20:56:04	0	1
+104	市场部门	101	2	\N	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:38	0	1
+105	测试部门	101	3	\N	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2022-05-16 20:25:15	0	1
+106	财务部门	101	4	103	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	103	2022-01-15 21:32:22	0	1
+107	运维部门	101	5	1	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2023-12-02 09:28:22	0	1
+108	市场部门	102	1	\N	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2022-02-16 08:35:45	0	1
+109	财务部门	102	2	\N	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47		2021-12-15 05:01:29	0	1
 110	新部门	0	1	\N	\N	\N	0	110	2022-02-23 20:46:30	110	2022-02-23 20:46:30	0	121
 111	顶级部门	0	1	\N	\N	\N	0	113	2022-03-07 21:44:50	113	2022-03-07 21:44:50	0	122
 112	产品部门	101	100	1	\N	\N	1	1	2023-12-02 09:45:13	1	2023-12-02 09:45:31	0	1
 113	支持部门	102	3	104	\N	\N	1	1	2023-12-02 09:47:38	1	2023-12-02 09:47:38	0	1
-100	集团组织架构	0	0	1	15888888888	ry@qq.com	0	admin	2021-01-05 17:03:47	1	2024-07-11 16:30:01.379	0	1
+100	集团组织架构	0	0	1	15888888888	dept@example.com	0	admin	2021-01-05 17:03:47	1	2024-07-11 16:30:01.379	0	1
 \.
 
 
@@ -9095,8 +9095,8 @@ COPY public.system_login_log (id, log_type, trace_id, user_id, user_type, userna
 COPY public.system_mail_account (id, mail, username, password, host, port, ssl_enable, starttls_enable, creator, create_time, updater, update_time, deleted) FROM stdin;
 1	7684413@qq.com	7684413@qq.com	1234576	127.0.0.1	8080	f	f	1	2023-01-25 17:39:52	1	2024-04-24 09:13:56	0
 2	ydym_test@163.com	ydym_test@163.com	WBZTEINMIFVRYSOE	smtp.163.com	465	t	f	1	2023-01-26 01:26:03	1	2023-04-12 22:39:38	0
-3	76854114@qq.com	3335	11234	yunai1.cn	466	f	f	1	2023-01-27 15:06:38	1	2023-01-27 07:08:36	1
-4	7685413x@qq.com	2	3	4	5	t	f	1	2023-04-12 23:05:06	1	2023-04-12 15:05:11	1
+3	demo1@example.com	3335	11234	smtp.example.com	466	f	f	1	2023-01-27 15:06:38	1	2023-01-27 07:08:36	1
+4	demo2@example.com	2	3	4	5	t	f	1	2023-04-12 23:05:06	1	2023-04-12 15:05:11	1
 \.
 
 
@@ -9114,7 +9114,7 @@ COPY public.system_mail_log (id, user_id, user_type, to_mail, account_id, from_m
 
 COPY public.system_mail_template (id, name, code, account_id, nickname, title, content, params, status, remark, creator, create_time, updater, update_time, deleted) FROM stdin;
 13	后台用户短信登录	admin-sms-login	1	奥特曼	你猜我猜	<p>您的验证码是{code}，名字是{name}</p>	["code","name"]	0	3	1	2021-10-11 08:10:00	1	2023-12-02 19:51:14	0
-14	测试模版	test_01	2	芋艿	一个标题	<p>你是 {key01} 吗？</p><p><br></p><p>是的话，赶紧 {key02} 一下！</p>	["key01","key02"]	0	\N	1	2023-01-26 01:27:40	1	2023-01-27 10:32:16	0
+14	测试模版	test_01	2	演示	一个标题	<p>你是 {key01} 吗？</p><p><br></p><p>是的话，赶紧 {key02} 一下！</p>	["key01","key02"]	0	\N	1	2023-01-26 01:27:40	1	2023-01-27 10:32:16	0
 15	3	2	2	7	4	<p>45</p>	[]	1	80	1	2023-01-27 15:50:35	1	2023-01-27 16:34:49	0
 \.
 
@@ -9429,7 +9429,7 @@ COPY public.system_menu (id, name, permission, type, sort, parent_id, path, icon
 2132	账号查询	system:mail-account:query	3	1	2131				\N	0	t	t	t		2023-01-25 09:33:48		2023-01-25 09:33:48	1
 2131	邮箱账号		2	0	2130	mail-account	fa:universal-access	system/mail/account/index	SystemMailAccount	0	t	t	t		2023-01-25 09:33:48	1	2024-02-29 08:48:16	1
 2130	邮箱管理		2	2	2739	mail	fa-solid:mail-bulk	\N	\N	0	t	t	t	1	2023-01-25 17:27:44	1	2024-04-22 23:56:08	1
-2160	Cloud 开发文档		1	2	0	https://cloud.iocoder.cn	ep:document-copy	\N	\N	0	t	t	t	1	2023-02-10 22:47:07	1	2023-12-02 21:32:29	1
+2160	Cloud 开发文档		1	2	0	https://www.example.com	ep:document-copy	\N	\N	0	t	t	t	1	2023-02-10 22:47:07	1	2023-12-02 21:32:29	1
 2161	接入示例		1	99	1117	demo	fa-solid:dragon	pay/demo/index	\N	0	t	t	t		2023-02-11 14:21:42	1	2024-01-18 23:50:00	1
 2156	查询项目	report:go-view-project:query	3	0	2153				\N	0	t	t	t	1	2023-02-07 19:25:53	1	2023-02-07 19:25:53	1
 2154	创建项目	report:go-view-project:create	3	1	2153				\N	0	t	t	t	1	2023-02-07 19:25:14	1	2023-02-07 19:25:14	1
@@ -9870,8 +9870,8 @@ COPY public.system_menu (id, name, permission, type, sort, parent_id, path, icon
 2711	合同配置查询	crm:contract-config:query	3	2	2708					0	t	t	t	1	2024-02-24 16:46:16	1	2024-02-24 16:46:16	1
 2708	合同配置		2	5	2524	contract-config	ep:connection	crm/contract/config/index	CrmContractConfig	0	t	t	t	1	2024-02-24 16:44:40	1	2024-02-24 16:44:48	1
 2740	监控中心		1	40	2759	monitors	ep:monitor			0	t	t	t	1	2024-04-23 00:04:44	1	2024-07-09 11:20:40.036	0
-1254	作者动态		1	0	0	https://www.iocoder.cn	ep:avatar	\N	\N	0	t	t	t	1	2022-04-23 01:03:15	1	2023-12-08 23:40:01	1
-2159	Boot 开发文档		1	1	0	https://doc.iocoder.cn/	ep:document	\N	\N	0	t	t	t	1	2023-02-10 22:46:28	1	2023-12-02 21:32:20	1
+1254	作者动态		1	0	0	https://www.example.com	ep:avatar	\N	\N	0	t	t	t	1	2022-04-23 01:03:15	1	2023-12-08 23:40:01	1
+2159	Boot 开发文档		1	1	0	https://www.example.com/	ep:document	\N	\N	0	t	t	t	1	2023-02-10 22:46:28	1	2023-12-02 21:32:20	1
 1127	支付应用信息查询	pay:app:query	3	1	1126				\N	0	t	t	t		2021-11-10 01:13:31		2022-04-20 17:03:10	1
 2559	转账订单		2	3	1117	transfer	ep:credit-card	pay/transfer/index	PayTransfer	0	t	t	t		2023-12-29 02:32:54		2023-12-29 02:32:54	1
 2302	支付通知查询	pay:notify:query	3	1	2301				\N	0	t	t	t		2023-07-20 04:41:32		2023-07-20 04:41:32	1
@@ -10141,8 +10141,8 @@ COPY public.system_menu (id, name, permission, type, sort, parent_id, path, icon
 --
 
 COPY public.system_notice (id, title, content, type, status, creator, create_time, updater, update_time, deleted, tenant_id) FROM stdin;
-1	芋道的公众	<p>新版本内容133</p>	1	0	admin	2021-01-05 17:03:48	1	2022-05-04 21:00:20	0	1
-2	维护通知：2018-07-01 系统凌晨维护	<p><img src="http://test.yudao.iocoder.cn/b7cb3cf49b4b3258bf7309a09dd2f4e5.jpg" alt="" data-href="" style=""/>11112222</p>	2	1	admin	2021-01-05 17:03:48	1	2023-12-02 20:07:26	0	1
+1	演示公众号	<p>新版本内容133</p>	1	0	admin	2021-01-05 17:03:48	1	2022-05-04 21:00:20	0	1
+2	维护通知：2018-07-01 系统凌晨维护	<p><img src="http://www.example.com/b7cb3cf49b4b3258bf7309a09dd2f4e5.jpg" alt="" data-href="" style=""/>11112222</p>	2	1	admin	2021-01-05 17:03:48	1	2023-12-02 20:07:26	0	1
 4	我是测试标题	<p>哈哈哈哈123</p>	1	0	110	2022-02-22 01:01:25	110	2022-02-22 01:01:46	0	121
 \.
 
@@ -10155,8 +10155,8 @@ COPY public.system_notify_message (id, user_id, user_type, template_id, template
 2	1	2	1	test	123	我是 1，我开始 2 了	1	{"name":"1","what":"2"}	t	2023-02-10 00:47:04	1	2023-01-28 11:44:08	1	2023-02-10 00:47:04	0	1
 3	1	2	1	test	123	我是 1，我开始 2 了	1	{"name":"1","what":"2"}	t	2023-02-10 00:47:04	1	2023-01-28 11:45:04	1	2023-02-10 00:47:04	0	1
 4	103	2	2	register	系统消息	你好，欢迎 哈哈 加入大家庭！	2	{"name":"哈哈"}	f	\N	1	2023-01-28 21:02:20	1	2023-01-28 21:02:20	0	1
-5	1	2	1	test	123	我是 芋艿，我开始 写代码 了	1	{"name":"芋艿","what":"写代码"}	t	2023-02-10 00:47:04	1	2023-01-28 22:21:42	1	2023-02-10 00:47:04	0	1
-6	1	2	1	test	123	我是 芋艿，我开始 写代码 了	1	{"name":"芋艿","what":"写代码"}	t	2023-01-29 10:52:06	1	2023-01-28 22:22:07	1	2023-01-29 10:52:06	0	1
+5	1	2	1	test	123	我是 演示，我开始 写代码 了	1	{"name":"演示","what":"写代码"}	t	2023-02-10 00:47:04	1	2023-01-28 22:21:42	1	2023-02-10 00:47:04	0	1
+6	1	2	1	test	123	我是 演示，我开始 写代码 了	1	{"name":"演示","what":"写代码"}	t	2023-01-29 10:52:06	1	2023-01-28 22:22:07	1	2023-01-29 10:52:06	0	1
 7	1	2	1	test	123	我是 2，我开始 3 了	1	{"name":"2","what":"3"}	t	2023-01-29 10:52:06	1	2023-01-28 23:45:21	1	2023-01-29 10:52:06	0	1
 8	1	2	2	register	系统消息	你好，欢迎 123 加入大家庭！	2	{"name":"123"}	t	2023-01-29 10:52:06	1	2023-01-28 23:50:21	1	2023-01-29 10:52:06	0	1
 9	247	1	4	brokerage_withdraw_audit_approve	system	您在2023-09-28 08:35:46提现￥0.09元的申请已通过审核	2	{"reason":null,"createTime":"2023-09-28 08:35:46","price":"0.09"}	f	\N	1	2023-09-28 16:36:22	1	2023-09-28 16:36:22	0	1
@@ -10193,10 +10193,10 @@ COPY public.system_oauth2_approve (id, user_id, user_type, client_id, scope, app
 --
 
 COPY public.system_oauth2_client (id, client_id, secret, name, logo, description, status, access_token_validity_seconds, refresh_token_validity_seconds, redirect_uris, authorized_grant_types, scopes, auto_approve_scopes, authorities, resource_ids, additional_information, creator, create_time, updater, update_time, deleted) FROM stdin;
-1	default	admin123	芋道源码	http://test.yudao.iocoder.cn/a5e2e244368878a366b516805a4aabf1.png	我是描述	0	1800	2592000	["https://www.iocoder.cn","https://doc.iocoder.cn"]	["password","authorization_code","implicit","refresh_token"]	["user.read","user.write"]	[]	["user.read","user.write"]	[]	{}	1	2022-05-11 21:47:12	1	2024-02-22 16:31:52	0
-40	test	test2	biubiu	http://test.yudao.iocoder.cn/277a899d573723f1fcdfb57340f00379.png	啦啦啦啦	0	1800	43200	["https://www.iocoder.cn"]	["password","authorization_code","implicit"]	["user_info","projects"]	["user_info"]	[]	[]	{}	1	2022-05-12 00:28:20	1	2023-12-02 21:01:01	0
-41	yudao-sso-demo-by-code	test	基于授权码模式，如何实现 SSO 单点登录？	http://test.yudao.iocoder.cn/fe4ed36596adad5120036ef61a6d0153654544d44af8dd4ad3ffe8f759933d6f.png	\N	0	1800	43200	["http://127.0.0.1:18080"]	["authorization_code","refresh_token"]	["user.read","user.write"]	[]	[]	[]	\N	1	2022-09-29 13:28:31	1	2022-09-29 13:28:31	0
-42	yudao-sso-demo-by-password	test	基于密码模式，如何实现 SSO 单点登录？	http://test.yudao.iocoder.cn/604bdc695e13b3b22745be704d1f2aa8ee05c5f26f9fead6d1ca49005afbc857.jpeg	\N	0	1800	43200	["http://127.0.0.1:18080"]	["password","refresh_token"]	["user.read","user.write"]	[]	[]	[]	\N	1	2022-10-04 17:40:16	1	2025-08-13 10:13:42.237	0
+1	default	admin123	yFeiEye	http://www.example.com/a5e2e244368878a366b516805a4aabf1.png	我是描述	0	1800	2592000	["https://www.example.com","https://www.example.com"]	["password","authorization_code","implicit","refresh_token"]	["user.read","user.write"]	[]	["user.read","user.write"]	[]	{}	1	2022-05-11 21:47:12	1	2024-02-22 16:31:52	0
+40	test	test2	biubiu	http://www.example.com/277a899d573723f1fcdfb57340f00379.png	啦啦啦啦	0	1800	43200	["https://www.example.com"]	["password","authorization_code","implicit"]	["user_info","projects"]	["user_info"]	[]	[]	{}	1	2022-05-12 00:28:20	1	2023-12-02 21:01:01	0
+41	yudao-sso-demo-by-code	test	基于授权码模式，如何实现 SSO 单点登录？	http://www.example.com/fe4ed36596adad5120036ef61a6d0153654544d44af8dd4ad3ffe8f759933d6f.png	\N	0	1800	43200	["http://127.0.0.1:18080"]	["authorization_code","refresh_token"]	["user.read","user.write"]	[]	[]	[]	\N	1	2022-09-29 13:28:31	1	2022-09-29 13:28:31	0
+42	yudao-sso-demo-by-password	test	基于密码模式，如何实现 SSO 单点登录？	http://www.example.com/604bdc695e13b3b22745be704d1f2aa8ee05c5f26f9fead6d1ca49005afbc857.jpeg	\N	0	1800	43200	["http://127.0.0.1:18080"]	["password","refresh_token"]	["user.read","user.write"]	[]	[]	[]	\N	1	2022-10-04 17:40:16	1	2025-08-13 10:13:42.237	0
 \.
 
 
@@ -11384,8 +11384,8 @@ COPY public.system_social_user_bind (id, user_id, user_type, social_type, social
 --
 
 COPY public.system_tenant (id, name, contact_user_id, contact_name, contact_mobile, status, website, package_id, expire_time, account_count, creator, create_time, updater, update_time, deleted) FROM stdin;
-121	小租户	110	normal	15601691300	0	zsxq.iocoder.cn	111	2029-05-24 15:08:17.904	20	1	2022-02-22 00:56:14	1	2025-05-08 15:08:28.25	0
-122	测试租户	113	test	15601691300	0	test.iocoder.cn	111	2029-04-27 00:00:00	50	1	2022-03-07 21:37:58	1	2025-05-08 15:08:49.211	0
+121	小租户	110	normal	13800000000	0	tenant1.example.com	111	2029-05-24 15:08:17.904	20	1	2022-02-22 00:56:14	1	2025-05-08 15:08:28.25	0
+122	测试租户	113	test	13800000000	0	tenant2.example.com	111	2029-04-27 00:00:00	50	1	2022-03-07 21:37:58	1	2025-05-08 15:08:49.211	0
 1	Admin-IoT	\N	Admin-IoT	17321315478	0	localhost:8888	0	2099-02-19 17:14:16	9999	1	2021-01-05 17:03:47	1	2023-11-06 11:41:41	0
 \.
 
@@ -11444,22 +11444,22 @@ COPY public.system_user_role (id, user_id, role_id, creator, create_time, update
 --
 
 COPY public.system_users (id, username, password, nickname, remark, dept_id, post_ids, email, mobile, sex, avatar, status, login_ip, login_date, creator, create_time, updater, update_time, deleted, tenant_id, integral, do_experiment) FROM stdin;
-103	yuanma	$2a$10$YMpimV4T6BtDhIaA8jSW.u8UTGBeGhc/qwXP4oxoMr4mOw9.qttt6	源码	\N	106	\N	yuanma@iocoder.cn	15601701300	0		0	0:0:0:0:0:0:0:1	2024-03-18 21:09:04		2021-01-13 23:50:35	\N	2024-03-18 21:09:04	0	1	0	0
-104	test	$2a$04$KhExCYl7lx6eWWZYKsibKOZ8IBJRyuNuCcEOLQ11RYhJKgHmlSwK.	测试号	\N	107	[1,2]	111@qq.com	15601691200	1		0	0:0:0:0:0:0:0:1	2024-03-26 07:11:35		2021-01-21 02:13:53	\N	2024-03-26 07:11:35	0	1	0	0
-107	admin107	$2a$10$dYOOBKMO93v/.ReCqzyFg.o67Tqk.bbc2bhrpyBGkIw9aypCtr2pm	芋艿	\N	\N	\N		15601691300	0		0		\N	1	2022-02-20 22:59:33	1	2022-02-27 08:26:51	0	118	0	0
-108	admin108	$2a$10$y6mfvKoNYL1GXWak8nYwVOH.kCWqjactkzdoIDgiKl93WN3Ejg.Lu	芋艿	\N	\N	\N		15601691300	0		0		\N	1	2022-02-20 23:00:50	1	2022-02-27 08:26:53	0	119	0	0
-109	admin109	$2a$10$JAqvH0tEc0I7dfDVBI7zyuB4E3j.uH6daIjV53.vUS6PknFkDJkuK	芋艿	\N	\N	\N		15601691300	0		0		\N	1	2022-02-20 23:11:50	1	2022-02-27 08:26:56	0	120	0	0
-110	admin110	$2a$10$mRMIYLDtRHlf6.9ipiqH1.Z.bh/R9dO9d5iHiGYPigi6r5KOoR2Wm	小王	\N	\N	\N		15601691300	0		0	127.0.0.1	2022-09-25 22:47:33	1	2022-02-22 00:56:14	\N	2022-09-25 22:47:33	0	121	0	0
+103	yuanma	$2a$10$YMpimV4T6BtDhIaA8jSW.u8UTGBeGhc/qwXP4oxoMr4mOw9.qttt6	源码	\N	106	\N	yuanma@example.com	13800000000	0		0	0:0:0:0:0:0:0:1	2024-03-18 21:09:04		2021-01-13 23:50:35	\N	2024-03-18 21:09:04	0	1	0	0
+104	test	$2a$04$KhExCYl7lx6eWWZYKsibKOZ8IBJRyuNuCcEOLQ11RYhJKgHmlSwK.	测试号	\N	107	[1,2]	111@qq.com	13800000000	1		0	0:0:0:0:0:0:0:1	2024-03-26 07:11:35		2021-01-21 02:13:53	\N	2024-03-26 07:11:35	0	1	0	0
+107	admin107	$2a$10$dYOOBKMO93v/.ReCqzyFg.o67Tqk.bbc2bhrpyBGkIw9aypCtr2pm	演示	\N	\N	\N		13800000000	0		0		\N	1	2022-02-20 22:59:33	1	2022-02-27 08:26:51	0	118	0	0
+108	admin108	$2a$10$y6mfvKoNYL1GXWak8nYwVOH.kCWqjactkzdoIDgiKl93WN3Ejg.Lu	演示	\N	\N	\N		13800000000	0		0		\N	1	2022-02-20 23:00:50	1	2022-02-27 08:26:53	0	119	0	0
+109	admin109	$2a$10$JAqvH0tEc0I7dfDVBI7zyuB4E3j.uH6daIjV53.vUS6PknFkDJkuK	演示	\N	\N	\N		13800000000	0		0		\N	1	2022-02-20 23:11:50	1	2022-02-27 08:26:56	0	120	0	0
+110	admin110	$2a$10$mRMIYLDtRHlf6.9ipiqH1.Z.bh/R9dO9d5iHiGYPigi6r5KOoR2Wm	小王	\N	\N	\N		13800000000	0		0	127.0.0.1	2022-09-25 22:47:33	1	2022-02-22 00:56:14	\N	2022-09-25 22:47:33	0	121	0	0
 111	test	$2a$10$mRMIYLDtRHlf6.9ipiqH1.Z.bh/R9dO9d5iHiGYPigi6r5KOoR2Wm	测试用户	\N	\N	[]			0		0	0:0:0:0:0:0:0:1	2023-12-30 11:42:17	110	2022-02-23 13:14:33	\N	2023-12-30 11:42:17	0	121	0	0
-112	newobject	$2a$04$dB0z8Q819fJWz0hbaLe6B.VfHCjYgWx6LFfET5lyz3JwcqlyCkQ4C	新对象	\N	100	[]		15601691235	1		0	0:0:0:0:0:0:0:1	2024-03-16 23:11:38	1	2022-02-23 19:08:03	\N	2024-03-16 23:11:38	0	1	0	0
-113	aoteman	$2a$10$0acJOIk2D25/oC87nyclE..0lzeu9DtQ/n3geP4fkun/zIVRhHJIO	芋道	\N	\N	\N		15601691300	0		0	127.0.0.1	2022-03-19 18:38:51	1	2022-03-07 21:37:58	\N	2022-03-19 18:38:51	0	122	0	0
-114	hrmgr	$2a$10$TR4eybBioGRhBmDBWkqWLO6NIh3mzYa8KBKDDB5woiGYFVlRAi.fu	hr 小姐姐	\N	\N	[5]		15601691236	1		0	0:0:0:0:0:0:0:1	2024-03-24 22:21:05	1	2022-03-19 21:50:58	\N	2024-03-24 22:21:05	0	1	0	0
-115	aotemane	$2a$04$GcyP0Vyzb2F2Yni5PuIK9ueGxM0tkZGMtDwVRwrNbtMvorzbpNsV2	阿呆	11222	102	[1,2]	7648@qq.com	15601691229	2		0		\N	1	2022-04-30 02:55:43	1	2024-04-04 09:37:14	0	1	0	0
-117	admin123	$2a$10$WI8Gg/lpZQIrOEZMHqka7OdFaD4Nx.B/qY8ZGTTUKrOJwaHFqibaC	测试号	1111	100	[2]		15601691234	1		0		\N	1	2022-07-09 17:40:26	1	2022-07-09 17:40:26	0	1	0	0
+112	newobject	$2a$04$dB0z8Q819fJWz0hbaLe6B.VfHCjYgWx6LFfET5lyz3JwcqlyCkQ4C	新对象	\N	100	[]		13800000000	1		0	0:0:0:0:0:0:0:1	2024-03-16 23:11:38	1	2022-02-23 19:08:03	\N	2024-03-16 23:11:38	0	1	0	0
+113	demo_a	$2a$10$0acJOIk2D25/oC87nyclE..0lzeu9DtQ/n3geP4fkun/zIVRhHJIO	演示	\N	\N	\N		13800000000	0		0	127.0.0.1	2022-03-19 18:38:51	1	2022-03-07 21:37:58	\N	2022-03-19 18:38:51	0	122	0	0
+114	hrmgr	$2a$10$TR4eybBioGRhBmDBWkqWLO6NIh3mzYa8KBKDDB5woiGYFVlRAi.fu	hr 小姐姐	\N	\N	[5]		13800000000	1		0	0:0:0:0:0:0:0:1	2024-03-24 22:21:05	1	2022-03-19 21:50:58	\N	2024-03-24 22:21:05	0	1	0	0
+115	demo_b	$2a$04$GcyP0Vyzb2F2Yni5PuIK9ueGxM0tkZGMtDwVRwrNbtMvorzbpNsV2	阿呆	11222	102	[1,2]	demo3@example.com	13800000000	2		0		\N	1	2022-04-30 02:55:43	1	2024-04-04 09:37:14	0	1	0	0
+117	admin123	$2a$10$WI8Gg/lpZQIrOEZMHqka7OdFaD4Nx.B/qY8ZGTTUKrOJwaHFqibaC	测试号	1111	100	[2]		13800000000	1		0		\N	1	2022-07-09 17:40:26	1	2022-07-09 17:40:26	0	1	0	0
 131	hh	$2a$04$jyH9h6.gaw8mpOjPfHIpx.8as2Rzfcmdlj5rlJFwgCw4rsv/MTb2K	呵呵	\N	100	[]	777@qq.com	15601882312	1		0		\N	1	2024-04-27 08:45:56	1	2024-04-27 08:45:56	1	1	0	0
-100	yudao	$2a$10$11U48RhyJ5pSBYWSn12AD./ld671.ycSzJHbyrtpeoMeYiw31eo8a	王总	不要吓我	104	[1]	yudao@iocoder.cn	15601691300	1		1	127.0.0.1	2022-07-09 23:03:33		2021-01-07 09:07:17	1	2025-08-14 09:39:37.486	0	1	0	0
-118	goudan	$2a$04$A7vqK6hfgoPeOGDgZoC1BOnVwTpDyBtQnlsOWBIqM8Wj9A6NTr0Tq	狗蛋	\N	103	[1]		15601691239	1		0	0:0:0:0:0:0:0:1	2024-07-24 11:23:40.932	1	2022-07-09 17:44:43	1	2025-08-14 11:34:37.076	0	1	0	0
-1	admin	$2a$10$mRMIYLDtRHlf6.9ipiqH1.Z.bh/R9dO9d5iHiGYPigi6r5KOoR2Wm	IoT	管理员	103	[1]	aoteman@126.com	18818260277	1	http://test.yudao.iocoder.cn/113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	0	172.18.0.23	2026-08-03 10:15:02.650386	admin	2021-01-05 17:03:47	\N	2026-08-03 10:15:02.651936	0	1	0	0
+100	yudao	$2a$10$11U48RhyJ5pSBYWSn12AD./ld671.ycSzJHbyrtpeoMeYiw31eo8a	王总	不要吓我	104	[1]	user@example.com	13800000000	1		1	127.0.0.1	2022-07-09 23:03:33		2021-01-07 09:07:17	1	2025-08-14 09:39:37.486	0	1	0	0
+118	goudan	$2a$04$A7vqK6hfgoPeOGDgZoC1BOnVwTpDyBtQnlsOWBIqM8Wj9A6NTr0Tq	狗蛋	\N	103	[1]		13800000000	1		0	0:0:0:0:0:0:0:1	2024-07-24 11:23:40.932	1	2022-07-09 17:44:43	1	2025-08-14 11:34:37.076	0	1	0	0
+1	admin	$2a$10$mRMIYLDtRHlf6.9ipiqH1.Z.bh/R9dO9d5iHiGYPigi6r5KOoR2Wm	IoT	管理员	103	[1]	admin@example.com	13800000000	1	http://www.example.com/113dcbab48d22fc988151b98be2b8b4f262effdb5305c171cf1fe9a71801377a.png	0	172.18.0.23	2026-08-03 10:15:02.650386	admin	2021-01-05 17:03:47	\N	2026-08-03 10:15:02.651936	0	1	0	0
 \.
 
 

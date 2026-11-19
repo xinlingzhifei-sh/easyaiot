@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 钉钉消息加工器
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2023-07-18
  */
 @Component

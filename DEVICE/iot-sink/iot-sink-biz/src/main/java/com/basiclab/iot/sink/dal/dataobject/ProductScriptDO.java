@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 /**
  * ProductScriptDO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @TableName("product_script")

@@ -12,10 +12,6 @@ import java.util.List;
 
 /**
  * 升级记录 Mapper
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Mapper
 public interface DmUpgradeRecordMapper extends BaseMapper<DmUpgradeRecordPo> {

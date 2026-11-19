@@ -10,8 +10,7 @@ import javax.annotation.Resource;
 /**
  * MailProducer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

@@ -9,8 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * DataTypeEnum
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Getter

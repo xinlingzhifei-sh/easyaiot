@@ -7,8 +7,7 @@ import com.basiclab.iot.sink.util.IotDeviceAuthUtils;
 /**
  * DeviceAuthService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface DeviceAuthService {

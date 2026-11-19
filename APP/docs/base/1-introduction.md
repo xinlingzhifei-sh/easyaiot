@@ -2,49 +2,16 @@
 
 <div class="md-center" style="margin-top: 20px;">
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/codercup/unibest?style=flat&logo=github)](https://github.com/codercup/unibest)
-[![GitHub Repo stars](https://img.shields.io/github/stars/feige996/unibest?style=flat&logo=github)](https://github.com/feige996/unibest)
-[![star](https://gitee.com/codercup/unibest/badge/star.svg?theme=dark)](https://gitee.com/codercup/unibest)
 ![node version](https://img.shields.io/badge/node-%3E%3D18-green)
 ![pnpm version](https://img.shields.io/badge/pnpm-%3E%3D7.30-green)
-![GitHub License](https://img.shields.io/github/license/codercup/unibest)
 
 </div>
-
-> 上面前 2 个 `star` 分别是旧仓库 `codercup` 和新仓库 `feige996` 的 `star` 数。
 
 `unibest` 是最好的 `uniapp` 开发框架，由 `uniapp` + `Vue3` + `Ts` + `Vite5` + `UnoCss` + `VSCode`(可选 `webstorm`) + `uni插件`+ `wot-ui`（可选其他 UI 库）构建，集成了多种工具和技术，使用了最新的前端技术栈，无需依靠 `HBuilderX`，通过命令行方式即可运行 `web`、`小程序` 和 `App`。（注：`App` 还是需要 `HBuilderX`）
 
 `unibest` 内置了 `约定式路由`、`layout布局`、`请求封装`、`请求拦截`、`登录拦截`、`UnoCSS`、`i18n多语言` 等基础功能，提供了 `代码提示`、`自动格式化`、`统一配置`、`代码片段` 等辅助功能，让你编写 `uniapp` 拥有 `best` 体验 （ `unibest 的由来`）。
 
 > `unibest` 目前支持 `H5`、`小程序` 和 `App`。
-
-::: tip ⭐⭐⭐⭐⭐
-如果 `unibest` 对您有帮助，希望你可以去 **Github** 或者 **Gitee(码云)** 帮我点个 ⭐ ，这将是对我极大的鼓励。
-
-<!-- - github - feige996/unibest -->
-
-[![star](https://img.shields.io/github/stars/feige996/unibest?style=flat&logo=github)](https://github.com/feige996/unibest)
-
-<!-- - gitee - feige996/unibest -->
-
-[![star](https://gitee.com/feige996/unibest/badge/star.svg?theme=dark)](https://gitee.com/feige996/unibest)
-
-:::
-
-::: tip 🌟🌟🌟🌟🌟
-旧的文档地址 [codercup/unibest](https://codercup.github.io/unibest-docs/)不再维护，尽量使用新地址[unibest.tech](https://unibest.tech)。
-:::
-
-## ⭐ Star History
-
-同类模板对比实时地址：[https://www.star-history.com/#Ares-Chang/uni-vitesse&uni-helper/vitesse-uni-app&codercup/unibest&feige996/unibest&DaMaiCoding/uni-plus&Date](https://www.star-history.com/#Ares-Chang/uni-vitesse&uni-helper/vitesse-uni-app&codercup/unibest&feige996/unibest&DaMaiCoding/uni-plus&Date)
-
-如图所示，两个高高的都是 `unibest`，分别是新旧仓库。
-
-黄色的是旧的 `codercup`，秘钥丢失，进不去了。粉色的新的仓库（`feige996`），目前正在积极维护。
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Ares-Chang/uni-vitesse,uni-helper/vitesse-uni-app,codercup/unibest,feige996/unibest,DaMaiCoding/uni-plus&type=Date)](https://www.star-history.com/#Ares-Chang/uni-vitesse&uni-helper/vitesse-uni-app&codercup/unibest&feige996/unibest&DaMaiCoding/uni-plus&Date)
 
 ## 🗂 生成过程
 

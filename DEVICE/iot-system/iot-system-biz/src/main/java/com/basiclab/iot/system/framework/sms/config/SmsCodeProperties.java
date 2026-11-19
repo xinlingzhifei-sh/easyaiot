@@ -10,8 +10,7 @@ import java.time.Duration;
 /**
  * SmsCodeProperties
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ConfigurationProperties(prefix = "iot.sms-code")
 @Validated

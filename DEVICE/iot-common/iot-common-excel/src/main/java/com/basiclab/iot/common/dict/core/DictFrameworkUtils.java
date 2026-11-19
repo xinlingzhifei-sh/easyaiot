@@ -16,8 +16,7 @@ import java.util.List;
 /**
  * 字典工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 public class DictFrameworkUtils {

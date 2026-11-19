@@ -39,7 +39,7 @@ import java.util.Map;
  * E-Mail发送器
  * </pre>
  *
- * @author <a href="https://github.com/rememberber">RememBerBer</a>
+ * @author liufei
  * @since 2019/6/23.
  */
 @Slf4j

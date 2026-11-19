@@ -17,10 +17,7 @@ import java.time.LocalDateTime;
 
 /**
 * @Description: java类作用描述
-* @author reese
-* @email reese
-* @E-mail: reese
-* @Website: https://gitee.com/reese/yfeieye
+* @author liufei
 * @CreateDate: 2025/6/15 19:35
 * @UpdateDate: 2025/6/15 19:35
 * @UpdateRemark: 修改内容

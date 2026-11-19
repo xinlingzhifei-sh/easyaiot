@@ -7,8 +7,7 @@ import java.sql.Timestamp;
 /**
  * Weather
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class Weather {
 

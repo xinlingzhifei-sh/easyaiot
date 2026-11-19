@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * DeviceInfoMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeviceInfoMapper extends BaseMapper<DeviceInfo> {

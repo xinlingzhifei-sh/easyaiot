@@ -9,7 +9,7 @@
     "businessName" : "demo",
     "className" : "InfraCategory",
     "classComment" : "分类",
-    "author" : "yFeiEye",
+    "author" : "liufei",
     "treeParentColumnId" : 22,
     "treeNameColumnId" : 11
   },
@@ -30,7 +30,7 @@
     "columnComment" : "名字",
     "javaType" : "String",
     "javaField" : "name",
-    "example" : "芋头",
+    "example" : "张三",
     "createOperation" : true,
     "updateOperation" : true,
     "listOperation" : true,

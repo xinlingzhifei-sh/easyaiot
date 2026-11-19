@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 /**
  * zlm hook事件中的on_stream_not_found事件的参数
- * @author lin
+ * @author liufei
  */
 public class OnStreamNotFoundHookParam extends HookParam{
     private String id;

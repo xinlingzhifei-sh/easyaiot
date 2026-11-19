@@ -2,8 +2,7 @@ package com.basiclab.iot.common.mqs;
 
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ConsumerTopicConstant {
 

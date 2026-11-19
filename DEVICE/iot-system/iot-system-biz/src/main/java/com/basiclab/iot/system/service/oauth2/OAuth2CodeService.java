@@ -9,8 +9,7 @@ import java.util.List;
  *
  * 从功能上，和 Spring Security OAuth 的 JdbcAuthorizationCodeServices 的功能，提供授权码的操作
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface OAuth2CodeService {
 

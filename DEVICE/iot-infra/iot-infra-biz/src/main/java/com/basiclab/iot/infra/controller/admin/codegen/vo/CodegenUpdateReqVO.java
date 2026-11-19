@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * CodegenUpdateReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 代码生成表和字段的修改 Request VO")
 @Data

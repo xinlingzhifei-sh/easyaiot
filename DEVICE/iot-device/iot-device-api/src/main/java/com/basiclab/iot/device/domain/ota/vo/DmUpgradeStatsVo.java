@@ -9,10 +9,6 @@ import java.util.List;
 
 /**
  * 升级统计（漏斗 + 健康度）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmUpgradeStatsVo对象", description = "升级统计")

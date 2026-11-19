@@ -15,8 +15,7 @@ import javax.validation.constraints.NotNull;
 /**
  * AuthSmsSendReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 发送手机验证码 Request VO")
 @Data

@@ -1,7 +1,6 @@
 /* eslint-disable brace-style */ // 原因：unibest 官方维护的代码，尽量不要大概，避免难以合并
 import { isMp } from '@uni-helper/uni-env'
 /**
- * by 菲鸽 on 2025-08-19
  * 路由拦截，通常也是登录拦截
  * 黑、白名单的配置，请看 config.ts 文件， EXCLUDE_LOGIN_PATH_LIST
  */
@@ -17,7 +16,7 @@ let excludeListInited = false // 标记 EXCLUDE_LOGIN_PATH_LIST 是否已经根�
 export function judgeIsExcludePath(path: string) {
   const isDev = import.meta.env.DEV
   if (!isDev) {
-    // edit by 芋艿：非开发环境下，只初始化一次
+    // 非开发环境下，只初始化一次
     if (!excludeListInited) {
       const pages = getAllPages('excludeLoginPath')
       pages.forEach((page) => {

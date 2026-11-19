@@ -12,8 +12,7 @@ import javax.annotation.Resource;
 /**
  * AbstractTopicHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

@@ -6,8 +6,7 @@ import java.nio.ByteOrder;
 /**
  * ReadBuffer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class ReadBuffer {

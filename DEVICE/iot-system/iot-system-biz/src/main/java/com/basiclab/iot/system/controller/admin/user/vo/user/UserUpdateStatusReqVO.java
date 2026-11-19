@@ -10,8 +10,7 @@ import javax.validation.constraints.NotNull;
 /**
  * UserUpdateStatusReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 用户更新状态 Request VO")
 @Data

@@ -10,9 +10,9 @@ tenant-id: {{adminTenentId}}
 {
   "name": "yFeiEye",
   "contactName": "yFeiEye",
-  "contactMobile": "15601691300",
+  "contactMobile": "13800000000",
   "status": 0,
-  "domain": "https://www.iocoder.cn",
+  "domain": "https://www.example.com",
   "packageId": 110,
   "expireTime": 1699545600000,
   "accountCount": 20,

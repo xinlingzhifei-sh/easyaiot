@@ -37,10 +37,6 @@ import java.time.Duration;
  * <p>
  * 同一套制品可在任意节点启动；按配置启用渠道并自动 join 约定 Group，
  * 从而扩展全集群消费与投递能力。进程无本地权威状态，可随时销毁重建。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @EnableKafka

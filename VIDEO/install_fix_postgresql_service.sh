@@ -6,8 +6,7 @@
 # 使用方法：
 #     sudo bash install_fix_postgresql_service.sh
 #
-# @author reese
-# @email reese
+# @author liufei
 
 set -e
 

@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * DeviceInfoService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceInfoService extends IService<DeviceInfo> {
 

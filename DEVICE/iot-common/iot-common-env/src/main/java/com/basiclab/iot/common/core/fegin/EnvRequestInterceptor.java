@@ -9,8 +9,7 @@ import feign.RequestTemplate;
 /**
  * 多环境的 {@link RequestInterceptor} 实现类：Feign 请求时，将 tag 设置到 header 中，继续透传给被调用的服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class EnvRequestInterceptor implements RequestInterceptor {
 

@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Test;
 /**
  * SftpFileClientTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SftpFileClientTest {
 

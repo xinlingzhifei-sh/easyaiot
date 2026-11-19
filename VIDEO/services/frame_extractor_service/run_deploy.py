@@ -2,8 +2,7 @@
 抽帧器服务模板工程
 用于从视频流中按配置的间隔抽帧
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

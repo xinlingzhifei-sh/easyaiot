@@ -12,8 +12,7 @@ import java.util.Map;
  * Alert Mapper接口
  * 使用@DS("video")注解切换到VIDEO数据库
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 @Component

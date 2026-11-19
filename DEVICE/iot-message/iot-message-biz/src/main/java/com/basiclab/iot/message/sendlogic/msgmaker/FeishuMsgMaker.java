@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * 飞书消息加工器
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-12-04
  */
 @Component

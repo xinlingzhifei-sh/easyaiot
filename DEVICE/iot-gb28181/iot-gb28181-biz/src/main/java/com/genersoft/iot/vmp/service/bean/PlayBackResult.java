@@ -8,7 +8,7 @@ import java.util.EventObject;
 
 
 /**
- * @author lin
+ * @author liufei
  */
 public class PlayBackResult<T> {
     private int code;

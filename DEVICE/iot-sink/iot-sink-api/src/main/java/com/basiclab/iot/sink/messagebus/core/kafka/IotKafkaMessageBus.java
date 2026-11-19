@@ -28,8 +28,7 @@ import java.util.regex.Pattern;
 /**
  * IotKafkaMessageBus
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 public class IotKafkaMessageBus implements IotMessageBus {

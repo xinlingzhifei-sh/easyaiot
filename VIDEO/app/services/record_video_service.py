@@ -1,7 +1,6 @@
 """
 监控录像管理服务
-@author reese
-@email reese
+@author liufei
 """
 import io
 import base64

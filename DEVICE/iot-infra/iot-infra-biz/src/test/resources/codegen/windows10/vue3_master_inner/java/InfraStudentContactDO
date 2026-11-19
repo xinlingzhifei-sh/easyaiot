@@ -10,8 +10,7 @@ import dataobject.core.mybatis.com.basiclab.iot.mybatis.BaseDO;
 /**
  * 学生联系人 DO
  *
- * @author reese
-* @email reese
+ * @author liufei
 * @wechart yFeiEye
  */
 @TableName("infra_student_contact")

@@ -11,10 +11,6 @@ import java.io.Serializable;
 
 /**
  * 测试白名单（设备验证名单）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

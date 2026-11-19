@@ -16,8 +16,7 @@ import java.util.Map;
  * 产品模型缓存VO
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-03-14 19:39:59
  */
 

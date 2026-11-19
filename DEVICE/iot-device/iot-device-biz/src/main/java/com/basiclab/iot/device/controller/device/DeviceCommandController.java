@@ -26,8 +26,7 @@ import javax.validation.Valid;
  * 设备命令下发及响应表
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-10-20 17:27:25
  * @create [2023-10-20 17:27:25] [mqttsnet]
  */

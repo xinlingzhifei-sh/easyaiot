@@ -23,8 +23,7 @@ import java.util.Map;
 /**
  * CodegenConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface CodegenConvert {

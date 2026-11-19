@@ -7,8 +7,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class DeviceShadowCommandVO {

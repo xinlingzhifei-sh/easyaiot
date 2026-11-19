@@ -18,10 +18,6 @@ import java.util.HexFormat;
 
 /**
  * HTTP/Webhook 投递渠道：加入 {@link GroupNames#HTTP_DELIVER} 横向扩展投递能力。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 public class HttpDeliverChannel implements TransformChannel {

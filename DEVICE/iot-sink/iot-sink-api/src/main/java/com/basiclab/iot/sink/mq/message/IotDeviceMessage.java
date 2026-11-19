@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 /**
  * IotDeviceMessage
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @NoArgsConstructor

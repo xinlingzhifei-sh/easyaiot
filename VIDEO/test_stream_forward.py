@@ -3,8 +3,7 @@
 推流转发服务畅通性测试脚本
 使用 MP4 文件作为 RTSP 输入流来测试 stream_forward_service 的畅通性
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 import sys

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.constant;
 /**
  * 通用常量信息
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class Constants {
 

@@ -5,8 +5,7 @@ import com.basiclab.iot.tdengine.domain.model.TableDTO;
 /**
  * TdEngineService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface TdEngineService {

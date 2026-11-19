@@ -10,10 +10,6 @@ import java.io.Serializable;
 
 /**
  * 撤回升级包
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmPackageWithdrawOo对象", description = "版本包撤回Oo")

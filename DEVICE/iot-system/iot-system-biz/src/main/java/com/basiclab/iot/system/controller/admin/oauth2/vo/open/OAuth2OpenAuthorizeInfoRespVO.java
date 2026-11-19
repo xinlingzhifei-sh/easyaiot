@@ -17,8 +17,7 @@ public class OAuth2OpenAuthorizeInfoRespVO {
     /**
  * OAuth2OpenAuthorizeInfoRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private Client client;
@@ -34,7 +33,7 @@ private Client client;
         @Schema(description = "应用名", example = "土豆")
         private String name;
 
-        @Schema(description = "应用图标", example = "https://www.iocoder.cn/xx.png")
+        @Schema(description = "应用图标", example = "https://www.example.com/xx.png")
         private String logo;
 
     }

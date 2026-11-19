@@ -14,8 +14,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * MailTemplatePageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮件模版分页 Request VO")
 @Data
@@ -29,7 +28,7 @@ public class MailTemplatePageReqVO extends PageParam {
     @Schema(description = "标识，模糊匹配", example = "code_1024")
     private String code;
 
-    @Schema(description = "名称，模糊匹配", example = "芋头")
+    @Schema(description = "名称，模糊匹配", example = "张三")
     private String name;
 
     @Schema(description = "账号编号", example = "2048")

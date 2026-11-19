@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * NotifyTemplateSendReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 站内信模板的发送 Request VO")
 @Data

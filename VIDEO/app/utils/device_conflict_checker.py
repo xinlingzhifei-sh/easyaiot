@@ -1,8 +1,7 @@
 """
 摄像头冲突检查工具
 检查同一个摄像头是否同时被推流转发任务和算法任务使用
-@author reese
-@email reese
+@author liufei
 """
 import logging
 from typing import List, Optional

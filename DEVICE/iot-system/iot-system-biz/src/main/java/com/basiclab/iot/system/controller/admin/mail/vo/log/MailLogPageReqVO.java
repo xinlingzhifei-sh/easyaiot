@@ -14,8 +14,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.FORMAT_YEAR_MONTH_DAY
 /**
  * MailLogPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮箱日志分页 Request VO")
 @Data
@@ -29,7 +28,7 @@ public class MailLogPageReqVO extends PageParam {
     @Schema(description = "用户类型，参见 UserTypeEnum 枚举", example = "2")
     private Integer userType;
 
-    @Schema(description = "接收邮箱地址，模糊匹配", example = "76854@qq.com")
+    @Schema(description = "接收邮箱地址，模糊匹配", example = "user@example.com")
     private String toMail;
 
     @Schema(description = "邮箱账号编号", example = "18107")

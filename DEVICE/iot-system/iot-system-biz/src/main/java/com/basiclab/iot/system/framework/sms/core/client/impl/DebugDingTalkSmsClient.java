@@ -26,8 +26,7 @@ import java.util.Objects;
  *
  * 考虑到省钱，我们使用钉钉 WebHook 模拟发送短信，方便调试。
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class DebugDingTalkSmsClient extends AbstractSmsClient {
 

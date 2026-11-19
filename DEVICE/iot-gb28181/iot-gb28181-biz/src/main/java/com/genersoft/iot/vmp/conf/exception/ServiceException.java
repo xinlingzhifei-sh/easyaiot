@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf.exception;
 
 /**
- * @author lin
+ * @author liufei
  */
 public class ServiceException extends Exception{
     private String msg;

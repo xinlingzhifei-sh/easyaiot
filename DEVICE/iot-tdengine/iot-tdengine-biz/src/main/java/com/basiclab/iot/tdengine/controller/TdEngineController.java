@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * @ClassDescription: TdEngine Controller
  * @ClassName: TdEngineController
- * @Author: iot
+ * @Author: liufei
  * @Date: 2021-12-27 13:46:44
  * @Version 1.0
  */
@@ -371,8 +371,7 @@ public class TdEngineController extends BaseController {
      * @param selectDto 查询数据需要的入参的实体类
      * @return R<?>
      * @MethodDescription 根据时间戳查询数据
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 2025/1/10 14:44
      */
     @PostMapping("/getDataByTimestamp")

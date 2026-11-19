@@ -1,7 +1,6 @@
 """
 抓拍空间和任务管理路由
-@author reese
-@email reese
+@author liufei
 """
 import logging
 from flask import Blueprint, g, request, jsonify

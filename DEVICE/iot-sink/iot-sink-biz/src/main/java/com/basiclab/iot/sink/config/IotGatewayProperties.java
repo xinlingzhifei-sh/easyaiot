@@ -17,8 +17,7 @@ public class IotGatewayProperties {
     /**
  * IotGatewayProperties
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private RpcProperties rpc;

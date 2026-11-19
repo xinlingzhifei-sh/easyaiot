@@ -29,8 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * ConfigServiceImplTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Import(ConfigServiceImpl.class)
 public class ConfigServiceImplTest extends BaseDbUnitTest {
@@ -155,7 +154,7 @@ public class ConfigServiceImplTest extends BaseDbUnitTest {
         // mock 数据
         ConfigDO dbConfig = randomConfigDO(o -> { // 等会查询到
             o.setName("yFeiEye");
-            o.setConfigKey("yunai");
+            o.setConfigKey("demo");
             o.setType(ConfigTypeEnum.SYSTEM.getType());
             o.setCreateTime(buildTime(2021, 2, 1));
         });

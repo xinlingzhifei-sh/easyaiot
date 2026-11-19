@@ -21,8 +21,7 @@ import java.util.Map;
 /**
  * 后台用户 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface AdminUserService {
 

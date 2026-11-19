@@ -10,8 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * NoticeMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface NoticeMapper extends BaseMapperX<NoticeDO> {

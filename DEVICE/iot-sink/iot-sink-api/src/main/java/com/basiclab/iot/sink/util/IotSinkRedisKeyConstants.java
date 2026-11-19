@@ -3,8 +3,7 @@ package com.basiclab.iot.sink.util;
 /**
  * IotSinkRedisKeyConstants
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class IotSinkRedisKeyConstants {
 

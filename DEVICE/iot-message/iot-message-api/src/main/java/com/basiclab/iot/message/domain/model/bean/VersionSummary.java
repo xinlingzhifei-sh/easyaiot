@@ -33,7 +33,7 @@ public class VersionSummary implements Serializable {
      * 版本类
      * </pre>
      *
-     * @author <a href="https://github.com/rememberber">RememBerBer</a>
+     * @author liufei
      * @since 2019/4/20.
      */
     @Data

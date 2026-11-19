@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * SmsChannelService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public interface SmsChannelService {

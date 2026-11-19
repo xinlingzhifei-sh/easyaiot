@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * ConfigConvert
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface ConfigConvert {

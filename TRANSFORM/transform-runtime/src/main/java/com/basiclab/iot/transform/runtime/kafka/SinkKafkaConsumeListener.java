@@ -18,10 +18,6 @@ import java.util.List;
 
 /**
  * 从 iot-sink Kafka 消费并归一化。使用约定 Group，多实例自动再均衡扩展消费能力。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Component

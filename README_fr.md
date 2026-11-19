@@ -1681,12 +1681,6 @@ Nous remercions les personnes suivantes pour leur soutien à ce projet, sous for
 Vos suggestions pour améliorer yFeiEye sont les bienvenues.
 </p>
 
-## 📄 Licence
-
-<p style="font-size: 15px; line-height: 1.8; color: #333; margin: 15px 0;">
-<strong>Licence d'utilisation</strong> : Les particuliers et les entreprises peuvent l'utiliser gratuitement à 100%, sans avoir besoin de conserver les informations sur l'auteur ou le droit d'auteur. Nous croyons que la valeur de la technologie réside dans son utilisation généralisée et son innovation continue, et non dans les contraintes du droit d'auteur. Nous espérons que vous pourrez librement utiliser, modifier et distribuer ce projet, rendant la technologie IA vraiment bénéfique pour tous.
-</p>
-
 ## 🌟 Tendance de croissance des Stars
 
 [![Stargazers over time](https://starchart.cc/xinlingzhifei/easyaiot.svg?variant=adaptive)](https://starchart.cc/xinlingzhifei/easyaiot)

@@ -3,8 +3,7 @@ package com.basiclab.iot.file.enums;
 /**
  * API 相关的枚举
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class ApiConstants {
 

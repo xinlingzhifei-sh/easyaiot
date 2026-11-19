@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Cache 配置项
  *
- * @author Wanwan
+ * @author liufei
  */
 @ConfigurationProperties("iot.cache")
 @Data

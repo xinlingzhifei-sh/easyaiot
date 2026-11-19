@@ -13,8 +13,7 @@ import javax.validation.Validation;
 /**
  * S3FileClientTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class S3FileClientTest {
 
@@ -41,8 +40,8 @@ public class S3FileClientTest {
         // 配置成你自己的
         config.setAccessKey(System.getenv("ALIYUN_ACCESS_KEY"));
         config.setAccessSecret(System.getenv("ALIYUN_SECRET_KEY"));
-        config.setBucket("yunai-aoteman");
-        config.setDomain(null); // 如果有自定义域名，则可以设置。http://ali-oss.iocoder.cn
+        config.setBucket("demo-bucket");
+        config.setDomain(null); // 如果有自定义域名，则可以设置。http://www.example.com
         // 默认北京的 endpoint
         config.setEndpoint("oss-cn-beijing.aliyuncs.com");
 
@@ -57,8 +56,8 @@ public class S3FileClientTest {
         // 配置成你自己的
         config.setAccessKey(System.getenv("QCLOUD_ACCESS_KEY"));
         config.setAccessSecret(System.getenv("QCLOUD_SECRET_KEY"));
-        config.setBucket("aoteman-1255880240");
-        config.setDomain(null); // 如果有自定义域名，则可以设置。http://tengxun-oss.iocoder.cn
+        config.setBucket("demo-bucket-2");
+        config.setDomain(null); // 如果有自定义域名，则可以设置。http://www.example.com
         // 默认上海的 endpoint
         config.setEndpoint("cos.ap-shanghai.myqcloud.com");
 
@@ -76,7 +75,7 @@ public class S3FileClientTest {
         config.setAccessKey("b7yvuhBSAGjmtPhMFcn9iMOxUOY_I06cA_p0ZUx8");
         config.setAccessSecret("kXM1l5ia1RvSX3QaOEcwI3RLz3Y2rmNszWonKZtP");
         config.setBucket("ruoyi-vue-pro");
-        config.setDomain("http://test.iot.iocoder.cn"); // 如果有自定义域名，则可以设置。http://static.iot.iocoder.cn
+        config.setDomain("http://www.example.com"); // 如果有自定义域名，则可以设置。http://www.example.com
         // 默认上海的 endpoint
         config.setEndpoint("s3-cn-south-1.qiniucs.com");
 

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
@@ -16,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
- * @author lin
+ * @author liufei
  */
 @Configuration
 @Order(1)
@@ -30,23 +29,21 @@ public class SpringDocConfig {
     @Primary
     public OpenAPI springShopOpenApi() {
         Contact contact = new Contact();
-        contact.setName("pan");
-        contact.setEmail("648540858@qq.com");
+        contact.setName("liufei");
 
         return new OpenAPI()
                 .components(new Components()
                         .addSecuritySchemes(JwtUtils.HEADER, new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
                                 .bearerFormat("JWT")))
-                .info(new Info().title("WVP-PRO 接口文档")
+                .info(new Info().title("GB28181 接口文档")
                         .contact(contact)
                         .description("开箱即用的28181协议视频平台。 <br/>" +
                                 "1. 打开<a href='/doc.html#/1.%20全部/用户管理/login_1'>登录</a>接口" +
                                 " 登录成功后返回AccessToken。 <br/>" +
                                 "2. 填写到AccessToken到参数值 <a href='/doc.html#/Authorize/1.%20全部'>Token配置</a>  <br/>" +
                                 "后续接口就可以直接测试了")
-                        .version("v3.1.0")
-                        .license(new License().name("Apache 2.0").url("http://springdoc.org")));
+                        .version("v3.1.0"));
     }
 
     /**

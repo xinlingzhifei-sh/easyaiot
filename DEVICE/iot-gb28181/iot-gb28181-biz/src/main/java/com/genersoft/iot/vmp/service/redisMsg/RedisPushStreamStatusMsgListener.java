@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 接收redis发送的推流设备上线下线通知
  *
- * @author lin
+ * @author liufei
  * 发送 PUBLISH VM_MSG_PUSH_STREAM_STATUS_CHANGE '{"setAllOffline":false,"offlineStreams":[{"app":"1000","stream":"10000022","timeStamp":1726729716551}]}'
  * 订阅 SUBSCRIBE VM_MSG_PUSH_STREAM_STATUS_CHANGE
  */

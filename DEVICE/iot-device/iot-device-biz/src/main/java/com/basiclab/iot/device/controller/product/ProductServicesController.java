@@ -20,8 +20,7 @@ import java.util.List;
 /**
  * (productServices)表控制层
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("/productServices")

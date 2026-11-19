@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * DeviceLocationServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class DeviceLocationServiceImpl extends ServiceImpl<DeviceLocationMapper, DeviceLocation> implements DeviceLocationService {

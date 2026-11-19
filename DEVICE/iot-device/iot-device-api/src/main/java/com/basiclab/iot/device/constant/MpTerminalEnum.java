@@ -3,8 +3,7 @@ package com.basiclab.iot.device.constant;
 import lombok.Getter;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc    终端枚举
  * @created 2025-06-24
  */

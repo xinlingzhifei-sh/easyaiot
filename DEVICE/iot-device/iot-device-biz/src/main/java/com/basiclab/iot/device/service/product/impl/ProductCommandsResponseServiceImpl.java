@@ -12,8 +12,7 @@ import com.basiclab.iot.device.service.product.ProductCommandsResponseService;
 /**
  * ProductCommandsResponseServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductCommandsResponseServiceImpl implements ProductCommandsResponseService {

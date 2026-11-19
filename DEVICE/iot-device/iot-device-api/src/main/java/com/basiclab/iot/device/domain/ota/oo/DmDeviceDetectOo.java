@@ -8,7 +8,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * @author zhangzhixiang on 2020/8/11
+ * @author liufei
  */
 @Data
 @ApiModel(value = "DmDeviceDetectOo对象", description = "设备检测升级Oo")

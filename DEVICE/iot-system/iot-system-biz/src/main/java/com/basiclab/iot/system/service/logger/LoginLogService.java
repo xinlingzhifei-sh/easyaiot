@@ -10,8 +10,7 @@ import javax.validation.Valid;
 /**
  * LoginLogService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface LoginLogService {
 

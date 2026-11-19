@@ -10,8 +10,7 @@ import java.net.URI;
  * class的文件JavaFileObject对象，用于存放JavaCompiler编译得到的Class二进制内容
  * </br>内容存在ByteArrayOutputStream中
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-07-04
  *
  */

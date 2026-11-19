@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * zlm hook事件的参数
- * @author lin
+ * @author liufei
  */
 @Data
 public class HookParam {

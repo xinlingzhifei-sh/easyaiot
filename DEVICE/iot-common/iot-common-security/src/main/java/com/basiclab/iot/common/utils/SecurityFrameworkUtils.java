@@ -18,8 +18,7 @@ import java.util.Collections;
 /**
  * 安全服务工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SecurityFrameworkUtils {
 

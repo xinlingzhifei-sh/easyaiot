@@ -8,8 +8,7 @@ import javax.validation.constraints.*;
 /**
  * DatasetTaskResultSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 标注任务结果新增/修改 Request VO")
 @Data

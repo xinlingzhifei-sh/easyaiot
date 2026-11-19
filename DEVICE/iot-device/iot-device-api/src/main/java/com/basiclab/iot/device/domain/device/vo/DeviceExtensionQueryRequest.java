@@ -10,8 +10,7 @@ import javax.validation.constraints.NotNull;
 /**
  * 设备扩展信息查询请求
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ApiModel("设备扩展信息查询请求")
 @Data

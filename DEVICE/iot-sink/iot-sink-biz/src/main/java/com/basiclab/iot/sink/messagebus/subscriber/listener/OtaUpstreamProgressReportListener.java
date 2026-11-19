@@ -13,8 +13,7 @@ import javax.annotation.Resource;
 /**
  * OtaUpstreamProgressReportListener
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

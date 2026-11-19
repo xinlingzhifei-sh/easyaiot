@@ -9,8 +9,7 @@ import java.util.Map;
 /**
  * MailLogRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮件日志 Response VO")
 @Data
@@ -25,13 +24,13 @@ public class MailLogRespVO {
     @Schema(description = "用户类型，参见 UserTypeEnum 枚举", example = "2")
     private Byte userType;
 
-    @Schema(description = "接收邮箱地址", example = "76854@qq.com")
+    @Schema(description = "接收邮箱地址", example = "user@example.com")
     private String toMail;
 
     @Schema(description = "邮箱账号编号", example = "18107")
     private Long accountId;
 
-    @Schema(description = "发送邮箱地址", example = "85757@qq.com")
+    @Schema(description = "发送邮箱地址", example = "user@example.com")
     private String fromMail;
 
     @Schema(description = "模板编号", example = "5678")

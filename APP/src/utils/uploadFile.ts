@@ -203,7 +203,7 @@ export function useUpload<T = string>(url: string, formData: Record<string, any>
   const checkFileSize = (size: number) => {
     const sizeInMB = size / 1024 / 1024
     if (sizeInMB > maxSize) {
-      // 注释 by 芋艿：使用 wd-toast 替代
+      // 使用 wd-toast 替代
       // uni.showToast({
       //   title: `文件大小不能超过${maxSize}MB`,
       //   icon: 'none',

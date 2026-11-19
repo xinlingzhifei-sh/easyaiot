@@ -9,10 +9,6 @@ import java.util.List;
  * AppPanelTemplateService
  *
  * App 控制面板模板：云端定制每个产品在 APP 内展示的控制页面
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public interface AppPanelTemplateService {
 

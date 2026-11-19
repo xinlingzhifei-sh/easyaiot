@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * DeviceTopicMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeviceTopicMapper extends BaseMapper<DeviceTopic> {

@@ -37,8 +37,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Minio 文件存储
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RefreshScope
 @Primary

@@ -10,8 +10,7 @@ import java.io.File;
 /**
  * Sftp 文件客户端
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SftpFileClient extends AbstractFileClient<SftpFileClientConfig> {
 

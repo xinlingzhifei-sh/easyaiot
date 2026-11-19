@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * DeviceLocationMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DeviceLocationMapper extends BaseMapper<DeviceLocation> {

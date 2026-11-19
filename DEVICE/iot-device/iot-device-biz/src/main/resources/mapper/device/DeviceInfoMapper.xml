@@ -614,7 +614,7 @@
         </trim>
     </insert>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-05-05-->
+    <!--Author: liufei on 2024-05-05-->
     <delete id="deleteByDeviceId">
         delete
         from device_info
@@ -625,7 +625,7 @@
         </where>
     </delete>
 
-    <!--Author By ShiHuan Sun  E-mail: 853017739@qq.com   on 2024-05-05-->
+    <!--Author: liufei on 2024-05-05-->
     <select id="findOneByDeviceId" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -853,7 +853,7 @@
         </foreach>
     </delete>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-06-27-->
+    <!--Author: liufei on 2024-06-27-->
     <select id="findAllByIdInAndStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -866,7 +866,7 @@
         and "status" = #{status,jdbcType=VARCHAR}
     </select>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-20-->
+    <!--Author: liufei on 2024-07-20-->
     <select id="findAllByIdIn" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -878,7 +878,7 @@
         </foreach>
     </select>
 
-    <!--Author  By ShiHuan Sun  E-mail: 853017739@qq.com on 2024-07-29-->
+    <!--Author: liufei on 2024-07-29-->
     <select id="findAllByStatus" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

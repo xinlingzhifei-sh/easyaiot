@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * DictDataMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DictDataMapper extends BaseMapperX<DictDataDO> {

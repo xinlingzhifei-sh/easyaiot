@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * IotSequentialController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RequestMapping("/sequential")
 @RestController

@@ -11,8 +11,7 @@ import javax.validation.constraints.NotNull;
 /**
  * CodegenColumnSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 public class CodegenColumnSaveReqVO {

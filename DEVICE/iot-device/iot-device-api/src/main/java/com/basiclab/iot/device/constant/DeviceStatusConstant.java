@@ -1,8 +1,7 @@
 package com.basiclab.iot.device.constant;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc
  * @created 2025-06-14
  */

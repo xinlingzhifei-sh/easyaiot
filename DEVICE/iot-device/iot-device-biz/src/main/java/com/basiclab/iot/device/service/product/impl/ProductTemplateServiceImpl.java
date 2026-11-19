@@ -23,8 +23,7 @@ import java.util.List;
 /**
  * ProductTemplateServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductTemplateServiceImpl implements ProductTemplateService {

@@ -12,8 +12,7 @@ import javax.validation.Valid;
 /**
  * 文件配置 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface FileConfigService {
 

@@ -15,8 +15,7 @@ import java.util.List;
 /**
  * ProductScriptInitializer
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

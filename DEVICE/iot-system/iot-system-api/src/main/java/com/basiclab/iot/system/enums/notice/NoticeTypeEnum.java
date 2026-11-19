@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * 通知类型
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

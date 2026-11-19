@@ -1,7 +1,6 @@
 """
 设备区域检测管理路由
-@author reese
-@email reese
+@author liufei
 """
 import logging
 import json

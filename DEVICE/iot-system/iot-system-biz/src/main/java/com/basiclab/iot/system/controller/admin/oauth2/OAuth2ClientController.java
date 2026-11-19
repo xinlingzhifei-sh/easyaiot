@@ -23,8 +23,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * OAuth2ClientController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - OAuth2 客户端")
 @RestController

@@ -3,8 +3,7 @@ package com.basiclab.iot.sink.messagebus.core;
 /**
  * IotMessageBus
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface IotMessageBus {
 

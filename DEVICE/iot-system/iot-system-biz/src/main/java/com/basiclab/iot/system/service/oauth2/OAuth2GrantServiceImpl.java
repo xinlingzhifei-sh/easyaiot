@@ -19,8 +19,7 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.except
 /**
  * OAuth2 授予 Service 实现类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class OAuth2GrantServiceImpl implements OAuth2GrantService {

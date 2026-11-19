@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * 邮件消息体
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-07-17
  */
 @Getter

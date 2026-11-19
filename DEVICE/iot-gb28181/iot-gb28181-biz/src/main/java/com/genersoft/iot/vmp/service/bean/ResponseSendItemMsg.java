@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 
 /**
  * redis消息：下级回复推送信息
- * @author lin
+ * @author liufei
  */
 public class ResponseSendItemMsg {
 

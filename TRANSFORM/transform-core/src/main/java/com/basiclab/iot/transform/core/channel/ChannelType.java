@@ -2,10 +2,6 @@ package com.basiclab.iot.transform.core.channel;
 
 /**
  * 对接渠道类型（按渠道拆分模块，而非按业务域）。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 public enum ChannelType {
 

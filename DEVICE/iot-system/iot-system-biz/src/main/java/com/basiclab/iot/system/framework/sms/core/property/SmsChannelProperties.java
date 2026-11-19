@@ -11,8 +11,7 @@ import javax.validation.constraints.NotNull;
 /**
  * SmsChannelProperties
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @Accessors(chain = true)

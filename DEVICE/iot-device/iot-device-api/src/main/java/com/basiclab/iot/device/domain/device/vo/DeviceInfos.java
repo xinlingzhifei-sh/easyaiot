@@ -4,8 +4,7 @@ import lombok.Data;
 
 /**
  * @Description:  边设备添加子设备详情数据模型
- * @author reese
- * @email reese
+ * @author liufei
  * @CreateDate: 2024/4/25$ 12:54$
  * @UpdateDate: 2024/4/25$ 12:54$
  * @Version: V1.0

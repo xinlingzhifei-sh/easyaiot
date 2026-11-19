@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 /**
  * 手机号
  *
- * @author gaibu
+ * @author liufei
  */
 @Documented
 @Target({ElementType.FIELD})

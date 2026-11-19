@@ -5,8 +5,7 @@ import com.basiclab.iot.sink.mq.message.IotDeviceMessage;
 /**
  * IotDownstreamMessageHandler
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface IotDownstreamMessageHandler {
 

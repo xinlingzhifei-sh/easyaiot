@@ -12,8 +12,7 @@ import com.basiclab.iot.device.service.product.ProductCommandsRequestsService;
 /**
  * ProductCommandsRequestsServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 public class ProductCommandsRequestsServiceImpl implements ProductCommandsRequestsService {

@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * AuthMenuRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 登录用户的菜单信息 Response VO")
 @Data
@@ -54,8 +53,7 @@ public class AuthMenuRespVO {
     /**
  * AuthMenuRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private List<AuthMenuRespVO> children;

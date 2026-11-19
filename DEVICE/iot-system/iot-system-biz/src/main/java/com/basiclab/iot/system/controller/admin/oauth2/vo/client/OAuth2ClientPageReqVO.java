@@ -9,8 +9,7 @@ import lombok.ToString;
 /**
  * OAuth2ClientPageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - OAuth2 客户端分页 Request VO")
 @Data

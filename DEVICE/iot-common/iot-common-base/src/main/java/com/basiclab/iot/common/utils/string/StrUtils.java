@@ -13,8 +13,7 @@ import java.util.stream.Collectors;
 /**
  * 字符串工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class StrUtils {
 

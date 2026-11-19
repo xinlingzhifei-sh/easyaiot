@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
  * 为什么实现 {@link TransPojo} 接口？
  * 因为使用 Easy-Trans TransType.SIMPLE 模式，集成 MyBatis Plus 查询
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 @Accessors(chain = true)

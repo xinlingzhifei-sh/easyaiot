@@ -27,8 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * {@link CodegenEngine} 的单元测试抽象基类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public abstract class CodegenEngineAbstractTest extends BaseMockitoUnitTest {
 
@@ -42,7 +41,7 @@ public abstract class CodegenEngineAbstractTest extends BaseMockitoUnitTest {
 
     @Spy
     protected CodegenProperties codegenProperties = new CodegenProperties()
-            .setBasePackage("cn.iocoder.Yudao");
+            .setBasePackage("com.example.demo");
 
     @BeforeEach
     public void setUp() {

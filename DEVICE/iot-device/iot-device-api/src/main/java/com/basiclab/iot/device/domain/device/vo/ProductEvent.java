@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 /**
  * ProductEvent
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @ApiModel(value = "产品事件模型")

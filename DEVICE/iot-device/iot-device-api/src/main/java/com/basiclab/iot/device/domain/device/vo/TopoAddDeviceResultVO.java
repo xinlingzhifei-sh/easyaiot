@@ -12,8 +12,7 @@ import java.util.List;
  * @program: yFeiEye
  * @description: 协议添加网关子设备响应信息
  * @packagename: com.basiclab.iot.device.vo.result
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2023-05-18 23:03
  **/
 @Data

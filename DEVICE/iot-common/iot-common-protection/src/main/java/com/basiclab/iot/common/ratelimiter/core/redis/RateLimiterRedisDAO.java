@@ -9,8 +9,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 限流 Redis Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @AllArgsConstructor
 public class RateLimiterRedisDAO {

@@ -12,8 +12,7 @@ import javax.annotation.Resource;
 /**
  * 针对 {@link MailSendMessage} 的消费者
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Slf4j

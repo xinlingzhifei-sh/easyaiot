@@ -9,8 +9,7 @@ import static com.basiclab.iot.common.web.core.util.WebFrameworkUtils.HEADER_TEN
 /**
  * Tenant 的 RequestInterceptor 实现类：Feign 请求时，将 {@link TenantContextHolder} 设置到 header 中，继续透传给被调用的服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TenantRequestInterceptor implements RequestInterceptor {
 

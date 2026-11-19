@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 /**
  * 数字的工具类，补全 {@link NumberUtil} 的功能
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class NumberUtils {
 

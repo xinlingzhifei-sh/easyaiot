@@ -7,8 +7,7 @@ import lombok.Getter;
  * @program: yFeiEye
  * @description: 设备Topic枚举
  * @packagename: com.basiclab.iot.common.core.enums
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2025-08-26 10:49
  **/
 @Getter

@@ -9,8 +9,7 @@ import java.util.List;
 /**
  * MailTemplateRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 邮件末班 Response VO")
 @Data
@@ -28,7 +27,7 @@ public class MailTemplateRespVO {
     @Schema(description = "发送的邮箱账号编号", example = "1")
     private Long accountId;
 
-    @Schema(description = "发送人名称", example = "芋头")
+    @Schema(description = "发送人名称", example = "张三")
     private String nickname;
 
     @Schema(description = "标题", example = "注册成功")

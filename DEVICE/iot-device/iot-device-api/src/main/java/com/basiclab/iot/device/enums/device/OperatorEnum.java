@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * 比较值
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-8-7
  */
 @Getter

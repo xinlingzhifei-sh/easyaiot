@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * @InterfaceDescription: 时序性数据库TdEngine服务
  * @InterfaceName: RemoteTdEngineService
- * @Author: iot
+ * @Author: liufei
  * @Date: 2021-12-31 10:57:16
  * @Version 1.0
  */
@@ -184,8 +184,7 @@ public interface RemoteTdEngineService {
      * @param selectDto 查询数据需要的入参的实体类
      * @return R
      * @MethodDescription 根据时间戳查询数据
-     * @author reese
-     * @email reese
+     * @author liufei
      * @date 2025/1/10 14:44
      */
     @PostMapping("/getDataByTimestamp")

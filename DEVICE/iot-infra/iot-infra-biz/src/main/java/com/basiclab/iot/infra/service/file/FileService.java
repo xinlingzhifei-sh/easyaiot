@@ -9,8 +9,7 @@ import com.basiclab.iot.infra.dal.dataobject.file.FileDO;
 /**
  * 文件 Service 接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface FileService {
 

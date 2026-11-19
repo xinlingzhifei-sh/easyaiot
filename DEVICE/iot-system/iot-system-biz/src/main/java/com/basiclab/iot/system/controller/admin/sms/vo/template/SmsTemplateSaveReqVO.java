@@ -8,8 +8,7 @@ import javax.validation.constraints.NotNull;
 /**
  * SmsTemplateSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 短信模板创建/修改 Request VO")
 @Data

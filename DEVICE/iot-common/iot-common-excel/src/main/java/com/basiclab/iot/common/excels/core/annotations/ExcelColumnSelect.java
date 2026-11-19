@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  *
  * 其中 {@link #dictType()} 和 {@link #functionName()} 二选一
  *
- * @author HUIHUI
+ * @author liufei
  */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)

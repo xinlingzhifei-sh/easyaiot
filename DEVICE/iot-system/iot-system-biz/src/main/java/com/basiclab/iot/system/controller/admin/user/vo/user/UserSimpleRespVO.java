@@ -14,8 +14,7 @@ public
 /**
  * UserSimpleRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 class UserSimpleRespVO {

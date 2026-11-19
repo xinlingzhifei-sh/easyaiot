@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * RemoteAppService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @FeignClient(contextId = "remoteAppService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteAppFallbackFactory.class)

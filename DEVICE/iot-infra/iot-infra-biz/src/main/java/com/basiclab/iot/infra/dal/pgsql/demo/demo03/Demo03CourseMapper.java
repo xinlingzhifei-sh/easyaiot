@@ -12,8 +12,7 @@ import java.util.List;
 /**
  * 学生课程 Mapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface Demo03CourseMapper extends BaseMapperX<Demo03CourseDO> {

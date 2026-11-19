@@ -11,8 +11,7 @@ import java.io.Serializable;
 /**
  * DeviceAlarmQo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

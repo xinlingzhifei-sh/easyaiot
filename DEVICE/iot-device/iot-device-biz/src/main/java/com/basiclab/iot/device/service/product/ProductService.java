@@ -13,8 +13,7 @@ import java.util.List;
 /**
  * ProductService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface ProductService {
 

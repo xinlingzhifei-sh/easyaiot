@@ -9,8 +9,7 @@ import java.util.Set;
 /**
  * 多租户配置
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @ConfigurationProperties(prefix = "iot.tenant")
 @Data

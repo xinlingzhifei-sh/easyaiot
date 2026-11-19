@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 /**
  * DatasetFrameTaskRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 视频流帧捕获任务 Response VO")
 @Data
@@ -47,7 +46,7 @@ public class DatasetFrameTaskRespVO extends BaseEntity {
     @ExcelProperty("设备ID")
     private String deviceId;
 
-    @Schema(description = "RTMP播放流地址", example = "https://www.iocoder.cn")
+    @Schema(description = "RTMP播放流地址", example = "https://www.example.com")
     @ExcelProperty("RTMP播放流地址")
     private String rtmpUrl;
 

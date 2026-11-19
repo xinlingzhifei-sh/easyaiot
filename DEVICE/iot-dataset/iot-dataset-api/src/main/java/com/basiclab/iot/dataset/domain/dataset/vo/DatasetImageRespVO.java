@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 /**
  * DatasetImageRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 图片数据集 Response VO")
 @Data

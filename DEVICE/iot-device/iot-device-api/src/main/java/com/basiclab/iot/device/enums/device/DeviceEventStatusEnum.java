@@ -13,8 +13,7 @@ import java.util.stream.Stream;
  * 设备动作状态 枚举
  * </p>
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2023-08-20
  */
 @Getter

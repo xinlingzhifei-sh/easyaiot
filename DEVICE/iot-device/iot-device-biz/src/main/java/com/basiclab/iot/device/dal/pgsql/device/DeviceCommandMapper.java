@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
  * ${DESCRIPTION}
  * -----------------------------------------------------------------------------
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @version 1.0
  * -----------------------------------------------------------------------------
  * Revision History:
@@ -20,7 +19,6 @@ import org.apache.ibatis.annotations.Mapper;
  * --------      --------     -------   --------------------
  * 2024/4/17       basiclab        1.0        Initial creation
  * -----------------------------------------------------------------------------
- * @email ${EMAIL}
  * @date 2025/4/17 22:02
  */
 @Mapper

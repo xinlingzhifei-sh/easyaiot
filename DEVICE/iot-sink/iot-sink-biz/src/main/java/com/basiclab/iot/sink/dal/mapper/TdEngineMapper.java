@@ -9,8 +9,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * TdEngineMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Mapper

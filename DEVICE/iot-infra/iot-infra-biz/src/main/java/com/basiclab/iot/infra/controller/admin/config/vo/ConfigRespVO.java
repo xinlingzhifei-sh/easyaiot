@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 /**
  * ConfigRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 参数配置信息 Response VO")
 @Data
@@ -33,7 +32,7 @@ public class ConfigRespVO {
     @ExcelProperty("参数名称")
     private String name;
 
-    @Schema(description = "参数键名", example = "yunai.db.username")
+    @Schema(description = "参数键名", example = "demo.db.username")
     @ExcelProperty("参数键名")
     private String key;
 

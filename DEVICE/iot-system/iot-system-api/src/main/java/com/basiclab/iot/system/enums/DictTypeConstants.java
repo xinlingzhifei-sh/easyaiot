@@ -3,8 +3,7 @@ package com.basiclab.iot.system.enums;
 /**
  * System 字典类型的枚举类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DictTypeConstants {
 

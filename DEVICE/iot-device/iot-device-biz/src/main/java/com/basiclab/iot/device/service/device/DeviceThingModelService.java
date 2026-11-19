@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * DeviceThingModelService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceThingModelService {
     /**

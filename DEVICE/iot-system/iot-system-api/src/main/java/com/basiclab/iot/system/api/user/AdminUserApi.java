@@ -62,8 +62,7 @@ public interface AdminUserApi extends AutoTransable<AdminUserRespDTO> {
     /**
  * AdminUserApi
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 default Map<Long, AdminUserRespDTO> getUserMap(Collection<Long> ids) {

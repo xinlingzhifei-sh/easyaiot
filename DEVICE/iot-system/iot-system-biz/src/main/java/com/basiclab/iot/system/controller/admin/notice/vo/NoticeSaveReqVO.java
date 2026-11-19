@@ -10,8 +10,7 @@ import javax.validation.constraints.Size;
 /**
  * NoticeSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 通知公告创建/修改 Request VO")
 @Data

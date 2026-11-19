@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * 平台关联通道管理
- * @author lin
+ * @author liufei
  */
 public interface IPlatformChannelService {
 

@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * CodegenDetailRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 代码生成表和字段的明细 Response VO")
 @Data

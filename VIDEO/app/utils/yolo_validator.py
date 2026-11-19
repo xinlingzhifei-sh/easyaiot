@@ -1,10 +1,6 @@
 """
 YOLO模型版本验证工具
 使用ultralytics库判断YOLO模型是版本8还是版本11
-
-@author 翱翔的雄库鲁
-@email andywebjava@163.com
-@wechat EasyAIoT2025
 """
 import os
 from typing import Optional, Tuple

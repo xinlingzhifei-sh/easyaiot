@@ -9,8 +9,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * 异步@Async多线程自定义拒绝策略
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Component
 @Slf4j

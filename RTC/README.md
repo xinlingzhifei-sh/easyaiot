@@ -217,8 +217,3 @@ bash RTC/install_linux.sh vendor
 - **Tuya**：不支持 Smart Life 账号，需 Tuya Smart App
 - **Nest**：需 Google Device Access 付费 API
 - **安全**：生产环境请配置 `GO2RTC_USERNAME` / `GO2RTC_PASSWORD`
-
-## 许可证
-
-- RTC 封装层：遵循 yFeiEye 项目许可
-- go2rtc：MIT License（[AlexxIT/go2rtc](https://github.com/AlexxIT/go2rtc)）

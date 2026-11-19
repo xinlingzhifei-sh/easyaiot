@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 /**    
  * @description:spring bean获取工厂，获取spring中的已初始化的bean
- * @author: swwheihei
+ * @author: liufei
  * @date:   2019年6月25日 下午4:51:52   
  * 
  */

@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 /**
  *  Request Body 缓存 Wrapper
  *
- * @author reese
+ * @author liufei
  */
 public class CacheRequestBodyWrapper extends HttpServletRequestWrapper {
 

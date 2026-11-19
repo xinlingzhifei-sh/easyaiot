@@ -15,8 +15,7 @@ import java.util.List;
  * @program: yFeiEye
  * @description: 设备操作结果数据模型
  * @packagename: com.basiclab.iot.device.vo.result
- * @author reese
- * @email reese
+ * @author liufei
  * @date: 2023-05-22 14:17
  **/
 @Data

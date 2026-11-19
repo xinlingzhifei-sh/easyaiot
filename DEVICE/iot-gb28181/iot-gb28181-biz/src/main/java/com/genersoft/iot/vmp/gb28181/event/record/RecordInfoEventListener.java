@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @description: 录像查询结束事件
- * @author: pan
+ * @author: liufei
  * @data: 2022-02-23
  */
 @Slf4j

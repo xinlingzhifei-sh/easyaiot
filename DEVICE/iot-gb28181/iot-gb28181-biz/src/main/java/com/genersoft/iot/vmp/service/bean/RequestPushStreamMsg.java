@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpInfo;
 
 /**
  * redis消息：请求下级推送流信息
- * @author lin
+ * @author liufei
  */
 public class RequestPushStreamMsg {
 

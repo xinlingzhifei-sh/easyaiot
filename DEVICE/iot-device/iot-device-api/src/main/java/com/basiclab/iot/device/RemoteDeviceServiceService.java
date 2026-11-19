@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
- * @author reese
- * @email reese
+ * @author liufei
  * @desc    设备服务记录
  * @created 2025-06-17
  */

@@ -16,15 +16,9 @@ hero:
     - theme: alt
       text: 常见问题
       link: /base/14-faq
-    - theme: brand
-      text: 🥤 打赏
-      link: /advanced/rewards/rewards
     - theme: alt
       text: ⭐ 优秀案例
       link: /advanced/showcase/showcase
-    - theme: alt
-      text: 演示DEMO
-      link: https://feige996.github.io/hello-unibest/
 
 features:
   - icon: 🔥
@@ -89,7 +83,4 @@ features:
   <span id="busuanzi_container_page_pv">
   本文总阅读量<span id="busuanzi_value_page_pv"></span>次
   </span>
-</div>
-<div class="icp_container">
-<a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2024160998号</a>
 </div>

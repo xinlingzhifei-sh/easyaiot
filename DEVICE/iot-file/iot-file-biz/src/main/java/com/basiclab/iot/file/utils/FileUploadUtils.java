@@ -16,8 +16,7 @@ import java.io.IOException;
 /**
  * 文件上传工具类
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileUploadUtils {
     /**

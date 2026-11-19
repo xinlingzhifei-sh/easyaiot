@@ -20,8 +20,7 @@ import java.util.Map;
  * 
  * 注意：告警存储和图片上传已移到iot-sink服务处理
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Slf4j
 @Component

@@ -9,10 +9,6 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 
 /**
  * SecurityConfiguration
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Configuration(proxyBeanMethods = false, value = "visualizeSecurityConfiguration")
 public class SecurityConfiguration {

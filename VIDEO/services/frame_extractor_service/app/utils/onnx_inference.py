@@ -2,8 +2,7 @@
 ONNX推理模块
 基于yolov8_detect_onnx.py的ONNX推理逻辑
 
-@author reese
-@email reese
+@author liufei
 """
 import os
 # 在导入onnxruntime之前设置环境变量，强制使用CPU执行提供者

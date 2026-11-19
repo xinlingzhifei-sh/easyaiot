@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 /**
  * NoticeRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 通知公告信息 Response VO")
 @Data

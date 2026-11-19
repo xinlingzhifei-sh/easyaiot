@@ -8,10 +8,6 @@ import java.util.Set;
 
 /**
  * Group 成员视图：实例加入/离开后的自感知记录（权威状态在 Kafka consumer group / 协调层）。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @Builder

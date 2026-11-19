@@ -5,7 +5,7 @@ import com.basiclab.iot.common.desensitize.core.regex.annotation.RegexDesensitiz
 /**
  * {@link RegexDesensitize} 的正则脱敏处理器
  *
- * @author gaibu
+ * @author liufei
  */
 public class DefaultRegexDesensitizationHandler extends AbstractRegexDesensitizationHandler<RegexDesensitize> {
 

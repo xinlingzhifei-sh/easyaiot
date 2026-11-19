@@ -3,8 +3,7 @@ package com.basiclab.iot.common.enums;
 /**
  * 用户状态
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public enum UserStatus
 {

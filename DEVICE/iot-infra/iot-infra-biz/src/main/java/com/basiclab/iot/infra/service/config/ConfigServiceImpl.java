@@ -21,8 +21,7 @@ import static com.basiclab.iot.common.exception.util.ServiceExceptionUtil.except
 /**
  * ConfigServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Service
 @Slf4j

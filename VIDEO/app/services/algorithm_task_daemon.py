@@ -2,8 +2,7 @@
 算法任务守护进程
 用于管理算法任务服务进程，支持自动重启
 
-@author reese
-@email reese
+@author liufei
 """
 import json
 import subprocess as sp

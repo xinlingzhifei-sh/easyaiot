@@ -3,8 +3,7 @@ package com.basiclab.iot.tdengine.constant;
 /**
  * TDEngine 超级表类型常量
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class SuperTableTypeConstant {
     

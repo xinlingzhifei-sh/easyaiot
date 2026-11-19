@@ -17,8 +17,7 @@ import java.util.Set;
 /**
  * UserSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 用户创建/修改 Request VO")
 @Data
@@ -51,13 +50,13 @@ public class UserSaveReqVO {
     @DiffLogField(name = "岗位", function = PostParseFunction.NAME)
     private Set<Long> postIds;
 
-    @Schema(description = "用户邮箱", example = "Yudao@iocoder.cn")
+    @Schema(description = "用户邮箱", example = "user@example.com")
     @Email(message = "邮箱格式不正确")
     @Size(max = 50, message = "邮箱长度不能超过 50 个字符")
     @DiffLogField(name = "用户邮箱")
     private String email;
 
-    @Schema(description = "手机号码", example = "15601691300")
+    @Schema(description = "手机号码", example = "13800000000")
     @Mobile
     @DiffLogField(name = "手机号码")
     private String mobile;
@@ -66,7 +65,7 @@ public class UserSaveReqVO {
     @DiffLogField(name = "用户性别", function = SexParseFunction.NAME)
     private Integer sex;
 
-    @Schema(description = "用户头像", example = "https://www.iocoder.cn/xxx.png")
+    @Schema(description = "用户头像", example = "https://www.example.com/xxx.png")
     @DiffLogField(name = "用户头像")
     private String avatar;
 

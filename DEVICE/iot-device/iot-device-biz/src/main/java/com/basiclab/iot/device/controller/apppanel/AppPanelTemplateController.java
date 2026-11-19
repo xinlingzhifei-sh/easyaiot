@@ -22,10 +22,6 @@ import java.util.List;
  *
  * App 控制面板模板管理：云端定制每个产品在 APP 内展示的控制页面，
  * 模板绑定产品并发布后，APP 端通过 get-by-product 接口拉取并动态渲染控制页。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Tag(name = "App控制面板模板")
 @RestController

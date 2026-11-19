@@ -1,9 +1,3 @@
-//
-//  server_and_client.cc
-//
-//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
-//
-
 #include <httplib.h>
 #include <iostream>
 #include <string>

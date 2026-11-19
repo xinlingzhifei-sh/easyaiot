@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf.exception;
 
 /**
- * @author lin
+ * @author liufei
  */
 public class SsrcTransactionNotFoundException extends Exception{
     private String deviceId;

@@ -32,8 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * {@link DeptDataPermissionRule} 的单元测试
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 class DeptDataPermissionRuleTest extends BaseMockitoUnitTest {
 

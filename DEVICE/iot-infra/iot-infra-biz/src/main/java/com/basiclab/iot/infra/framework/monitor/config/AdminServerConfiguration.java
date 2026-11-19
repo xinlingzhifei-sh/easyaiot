@@ -6,8 +6,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * AdminServerConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 @EnableAdminServer

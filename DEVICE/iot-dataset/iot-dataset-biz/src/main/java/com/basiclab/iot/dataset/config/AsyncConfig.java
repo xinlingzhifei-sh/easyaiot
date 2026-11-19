@@ -11,8 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * AsyncConfig
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Configuration

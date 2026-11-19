@@ -26,8 +26,7 @@ import java.util.Map;
  * 脚本只能调用显式加入白名单的编解码方法，禁止宿主类查找、IO、进程、
  * 线程、环境变量和 Polyglot 跨语言访问。
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public final class JsEngine {
 

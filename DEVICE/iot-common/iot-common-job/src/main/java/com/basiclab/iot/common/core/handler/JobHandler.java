@@ -3,8 +3,7 @@ package com.basiclab.iot.common.core.handler;
 /**
  * 任务处理器
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface JobHandler {
 

@@ -7,8 +7,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * RpcConfiguration
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration(proxyBeanMethods = false)
 @EnableFeignClients(clients = AdminUserApi.class)

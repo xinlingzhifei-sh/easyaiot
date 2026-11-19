@@ -8,7 +8,7 @@ import lombok.Data;
 
 /**
  * 缓存语音广播的状态
- * @author lin
+ * @author liufei
  */
 @Data
 public class AudioBroadcastCatch {

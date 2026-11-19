@@ -17,8 +17,7 @@ import org.springframework.stereotype.Component;
 /**
  * 飞书消息发送器
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @since 2024-12-04
  */
 @Slf4j

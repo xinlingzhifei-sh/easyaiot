@@ -6,8 +6,7 @@ import lombok.Getter;
 /**
  * 性别的枚举值
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Getter
 @AllArgsConstructor

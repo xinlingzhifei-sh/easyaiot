@@ -1,11 +1,5 @@
 # 相关链接
 
-## Unibest Demo 分支演示地址
-
-- [演示地址](https://feige996.github.io/hello-unibest/#/)
-- [仓库地址-github](https://github.com/feige996/hello-unibest)
-- [仓库地址-gitee](https://gitee.com/feige996/hello-unibest)
-
 ## UI 组件库
 
 - [wot-ui](https://wot-ui.cn) -- `五星推荐⭐⭐⭐⭐⭐，unibest默认内置`

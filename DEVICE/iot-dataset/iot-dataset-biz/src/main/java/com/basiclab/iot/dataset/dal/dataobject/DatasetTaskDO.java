@@ -11,8 +11,7 @@ import com.basiclab.iot.common.core.dataobject.BaseDO;
 /**
  * 标注任务 DO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @TableName("dataset_task")
 @KeySequence("dataset_task_id_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。

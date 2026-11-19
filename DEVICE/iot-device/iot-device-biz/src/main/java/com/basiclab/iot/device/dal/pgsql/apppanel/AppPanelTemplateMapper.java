@@ -7,10 +7,6 @@ import org.apache.ibatis.annotations.Param;
 
 /**
  * AppPanelTemplateMapper
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Mapper
 public interface AppPanelTemplateMapper extends BaseMapper<AppPanelTemplateDO> {

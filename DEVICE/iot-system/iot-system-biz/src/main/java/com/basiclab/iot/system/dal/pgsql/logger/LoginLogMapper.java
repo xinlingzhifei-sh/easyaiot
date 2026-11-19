@@ -11,8 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * LoginLogMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface LoginLogMapper extends BaseMapperX<LoginLogDO> {

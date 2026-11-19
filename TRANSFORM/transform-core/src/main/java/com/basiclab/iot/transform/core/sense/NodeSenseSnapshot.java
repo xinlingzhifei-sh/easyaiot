@@ -5,10 +5,6 @@ import lombok.Data;
 
 /**
  * 节点自感知快照：运行时周期性采集，驱动自适应扩缩与分片认领。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @Builder

@@ -95,8 +95,7 @@ Name:           ${PKG_NAME}
 Version:        ${VERSION}
 Release:        ${RELEASE}.${DIST_TAG}
 Summary:        yFeiEye platform ops console (PANEL) for openEuler
-License:        Apache-2.0
-URL:            https://github.com/xinlingzhifei/easyaiot
+License:        Proprietary
 BuildArch:      ${ARCH}
 Requires:       systemd
 

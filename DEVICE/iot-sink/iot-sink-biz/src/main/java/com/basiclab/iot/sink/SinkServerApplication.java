@@ -19,8 +19,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 /**
  * SinkServerApplication
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

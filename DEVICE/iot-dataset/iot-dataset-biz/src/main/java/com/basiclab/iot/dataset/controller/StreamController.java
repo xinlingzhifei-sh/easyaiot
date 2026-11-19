@@ -12,8 +12,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * StreamController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @RestController
 @RequestMapping("/dataset/streams")

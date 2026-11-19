@@ -26,7 +26,7 @@ import static com.basiclab.iot.common.exception.GlobalErrorStatus.BAD_REQUEST;
 /**
  * 拦截声明了 {@link ApiSignature} 注解的方法，实现签名
  *
- * @author Zhougang
+ * @author liufei
  */
 @Aspect
 @Slf4j

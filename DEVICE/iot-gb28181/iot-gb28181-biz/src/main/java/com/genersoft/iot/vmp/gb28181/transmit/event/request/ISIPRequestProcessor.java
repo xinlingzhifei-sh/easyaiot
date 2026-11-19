@@ -4,7 +4,7 @@ import javax.sip.RequestEvent;
 
 /**
  * @description: 对SIP事件进行处理，包括request， response， timeout， ioException, transactionTerminated,dialogTerminated
- * @author: panlinlin
+ * @author: liufei
  * @date:   2021年11月5日 15：47
  */
 public interface ISIPRequestProcessor {

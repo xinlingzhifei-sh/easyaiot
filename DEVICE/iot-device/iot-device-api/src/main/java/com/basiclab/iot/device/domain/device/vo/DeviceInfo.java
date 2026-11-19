@@ -15,10 +15,7 @@ import java.time.LocalDateTime;
 
 /**
 * @Description: 子设备档案表
-* @author reese
-* @email reese
-* @E-mail: reese
-* @Website: https://gitee.com/reese/yfeieye
+* @author liufei
 * @CreateDate: 2024/4/25$ 12:48$
 * @UpdateDate: 2024/4/25$ 12:48$
 * @UpdateRemark: 修改内容

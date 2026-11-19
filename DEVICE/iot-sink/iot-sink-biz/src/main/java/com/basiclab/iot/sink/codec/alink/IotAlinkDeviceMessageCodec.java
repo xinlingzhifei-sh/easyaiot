@@ -13,8 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * IotAlinkDeviceMessageCodec
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Component

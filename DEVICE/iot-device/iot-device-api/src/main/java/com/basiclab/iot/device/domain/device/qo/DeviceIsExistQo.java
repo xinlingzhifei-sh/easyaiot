@@ -9,8 +9,7 @@ import java.io.Serializable;
 /**
  * DeviceIsExistQo
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Data

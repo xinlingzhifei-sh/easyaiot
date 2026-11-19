@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * DeviceTopicService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface DeviceTopicService extends IService<DeviceTopic> {
 

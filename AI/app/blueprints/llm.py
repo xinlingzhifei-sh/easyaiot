@@ -1,6 +1,5 @@
 """
-@author reese
-@email reese
+@author liufei
 
 大模型配置中心与能力接口。
 

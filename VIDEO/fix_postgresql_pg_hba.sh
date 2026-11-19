@@ -10,8 +10,7 @@
 #     --check-only    仅检查配置，不进行修改
 #     --force         强制重新添加配置（即使已存在）
 #
-# @author reese
-# @email reese
+# @author liufei
 
 # 不使用 set -e，以便更好地处理错误
 set -o pipefail

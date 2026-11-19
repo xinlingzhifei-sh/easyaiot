@@ -6,14 +6,13 @@ import lombok.Data;
 /**
  * CodegenPreviewRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 代码生成预览 Response VO，注意，每个文件都是一个该对象")
 @Data
 public class CodegenPreviewRespVO {
 
-    @Schema(description = "文件路径", example = "java/cn/iocoder/Yudao/adminserver/modules/system/controller/test/SysTestDemoController.java")
+    @Schema(description = "文件路径", example = "java/com/example/demo/adminserver/modules/system/controller/test/SysTestDemoController.java")
     private String filePath;
 
     @Schema(description = "代码", example = "Hello World")

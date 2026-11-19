@@ -8,8 +8,7 @@ import javax.validation.constraints.NotNull;
 /**
  * DatasetImageSaveReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 图片数据集新增/修改 Request VO")
 @Data

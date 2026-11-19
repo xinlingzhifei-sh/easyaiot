@@ -22,8 +22,7 @@ import static com.basiclab.iot.common.domain.CommonResult.success;
 /**
  * SmsCallbackController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Tag(name = "管理后台 - 短信回调")
 @RestController

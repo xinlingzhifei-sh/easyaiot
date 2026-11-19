@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * MailAccountService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface MailAccountService {
 

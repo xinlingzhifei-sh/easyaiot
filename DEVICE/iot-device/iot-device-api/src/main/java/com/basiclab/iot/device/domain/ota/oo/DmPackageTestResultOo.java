@@ -9,10 +9,6 @@ import java.io.Serializable;
 
 /**
  * 测试结果上报
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmPackageTestResultOo对象", description = "版本包测试结果Oo")

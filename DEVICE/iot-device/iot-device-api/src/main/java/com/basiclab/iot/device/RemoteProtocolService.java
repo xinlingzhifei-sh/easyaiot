@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * RemoteProtocolService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteProtocolService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteProtocolFallbackFactory.class)
 public interface RemoteProtocolService {

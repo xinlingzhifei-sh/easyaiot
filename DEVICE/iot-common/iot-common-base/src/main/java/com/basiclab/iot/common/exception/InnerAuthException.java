@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception;
 /**
  * 内部认证异常
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class InnerAuthException extends RuntimeException
 {

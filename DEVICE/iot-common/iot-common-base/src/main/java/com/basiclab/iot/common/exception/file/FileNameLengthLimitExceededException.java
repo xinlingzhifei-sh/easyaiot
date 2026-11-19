@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception.file;
 /**
  * 文件名称超长限制异常类
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FileNameLengthLimitExceededException extends FileException
 {

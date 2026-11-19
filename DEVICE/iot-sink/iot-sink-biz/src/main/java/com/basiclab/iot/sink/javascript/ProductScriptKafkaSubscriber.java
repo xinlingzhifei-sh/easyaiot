@@ -16,8 +16,7 @@ import javax.script.ScriptException;
 /**
  * ProductScriptKafkaSubscriber
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

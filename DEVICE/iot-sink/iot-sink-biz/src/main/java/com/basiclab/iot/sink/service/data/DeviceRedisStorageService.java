@@ -19,8 +19,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * DeviceRedisStorageService
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Slf4j

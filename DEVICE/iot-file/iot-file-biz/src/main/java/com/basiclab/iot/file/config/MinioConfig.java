@@ -16,8 +16,7 @@ import javax.annotation.PostConstruct;
 /**
  * Minio 配置信息
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Configuration
 @ConfigurationProperties(prefix = "minio")

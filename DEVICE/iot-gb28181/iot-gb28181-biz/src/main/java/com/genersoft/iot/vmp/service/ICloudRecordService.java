@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * 云端录像管理
- * @author lin
+ * @author liufei
  */
 public interface ICloudRecordService {
 

@@ -45,7 +45,7 @@ import java.util.UUID;
 
 
 /**
- * @author lin
+ * @author liufei
  */
 @Tag(name  = "国标设备点播")
 @Slf4j

@@ -11,7 +11,7 @@ import java.util.Map;
 @Data
 public class MailTemplateSendReqVO {
 
-    @Schema(description = "接收邮箱", example = "7685413@qq.com")
+    @Schema(description = "接收邮箱", example = "user@example.com")
     @NotEmpty(message = "接收邮箱不能为空")
     private String mail;
 

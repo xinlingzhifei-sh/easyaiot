@@ -11,7 +11,7 @@ import java.util.List;
  * 为什么要赋值粘贴到 iot-common 包下？
  * 因为 AutoTransable 属于 easy-trans-service 下，无法方便的在 iot-module-xxx-api 模块下使用
  *
- * @author jackwang
+ * @author liufei
  * @since  2020-05-19 10:26:15
  */
 public interface AutoTransable<V extends VO> {

@@ -7,8 +7,7 @@ import com.basiclab.iot.common.domain.PageParam;
 /**
  * WarehousePageReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 数据仓分页 Request VO")
 @Data

@@ -29,8 +29,7 @@ import java.util.Map;
 /**
  * IotDeviceMessageServiceImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Service

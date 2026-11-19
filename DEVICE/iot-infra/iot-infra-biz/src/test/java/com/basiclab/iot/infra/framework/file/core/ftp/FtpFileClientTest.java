@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * FtpFileClientTest
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class FtpFileClientTest {
 

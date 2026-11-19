@@ -9,8 +9,7 @@ import java.util.Map;
 /**
  * 告警通知消息DTO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class AlertNotificationMessage {

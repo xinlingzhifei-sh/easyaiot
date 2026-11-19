@@ -12,8 +12,7 @@ import java.util.Set;
 /**
  * AuthPermissionInfoRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 登录用户的权限信息 Response VO，额外包括用户信息和角色列表")
 @Data
@@ -47,7 +46,7 @@ public class AuthPermissionInfoRespVO {
         @Schema(description = "用户昵称", example = "yFeiEye")
         private String nickname;
 
-        @Schema(description = "用户头像", example = "https://www.iocoder.cn/xx.jpg")
+        @Schema(description = "用户头像", example = "https://www.example.com/xx.jpg")
         private String avatar;
 
         @Schema(description = "部门编号", example = "2048")
@@ -95,8 +94,7 @@ public class AuthPermissionInfoRespVO {
         /**
  * AuthPermissionInfoRespVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 private List<MenuVO> children;

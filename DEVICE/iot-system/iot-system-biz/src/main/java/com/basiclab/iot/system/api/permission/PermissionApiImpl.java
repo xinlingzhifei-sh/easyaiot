@@ -17,8 +17,7 @@ import static com
 /**
  * PermissionApiImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 .basiclab.iot.common.domain.CommonResult.success;

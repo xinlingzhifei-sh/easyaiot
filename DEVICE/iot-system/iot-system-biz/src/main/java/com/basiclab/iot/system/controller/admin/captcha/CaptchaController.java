@@ -19,8 +19,7 @@ import javax.servlet.http
 /**
  * CaptchaController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 .HttpServletRequest;

@@ -12,10 +12,6 @@ import java.util.List;
 
 /**
  * 默认消费链：归一化后 fan-out 到已启用的投递渠道（HTTP / Party 等）。
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Slf4j
 @Component

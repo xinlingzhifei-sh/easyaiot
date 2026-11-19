@@ -18,8 +18,7 @@ import java.util.Map;
 /**
  * 设备管理服务
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @FeignClient(contextId = "remoteDeviceService", value = ServiceNameConstants.IOT_DEVICE, fallbackFactory = RemoteDeviceFallbackFactory.class)
 public interface RemoteDeviceService {

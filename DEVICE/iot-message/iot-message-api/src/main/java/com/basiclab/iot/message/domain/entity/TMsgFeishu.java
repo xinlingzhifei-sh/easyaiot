@@ -8,8 +8,7 @@ import java.util.Date;
 /**
  * 飞书消息实体
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Data
 public class TMsgFeishu implements Serializable {

@@ -22,8 +22,7 @@ import java.util.List;
 /**
  * DeviceThingModelController
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 
 @Tag(name  = "设备运行状态管理")

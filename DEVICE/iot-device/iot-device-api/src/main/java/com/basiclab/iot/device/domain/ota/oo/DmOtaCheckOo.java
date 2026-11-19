@@ -10,10 +10,6 @@ import java.util.List;
 
 /**
  * 设备检测升级（统一出入口：一次携带四类包当前版本，返回全部待升级项）
- *
- * @author 翱翔的雄库鲁
- * @email andywebjava@163.com
- * @wechat EasyAIoT2025
  */
 @Data
 @ApiModel(value = "DmOtaCheckOo对象", description = "设备检测升级Oo")

@@ -3,8 +3,7 @@ package com.basiclab.iot.common.core;
 /**
  * 可生成 Int 数组的接口
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface IntArrayValuable {
 

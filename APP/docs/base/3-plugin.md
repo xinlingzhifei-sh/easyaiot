@@ -15,7 +15,7 @@
 </route>
 
 <template>
-  <view class="text-green-500">菲鸽，你好，我喜欢你！</view>
+  <view class="text-green-500">你好！</view>
 </template>
 ```
 

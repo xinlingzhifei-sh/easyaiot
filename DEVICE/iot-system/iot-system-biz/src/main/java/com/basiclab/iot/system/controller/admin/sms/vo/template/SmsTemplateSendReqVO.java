@@ -9,14 +9,13 @@ import java.util.Map;
 /**
  * SmsTemplateSendReqVO
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Schema(description = "管理后台 - 短信模板的发送 Request VO")
 @Data
 public class SmsTemplateSendReqVO {
 
-    @Schema(description = "手机号", example = "15601691300")
+    @Schema(description = "手机号", example = "13800000000")
     @NotNull(message = "手机号不能为空")
     private String mobile;
 

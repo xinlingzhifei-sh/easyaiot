@@ -3,8 +3,7 @@ package com.basiclab.iot.common.exception;
 /**
  * 检查异常
  * 
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class CheckedException extends RuntimeException
 {

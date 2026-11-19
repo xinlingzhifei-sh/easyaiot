@@ -15,8 +15,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * SmsClientFactoryImpl
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Validated
 @Slf4j

@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 /**
  * DictTypeMapper
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 @Mapper
 public interface DictTypeMapper extends BaseMapperX<DictTypeDO> {

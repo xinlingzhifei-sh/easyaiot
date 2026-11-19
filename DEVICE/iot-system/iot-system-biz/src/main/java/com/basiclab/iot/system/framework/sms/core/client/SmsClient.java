@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * SmsClient
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public interface SmsClient {
 

@@ -1,6 +1,3 @@
-/**
-  * Copyright 2021 json.cn
-  */
 package com.basiclab.iot.device.domain.product.model;
 
 import lombok.Data;
@@ -8,8 +5,7 @@ import lombok.Data;
 /**
  * 产品模型服务属性详情对象 Properties
  *
- * @author reese
- * @email reese
+ * @author liufei
  * @date 2025-12-23
  */
 @Data

@@ -29,8 +29,7 @@ import static com.basiclab.iot.common.utils.date.DateUtils.TIME_ZONE_DEFAULT;
 /**
  * TencentSmsClient
  *
- * @author reese
- * @email reese
+ * @author liufei
  */
 public class TencentSmsClient extends AbstractSmsClient {
 
